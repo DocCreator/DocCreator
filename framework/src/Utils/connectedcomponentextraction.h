@@ -53,12 +53,12 @@ private:
   static int getLabelOfPixel(
     const std::vector<LabelledPixel *> &listLabelledPixels,
     cv::Point p);
-  static QMap<int, std::vector<int>> getScanlines(const CC &cc,
+  static QMap<int, std::vector<int> > getScanlines(const CC &cc,
                                                   int min_X,
                                                   int max_X,
                                                   int min_Y,
                                                   int max_Y);
-  static QMap<int, std::vector<int>> getScanlinesB(const CC &cc);
+  static QMap<int, std::vector<int> > getScanlinesB(const CC &cc);
   static void updatePixelLabel(std::vector<LabelledPixel *> listLabelledPixels,
                                cv::Point p,
                                int newLabel);
