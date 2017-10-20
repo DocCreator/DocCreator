@@ -3,6 +3,7 @@
 
 #include "framework_global.h"
 #include <QMap>
+#include <QString>
 
 namespace Models {
 class Character;

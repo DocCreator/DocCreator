@@ -3,6 +3,7 @@
 
 #define NOMINMAX //for Visual
 #include <QObject>
+#include <QStringList>
 
 class RandomDocumentParameters : public QObject
 {

@@ -2,6 +2,7 @@
 #define BACKGROUNDCONTEXT_H
 
 #include <QList>
+#include <QString>
 #include <framework_global.h>
 #include <patterns/observable.h>
 #include <patterns/singleton.h>

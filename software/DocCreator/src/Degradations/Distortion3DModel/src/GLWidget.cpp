@@ -171,7 +171,7 @@ GLWidget::printGLInfos()
             << std::endl;
 
 #if QT_VERSION < 0x050400
-  QGLFormat format = *(context()->format());
+  QGLFormat format = context()->format();
   std::string profileStr =
     ((format.profile() == QGLFormat::CoreProfile)
        ? "Core"
