@@ -139,7 +139,7 @@ jobs:
   
     ###
     - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
-      os: osx
+      os: osx #uses OS X 10.11.6 & Xcode 7.3.1
       compiler: clang
 
       before_install:
@@ -156,7 +156,7 @@ jobs:
     ###
     - stage: Mac OS, recent clang, Qt5 & OpenCV from brew, Release
       os: osx
-      osx_image: xcode9
+      osx_image: xcode9.1  #OS X 10.12 & Xcode 9.1
       compiler: clang
 
       before_install:
