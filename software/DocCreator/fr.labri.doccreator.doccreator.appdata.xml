@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop">
+  <id>fr.labri.doccreator.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LGPL-3.0</project_license>
+  <name>DocCreator</name>
+  <summary>DocCreator is an application to generate synthetic document images</summary>
+  <description>
+    <p> DocCreator allows to generate a large amount of synthetic document images.
+    You can extract background, font and layout from existing documents.
+    You can also create a synthetic document from scratch, choosing a background image and a font, and arranging the layout as you please. </p>
+    <p>Then, you can add various defects on the produce document images: bleed-through, ink defects, adaptive blur, holes, phantom characters, ...</p>
+    <p>DocCreator is useful for various DIAR tasks: </p>
+    <ul>
+      <li>it can help for performance evaluation tasks</li>
+      <li>it can also help for retrainning tasks</li>
+    </ul>
+  </description>
+  <url type="homepage">http://doc-creator.labri.fr/</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>
+        http://doc-creator.labri.fr/img/xml0.png
+      </image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>DocCreator</binary>
+  </provides>
+  <update_contact>boris.mansencal_AT_labri.fr</update_contact>
+</component>

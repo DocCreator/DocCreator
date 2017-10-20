@@ -1,0 +1,104 @@
+13/03/2015
+
+/home/mansenca/SAI/DOCUMENT/Meshes/livre05_v1_p1_NOR_TEX.obj 58403268
+
+réécrit sans les textures : 
+/tmp/mesh.brs 14930004
+/tmp/mesh.obj 33206825
+
+
+
+
+time bzip2 -9 /tmp/mesh.brs
+real	0m1.769s
+user	0m1.735s
+sys	0m0.010s
+
+/tmp/mesh.brs.bz2  7636096
+
+time bunzip2 /tmp/mesh.brs.bz2
+real	0m0.680s
+user	0m0.665s
+sys	0m0.012s
+
+
+
+time bzip2 -9 /tmp/mesh.obj
+real	0m3.029s
+user	0m3.005s
+sys	0m0.017s
+
+/tmp/mesh.obj.bz2  9525176
+
+time bunzip2 /tmp/mesh.obj.bz2
+real	0m1.269s
+user	0m1.238s
+sys	0m0.027s
+
+
+#bz2
+=> Mon format binaire se compresse bien en bz2 : ~50%
+   Il se compresse moins bien que l'OBJ (ASCII)
+   Mais le fichier final est plus petit
+
+
+
+time lz4c -9 /tmp/mesh.brs
+real	0m0.421s
+user	0m0.407s
+sys	0m0.012s
+
+/tmp/mesh.brs.lz4  11239432
+
+time lz4c -f /tmp/mesh.brs.lz4
+real	0m0.034s
+user	0m0.015s
+sys	0m0.019s
+
+#lz4 hc
+=> compression moindre, mais décompresssion beaucoup plus rapide que bz2
+
+
+
+
+
+time gzip -9 /tmp/mesh.brs 
+
+real	0m4.489s
+user	0m4.468s
+sys	0m0.010s
+
+
+/tmp/mesh.brs.gz 8866152
+
+time gunzip  /tmp/mesh.brs.gz 
+
+real	0m0.173s
+user	0m0.146s
+sys	0m0.015s
+
+#gzip
+  => gzip plus lent que bz2 pour décompression !
+     Mais fichier un plus compressé sur mon binaire !
+
+
+lzham
+cd /home/mansenca/tools/lzham_codec/build
+
+time lzhamtest/lzhamtest  c /tmp/mesh.brs /tmp/mesh.brs.lzham
+real	0m2.832s
+user	0m15.322s
+sys	0m0.153s
+
+/tmp/mesh.brs.lzham  7618473
+
+time lzhamtest/lzhamtest d /tmp/mesh.brs.lzham /tmp/mesh.brs
+real	0m0.188s
+user	0m0.172s
+sys	0m0.015s
+
+#lzham 
+ => lzham compresse environ autant que bz2 mais décompresse beaucoup plus vite.
+
+
+ 

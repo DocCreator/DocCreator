@@ -1,0 +1,13 @@
+﻿---
+BasedOnStyle: Mozilla
+Language: Cpp
+AlignAfterOpenBracket: Align
+PointerAlignment: Right
+SpaceBeforeParens: ControlStatements
+Standard: Cpp11
+
+# Do not add a space before comments
+# https://stackoverflow.com/questions/32970045/how-to-prevent-clang-format-to-add-space-after-comment-char
+CommentPragmas:  '^[^ ]'
+
+...

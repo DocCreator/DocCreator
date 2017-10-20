@@ -1,0 +1,321 @@
+<keyboard name="fr-FR">  <!-- représente directement la keyboardview -->
+  <geometry width="800" height="200"></geometry>
+  
+  <charbuttons> <!-- Incluse le caractère espace -->
+    <!-- ² -->
+    <charbutton width="6.0" height="16.0" positionX="1.6" positionY="2.0"> <!-- l'id représente la lettre en utf-8 : lowercase -->
+      <lowercase value="178" />
+    </charbutton>
+    
+    <!-- &,1 -->
+    <charbutton width="6.0" height="16.0" positionX="8.2" positionY="2.0">
+      <uppercase value="49" />
+      <lowercase value="38" />
+    </charbutton>
+    
+    <!-- é,2,~ -->
+    <charbutton width="6.0" height="16.0" positionX="14.8" positionY="2.0">
+      <uppercase value="50" />
+      <lowercase value="233" />
+      <alternate value="126" />
+    </charbutton>
+    
+    <!-- ",3,# -->
+    <charbutton width="6.0" height="16.0" positionX="21.4" positionY="2.0">
+      <uppercase value="51" />
+      <lowercase value="34" />
+      <alternate value="35" />
+    </charbutton>
+    
+    <!-- ',4,{ -->
+    <charbutton width="6.0" height="16.0" positionX="28.0" positionY="2.0">
+      <uppercase value="52" />
+      <lowercase value="39" />
+      <alternate value="123" />
+    </charbutton>
+    
+    <!-- (,5,[ -->
+    <charbutton width="6.0" height="16.0" positionX="34.6" positionY="2.0">
+      <uppercase value="53" />
+      <lowercase value="40" />
+      <alternate value="91" />
+    </charbutton>
+    
+    <!-- -,6,| -->
+    <charbutton width="6.0" height="16.0" positionX="41.2" positionY="2.0">
+      <uppercase value="54" />
+      <lowercase value="45" />
+      <alternate value="124" />
+    </charbutton>
+    
+    <!-- è,7,` -->
+    <charbutton width="6.0" height="16.0" positionX="47.8" positionY="2.0">
+      <uppercase value="55" />
+      <lowercase value="232" />
+      <alternate value="96" />
+    </charbutton>
+    
+    <!-- _,8,\ -->
+    <charbutton width="6.0" height="16.0" positionX="54.4" positionY="2.0">
+      <uppercase value="56" />
+      <lowercase value="95" />
+      <alternate value="92" />
+    </charbutton>
+    
+    <!-- ç,9,^ -->
+    <charbutton width="6.0" height="16.0" positionX="61.0" positionY="2.0">
+      <uppercase value="57" />
+      <lowercase value="231" />
+      <alternate value="94" />
+    </charbutton>
+    
+    <!-- à,0,@ -->
+    <charbutton width="6.0" height="16.0" positionX="67.6" positionY="2.0">
+      <uppercase value="48" />
+      <lowercase value="224" />
+      <alternate value="64" />
+    </charbutton>
+    
+    <!-- ),°,] -->
+    <charbutton width="6.0" height="16.0" positionX="74.2" positionY="2.0">
+      <uppercase value="176" />
+      <lowercase value="41" />
+      <alternate value="93" />
+    </charbutton>
+    
+    <!-- =,+,} -->
+    <charbutton width="6.0" height="16.0" positionX="80.8" positionY="2.0">
+      <uppercase value="43" />
+      <lowercase value="61" />
+      <alternate value="125" />
+    </charbutton>
+    
+    <!-- a,A -->
+    <charbutton width="6.2" height="16.0" positionX="11.4" positionY="20.0">
+      <uppercase value="65" />
+      <lowercase value="97" />
+    </charbutton>
+    
+    <!-- z,Z -->
+    <charbutton width="6.2" height="16.0" positionX="18.0" positionY="20.0">
+      <uppercase value="90" />
+      <lowercase value="122" />
+    </charbutton>
+    
+    <!-- e,E,€ -->
+    <charbutton width="6.2" height="16.0" positionX="24.6" positionY="20.0">
+      <uppercase value="69" />
+      <lowercase value="101" />
+      <alternate value="8364" />
+    </charbutton>
+    
+    <!-- r,R -->
+    <charbutton width="6.2" height="16.0" positionX="31.2" positionY="20.0">
+      <uppercase value="82" />
+      <lowercase value="114" />
+    </charbutton>
+    
+    <!-- t,T -->
+    <charbutton width="6.2" height="16.0" positionX="37.8" positionY="20.0">
+      <uppercase value="84" />
+      <lowercase value="116" />
+    </charbutton>
+
+    <!-- y,Y -->
+    <charbutton width="6.2" height="16.0" positionX="44.4" positionY="20.0">
+      <uppercase value="89" />
+      <lowercase value="121" />
+    </charbutton>
+
+    <!-- u,U -->
+    <charbutton width="6.2" height="16.0" positionX="51.0" positionY="20.0">
+      <uppercase value="85" />
+      <lowercase value="117" />
+    </charbutton>
+
+    <!-- i,I -->
+    <charbutton width="6.2" height="16.0" positionX="57.6" positionY="20.0">
+      <uppercase value="73" />
+      <lowercase value="105" />
+    </charbutton>
+
+    <!-- o,O -->
+    <charbutton width="6.2" height="16.0" positionX="64.2" positionY="20.0">
+      <uppercase value="79" />
+      <lowercase value="111" />
+    </charbutton>
+
+    <!-- p,P -->
+    <charbutton width="6.2" height="16.0" positionX="70.8" positionY="20.0">
+      <uppercase value="80" />
+      <lowercase value="112" />
+    </charbutton>
+    
+    <!-- ^ -->
+    <charbutton width="6.2" height="16.0" positionX="77.4" positionY="20.0">
+      <lowercase value="94" />
+    </charbutton>
+    
+    <!-- $,£ -->
+    <charbutton width="6.2" height="16.0" positionX="84.0" positionY="20.0">
+      <uppercase value="163" />
+      <lowercase value="36" />
+    </charbutton>
+
+    <!-- *,µ -->
+    <charbutton width="6.2" height="16.0" positionX="90.6" positionY="20.0">
+      <uppercase value="924" />
+      <lowercase value="42" />
+    </charbutton>
+
+    <!-- q,Q -->
+    <charbutton width="6.2" height="16.0" positionX="13.0" positionY="38.0">
+      <uppercase value="81" />
+      <lowercase value="113" />
+    </charbutton>
+
+    <!-- s,S -->
+    <charbutton width="6.2" height="16.0" positionX="19.6" positionY="38.0">
+      <uppercase value="83" />
+      <lowercase value="115" />
+    </charbutton>
+
+    <!-- d,D -->
+    <charbutton width="6.2" height="16.0" positionX="26.2" positionY="38.0">
+      <uppercase value="68" />
+      <lowercase value="100" />
+    </charbutton>
+
+    <!-- f,F -->
+    <charbutton width="6.2" height="16.0" positionX="32.8" positionY="38.0">
+      <uppercase value="70" />
+      <lowercase value="102" />
+    </charbutton>
+
+    <!-- g,G -->
+    <charbutton width="6.2" height="16.0" positionX="39.4" positionY="38.0">
+      <uppercase value="71" />
+      <lowercase value="103" />
+    </charbutton>
+    
+    <!-- h,H -->
+    <charbutton width="6.2" height="16.0" positionX="46.0" positionY="38.0">
+      <uppercase value="72" />
+      <lowercase value="104" />
+    </charbutton>
+
+    <!-- j,J -->
+    <charbutton width="6.2" height="16.0" positionX="52.6" positionY="38.0">
+      <uppercase value="74" />
+      <lowercase value="106" />
+    </charbutton>
+
+    <!-- k,K -->
+    <charbutton width="6.2" height="16.0" positionX="59.2" positionY="38.0">
+      <uppercase value="75" />
+      <lowercase value="107" />
+    </charbutton>
+
+    <!-- l,L -->
+    <charbutton width="6.2" height="16.0" positionX="65.8" positionY="38.0">
+      <uppercase value="76" />
+      <lowercase value="108" />
+    </charbutton>
+
+    <!-- m,M -->
+    <charbutton width="6.2" height="16.0" positionX="72.4" positionY="38.0">
+      <uppercase value="77" />
+      <lowercase value="109" />
+    </charbutton>
+
+    <!-- ù,% -->
+    <charbutton width="6.2" height="16.0" positionX="79.0" positionY="38.0">
+      <uppercase value="37" />
+      <lowercase value="249" />
+    </charbutton>
+
+    <!-- w,W -->
+    <charbutton width="6.2" height="16.0" positionX="16.8" positionY="56.0">
+      <uppercase value="87" />
+      <lowercase value="119" />
+    </charbutton>
+
+    <!-- x,X -->
+    <charbutton width="6.2" height="16.0" positionX="23.4" positionY="56.0">
+      <uppercase value="88" />
+      <lowercase value="120" />
+    </charbutton>
+
+    <!-- c,C -->
+    <charbutton width="6.2" height="16.0" positionX="30.0" positionY="56.0">
+      <uppercase value="67" />
+      <lowercase value="99" />
+    </charbutton>
+
+    <!-- v,V -->
+    <charbutton width="6.2" height="16.0" positionX="36.6" positionY="56.0">
+      <uppercase value="86" />
+      <lowercase value="118" />
+    </charbutton>
+
+    <!-- b,B -->
+    <charbutton width="6.2" height="16.0" positionX="43.2" positionY="56.0">
+      <uppercase value="66" />
+      <lowercase value="98" />
+    </charbutton>
+
+    <!-- n,N -->
+    <charbutton width="6.2" height="16.0" positionX="49.8" positionY="56.0">
+      <uppercase value="78" />
+      <lowercase value="110" />
+    </charbutton>
+
+    <!-- ,,? -->
+    <charbutton width="6.2" height="16.0" positionX="56.4" positionY="56.0">
+      <uppercase value="63" />
+      <lowercase value="44" />
+    </charbutton>
+
+    <!-- ;,. -->
+    <charbutton width="6.2" height="16.0" positionX="63.0" positionY="56.0">
+      <uppercase value="46" />
+      <lowercase value="59" />
+    </charbutton>
+
+    <!-- :,/ -->
+    <charbutton width="6.2" height="16.0" positionX="69.6" positionY="56.0">
+      <uppercase value="47" />
+      <lowercase value="58" />
+    </charbutton>
+
+    <!-- !,§ -->
+    <charbutton width="6.2" height="16.0" positionX="76.2" positionY="56.0">
+      <uppercase value="167" />
+      <lowercase value="33" />
+    </charbutton>
+
+    <!-- space,space -->
+    <charbutton width="47.0" height="19.0" positionX="15" positionY="77.0">
+      <uppercase value="32" />
+      <lowercase value="32" />
+      <alternate value="32" />
+    </charbutton>
+  </charbuttons>
+  
+  <controlbuttons> <!-- Boutons de contrôles, on a besoin uniquement de ceux là, ni plus ni moins (bien que c'est à voir pour les deux alt, ctrl -->
+    <button id="16777251" name="Alt" width="6.0" height="19.0" positionX="8.0" positionY="77.0" />
+    <button id="16781571" name="Alt Gr" width="6.0" height="19.0" positionX="62.75" positionY="77.0" />
+    <button id="16777248" name="Shift" width="14.5" height="16.0" positionX="1.5" positionY="56.0" />
+    <button id="16777219" name="Backspace" width="11.0" height="16.0" positionX="87.5" positionY="2.0" />
+    <button id="16777223" name="Del" width="6.0" height="19.0" positionX="69.25" positionY="77.0" />
+    <button id="16777249" name="Ctrl" width="6.0" height="19.0" positionX="1.5" positionY="77.0" />
+    <!-- <button id="16777249" name="RCtrl" width="6.0" height="19.0" positionX="62.5" positionY="77.0" /> -->
+    <button id="16777235" name="Up" width="6.0" height="10.0" positionX="82.5" positionY="77.0" />
+    <button id="16777237" name="Down" width="6.0" height="10.0" positionX="82.5" positionY="87.0" />
+    <button id="16777234" name="Left" width="6.0" height="10.0" positionX="75.75" positionY="87.0" />
+    <button id="16777236" name="Right" width="6.0" height="10.0" positionX="89.25" positionY="87.0" />
+    <button id="16777217" name="Tab" width="9.25" height="16.0" positionX="1.5" positionY="20.0" />
+    <button id="16777252" name="CapsLock" width="10.75" height="16.0" positionX="1.5" positionY="38.0" />
+    <button id="16777220" name="Enter" width="11.25" height="33.0" positionX="86.0" positionY="38.0" />
+  </controlbuttons>
+</keyboard>

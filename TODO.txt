@@ -1,0 +1,166 @@
+
+- CODE : C++11
+  - use constexpr
+  - use emplace_back ?
+
+
+- CMAKE: be able to chhose what is built: just framework library or all soft
+- CMAKE: do DocCreatorConfig.cmake to be able to use the library ?
+ 
+
+- CMAKE/CPACK: build package Windows (with Qt & OpenCV)
+
+- WINDOWS: build with Visual & "/analyze" option (for static analysis)
+    (/analyze available in Community edition)
+
+
+- MESH
+  - Test decimation: could we provide less detailed models ?
+  - GUI: MeshesPreview : GUI to visualize meshes before loading them.
+
+- CODE:MESH/TEXTURE
+  - improve texcoords generation !
+
+
+- CODE: 
+  OPTIM: GraphicView::getDocumentImage(): currently image is reloaded from disk each call !
+   Why QPainter is not used ? Why GraphicsPageItem::draw() is not used ?
+
+- CODE:OPTIM: while patterns used by HoleDegradation & PhantomCharacter are bitmaps, we load and use them as CV_8UC3 !
+  We should use CV_8UC1 !
+
+
+
+- CODE: framework/models/character.h: Why does Character store a QString and not a QChar ???
+   Is it for large caracters ? QChar is already a 16-bit Unicode char. It should suffice ?
+- CODE:OPTIM: framework/models/character.h: use a vector instad of a QMap for _dataMap member.
+   ids of CharacterData should start from 0 and be continuous [*]. They could then be used as index in vector. 
+    [*] It seems it is not always the case. For example, it starts at 1 in vesale.of. And there are holes in indices.
+- CODE: why member _display in doccharacter.h is a QString ?
+   Would a QChar suffice ? 
+
+
+- CODE: In DocCharacter, there are still things specific to DIGIDOC : _seedPointsFB/BF : can we remove them ???
+
+
+- CODE: WRITE UNIT TESTS !!!
+
+- CODE: use shared_ptr ??? 
+   - It seems we stille have memory leaks ! (cf clang -fsanitize=address)
+
+- TODO:CODE:CLEAN ! DocCreator::generateDocuments has lot of copy/paste !!! UGLY !!!
+  This code should be in software/DocCreator/src/GenerateDocument/Assistant.cpp ???
+  
+- TODO:GUI: incoherence between degradations : for holes, we have an effect on central/"viewed" image,
+            but for characters degradation we never see the effect !!!
+     There is probably something to change in the way the soft is organized : we should have an editable view (where we enter text) and a "modified" view (where we have the effects applied). We should be able to "stack" the effects in the "modified" view (they all take an input image & some parameters & produce an output image !?). Then when we modify the editable view, and come back to the "modified" view, we should see the "modified" view.
+ 
+
+- TODO:GUI: degradation3D: faire des QTabWidgets :  Screenshot/Light/Texcoords !?! 
+
+
+- TODO:GUI: "recent files"
+- TODO:GUI: better zoom !!!
+- TODO:GUI: show the zoom level somewhere !
+- TODO:GUI: show the original size of image somewhere !
+- TODO:GUI: in several dialogs we have a preview of part of image (BleedThrough, Batch generation, ...). Currently the position of this part is fixed and arbitrary. We should be able to move it around 
+- TODO:GUI:APP: drag'n drop: accept drops of text files 
+- TODO:GUI:APP: Better handling of selection (of text) or cursor ?
+   We can select several letters but when we it 'backspace', it is not the selection that is deleted but the letter before.
+
+- TODO:CODE: pass document/image as parameter of the executable.
+
+- TODO: font extraction: ability to specify bold or italique
+- TODO: appli: ability to type in bold or italique
+
+- TODO:CODE:OPTIM: improve the way the image is generated.
+  It seems that we load image from disk a lot !
+  Could we use a QPainter in graphicview.cpp getDocumentImage ?
+  Why don't we use GraphicsPageItem::draw() ?
+
+
+- TODO:CODE:
+  - BleedThrough : do color version !!
+  - OPTIM: BleedThrough : optimize !!! It is a stencil operation. It should be faster !
+
+
+- TODO: grayscaleCharacterDegradation
+  - CODE: Be sure there is no bug !
+  - CODE:OPTIM: GrayscaleDegradationModel : GrayscaleDegradationByTypes() -> getEllipsePoints() : awfully slow !!!
+      cf ? http://www.iquilezles.org/www/articles/ellipses/ellipses.htm
+           http://www.iquilezles.org/www/articles/ellipsedist/ellipsedist.htm
+  - GUI : choix de la répartition : 3 pourcentages.
+  - GUI : preview in dialog (as in batch generation) !
+
+- TODO:Nicho: when we change the baseline for a character, the modified font is not saved.
+
+- TODO:BUG:Nicho "lorsque je crée un document (que je le sauvegarde) et que je lance la dégradation de l’encre…. il n’y a que le fond qui s’affiche (et pas tout ce que j’ai créé)"
+
+- TODO:BUG:Nicho "quand je charge une image (par exemple 400X400 pixels)… que je fais des dégradations dessus… je sauvegarde… et après je veux faire un document (avec le clavier) l’image du background prend la taille de l’image 400X400" 
+
+
+- TODO: Generation batch
+  - CODE: mettre des enums pour les differents panneaux (cf Assistant::nextId())
+  - CODE: clean code : in particular avoid code duplication 
+  - BUG? : en synthétique, le répertoire destination pour les images de texte synthetique devrait être vide ? (Si on ne garde pas la liste des images générées, ca veut dire qu'on liste le contenu du répertoire et donc potentiellement des images qui étaient là avant ! Il faudrait un boite de dialogue qui invite à nettoyer le répertoire. 
+       Si on garde la liste des images générées [ce que je ne crois pas], un simple warning suffit. )
+  - BUG: en synthétique : on peut passer le panneau avec les répertoires de sortie, sans avoir remplit ceux-là
+  - BUG: tous les panneaux avec des champs "répertoire" ne font pas ce qu'il faut si le champ est rempli à la main et pas via le bouton qui ouvre le "finder". Cf Code: les signaux ne sont alors pas appelés... 
+
+  - Ordre de présentation des panneaux à changer ? Mettre toutes les dégradations globales, puis les locales ???
+  - Avoir plus d'options sur le traitement des entrées et sorties :
+     - pouvoir sélectionner/filtrer que certains types d'images
+     - pouvoir charger qu'une liste d'images 
+     - pouvoir charger un répertoire d'entrée récursivement
+     - pouvoir reproduire la hierarchie d'entrée en sortie
+     - pouvoir sauver la sortie par dégradation    
+  - Quand on enable une degradation, mettre à jour le nombre de tirages générés : mettre "1" !?
+     (changer ui->TirageBleed, ui->TirageBlur, ui->TirageChar, ... ui->TirageHole ???)
+  - BleedThrough :
+    - faire mise à jour en continue et pas seulement quand on relache le slider
+    - montrer les deux images d'origine
+  - Blur : montrer qu'une partie de l'image dans preview ?
+           Mais il faut aussi l'image complète, pour l'application du flou par zone.
+  - Holes : 
+     - "Number" pas clair... Devrait être de 1 à 4 et non de 0 à 4 ???
+     - Min/max sliders : ne font rien sur preview ???
+     - Small/medium/Big : pas clair ! 
+         => comme on les classes automatiquement (on tri par taille et dicise en 3) : ils peuvent être assez proche en taille. 
+	 On peut se retrouver avec un big dont la taille n'est pas très éloignée d'un small, et une fois scalé pour la preview, c'est encore pire.
+  - Distortion3D
+      - pouvoir les faire sous differents angles
+  - Several degradations on the same image: it seems that the image is saved after one degradation and re-loaded for the next one. Optimize !
+  
+  - Nicho: With batch generation, for long document, we can not force the text to continue in the next TextBlock
+
+
+- TODO:MESH: deformation
+  - corner deformation : select two points on border, smooth mesh along the line, bend the corner : forward or backward.
+  - smooth deformation : implement method explained by Jerome Charton... 
+  
+- TODO:MESH:OPTIM
+  Currently, removeDuplicateVertices is very slow (and thus not used). We should have a spatial partionning structure (KD-Tree ? Octree ?) to speed it up.
+
+
+- TODO:MESH: improve Rendering ! Currently, it looks very "plastic" (in particular on Feuille.brs).
+  - look at SSAO ? PBR ? 
+  - Try shaders from Meshlab : "Muinaert", "Oren-Nayar", "Radiance scaling (Colored desc.)", "Phong Untextured"
+
+- TODO:MESH: use "normal mapping" to handle deformations
+
+
+- TODO: synthetiseImage(): improve performances
+
+DocCreator::synthetiseImage()  time binarization=0.214332s
+DocCreator::synthetiseImage()  time background1=0.761501s
+DocCreator::synthetiseImage()  time background2=86.1545s
+
+DocCreator::synthetiseImage()  time ocr1=6.78239s
+
+StructureDialog::init() : time structureDetection::getCharacterHeight()=0.173963s
+StructureDialog::init() : time structureDetection::getDistanceMap()=5.05894s
+StructureDialog::process() : time getBlocks()=0.249307s
+StructureDialog::process() : time updateView()=0.00847118s
+DocCreator::synthetiseImage()  time struct1=5.50976s
+BackgroundContext::setCurrentBackground newBackGround1.png
+DocCreator::synthetiseImage()  time lorem=1.52378s

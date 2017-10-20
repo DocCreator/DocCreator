@@ -1,0 +1,107 @@
+
+
+APP_NAME=DocCreator
+APP_VERSION=@DocCreatorVersion@
+APP_ICON=@CMAKE_SOURCE_DIR@/software/DocCreator/adoc.icns
+APP_LICENSE=@CMAKE_SOURCE_DIR@/software/DocCreator/license.txt
+APP_INFO=@CMAKE_SOURCE_DIR@/bundlers/mac/Info.plist
+MAKE_DMG_SCRIPT=@CMAKE_SOURCE_DIR@/bundlers/mac/make_dmg.sh
+
+INSTALL_PREFIX_DIR=@CMAKE_INSTALL_PREFIX@
+OPENCV_INSTALL_DIR=@OpenCV_INSTALL_PATH@
+
+DST_DIR=$1
+if [ "${DST_DIR}" = "" ] ; then
+    DST_DIR=@CMAKE_INSTALL_PREFIX@/Bundle
+fi
+
+QT_BINARY_DIR=@QT_BIN_PATH@
+if [ "${QT_BINARY_DIR}" = "" ]
+then
+    QT_BINARY_DIR=@_qt5Gui_install_prefix@/bin
+fi
+
+if [ ! -d ${INSTALL_PREFIX_DIR} ] ; then
+    echo "ERROR: the specified installation prefix directory does not exist: ${INSTALL_PREFIX_DIR}"
+    exit 1
+fi
+
+mkdir -p ${DST_DIR}
+if [ ! -d ${DST_DIR} ] ; then
+    echo "ERROR: the destination directory does not exist: ${DEST_DIR}"
+    exit 1
+fi
+rm -rf "${DST_DIR}/application" 2>/dev/null
+rm -f "${DST_DIR}/${APP_NAME}-${APP_VERSION}.dmg" 2>/dev/null
+
+mkdir -p "${DST_DIR}/application/DocCreator.app/Contents/MacOS"
+mkdir -p "${DST_DIR}/application/DocCreator.app/Contents/Resources"
+mkdir -p "${DST_DIR}/application/DocCreator.app/Contents/Frameworks" 
+cp ${APP_ICON} "${DST_DIR}/application/DocCreator.app/Contents/Resources/DocCreator.icns" 
+
+cp ${INSTALL_PREFIX_DIR}/lib/*.dylib "${DST_DIR}/application/DocCreator.app/Contents/Frameworks/"
+cp -r ${INSTALL_PREFIX_DIR}/lib/*.framework "${DST_DIR}/application/DocCreator.app/Contents/Frameworks/"
+
+cp ${APP_LICENSE} "${DST_DIR}/application/"
+
+cp -r ${INSTALL_PREFIX_DIR}/share/DocCreator/tessdata "${DST_DIR}/application/DocCreator.app/Contents/Resources/"
+cp -r ${INSTALL_PREFIX_DIR}/share/DocCreator/data "${DST_DIR}/application/DocCreator.app/Contents/Resources/"
+
+cp ${INSTALL_PREFIX_DIR}/bin/DocCreator "${DST_DIR}/application/DocCreator.app/Contents/MacOS/"
+
+cp ${APP_INFO} "${DST_DIR}/application/DocCreator.app/Contents/"
+
+
+##Copy OpenCV libs
+NEW_BIN="${DST_DIR}/application/DocCreator.app/Contents/MacOS/DocCreator"
+opencvLibs=$(otool -L ${INSTALL_PREFIX_DIR}/bin/DocCreator | grep opencv | cut -d' ' -f 1)
+for lib in ${opencvLibs} 
+do
+    echo "lib=$lib"
+    
+    #with OpenCV 3.1.0, we have for example: lib/libopencv_imgproc.3.1.dylib
+    #with OpenCV 3.2.0, we have for example: @rpath/libopencv_imgproc.3.2.dylib 
+
+
+    lib=$(echo $lib | sed 's/@rpath/lib/') #replace "@rpath" with "lib" if present
+
+    SRC_LIB="${OPENCV_INSTALL_DIR}/${lib}"
+    blib=$(basename $lib) #change "lib/libopencv_highgui.3.1.dylib" in "libopencv_highgui.3.1.dylib" for example
+    DST_LIB="${DST_DIR}/application/DocCreator.app/Contents/Frameworks/${blib}"
+
+    if [ ! -f ${SRC_LIB} ] ; then
+	echo "ERROR: unable to find OpenCV lib ${SRC_LIB}"
+	exit 10
+    fi
+
+    cp ${SRC_LIB} ${DST_LIB}
+
+
+    install_name_tool -change ${lib} @executable_path/../Frameworks/${blib} ${NEW_BIN}
+
+    install_name_tool -id @executable_path/../Frameworks/${blib} ${DST_LIB}
+
+    opencvDepLibs=$(otool -L ${DST_LIB} | grep opencv | cut -d' ' -f 1)
+    
+    for deplib in ${opencvDepLibs}
+    do
+	echo "deplib=$deplib"
+
+	bdeplib=$(basename $deplib)
+	
+	install_name_tool -change ${deplib} @executable_path/../Frameworks/${bdeplib} ${DST_LIB}
+    done
+
+
+done
+
+
+
+@QT_MACDEPLOYQT_EXECUTABLE@ "${DST_DIR}/application/DocCreator.app" 
+
+mv "${DST_DIR}/application/DocCreator.app" "${DST_DIR}/application/${APP_NAME}-${APP_VERSION}.app"   #B ???
+
+echo "${MAKE_DMG_SCRIPT} ${APP_NAME} ${APP_VERSION} ${DST_DIR}/application"
+
+${MAKE_DMG_SCRIPT} ${APP_NAME} ${APP_VERSION} ${DST_DIR}/application
+

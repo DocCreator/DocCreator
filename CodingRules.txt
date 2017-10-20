@@ -1,0 +1,6 @@
+
+- Use C++11 idioms
+  - use nullptr instead of NULL
+  - use range-based for loop instead of Qt's foreach
+  - use override
+    ( -Winconsistent-missing-override with Clang3.6 ; -Wsuggest-override with GCC 5.0 )

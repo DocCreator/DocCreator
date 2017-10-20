@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="document">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="styles"/>
+        <xs:element ref="content"/>
+      </xs:sequence>
+	  <xs:attribute name="width" type="xs:string"/>
+	  <xs:attribute name="height" type="xs:string"/>
+    </xs:complexType>	
+  </xs:element>
+  <xs:element name="styles">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="style"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="style">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="font"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="font" type="xs:string"/>
+  <xs:element name="content">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="page"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="page">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="textBlock"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="imageBlock"/>
+      </xs:sequence>
+      <xs:attribute name="backgroundFileName" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="textBlock">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="paragraph"/>
+      </xs:sequence>
+      <xs:attribute name="height" use="required" type="xs:integer"/>
+      <xs:attribute name="marginBottom" use="required" type="xs:integer"/>
+      <xs:attribute name="marginLeft" use="required" type="xs:integer"/>
+      <xs:attribute name="marginRight" use="required" type="xs:integer"/>
+      <xs:attribute name="marginTop" use="required" type="xs:integer"/>
+      <xs:attribute name="width" use="required" type="xs:integer"/>
+      <xs:attribute name="x" use="required" type="xs:integer"/>
+      <xs:attribute name="y" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="paragraph">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="string"/>
+      </xs:sequence>
+      <xs:attribute name="lineSpacing" use="required" type="xs:integer"/>
+      <xs:attribute name="tabulationSize" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="string">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="char"/>
+      </xs:sequence>
+      <xs:attribute name="style" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="char">
+    <xs:complexType>
+      <xs:attribute name="display" use="required" type="xs:string" />
+      <xs:attribute name="height" use="required" type="xs:integer"/>
+      <xs:attribute name="id" type="xs:integer"/>
+      <xs:attribute name="width" type="xs:integer"/>
+      <xs:attribute name="x" type="xs:integer"/>
+      <xs:attribute name="y" type="xs:integer"/>
+      <xs:attribute name="avg" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="imageBlock">
+    <xs:complexType>
+      <xs:attribute name="filePath" use="required" type="xs:anyURI"/>
+      <xs:attribute name="height" use="required" type="xs:integer"/>
+      <xs:attribute name="width" use="required" type="xs:integer"/>
+      <xs:attribute name="x" use="required" type="xs:integer"/>
+      <xs:attribute name="y" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,239 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:element name="DIGIDOC">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="header"/>
+        <xs:element ref="document"/>
+      </xs:sequence>
+    </xs:complexType>	
+  </xs:element>
+  <xs:element name="header">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="measurementunit"/>
+        <xs:element ref="company"/>
+        <xs:element ref="createddate"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+    <xs:element name="measurementunit" type="xs:string"/>
+    <xs:element name="company" type="xs:string"/>
+    <xs:element name="createddate" type="xs:string"/>
+  <xs:element name="document">
+    <xs:complexType>
+      <xs:sequence>
+      <xs:element ref="production"/>
+      <xs:element ref="usage"/>
+      <xs:element ref="statistics"/>
+        <xs:element ref="styles"/>
+        <xs:element ref="content"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string"/>
+      <xs:attribute name="url" type="xs:string"/>
+	  <xs:attribute name="width" type="xs:string"/>
+	  <xs:attribute name="height" type="xs:string"/>
+    </xs:complexType>	
+  </xs:element>
+  <xs:element name="production">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="acquisition"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="statistics">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="numberofpages"/>
+        <xs:element ref="numberofeocs"/>
+        <xs:element ref="numberofwords"/>
+        <xs:element ref="redundancy"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="numberofpages" type="xs:string"/>
+  <xs:element name="numberofeocs" type="xs:string"/>
+  <xs:element name="numberofwords" type="xs:string"/>
+  <xs:element name="redundancy" type="xs:string"/>
+<xs:element name="acquisition">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="material"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="date"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="user"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="parameters"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="material" type="xs:string"/>
+  <xs:element name="date" type="xs:string"/>
+  <xs:element name="user" type="xs:string"/>
+<xs:element name="parameters">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="resolutionscalefactor"/>
+        <xs:element ref="contrast"/>
+        <xs:element ref="limunosity"/>
+        <xs:element ref="speed"/>
+        <xs:element ref="duration"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>  
+  <xs:element name="resolutionscalefactor" type="xs:string"/>
+  <xs:element name="contrast" type="xs:string"/>
+  <xs:element name="limunosity" type="xs:string"/>
+  <xs:element name="speed" type="xs:string"/>
+  <xs:element name="duration" type="xs:string"/>
+  <xs:element name="usage" type="xs:string"/>
+  <xs:element name="notice" type="xs:string"/>
+  <xs:element name="styles">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="style"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="style">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="font"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="font" type="xs:string"/>
+  <xs:element name="content">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="page"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="page">
+    <xs:complexType>
+      <xs:sequence>
+       <xs:element ref="media"/>
+       <xs:element ref="acquisition"/>
+       <xs:element ref="background"/>
+       <xs:element ref="layout"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="eoc"/>
+      </xs:sequence>
+      <xs:attribute name="backgroundFileName" use="required" type="xs:string"/>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+  
+  <xs:element name="eoc" type="eocType">
+    <xs:complexType>
+      <xs:sequence>
+      <xs:element ref="media"/>
+      <xs:element ref="acquisition"/>
+      <xs:element ref="scanline"/>
+      <xs:element ref="polyline"/>
+      <xs:element ref="shapeinformation"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="char"/>
+      </xs:sequence>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+    </xs:complexType>
+</xs:element>
+
+  <xs:complexType name="eocType">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="eoc" type="eocType"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="media">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="supports"/>
+        <xs:element ref="files"/>
+        <xs:element ref="url"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="background">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="colorhistogram"/>
+        <xs:element ref="texture"/>
+        <xs:element ref="blur"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="layout">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="spatialorganization"/>
+        <xs:element ref="complexitymeasurement"/>
+        <xs:element ref="homogeneitymeasurement"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+    <xs:element name="supports" type="xs:string"/>
+      <xs:element name="files" type="xs:string"/>
+        <xs:element name="url" type="xs:string"/>
+        <xs:element name="colorhistogram" type="xs:string"/>
+      <xs:element name="texture" type="xs:string"/>
+        <xs:element name="blur" type="xs:string"/>
+        <xs:element name="spatialorganization" type="xs:string"/>
+      <xs:element name="complexitymeasurement" type="xs:string"/>
+        <xs:element name="homogeneitymeasurement" type="xs:string"/>
+        <xs:element name="scanline" type="xs:string"/>
+        <xs:element name="polyline" type="xs:string"/>
+        <xs:element name="shapeinformation" type="xs:string"/>
+  <xs:element name="textBlock">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="paragraph"/>
+      </xs:sequence>
+      <xs:attribute name="height" use="required" type="xs:integer"/>
+      <xs:attribute name="marginBottom" use="required" type="xs:integer"/>
+      <xs:attribute name="marginLeft" use="required" type="xs:integer"/>
+      <xs:attribute name="marginRight" use="required" type="xs:integer"/>
+      <xs:attribute name="marginTop" use="required" type="xs:integer"/>
+      <xs:attribute name="width" use="required" type="xs:integer"/>
+      <xs:attribute name="x" use="required" type="xs:integer"/>
+      <xs:attribute name="y" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="paragraph">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="string"/>
+      </xs:sequence>
+      <xs:attribute name="lineSpacing" use="required" type="xs:integer"/>
+      <xs:attribute name="tabulationSize" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="string">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="char"/>
+      </xs:sequence>
+      <xs:attribute name="style" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="char">
+    <xs:complexType>
+      <xs:attribute name="display" use="required" type="xs:string" />
+      <xs:attribute name="height" use="required" type="xs:integer"/>
+      <xs:attribute name="id" type="xs:integer"/>
+      <xs:attribute name="width" type="xs:integer"/>
+      <xs:attribute name="x" type="xs:integer"/>
+      <xs:attribute name="y" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="imageBlock">
+    <xs:complexType>
+      <xs:attribute name="filePath" use="required" type="xs:anyURI"/>
+      <xs:attribute name="height" use="required" type="xs:integer"/>
+      <xs:attribute name="width" use="required" type="xs:integer"/>
+      <xs:attribute name="x" use="required" type="xs:integer"/>
+      <xs:attribute name="y" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

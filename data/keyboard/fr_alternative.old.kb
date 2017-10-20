@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This file describes a keyboard format-->
+<keyboard name="fr_alternative">
+  <mode name="shift">16777248;16777248</mode>
+  <mode name="alt">16777251;16777249</mode>
+  <key>
+    <default display="&#178;">178</default>
+    <shift display="&#178;">178</shift>
+    <alt display="&#178;">178</alt>
+  </key>
+  <key>
+    <default display="&amp;">38</default>
+    <shift display="1">49</shift>
+  </key>
+  <key>
+    <default display="&#233;">233</default>
+    <shift display="2">50</shift>
+    <alt display="~">126</alt>
+  </key>
+  <key>
+    <default display="&#34;">34</default>
+    <shift display="3">51</shift>
+    <alt display="&#35;">35</alt>
+  </key>
+  <key>
+    <default display="&#39;">39</default>
+    <shift display="4">52</shift>
+    <alt display="{">123</alt>
+  </key>
+  <key>
+    <default display="(">40</default>
+    <shift display="5">53</shift>
+    <alt display="[">91</alt>
+  </key>
+  <key>
+    <default display="-">45</default>
+    <shift display="6">54</shift>
+    <alt display="|">124</alt>
+  </key>
+  <key>
+    <default display="&#232;">232</default>
+    <shift display="7">55</shift>
+    <alt display="&#96;">96</alt>
+  </key>
+  <key>
+    <default display="_">95</default>
+    <shift display="8">56</shift>
+    <alt display="&#92;">92</alt>
+  </key>
+  <key>
+    <default display="&#231;">231</default>
+    <shift display="9">57</shift>
+    <alt display="&#94;">94</alt>
+  </key>
+  <key>
+    <default display="&#224;">224</default>
+    <shift display="0">48</shift>
+    <alt display="@">64</alt>
+  </key>
+  <key>
+    <default display=")">41</default>
+    <shift display="&#176;">176</shift>
+    <alt display="]">93</alt>
+  </key>
+  <key>
+    <default display="=">61</default>
+    <shift display="+">43</shift>
+    <alt display="}">125</alt>
+  </key>
+  <key>
+    <default display="tab">9</default>
+    <shift display="tab">9</shift>
+    <alt display="tab">9</alt>
+  </key>
+  <key>
+    <default display="a">97</default>
+    <shift display="A">65</shift>
+  </key>
+  <key>
+    <default display="z">122</default>
+    <shift display="Z">90</shift>
+  </key>
+  <key>
+    <default display="e">101</default>
+    <shift display="E">69</shift>
+    <alt display="&#8364;">8364</alt>
+  </key>
+  <key>
+    <default display="r">114</default>
+    <shift display="R">82</shift>
+  </key>
+  <key>
+    <default display="t">116</default>
+    <shift display="T">84</shift>
+  </key>
+  <key>
+    <default display="y">121</default>
+    <shift display="Y">89</shift>
+  </key>
+  <key>
+    <default display="u">117</default>
+    <shift display="U">85</shift>
+  </key>
+  <key>
+    <default display="i">105</default>
+    <shift display="I">73</shift>
+  </key>
+  <key>
+    <default display="o">111</default>
+    <shift display="O">79</shift>
+  </key>
+  <key>
+    <default display="p">112</default>
+    <shift display="P">80</shift>
+  </key>
+  <key>
+    <default display="&#94;">94</default>
+  </key>
+  <key>
+    <default display="&#36;">36</default>
+    <shift display="&#163;">163</shift>
+  </key>
+  <key>
+    <default display="&#42;">42</default>
+    <shift display="&#924;">924</shift>
+  </key>
+  <key>
+    <default display="q">113</default>
+    <shift display="Q">81</shift>
+  </key>
+  <key>
+    <default display="s">115</default>
+    <shift display="S">83</shift>
+  </key>
+  <key>
+    <default display="d">100</default>
+    <shift display="D">68</shift>
+  </key>
+  <key>
+    <default display="f">102</default>
+    <shift display="F">70</shift>
+  </key>
+  <key>
+    <default display="g">103</default>
+    <shift display="G">71</shift>
+  </key>
+  <key>
+    <default display="h">104</default>
+    <shift display="H">72</shift>
+  </key>
+  <key>
+    <default display="j">106</default>
+    <shift display="J">74</shift>
+  </key>
+  <key>
+    <default display="k">107</default>
+    <shift display="K">75</shift>
+  </key>
+  <key>
+    <default display="l">108</default>
+    <shift display="L">76</shift>
+  </key>
+  <key>
+    <default display="m">109</default>
+    <shift display="M">77</shift>
+  </key>
+  <key>
+    <default display="&#249;">249</default>
+    <shift display="&#37;">37</shift>
+  </key>
+  <key>
+    <default display="w">119</default>
+    <shift display="W">87</shift>
+  </key>
+  <key>
+    <default display="x">120</default>
+    <shift display="X">88</shift>
+  </key>
+  <key>
+    <default display="c">99</default>
+    <shift display="C">67</shift>
+  </key>
+  <key>
+    <default display="v">118</default>
+    <shift display="V">86</shift>
+  </key>
+  <key>
+    <default display="b">98</default>
+    <shift display="B">66</shift>
+  </key>
+  <key>
+    <default display="n">110</default>
+    <shift display="N">78</shift>
+  </key>
+  <key>
+    <default display=",">44</default>
+    <shift display="?">63</shift>
+  </key>
+  <key>
+    <default display=";">59</default>
+    <shift display=".">46</shift>
+  </key>
+  <key>
+    <default display=":">58</default>
+    <shift display="/">47</shift>
+  </key>
+  <key>
+    <default display="!">33</default>
+    <shift display="&#167;">167</shift>
+  </key>
+  <key>
+    <default display="space">32</default>
+    <shift display="space">32</shift>
+    <alt display="space">32</alt>
+  </key>
+</keyboard>

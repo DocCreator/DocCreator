@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
+	<key>CFBundleGetInfoString</key>
+	<string>DocCreator</string>
+	<key>CFBundleExecutable</key>
+	<string>DocCreator</string>
+	<key>CFBundleIdentifier</key>
+	<string>fr.labri.doc-creator</string>
+	<key>CFBundleName</key>
+	<string>DocCreator</string>
+	<key>CFBundleIconFile</key>
+	<string>DocCreator.icns</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.01</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>IFMajorVersion</key>
+	<integer>0</integer>
+	<key>IFMinorVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>

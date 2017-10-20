@@ -1,0 +1,123 @@
+
+!define PRODUCT_NAME "DocCreator"
+!define PRODUCT_VERSION "1.0"
+!define PRODUCT_PUBLISHER "LaBRI"
+!define PRODUCT_WEB_SITE "http://doc-creator.labri.fr/"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\DocCreator.exe"
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+!define PRODUCT_UNINST_ROOT_KEY "HKLM"
+
+!include "MUI.nsh"
+
+Var StartMenuFolder
+
+!define MUI_ABORTWARNING
+!define MUI_ICON "@PROJECT_SOURCE_DIR@\software\DocCreator\adoc.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+
+; Language Selection Dialog Settings
+!define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
+!define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
+!define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
+
+;Start Menu Folder Page Configuration
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\DocCreator" 
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "DocCreator-@DocCreatorVersion@"
+
+
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "@PROJECT_SOURCE_DIR@\software\DocCreator\license.txt"
+!insertmacro MUI_PAGE_DIRECTORY
+
+!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
+
+!insertmacro MUI_PAGE_INSTFILES
+!define MUI_FINISHPAGE_RUN "$INSTDIR\programs\DocCreator.exe"
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_INSTFILES
+
+!insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "French"
+
+Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+OutFile "DocCreator-@DocCreatorVersion@_setup.exe"
+InstallDir "$PROGRAMFILES\DocCreator-@DocCreatorVersion@"
+InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+ShowInstDetails show
+ShowUnInstDetails show
+
+Function .onInit
+  !insertmacro MUI_LANGDLL_DISPLAY
+FunctionEnd
+
+Section "SectionPrincipale" SEC01
+  SetOutPath $INSTDIR
+  File /r "@CMAKE_INSTALL_PREFIX@\programs"
+  File /r "@CMAKE_INSTALL_PREFIX@\share"
+  
+  CreateShortCut "$SMPROGRAMS\DocCreator\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
+  CreateShortCut "$DESKTOP\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
+SectionEnd
+
+Section -AdditionalIcons
+  SetOutPath $INSTDIR
+  WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
+  CreateShortCut "$SMPROGRAMS\DocCreator\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
+  CreateShortCut "$SMPROGRAMS\DocCreator\Uninstall.lnk" "$INSTDIR\uninst.exe"
+
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+  !insertmacro MUI_STARTMENU_WRITE_END
+
+SectionEnd
+
+Section -Post
+  WriteUninstaller "$INSTDIR\uninst.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\programs\DocCreator.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+SectionEnd
+
+
+Function un.onUninstSuccess
+  HideWindow
+  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) a été désinstallé avec succès de votre ordinateur."
+FunctionEnd
+
+Function un.onInit
+!insertmacro MUI_UNGETLANGUAGE
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Êtes-vous certains de vouloir désinstaller totalement $(^Name) et tous ses composants ?" IDYES +2
+  Abort
+FunctionEnd
+
+Section Uninstall
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  Delete "$INSTDIR\uninst.exe"
+  
+  Delete "$SMPROGRAMS\DocCreator\Uninstall.lnk"
+  Delete "$SMPROGRAMS\DocCreator\Website.lnk"
+  Delete "$DESKTOP\DocCreator.lnk"
+  Delete "$SMPROGRAMS\DocCreator\DocCreator.lnk"
+
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+  Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\Website.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\DocCreator.lnk"
+  RMDir "$SMPROGRAMS\$StartMenuFolder"
+
+
+  RMDir /r "$SMPROGRAMS\DocCreator-@DocCreatorVersion@"
+  RMDir /r "$INSTDIR"
+  DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+  SetAutoClose true
+SectionEnd

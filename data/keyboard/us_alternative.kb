@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This file describes a keyboard format-->
+<keyboard name="us_alternative">
+ <type>
+     <line>
+      <character display="1">1</character>
+      <character display="2">2</character>
+      <character display="3">3</character>
+      <character display="4">4</character>
+      <character display="5">5</character>
+      <character display="6">6</character>
+      <character display="7">7</character>
+      <character display="8">8</character>
+      <character display="9">9</character>
+      <character display="0">0</character>
+    </line>
+    <line>
+      <character display="q">q</character>
+      <character display="w">w</character>
+      <character display="e">e</character>
+      <character display="r">r</character>
+      <character display="t">t</character>
+      <character display="y">y</character>
+      <character display="u">u</character>
+      <character display="i">i</character>
+      <character display="o">o</character>
+      <character display="p">p</character>
+    </line>
+    <line>
+      <character display="a">a</character>
+      <character display="s">s</character>
+      <character display="d">d</character>
+      <character display="f">f</character>
+      <character display="g">g</character>
+      <character display="h">h</character>
+      <character display="j">j</character>
+      <character display="k">k</character>
+      <character display="l">l</character>
+      <character display="semicolon">;</character>
+    </line>
+    <line>
+      <character display="w">z</character>
+      <character display="x">x</character>
+      <character display="c">c</character>
+      <character display="v">v</character>
+      <character display="b">b</character>
+      <character display="n">n</character>
+      <character display="m">m</character>
+      <character display="virgule">,</character>
+      <character display="dot">.</character>
+    </line>
+    <line>
+      <character display="SPACE"> </character>
+    </line>
+  </type>
+  <type>
+    <line>
+      <character display="A">Q</character>
+      <character display="Z">W</character>
+      <character display="E">E</character>
+      <character display="R">R</character>
+      <character display="T">T</character>
+      <character display="Y">Y</character>
+      <character display="U">U</character>
+      <character display="I">I</character>
+      <character display="O">O</character>
+      <character display="P">P</character>
+    </line>
+    <line>
+      <character display="Q">A</character>
+      <character display="S">S</character>
+      <character display="D">D</character>
+      <character display="F">F</character>
+      <character display="G">G</character>
+      <character display="H">H</character>
+      <character display="J">J</character>
+      <character display="K">K</character>
+      <character display="L">L</character>
+      <character display="colon">:</character>
+    </line>
+    <line>
+      <character display="Z">Z</character>
+      <character display="X">X</character>
+      <character display="C">C</character>
+      <character display="V">V</character>
+      <character display="B">B</character>
+      <character display="N">N</character>
+      <character display="M">M</character>
+    </line>
+    <line>
+      <character display="SPACE"> </character>
+    </line>
+ </type>
+</keyboard>

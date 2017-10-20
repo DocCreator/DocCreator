@@ -1,0 +1,41 @@
+### To build a bundle 
+
+#You should first install flatpak:
+#On Fedora
+dnf install flatpak flatpak-builder
+
+
+#You should then install the runtime & sdk for KDE
+#(if you add --user, root passwd is not needed)
+flatpak remote-add kderuntime --from http://distribute.kde.org/kderuntime.flatpakrepo
+flatpak install kderuntime org.kde.Platform//5.9
+flatpak install kderuntime org.kde.Sdk//5.9
+
+
+#You should then build the application via flatpak-builder:
+flatpak-builder --repo=repo doccreator_flatpak fr.labri.doccreator.doccreator.json
+
+#You can then create a bundle (as a single file):
+flatpak build-bundle repo doccreator.flatpak fr.labri.doccreator.doccreator
+
+#You can distribute the bundle doccreator.flatpak
+
+##----------------------------------------
+
+### To install this bundle on a different machine 
+
+#You should first install flatpak:
+#On Fedora
+dnf install flatpak
+
+#You should then install the runtime for KDE
+#Warning: it may download around 300MB of data
+flatpak --user remote-add kderuntime --from http://distribute.kde.org/kderuntime.flatpakrepo
+flatpak --user install kderuntime org.kde.Platform//5.9
+
+#Then you can install the bundle
+flatpak --user install doccreator.flatpak
+
+#You can now run it with the follwing command:
+flatpak run fr.labri.doccreator.doccreator
+

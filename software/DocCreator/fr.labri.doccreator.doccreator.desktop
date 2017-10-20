@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=DocCreator
+Comment=Generate synthetic documents
+TryExec=DocCreator
+Exec=DocCreator
+Terminal=false
+Type=Application
+Categories=Qt;Graphics;
+Keywords=document;font;
+StartupNotify=true
+Icon=fr.labri.doccreator.doccreator

@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: DocCreator
+Description: DocCreator library
+Version: 1.0.0
+Libs: -L${libdir} -lDocCreator
+Cflags: -I${includedir}/DocCreator
+

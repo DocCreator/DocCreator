@@ -1,0 +1,30 @@
+{
+    "id": "fr.labri.doccreator.doccreator",
+    "branch": "master",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "5.9",
+    "sdk": "org.kde.Sdk",
+    "command": "DocCreator",
+    "tags": ["nightly"],
+    "desktop-file-name-prefix": "(Nightly) ",
+    "finish-args": ["--share=ipc", "--socket=x11", "--socket=wayland", "--env=QT_QPA_PLATFORM=flatpak" ],
+    
+    "modules": [
+	{
+            "name": "opencv",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "config-opts": ["-DENABLE_TESTING=OFF", "-DCMAKE_INSTALL_LIBDIR=lib", "-DBUILD_opencv_highgui=ON", "-DENABLE_FAST_MATH=ON", "-DBUILD_DOCS=OFF", "-DBUILD_PERF_TESTS=OFF", "-DBUILD_TESTS=OFF", "-DWITH_CUDA=OFF", "-DWITH_CUFFT=OFF", "-DWITH_FFMPEG=OFF", "-DWITH_GIGEAPI=OFF", "-DWITH_JASPER=OFF", "-DWITH_LIBV4L=OFF ", "-DWITH_MATLAB=OFF", "-DWITH_OPENCL=OFF", "-DWITH_OPENCLAMDBLAS=OFF", "-DWITH_OPENCLAMDFFT=OFF", "-DWITH_OPENEXR=OFF", "-DWITH_PVAPI=OFF", "-DWITH_V4L=OFF", "-DWITH_VTK=OFF", "-DWITH_WEBP=OFF", "-DWITH_1394=OFF", "-DBUILD_opencv_apps=OFF", "-DBUILD_opencv_calib3d=OFF", "-DBUILD_opencv_features2d=OFF", "-DBUILD_opencv_flann=OFF", "-DBUILD_opencv_ml=OFF", "-DBUILD_opencv_objdetect=OFF", "-DBUILD_opencv_shape=OFF", "-DBUILD_opencv_stitching=OFF", "-DBUILD_opencv_superres=OFF", "-DBUILD_opencv_ts=OFF", "-DBUILD_opencv_video=OFF", "-DBUILD_opencv_videoio=ON", "-DBUILD_opencv_videostab=OFF", "-DBUILD_opencv_world=OFF", "-DBUILD_opencv_highgui=ON", "-DBUILD_opencv_python2=OFF", "-DBUILD_opencv_python3=OFF", "-DWITH_QUICKTIME=OFF", "-DHAVE_QTKIT=FALSE"], 
+            "sources": [ { "type": "archive", "url": "https://github.com/opencv/opencv/archive/3.3.0.zip", "sha256": "3546c3837f88177c898e4172942da7a3ca6c4e8e98a33d0cbccb2b499167c5ba"} ]
+	},
+
+        {
+            "name": "doccreator",
+            "buildsystem": "cmake-ninja",
+	    "config-opts": ["-DCMAKE_BUILD_TYPE=Release"],
+            "sources": [
+                { "type": "archive", "url": "http://dept-info.labri.fr/~mansenca/DocCreator170811.zip", "sha256": "2db940d1e2dcd5641468813a73df6c87b0d02c0cac605f24c6312b610812cf76"}
+            ]
+        }
+    ]
+}
