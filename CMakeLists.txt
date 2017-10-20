@@ -12,9 +12,6 @@ PROJECT(DocCreator)
 SET( CMAKE_COLOR_MAKEFILE ON )
 #SET( CMAKE_VERBOSE_MAKEFILE ON )
 
-IF(POLICY CMP0063)
-  cmake_policy(SET CMP0063 NEW)
-ENDIF()
 
 #CMake 2.8.12 & up. 
 # Cf http://www.kitware.com/blog/home/post/510
