@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.12)
 FIND_PROGRAM(CCACHE_PROGRAM ccache)
 IF(CCACHE_PROGRAM)
   SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+  message(STATUS "Using ccache for building")
 ENDIF(CCACHE_PROGRAM)
 
 
@@ -90,7 +91,7 @@ ENDIF(NOT BUILD_TESSERACT)
 
 IF(BUILD_TESSERACT)
   
-  message("will build leptonica and tesseract from sources")
+  message(STATUS "will build leptonica and tesseract from sources")
 
   IF(NOT MSVC)
     SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}leptonica${CMAKE_STATIC_LIBRARY_SUFFIX}")
