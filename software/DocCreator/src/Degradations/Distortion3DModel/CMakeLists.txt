@@ -6,10 +6,6 @@ SET(TARGET Doc3D)
 project(${TARGET})
 
 
-IF(${CMAKE_VERSION} VERSION_GREATER 3.0.0)
-  cmake_policy(SET CMP0063 NEW)
-ENDIF()
-
 
 #CMake 2.8.12 & up. 
 # Cf http://www.kitware.com/blog/home/post/510
