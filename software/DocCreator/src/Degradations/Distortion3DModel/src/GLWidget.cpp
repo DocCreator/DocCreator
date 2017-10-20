@@ -243,7 +243,9 @@ GLWidget::initializeGL()
   }
 
   assert(m_sphere.isValid());
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif 
 
   m_sphereMeshGL = new GLMesh;
   m_sphereMeshGL->init(m_sphere);
@@ -269,7 +271,9 @@ GLWidget::initializeGL()
 
   m_backgroundMesh = makePlane();
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   m_backgroundMeshGL = new GLMesh;
   m_backgroundMeshGL->init(m_backgroundMesh);
@@ -385,7 +389,9 @@ GLWidget::initGLForMesh()
 
   makeCurrent();
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   delete m_meshGL;
   delete m_object;
@@ -432,7 +438,9 @@ GLWidget::setTexture(const QImage &image)
 
   makeCurrent();
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   //std::cerr<<"GLWidget::setTexture w="<<image.width()<<" h="<<image.height()<<"\n";
 
@@ -514,7 +522,9 @@ GLWidget::resizeGL(int w, int h)
 {
   //std::cerr<<"resizeGL w="<<w<<" h="<<h<<"\n";
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   glViewport(0, 0, w, h);
 
@@ -542,7 +552,9 @@ void
 GLWidget::paintGL()
 {
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   //std::cerr<<"paintGL()\n";
   GL_CHECK_ERROR_ALWAYS();
@@ -601,7 +613,9 @@ GLWidget::paintGL()
         glUniformMatrix3fv(texMatLoc, 1, GL_FALSE, m_backgroundTexMat.data());
     }
 
+#if QT_VERSION >= 0x050400
     assert(context() == QOpenGLContext::currentContext());
+#endif
 
     assert(m_backgroundObject);
     m_backgroundObject->draw(m_camera);
@@ -680,7 +694,9 @@ GLWidget::paintGL()
       }
     }
 
+#if QT_VERSION >= 0x050400
     assert(context() == QOpenGLContext::currentContext());
+#endif
 
     m_object->draw(m_camera);
   }
@@ -764,7 +780,9 @@ GLWidget::paintGL()
 
       GL_CHECK_ERROR_ALWAYS();
 
+#if QT_VERSION >= 0x050400
       assert(context() == QOpenGLContext::currentContext());
+#endif
 
       m_sphereObject->draw(m_camera);
       GL_CHECK_ERROR_ALWAYS();
@@ -777,7 +795,9 @@ GLWidget::paintGL()
 QImage
 GLWidget::takeScreenshot()
 {
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   QImage img =
 #if QT_VERSION < 0x050400
@@ -1181,7 +1201,9 @@ GLWidget::updateMeshGL()
   //for now, we delete & rebuild
   //TODO:OPTIM: do not re-allocate VBO if same size...
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   delete m_meshGL;
   m_meshGL = new GLMesh;
@@ -1368,7 +1390,9 @@ GLWidget::setBackgroundTexture(const QImage &image)
     return;
   }
 
+#if QT_VERSION >= 0x050400
   assert(context() == QOpenGLContext::currentContext());
+#endif
 
   QImage img = image;
 
