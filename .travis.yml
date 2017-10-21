@@ -113,19 +113,22 @@ jobs:
             - ninja-build
             - libpng-dev
             - libjpeg-dev
-            - libopencv-dev
             - clang-5.0
             - libc++-dev
             - libc++abi-dev
 
+      #On Linux, with clang, OpencV 3.1 or greater is needed.
+            
       before_install:
         # add external ppa for Qt 5.9
         - sudo add-apt-repository -y ppa:beineri/opt-qt591-trusty
+        - sudo add-apt-repository -y ppa:lkoppel/opencv
         - sudo apt-get -qy update
         - eval "${MATRIX_EVAL}"
 
       install:
         - sudo apt-get -qy install qt59-meta-minimal qt59declarative qt59xmlpatterns
+        - sudo apt-get -qy install libopencv-dev
         
       env:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
@@ -147,16 +150,11 @@ jobs:
         - brew update
         - brew outdated qt5 || brew upgrade qt5
         - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - which qmake
-        - qmake -version
-        - ls -l /usr/local/Cellar/qt5/
-        - ls -l /usr/local/opt/qt5/*
-        - brew --prefix qt5
 
       script:
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5
         - make -j 3
 
     ###
@@ -173,7 +171,7 @@ jobs:
       script:
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5
         - make -j 3
 
         
