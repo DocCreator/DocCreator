@@ -3,14 +3,15 @@ language: cpp
 
 cache: ccache
 
-#On Ubuntu Trusty (14.04) we use an external ppa to get Qt 5.9
+#On Ubuntu Trusty (14.04), Qt5 version is 5.2.1.
+#We use an external ppa to get Qt 5.9
 #Qt is then installed in /opt/qt59/
 #See https://launchpad.net/~beineri/+archive/ubuntu/opt-qt591-trusty
 
 jobs:
   include:
     ###
-    - stage: linux, gcc-4.8.3, Qt5.2.1, Release
+    - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Release
       os: linux
       dist: trusty
       compiler: gcc
@@ -35,7 +36,7 @@ jobs:
         - ninja -j 3
 
     ###
-    - stage: linux, gcc-4.8.3, Qt5.2.1, Debug
+    - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
       os: linux
       dist: trusty
       compiler: gcc
@@ -60,7 +61,7 @@ jobs:
         - ninja -j 3
 
     ###
-    - stage: linux, gcc-7.0, Qt5.9, Release
+    - stage: Ubuntu 14.04, gcc-7.0, Qt5.9, Release
       os: linux
       dist: trusty
       compiler: gcc
@@ -96,7 +97,7 @@ jobs:
         - ninja -j 3
 
     ###
-    - stage: linux, clang-5.0, Qt5.9, Release
+    - stage: Ubuntu 14.04, clang-5.0, Qt5.9, Release
       os: linux
       dist: trusty
       compiler: gcc
@@ -104,6 +105,7 @@ jobs:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
             - deadsnakes
           packages:
             - cmake
@@ -113,6 +115,8 @@ jobs:
             - libjpeg-dev
             - libopencv-dev
             - clang-5.0
+            - libc++-dev
+            - libc++abi-dev
 
       before_install:
         # add external ppa for Qt 5.9
@@ -136,13 +140,18 @@ jobs:
   
     ###
     - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
-      os: osx #uses OS X 10.11.6 & Xcode 7.3.1
+      os: osx #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
       compiler: clang
 
       before_install:
         - brew update
         - brew outdated qt5 || brew upgrade qt5
         - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        - which qmake
+        - qmake -version
+        - ls -l /usr/local/Cellar/qt5/
+        - ls -l /usr/local/opt/qt5/*
+        - brew --prefix qt5
 
       script:
         - mkdir build
