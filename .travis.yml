@@ -97,7 +97,7 @@ jobs:
         - ninja -j 3
 
     ###
-    - stage: Ubuntu 14.04, clang-5.0, Qt5.9, Release
+    - stage: Ubuntu 14.04, clang-3.9, Qt5.9, Release
       os: linux
       dist: trusty
       compiler: gcc
@@ -105,7 +105,7 @@ jobs:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-5.0
+            - llvm-toolchain-trusty-3.9
             - deadsnakes
           packages:
             - cmake
@@ -113,7 +113,7 @@ jobs:
             - ninja-build
             - libpng-dev
             - libjpeg-dev
-            - clang-5.0
+            - clang-3.9
             - libc++-dev
             - libc++abi-dev
 
@@ -131,7 +131,7 @@ jobs:
         - sudo apt-get -qy install libopencv-dev
         
       env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+        - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
 
       script:
         - mkdir build
@@ -150,6 +150,9 @@ jobs:
         - brew update
         - brew outdated qt5 || brew upgrade qt5
         - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        - ls -l /usr/local
+        - ls -l /usr/local/opt
+        - brew --prefix qt5
         - ls -l /usr/local/opt/qt5
         - ls -l /usr/local/opt/qt5/bin/qmake
 
