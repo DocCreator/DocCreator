@@ -129,12 +129,16 @@ IF(BUILD_TESSERACT)
   ExternalProject_Add(leptonica
     URL ${PROJECT_SOURCE_DIR}/thirdparty/leptonica
     PREFIX ${PROJECT_BINARY_DIR}/leptonica
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DSTATIC=ON
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DSTATIC=ON -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     BUILD_BYPRODUCTS ${LEPTONICA_LIBRARY}
     )
   #The client does: #include<leptonica/allheaders.h>
   #I had to modify leptonica CMakeLists.txt to correctly install headers, in leptonica directory
 
+  #-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is to ensure that leptonica&tesseract are built with the same compiler than DocCreator
+  # It is for example useful on Linux, when compiled with a non-default compiler.
+  
+  
   ExternalProject_Get_Property(leptonica binary_dir)
   ExternalProject_Get_Property(leptonica source_dir)
   ExternalProject_Get_Property(leptonica install_dir)
@@ -150,12 +154,18 @@ IF(BUILD_TESSERACT)
   SET_TARGET_PROPERTIES(leptonicaLib PROPERTIES IMPORTED_LOCATION ${LEPTONICA_LIBRARY})
   ADD_DEPENDENCIES(leptonicaLib leptonica)
 
+  #Tesseract is built with -std=c++11
+  #If clang is used, we ensure that libc++ is also used.
+  SET(ADDITIONAL_FLAG "")
+  IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    SET(ADDITIONAL_FLAG "-DCMAKE_CXX_FLAGS=-stdlib=libc++")
+  ENDIF()
 
   ExternalProject_Add(tesseract
     DEPENDS leptonica
     URL ${PROJECT_SOURCE_DIR}/thirdparty/tesseract
     PREFIX ${PROJECT_BINARY_DIR}/tesseract
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${ADDITIONAL_FLAG}
     BUILD_BYPRODUCTS ${TESSERACT_LIBRARY}
     )
 
