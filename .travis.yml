@@ -66,9 +66,9 @@ jobs:
       compiler: gcc
       addons:
         apt:
-	  sources:
-	    - ubuntu-toolchain-r-test
-	    - deadsnakes
+          sources:
+            - ubuntu-toolchain-r-test
+            - deadsnakes
           packages:
             - cmake
             - ccache
@@ -102,9 +102,9 @@ jobs:
       compiler: gcc
       addons:
         apt:
-	  sources:
-	    - ubuntu-toolchain-r-test
-	    - deadsnakes
+          sources:
+            - ubuntu-toolchain-r-test
+            - deadsnakes
           packages:
             - cmake
             - ccache
