@@ -150,6 +150,8 @@ jobs:
         - brew update
         - brew outdated qt5 || brew upgrade qt5
         - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        - ls -l /usr/local/opt/qt5
+        - ls -l /usr/local/opt/qt5/bin/qmake
 
       script:
         - mkdir build
