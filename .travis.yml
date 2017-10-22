@@ -151,24 +151,25 @@ jobs:
         - brew update
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - brew upgrade --verbose qt5
+        - brew upgrade --verbose qt@5.7
         - brew tap homebrew/science && brew upgrade opencv
         - brew list 
         - echo "brew --prefix opencv=$(brew --prefix opencv)"
-        - echo "brew --prefix qt5=$(brew --prefix qt5)"
-        - echo "brew --prefix qt@5.6=$(brew --prefix qt@5.6)"
+        #- echo "brew --prefix qt5=$(brew --prefix qt5)"
+        - echo "brew --prefix qt@5.7=$(brew --prefix qt@5.7)"
         - ls -l /usr/local
         - ls -l /usr/local/opt
         - ls -l /usr/local/Cellar
         - brew list | grep -i opencv
         - brew list | grep -i qt
-        - ls -l "$(brew --prefix qt5)"
-        - ls -l /usr/local/Cellar/qt
+        #- ls -l "$(brew --prefix qt5)"
+        - ls -l "$(brew --prefix qt@5.7)"
+        #- ls -l /usr/local/Cellar/qt
 
       script:
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt5)
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5.7)
         - make -j 3
 
     ###
