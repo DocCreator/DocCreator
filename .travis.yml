@@ -149,8 +149,10 @@ jobs:
 
       before_install:
         - brew update
-        - brew outdated qt5 || brew update --verbose qt5
-        - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        #- brew outdated qt5 || brew update --verbose qt5
+        #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        - brew update --verbose qt5
+        - brew tap homebrew/science && brew upgrade opencv
         - brew list 
         - echo "brew --prefix opencv=$(brew --prefix opencv)"
         - echo "brew --prefix qt5=$(brew --prefix qt5)"
