@@ -11,94 +11,57 @@ cache: ccache
 jobs:
   include:
     ###
-    - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Release
-      os: linux
-      dist: trusty
-      compiler: gcc
-      addons:
-        apt:
-          packages:
-            - cmake
-            - ccache
-            - ninja-build
-            - libpng-dev
-            - libjpeg-dev
-            - libopencv-dev
-            - qtbase5-dev
-            - qtdeclarative5-dev
-            - libqt5xmlpatterns5-dev
-            - libqt5opengl5-dev
+    # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Release
+    #   os: linux
+    #   dist: trusty
+    #   compiler: gcc
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - cmake
+    #         - ccache
+    #         - ninja-build
+    #         - libpng-dev
+    #         - libjpeg-dev
+    #         - libopencv-dev
+    #         - qtbase5-dev
+    #         - qtdeclarative5-dev
+    #         - libqt5xmlpatterns5-dev
+    #         - libqt5opengl5-dev
 
-      script:
-        - mkdir build
-        - cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release 
-        - ninja -j 3
+    #   script:
+    #     - mkdir build
+    #     - cd build
+    #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release 
+    #     - ninja -j 3
 
-    ###
-    - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
-      os: linux
-      dist: trusty
-      compiler: gcc
-      addons:
-        apt:
-          packages:
-            - cmake
-            - ccache
-            - ninja-build
-            - libpng-dev
-            - libjpeg-dev
-            - libopencv-dev
-            - qtbase5-dev
-            - qtdeclarative5-dev
-            - libqt5xmlpatterns5-dev
-            - libqt5opengl5-dev
+    # ###
+    # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
+    #   os: linux
+    #   dist: trusty
+    #   compiler: gcc
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - cmake
+    #         - ccache
+    #         - ninja-build
+    #         - libpng-dev
+    #         - libjpeg-dev
+    #         - libopencv-dev
+    #         - qtbase5-dev
+    #         - qtdeclarative5-dev
+    #         - libqt5xmlpatterns5-dev
+    #         - libqt5opengl5-dev
 
-      script:
-        - mkdir build
-        - cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug 
-        - ninja -j 3
+    #   script:
+    #     - mkdir build
+    #     - cd build
+    #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug 
+    #     - ninja -j 3
 
-    ###
-    - stage: Ubuntu 14.04, gcc-7.0, Qt5.9, Release
-      os: linux
-      dist: trusty
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - deadsnakes
-          packages:
-            - cmake
-            - ccache
-            - ninja-build
-            - libpng-dev
-            - libjpeg-dev
-            - libopencv-dev
-            - g++-7
-
-      before_install:
-        - sudo add-apt-repository -y ppa:beineri/opt-qt591-trusty
-        - sudo apt-get -qy update
-        - eval "${MATRIX_EVAL}"
-
-      install:
-        - sudo apt-get -qy install qt59-meta-minimal qt59declarative qt59xmlpatterns
-        
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-      script:
-        - mkdir build
-        - cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/qt59/
-        - ninja -j 3
-
-    ###
-    # 21/11/2017 This configuration odes not work: libstdc++ is used instead of libc++
-    # - stage: Ubuntu 14.04, clang-5.0, Qt5.9, Release
+    # ###
+    # - stage: Ubuntu 14.04, gcc-7.0, Qt5.9, Release
     #   os: linux
     #   dist: trusty
     #   compiler: gcc
@@ -106,7 +69,6 @@ jobs:
     #     apt:
     #       sources:
     #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-trusty-5.0
     #         - deadsnakes
     #       packages:
     #         - cmake
@@ -114,31 +76,69 @@ jobs:
     #         - ninja-build
     #         - libpng-dev
     #         - libjpeg-dev
-    #         - clang-5.0
-    #         - libc++-dev
-    #         - libc++abi-dev
+    #         - libopencv-dev
+    #         - g++-7
 
-    #   #On Linux, with clang, OpencV 3.1 or greater is needed.
-            
     #   before_install:
-    #     # add external ppa for Qt 5.9
     #     - sudo add-apt-repository -y ppa:beineri/opt-qt591-trusty
-    #     - sudo add-apt-repository -y ppa:lkoppel/opencv
     #     - sudo apt-get -qy update
     #     - eval "${MATRIX_EVAL}"
 
     #   install:
     #     - sudo apt-get -qy install qt59-meta-minimal qt59declarative qt59xmlpatterns
-    #     - sudo apt-get -qy install libopencv-dev
         
     #   env:
-    #     - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+    #     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
     #   script:
     #     - mkdir build
     #     - cd build
     #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/qt59/
     #     - ninja -j 3
+
+    # ###
+    # # 21/11/2017 This configuration odes not work: libstdc++ is used instead of libc++
+    # # - stage: Ubuntu 14.04, clang-5.0, Qt5.9, Release
+    # #   os: linux
+    # #   dist: trusty
+    # #   compiler: gcc
+    # #   addons:
+    # #     apt:
+    # #       sources:
+    # #         - ubuntu-toolchain-r-test
+    # #         - llvm-toolchain-trusty-5.0
+    # #         - deadsnakes
+    # #       packages:
+    # #         - cmake
+    # #         - ccache
+    # #         - ninja-build
+    # #         - libpng-dev
+    # #         - libjpeg-dev
+    # #         - clang-5.0
+    # #         - libc++-dev
+    # #         - libc++abi-dev
+
+    # #   #On Linux, with clang, OpencV 3.1 or greater is needed.
+            
+    # #   before_install:
+    # #     # add external ppa for Qt 5.9
+    # #     - sudo add-apt-repository -y ppa:beineri/opt-qt591-trusty
+    # #     - sudo add-apt-repository -y ppa:lkoppel/opencv
+    # #     - sudo apt-get -qy update
+    # #     - eval "${MATRIX_EVAL}"
+
+    # #   install:
+    # #     - sudo apt-get -qy install qt59-meta-minimal qt59declarative qt59xmlpatterns
+    # #     - sudo apt-get -qy install libopencv-dev
+        
+    # #   env:
+    # #     - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
+    # #   script:
+    # #     - mkdir build
+    # #     - cd build
+    # #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/qt59/
+    # #     - ninja -j 3
 
   #######################################################
   
@@ -149,9 +149,9 @@ jobs:
 
       before_install:
         - brew update
-        #- brew outdated qt5 || brew update --verbose qt5
+        #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - brew update --verbose qt5
+        - brew upgrade --verbose qt5
         - brew tap homebrew/science && brew upgrade opencv
         - brew list 
         - echo "brew --prefix opencv=$(brew --prefix opencv)"
@@ -160,8 +160,8 @@ jobs:
         - ls -l /usr/local
         - ls -l /usr/local/opt
         - ls -l /usr/local/Cellar
-        - brew list | grep opencv
-        - brew list | grep qt
+        - brew list | grep -i opencv
+        - brew list | grep -i qt
         - ls -l "$(brew --prefix qt5)"
         - ls -l /usr/local/Cellar/qt
 
