@@ -151,12 +151,13 @@ jobs:
         - brew update
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - brew tap homebrew/science && brew upgrade opencv
+        - brew tap homebrew/science 
         - brew upgrade --verbose qt@5.7
+        - brew upgrade opencv
         - brew list 
-        - echo "brew --prefix opencv=$(brew --prefix opencv)"
         #- echo "brew --prefix qt5=$(brew --prefix qt5)"
         - echo "brew --prefix qt@5.7=$(brew --prefix qt@5.7)"
+        - echo "brew --prefix opencv=$(brew --prefix opencv)"
         - ls -l /usr/local
         - ls -l /usr/local/opt
         - ls -l /usr/local/Cellar
