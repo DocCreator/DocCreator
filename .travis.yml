@@ -151,8 +151,8 @@ jobs:
         - brew update
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - brew upgrade --verbose qt@5.7
         - brew tap homebrew/science && brew upgrade opencv
+        - brew upgrade --verbose qt@5.7
         - brew list 
         - echo "brew --prefix opencv=$(brew --prefix opencv)"
         #- echo "brew --prefix qt5=$(brew --prefix qt5)"
