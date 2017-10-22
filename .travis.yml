@@ -149,16 +149,17 @@ jobs:
 
       before_install:
         - brew update
-        - brew outdated qt5 || brew install --verbose qt5
+        - brew outdated qt5 || brew update --verbose qt5
         - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - ls -l /usr/local
-        - ls -l /usr/local/opt
-        - ls -l /usr/local/Cellar
-        - brew list | grep qt
-        - brew list | grep opencv
+        - brew list 
         - echo "brew --prefix opencv=$(brew --prefix opencv)"
         - echo "brew --prefix qt5=$(brew --prefix qt5)"
         - echo "brew --prefix qt@5.6=$(brew --prefix qt@5.6)"
+        - ls -l /usr/local
+        - ls -l /usr/local/opt
+        - ls -l /usr/local/Cellar
+        - brew list | grep opencv
+        - brew list | grep qt
         - ls -l "$(brew --prefix qt5)"
         - ls -l /usr/local/Cellar/qt
 
