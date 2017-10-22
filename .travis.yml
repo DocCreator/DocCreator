@@ -148,10 +148,15 @@ jobs:
       compiler: clang
 
       before_install:
+        - echo $PATH
+        - rvm use ruby-2.0.0-p648
+        - echo $PATH
         - brew update
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        - brew list 
         - brew tap homebrew/science 
+        - brew list 
         - brew upgrade --verbose qt@5.7
         - brew upgrade opencv
         - brew list 
