@@ -151,7 +151,10 @@ jobs:
         - echo $PATH
         - rvm use ruby-2.0.0-p648
         - echo $PATH
+        - xcodebuild -version
         - brew update
+        - brew config
+        - brew doctor
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
         - brew list 
