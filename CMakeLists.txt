@@ -51,7 +51,7 @@ ADD_CUSTOM_TARGET(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 FIND_PACKAGE(QtX REQUIRED)
 
-FIND_PACKAGE(OpenCV REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED core imgproc highgui photo)
 if( OpenCV_FOUND )
   list( APPEND ThirdParty_LIBS ${OpenCV_LIBS} )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
