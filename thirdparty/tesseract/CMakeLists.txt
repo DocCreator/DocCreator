@@ -100,7 +100,7 @@ if (CYGWIN)
     add_definitions(-D__CYGWIN__)
 endif()
 
-if (UNIX)
+if (UNIX OR MINGW)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
     set(LIB_pthread pthread)

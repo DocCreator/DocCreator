@@ -30,7 +30,7 @@
 #include "helpers.h"
 #include "tprintf.h"
 
-#if defined(__MINGW32__)
+#if 0 //defined(__MINGW32__)
 # include <unistd.h>
 #elif __cplusplus > 199711L   // in C++11
 # include <thread>
