@@ -83,7 +83,7 @@ protected:
 
 protected:
   void updateView();
-  void updateTable();
+  void updateTableLetters();
   void updateAlphabet();
   void computeBaselines();
   void rebinarizeCurrentLetter();
@@ -105,6 +105,9 @@ protected:
   std::vector<int> getSimilarLetters(const FontLetter &fl) const;
 
   //std::vector<FontLetter> getFinalFont() const;
+
+  int indexOfFontLetterInAlphabet(const FontLetter &f);
+
 
 private:
   Ui::OCRDialog *ui;

@@ -41,6 +41,8 @@ static const int IMG_WIDTH = 500;
 static const int IMG_HEIGHT = 680;
 static const cv::Scalar SELECTED_BLUE = cv::Scalar(255, 0, 0);
 
+static const int NUM_COLUMNS = 3;
+
 static const QString DEFAULT_FONT_NAME = QStringLiteral("ocrFont");
 
 OCRDialog::OCRDialog(QWidget *parent)
@@ -352,7 +354,7 @@ OCRDialog::process()
 }
 
 void
-OCRDialog::updateTable()
+OCRDialog::updateTableLetters()
 {
 
   ui->tableLetters->clear();
@@ -383,35 +385,48 @@ OCRDialog::updateTable()
   }
 }
 
+/*
+  Return index of fontLetter @a f in alphabet.
+  If not found, m_alphabet.size() is returned.
+ */
+int
+OCRDialog::indexOfFontLetterInAlphabet(const FontLetter &f)
+{
+  int index = m_alphabet.size();
+  for (int j = 0; j < (int)m_alphabet.size(); ++j) {
+    const int ind = m_alphabet[j].first;
+    assert(ind >= 0 && ind < (int)m_font.size());
+    const FontLetter &fl = m_font[ind];
+    if (f.label == fl.label) {
+      index = j;
+      break;
+    }
+  }
+  return index;
+}
+
 void
 OCRDialog::updateAlphabet()
 {
   ui->tableAlphabet->clear();
   ui->tableAlphabet->setRowCount(0);
-  ui->tableAlphabet->setColumnCount(3);
+  ui->tableAlphabet->setColumnCount(NUM_COLUMNS);
   ui->tableAlphabet->verticalHeader()->setVisible(false);
   m_alphabet.clear();
 
   // We fill the alphabet
   for (int i = 0; i < (int)m_font.size(); ++i) {
     FontLetter &f = m_font[i];
-    bool found = false;
 
-    for (int j = 0; j < (int)m_alphabet.size(); ++j) {
-      const int ind = m_alphabet[j].first;
-      assert(ind >= 0 && ind < (int)m_font.size());
-      const FontLetter &fl = m_font[ind];
-
-      // If the label is already in table, we increase its instance number
-      if (f.label == fl.label) {
-        m_alphabet[j].second++;
-        found = true;
-        break;
-      }
+    const int indexA = indexOfFontLetterInAlphabet(f);
+    if (indexA < (int)m_alphabet.size()) {
+      //label already in alphabet, we just increase its frequency
+      m_alphabet[indexA].second++;
     }
-    // Else, we create a new instance of this label
-    if (!found)
+    else {
+      //label is not in the alphabet, it is added with a frequency of one.
       m_alphabet.emplace_back(std::pair<int, int>(i, 1));
+    }
   }
 
   // We sort the table according to their frequency in the text
@@ -428,12 +443,14 @@ OCRDialog::updateAlphabet()
       QString::fromStdString(m_font[m_alphabet[j].first].label + " (" +
                              std::to_string(m_alphabet[j].second) + ")"));
 
-    if (j % 3 == 0)
+    //TODO:OPTIM: set number of rows at once (setRowCount() ?)
+    if (j % NUM_COLUMNS == 0)
       ui->tableAlphabet->insertRow(ui->tableAlphabet->rowCount());
 
-    ui->tableAlphabet->setItem(ui->tableAlphabet->rowCount() - 1, j % 3, thumb);
+    ui->tableAlphabet->setItem(ui->tableAlphabet->rowCount() - 1, j % NUM_COLUMNS, thumb);
+
     if (j % 2 == 0)
-      ui->tableAlphabet->item(ui->tableAlphabet->rowCount() - 1, j % 3)
+      ui->tableAlphabet->item(ui->tableAlphabet->rowCount() - 1, j % NUM_COLUMNS)
         ->setBackground(QColor(235, 235, 239));
   }
 
@@ -520,7 +537,16 @@ OCRDialog::updateView()
 
   ui->smoothed->setChecked(m_currentLetter.checked);
 
-  updateTable();
+  updateTableLetters();
+
+
+  //Set currentLetter as current cell in tableAlphabet
+  const int indexA = indexOfFontLetterInAlphabet(m_currentLetter);
+  assert(indexA < m_alphabet.size());
+  const int row = indexA/NUM_COLUMNS;
+  const int col = indexA-row*NUM_COLUMNS;
+  ui->tableAlphabet->setCurrentCell(row, col);
+
 
   // Highlight the symbols in the image with the same label
   for (const int ind : m_similarList) {
@@ -719,8 +745,8 @@ void
 OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
 {
   // Get current label
-  assert(row * 3 + column < (int)m_alphabet.size());
-  std::string label = m_font[m_alphabet[row * 3 + column].first].label;
+  assert(row * NUM_COLUMNS + column < (int)m_alphabet.size());
+  std::string label = m_font[m_alphabet[row * NUM_COLUMNS + column].first].label;
 
   int tmp_conf = -1;
 
@@ -800,7 +826,8 @@ OCRDialog::on_saveFont_clicked()
   QString filters(QStringLiteral("font files (*.of)"));
   QString filename = QFileDialog::getSaveFileName(
     nullptr, QStringLiteral("Save Font"), QDir::currentPath(), filters);
-  writeFont(filename);
+  if (filename.isEmpty())
+    writeFont(filename);
 }
 
 QString
@@ -809,7 +836,8 @@ OCRDialog::saveFont()
   QString filters(QStringLiteral("font files (*.of)"));
   QString filename = QFileDialog::getSaveFileName(
     nullptr, QStringLiteral("Save Font"), QDir::currentPath(), filters);
-  writeFont(filename);
+  if (filename.isEmpty())
+    writeFont(filename);
 
   return filename;
 }
