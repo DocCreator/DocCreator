@@ -430,11 +430,11 @@ OCRDialog::updateAlphabet()
   }
 
   // We sort the table according to their frequency in the text
-  sort(m_alphabet.begin(),
-       m_alphabet.end(),
-       [](const std::pair<int, int> c1, const std::pair<int, int> c2) {
-         return c1.second > c2.second;
-       });
+  std::sort(m_alphabet.begin(),
+	    m_alphabet.end(),
+	    [](const std::pair<int, int> c1, const std::pair<int, int> c2) {
+	      return c1.second > c2.second;
+	    });
 
   // We fill the QTable
   for (int j = 0; j < (int)m_alphabet.size(); ++j) {
@@ -585,13 +585,14 @@ OCRDialog::getConfidenceColor(float conf) const
   return color;
 }
 
+/*
+   Returns a sorted vector of the symbols with the same label than fl
+   Returns also the related index of each letter
+   The letters are sorted by decreasing confidence of the guessed label
+*/
 std::vector<int>
 OCRDialog::getSimilarLetters(const FontLetter &fl) const
 {
-  /* Returns a sorted vector of the symbols with the same label than fl
-   * Returns also the related index of each letter
-   * The letters are sorted by confidence of the guessed label */
-
   // Get symbols with same label
   std::vector<std::pair<int, int>> list;
 
@@ -604,11 +605,11 @@ OCRDialog::getSimilarLetters(const FontLetter &fl) const
   }
 
   // Sort them by decreasing confidence
-  sort(list.begin(),
-       list.end(),
-       [](std::pair<int, int> c1, std::pair<int, int> c2) {
-         return c1.second > c2.second;
-       });
+  std::sort(list.begin(),
+	    list.end(),
+	    [](std::pair<int, int> c1, std::pair<int, int> c2) {
+	      return c1.second > c2.second;
+	    });
 
   // We select only the n-firsts (where n is given by the user)
   const size_t size = std::min((int)list.size(), m_maxNumberOfSymbols);
