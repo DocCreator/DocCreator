@@ -29,6 +29,8 @@
 #include <Utils/connectedcomponentextraction.h>
 #include <Utils/convertor.h>
 
+//#include <iostream>//DEBUG
+
 /**
  * \mainpage
  We propose a local noise model for grayscale document images.
@@ -312,6 +314,7 @@ cv::Mat
 GrayscaleCharsDegradationModel::degradateByLevel_cv(int level)
 {
   cv::Mat src;
+#if 1 //DEBUG
   if (level <= 4) {
     src = degradate_cv(level, 50, 30, 20);
   } else if (level <= 7) {
@@ -319,6 +322,10 @@ GrayscaleCharsDegradationModel::degradateByLevel_cv(int level)
   } else {
     src = degradate_cv(level, 20, 30, 50);
   }
+#else
+  src = degradate_cv(level, 100, 0, 0);
+#endif //0
+
   return src;
 }
 
@@ -1814,11 +1821,22 @@ GrayscaleCharsDegradationModel::grayscaleDegradationByTypes()
     if (_g < 0.f)
       _g = mean_g;
 
+    //B: BUG? 27/10/2017:
+    //For small rectangles, we may have (but not always) an ugly "+" shapes
+    //To avoid these "+" shapes, we change min size of semi_major_axis to 3
+
+
     // size of ellipse
     int semi_major_axis = floorf(sp.size + 0.5f);
+#if 0
     if (semi_major_axis <= 1)
       semi_major_axis = 2;
+#else
+    if (semi_major_axis < 3) //B: 27/10/2017
+      semi_major_axis = 3;
+#endif
     const int semi_minor_axis = floorf((1 - _g) * sp.size + 0.5f);
+
 
     // Get all pixels inside ellipse
     cv::Rect rec;
@@ -1832,6 +1850,8 @@ GrayscaleCharsDegradationModel::grayscaleDegradationByTypes()
                                                   semi_major_axis,
                                                   sp.pixel.gradient_angle);
     listRecs.push_back(rec);
+
+    //std::cerr<<"semi_major_axis="<<semi_major_axis<<" semi_minor_axis="<<semi_minor_axis<<" pos="<<sp.pixel.pos<<" gradient_angle="<<sp.pixel.gradient_angle<<" => rec="<<rec<<" min_B="<<min_B<<" max_B="<<max_B<<"\n";
 
     //==========DEBUG===================
     //        for (float* line : lines) {
@@ -2338,10 +2358,11 @@ GrayscaleCharsDegradationModel::getEllipsePoints(cv::Rect &rec,
           assert(y >= 0 && y < box.rows && x >= 0 && x < box.cols); //B
           if (b[x] == scalar) {
             const int xt = x - ex / 2;
-            assert(yt >= 0 && yt < _mat_gray.rows && xt >= 0 &&
-                   xt <
-                     _mat_gray
-                       .cols); //B: added 05/2015: to avoid point outside image
+            assert(yt >= 0 &&
+		   yt < _mat_gray.rows &&
+		   xt >= 0 &&
+                   xt < _mat_gray.cols);
+	    //B: added 05/2015: to avoid point outside image
             pointInLine.emplace_back(xt, yt);
           }
         }
