@@ -85,7 +85,7 @@
      <rect>
       <x>350</x>
       <y>0</y>
-      <width>363</width>
+      <width>370</width>
       <height>461</height>
      </rect>
     </property>
@@ -156,7 +156,7 @@
       <rect>
        <x>1</x>
        <y>0</y>
-       <width>427</width>
+       <width>437</width>
        <height>95</height>
       </rect>
      </property>
@@ -220,7 +220,7 @@
       <rect>
        <x>2</x>
        <y>1</y>
-       <width>347</width>
+       <width>350</width>
        <height>92</height>
       </rect>
      </property>
@@ -464,7 +464,7 @@
      <rect>
       <x>21</x>
       <y>40</y>
-      <width>598</width>
+      <width>600</width>
       <height>470</height>
      </rect>
     </property>
@@ -1274,7 +1274,7 @@
      <rect>
       <x>1</x>
       <y>130</y>
-      <width>522</width>
+      <width>525</width>
       <height>153</height>
      </rect>
     </property>
@@ -2209,7 +2209,7 @@
        <x>0</x>
        <y>0</y>
        <width>799</width>
-       <height>186</height>
+       <height>185</height>
       </rect>
      </property>
      <property name="minimumSize">
@@ -2932,7 +2932,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>522</width>
+       <width>531</width>
        <height>153</height>
       </rect>
      </property>
@@ -3545,14 +3545,14 @@
    <widget class="QLabel" name="label_results">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>10</x>
       <y>120</y>
-      <width>511</width>
+      <width>751</width>
       <height>101</height>
      </rect>
     </property>
     <property name="text">
-     <string>12345 images have been written in directory:
+     <string>123456 images have been written in directory:
 completePathToOutputDirectory </string>
     </property>
    </widget>
@@ -3561,16 +3561,16 @@ completePathToOutputDirectory </string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupTextGeneration"/>
   <buttongroup name="buttonGroupText"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
-  <buttongroup name="buttonGroupParamsRightMargin"/>
   <buttongroup name="buttonGroupParamsLeftMargin"/>
-  <buttongroup name="buttonGroupParamsLineSpacing"/>
-  <buttongroup name="buttonGroupParamsBottomMargin"/>
-  <buttongroup name="buttonGroupParamsTopMargin"/>
+  <buttongroup name="buttonGroupParamsRightMargin"/>
   <buttongroup name="buttonGroupParamsImageSize"/>
-  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroupTextGeneration"/>
   <buttongroup name="buttonGroupParamsBlockX"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroupParamsTopMargin"/>
+  <buttongroup name="buttonGroupParamsBottomMargin"/>
+  <buttongroup name="buttonGroupParamsLineSpacing"/>
  </buttongroups>
 </ui>
