@@ -1256,11 +1256,30 @@
      </item>
      <item>
       <widget class="QLabel" name="label_FinalText">
+       <property name="minimumSize">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="text">
         <string>With 0 text file(s), 0 fonts and 0 background images:
 0 images will be generated if you click Next</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacerTxt">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>10</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </widget>
