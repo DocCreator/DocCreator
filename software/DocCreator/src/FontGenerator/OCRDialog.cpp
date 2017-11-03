@@ -541,12 +541,13 @@ OCRDialog::updateView()
 
 
   //Set currentLetter as current cell in tableAlphabet
-  const int indexA = indexOfFontLetterInAlphabet(m_currentLetter);
-  assert(indexA < m_alphabet.size());
-  const int row = indexA/NUM_COLUMNS;
-  const int col = indexA-row*NUM_COLUMNS;
-  ui->tableAlphabet->setCurrentCell(row, col);
-
+  if (! m_alphabet.empty()) {
+    const int indexA = indexOfFontLetterInAlphabet(m_currentLetter);
+    assert(indexA < m_alphabet.size());
+    const int row = indexA/NUM_COLUMNS;
+    const int col = indexA-row*NUM_COLUMNS;
+    ui->tableAlphabet->setCurrentCell(row, col);
+  }
 
   // Highlight the symbols in the image with the same label
   for (const int ind : m_similarList) {
@@ -827,7 +828,7 @@ OCRDialog::on_saveFont_clicked()
   QString filters(QStringLiteral("font files (*.of)"));
   QString filename = QFileDialog::getSaveFileName(
     nullptr, QStringLiteral("Save Font"), QDir::currentPath(), filters);
-  if (filename.isEmpty())
+  if (! filename.isEmpty())
     writeFont(filename);
 }
 
@@ -837,7 +838,7 @@ OCRDialog::saveFont()
   QString filters(QStringLiteral("font files (*.of)"));
   QString filename = QFileDialog::getSaveFileName(
     nullptr, QStringLiteral("Save Font"), QDir::currentPath(), filters);
-  if (filename.isEmpty())
+  if (! filename.isEmpty())
     writeFont(filename);
 
   return filename;
