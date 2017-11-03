@@ -234,7 +234,7 @@ meanFirst(std::vector<int> &values, size_t sz)
   return s > 0 ? static_cast<int>(sum / (float)s + 0.5f) : 0;
 }
 
-struct MaxHeightUnderAndAboveBaselineComputer5
+struct MaxHeightUnderAndAboveBaselineComputerK
 {
   std::vector<int> m_aboves;
   std::vector<int> m_unders;
@@ -253,21 +253,35 @@ struct MaxHeightUnderAndAboveBaselineComputer5
     m_unders.push_back(underBaseline);
   }
 
-  int getMax() //const
+  int getMax(size_t S = 5) //const
   {
-    const size_t S = 5;
-
     const int meanUnder = meanFirst(m_unders, S);
     const int meanAbove = meanFirst(m_aboves, S);
 
     return meanUnder + meanAbove;
   }
+
+  int getMaxAbove(size_t S = 5)
+  {
+    const int meanAbove = meanFirst(m_aboves, S);
+
+    return meanAbove;
+  }
+  
 };
 
 int
 getMaxCharacterHeightUnderAndAboveBaseline5(const Models::Font &f)
 {
-  MaxHeightUnderAndAboveBaselineComputer5 mchmubc;
+  MaxHeightUnderAndAboveBaselineComputerK mchmubc;
   traverseFontChar<MaxHeightUnderAndAboveBaselineComputer5>(f, mchmubc);
-  return mchmubc.getMax();
+  return mchmubc.getMax(5);
+}
+
+int
+getMaxCharacterHeightAboveBaseline5(const Models::Font &f)
+{
+  MaxHeightUnderAndAboveBaselineComputerK mchmubc;
+  traverseFontChar<MaxHeightUnderAndAboveBaselineComputer5>(f, mchmubc);
+  return mchmubc.getMaxAbove(5);
 }

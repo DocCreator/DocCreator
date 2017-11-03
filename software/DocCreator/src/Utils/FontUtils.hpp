@@ -31,10 +31,25 @@ getMaxCharacterHeightUnderAndAboveBaseline(const Models::Font &f);
 extern int
 getMaxCharacterHeightUnderAndAboveBaseline5(const Models::Font &f);
 
+/*
+  Compute the mean of the 5 biggest parts of character above the baseline.
+ */
+extern int
+getMaxCharacterHeightAboveBaseline5(const Models::Font &f);
+
+
 static inline int
 computeBestLineSpacing(const Models::Font &f)
 {
   return getMaxCharacterHeightUnderAndAboveBaseline5(f);
 }
+
+static inline int
+computeBestAboveBaselineHeight(const Models::Font &f)
+{
+  return getMaxCharacterHeightAboveBaseline5(f);
+}
+
+
 
 #endif /* ! FONT_UTILS_HPP */
