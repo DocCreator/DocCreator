@@ -130,6 +130,11 @@ StructureDialog::loremIpsum()
         ->currentParagraph(); //B:TODO: why call currentParagraph() when we alreay have para ?
     currentParagraph->setLineSpacing(lineSpacing);
 
+    //TODO:
+    //In DocumentController::addCharacters(), the first line is placed at currentTextBlock->marginTop()+getParagraphLineSpacing()
+    //However, it should be at  currentTextBlock->marginTop()+computeBestAboveBaselineHeight() !
+    // Thus we have to add this bestAboveBaselineHeight to DocParagraph (or TextBlock ?) to be able to access it in DocumentController.
+
     _ctrl->resetCurrentTextBlockCursor();
 
     if (ui->lorem->isChecked()) {

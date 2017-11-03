@@ -444,6 +444,10 @@ DocumentController::addCharacters(const QList<QString> &charList)
       //This is the first time we add characters
       // We set _cursorBaseline correctly
       _cursorBaseLine = currentTextBlock->marginTop() + lineSpacing;
+
+      //TODO: the first baseline should be at  currentTextBlock->marginTop()+computeBestAboveBaselineHeight() !
+      //see comment in StructureDialog::loremIpsum()
+      //Where should this bestAboveBaselineHeight be stored ? In DocParagraph ? In TextBlock ?
     }
   }
 
