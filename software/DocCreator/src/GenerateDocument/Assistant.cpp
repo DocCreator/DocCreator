@@ -3629,7 +3629,7 @@ Assistant::Hole_doHoles(QImage &recto,
       getNRandomUniq(nbHoles, 0, 4); //At most we can draw 4 corners.
     assert(sides.size() == (size_t)nbHoles);
 
-    std::cerr << "nb corner holes=" << sides.size() << "\n";
+    //std::cerr << "nb corner holes=" << sides.size() << "\n";
 
     std::vector<int> nbHolesBySize = getNumberOfHolesBySize(
       nbHoles, smallHoleCorner(), mediumHoleCorner(), bigHoleCorner());
@@ -3662,7 +3662,7 @@ Assistant::Hole_doHoles(QImage &recto,
         for (int ind : indices) {
           assert(k < sides.size());
 
-          std::cerr << "size " << i << " side=" << sides[k] << "\n";
+          //std::cerr << "size " << i << " side=" << sides[k] << "\n";
 
           HoleData hole = Hole_degradateImageRandom(recto,
                                                     patterns,
@@ -3700,7 +3700,7 @@ Assistant::Hole_doHoles(QImage &recto,
       4); //we allow duplicates (we can have several defects on same border)
     assert((size_t)nbHoles == sides.size());
 
-    std::cerr << "nbHoles borders=" << nbHoles << "\n";
+    //std::cerr << "nbHoles borders=" << nbHoles << "\n";
 
     std::vector<int> nbHolesBySize = getNumberOfHolesBySize(
       nbHoles, smallHoleBorder(), mediumHoleBorder(), bigHoleBorder());
@@ -3734,7 +3734,7 @@ Assistant::Hole_doHoles(QImage &recto,
 
         for (int ind : indices) {
           assert(k < sides.size());
-          std::cerr << " border side=" << sides[k] << "\n";
+          //std::cerr << " border side=" << sides[k] << "\n";
           HoleData hole = Hole_degradateImageRandom(recto,
                                                     patterns,
                                                     ind,
@@ -3819,8 +3819,6 @@ Assistant::Hole_doHoles(QImage &recto,
 void
 Assistant::Hole_updatePreview()
 {
-  std::cerr << "Hole_updatePreview()\n";
-
   Hole_OptionCheckedHole();
 
   QImage imgDeg = _Hole_rectoImgHole.copy();
@@ -4139,7 +4137,7 @@ Assistant::shadEnable() const
 bool
 Assistant::phantEnable() const
 {
-  return ui->Phantom_Rare->isChecked();
+  return _Phantom_phantEnable; //ui->Phantom_Rare->isChecked();
 }
 
 int
@@ -4370,7 +4368,8 @@ Shadow_saveImage(const QImage &img,
 
   const QString filename = prefix + ext;
   const QString absoluteFilename = path + filename;
-  bool saveOk = img.save(absoluteFilename);
+
+  const bool saveOk = img.save(absoluteFilename);
   if (!saveOk) {
     std::cerr << "ERROR: unable to save image: "
               << absoluteFilename.toStdString() << "\n";
@@ -4379,7 +4378,7 @@ Shadow_saveImage(const QImage &img,
 
   const QString absoluteFilenameXML = path + prefix + ".xml";
   QFile file(absoluteFilenameXML);
-  bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
+  const bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
   if (!openOk) {
     std::cerr << "ERROR: unable to write xml file: "
               << absoluteFilenameXML.toStdString() << "\n";
@@ -4495,7 +4494,7 @@ Hole_saveImage(const QImage &img,
 {
   const QString filename = prefixStr + ext;
   const QString absoluteFilename = path + filename;
-  bool saveOk = img.save(absoluteFilename);
+  const bool saveOk = img.save(absoluteFilename);
   if (!saveOk) {
     std::cerr << "ERROR: unable to save image: "
               << absoluteFilename.toStdString() << "\n";
@@ -4504,7 +4503,7 @@ Hole_saveImage(const QImage &img,
 
   const QString absoluteFilenameXML = path + prefixStr + ".xml";
   QFile file(absoluteFilenameXML);
-  bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
+  const bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
   if (!openOk) {
     std::cerr << "ERROR: unable to write xml file: "
               << absoluteFilenameXML.toStdString() << "\n";
@@ -5232,7 +5231,7 @@ Assistant::do_hole(const QString &imageBasename,
   const int nbTirages = ui->TirageHole->value();
   for (int i = 0; i < nbTirages; ++i) {
 
-    std::cerr << "-----------------------" << i << "\n";
+    //std::cerr << "----------------------- hole " << i <<"/"<<nbTirages<< "\n";
 
     rectoC = recto.copy();
 
@@ -5243,6 +5242,7 @@ Assistant::do_hole(const QString &imageBasename,
 
     const QString lPrefix = prefix + QString::number(i) + '_';
     Hole_saveImage(rectoC, path, lPrefix, imgExt, holes);
+    //TODO: handle error !
 
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
@@ -5346,43 +5346,52 @@ Assistant::generateDegradedImages() const
     const QString imageBasename =
       QFileInfo(pic).completeBaseName(); //remove path & last extension
 
-    QString rectoPath = inputImageDir + pic;
+    std::cerr << "----------------------- " << picIndex << "/" << numPics
+              << "\n";
+
+    const QString rectoPath = inputImageDir + pic;
     QImage recto(rectoPath);
-    assert(!recto.isNull());
 
-    //Apply bleedThrough if enabled
-    if (this->bleedEnable()) {
-      do_bleed(imageBasename, recto, picIndex, inputImageDir, savePath);
-    }
+    if (recto.isNull()) {
+      std::cerr << "ERROR: unable to load image: " << rectoPath.toStdString()
+                << "\n";
+    } else {
+      assert(!recto.isNull());
 
-    //Apply CharacterDegradation if enabled
-    if (this->charEnable()) {
-      do_charDeg(imageBasename, recto, savePath);
-    }
+      //Apply bleedThrough if enabled
+      if (this->bleedEnable()) {
+        do_bleed(imageBasename, recto, picIndex, inputImageDir, savePath);
+      }
 
-    //Apply Shadow Binding if enabled
-    if (this->shadEnable()) {
-      do_shadow(imageBasename, recto, savePath);
-    }
+      //Apply CharacterDegradation if enabled
+      if (this->charEnable()) {
+        do_charDeg(imageBasename, recto, savePath);
+      }
 
-    //Apply phantom characters if enabled
-    if (this->phantEnable()) {
-      do_phantom(imageBasename, recto, savePath);
-    }
+      //Apply Shadow Binding if enabled
+      if (this->shadEnable()) {
+        do_shadow(imageBasename, recto, savePath);
+      }
 
-    //Apply blur degradations if enabled
-    if (this->blurEnable()) {
-      do_blur(imageBasename, recto, savePath);
-    }
+      //Apply phantom characters if enabled
+      if (this->phantEnable()) {
+        do_phantom(imageBasename, recto, savePath);
+      }
 
-    //Apply holes if enabled
-    if (this->holeEnable()) {
-      do_hole(imageBasename, recto, savePath);
-    }
+      //Apply blur degradations if enabled
+      if (this->blurEnable()) {
+        do_blur(imageBasename, recto, savePath);
+      }
 
-    //Apply 3D if enabled
-    if (this->dist3DEnable()) {
-      do_3D(imageBasename, recto, savePath);
+      //Apply holes if enabled
+      if (this->holeEnable()) {
+        do_hole(imageBasename, recto, savePath);
+      }
+
+      //Apply 3D if enabled
+      if (this->dist3DEnable()) {
+        do_3D(imageBasename, recto, savePath);
+      }
     }
   }
 
