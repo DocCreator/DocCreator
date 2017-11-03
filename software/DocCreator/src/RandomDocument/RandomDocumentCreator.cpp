@@ -473,8 +473,33 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     assert(!_params.fontList.isEmpty());
     QString fontName = fontList.at(0);
 
-    for (int textIndex = 0; textIndex < _params.textList.size(); ++textIndex) {
+    if (!_params.textList.empty()) {
+      for (int textIndex = 0; textIndex < _params.textList.size();
+           ++textIndex) {
 
+        if (_params.fontList.size() > 1) {
+          const int fontIndex =
+            RandomElement().randomInt(0, _params.fontList.size() - 1);
+          fontName = fontList.at(fontIndex);
+        }
+        if (_params.backgroundList.size() > 1) {
+          const int index =
+            RandomElement().randomInt(0, _params.backgroundList.size() - 1);
+          const QString &backgroundName = _params.backgroundList.at(index);
+          Context::BackgroundContext::instance()->setCurrentBackground(
+            backgroundName);
+          randDoc->addProperty(QStringLiteral("background"), backgroundName);
+
+          if (!_params.imageSizeUniform) {
+            adaptViewSizeToBackgroundSize();
+          }
+        }
+
+        const bool useRandomTextFile = false;
+        create_aux(
+          randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+      }
+    } else {
       if (_params.fontList.size() > 1) {
         const int fontIndex =
           RandomElement().randomInt(0, _params.fontList.size() - 1);
@@ -493,8 +518,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
         }
       }
 
-      const bool useRandomTextFile = false;
-      create_aux(randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+      const bool useRandomTextFile = true;
+      create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
     }
 
     Context::DocumentContext::instance()->setCurrentDocument(nullptr);
@@ -599,12 +624,18 @@ RandomDocumentCreator::createAllTexts()
 
           const QString &fontName = fontList.at(fontIndex);
 
-          for (int textIndex = 0; textIndex < _params.textList.size();
-               ++textIndex) {
+          if (!_params.textList.empty()) {
+            for (int textIndex = 0; textIndex < _params.textList.size();
+                 ++textIndex) {
 
-            const bool useRandomTextFile = false;
-            create_aux(
-              randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+              const bool useRandomTextFile = false;
+              create_aux(
+                randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+            }
+          } else {
+            //must generate one random text with Lipsum4Qt
+            const bool useRandomTextFile = true;
+            create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
           }
         }
       }
@@ -615,12 +646,18 @@ RandomDocumentCreator::createAllTexts()
 
         const QString &fontName = fontList.at(fontIndex);
 
-        for (int textIndex = 0; textIndex < _params.textList.size();
-             ++textIndex) {
+        if (!_params.textList.empty()) {
+          for (int textIndex = 0; textIndex < _params.textList.size();
+               ++textIndex) {
 
-          const bool useRandomTextFile = false;
-          create_aux(
-            randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+            const bool useRandomTextFile = false;
+            create_aux(
+              randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+          }
+        } else {
+          //must generate one random text with Lipsum4Qt
+          const bool useRandomTextFile = true;
+          create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
         }
       }
     }
