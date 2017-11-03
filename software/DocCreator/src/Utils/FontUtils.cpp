@@ -274,7 +274,7 @@ int
 getMaxCharacterHeightUnderAndAboveBaseline5(const Models::Font &f)
 {
   MaxHeightUnderAndAboveBaselineComputerK mchmubc;
-  traverseFontChar<MaxHeightUnderAndAboveBaselineComputer5>(f, mchmubc);
+  traverseFontChar<MaxHeightUnderAndAboveBaselineComputerK>(f, mchmubc);
   return mchmubc.getMax(5);
 }
 
@@ -282,6 +282,6 @@ int
 getMaxCharacterHeightAboveBaseline5(const Models::Font &f)
 {
   MaxHeightUnderAndAboveBaselineComputerK mchmubc;
-  traverseFontChar<MaxHeightUnderAndAboveBaselineComputer5>(f, mchmubc);
+  traverseFontChar<MaxHeightUnderAndAboveBaselineComputerK>(f, mchmubc);
   return mchmubc.getMaxAbove(5);
 }
