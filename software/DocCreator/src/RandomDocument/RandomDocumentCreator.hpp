@@ -26,7 +26,7 @@ public slots:
   //create document(s) with one random background/font/text among those in @a params.
   void create();
 
-  //create all documents with one random font and one random for all texts in @a params.
+  //create all documents with one random font and one random background for all texts in @a params.
   void createAllTextsOneFontBackground();
 
   //create all documents with all combinations of background/font/text in @a params.
