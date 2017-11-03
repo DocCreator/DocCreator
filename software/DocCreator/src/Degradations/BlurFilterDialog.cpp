@@ -363,7 +363,9 @@ BlurFilterDialog::updateExamples()
 
   QString path =
     QDir(getBlurExamplesPath()).absoluteFilePath(_examples.at(_currentExample));
-  QImage exampleImg = QImage(path);
+
+  QImage exampleImg(path);
+
   ui->exampleLabel->setPixmap(QPixmap::fromImage(takePart(exampleImg)));
 }
 
@@ -377,7 +379,7 @@ BlurFilterDialog::exampleChosen()
 
   QString path =
     QDir(getBlurExamplesPath()).absoluteFilePath(_examples.at(_currentExample));
-  QImage exampleImg = QImage(path);
+  QImage exampleImg(path);
 
   _intensity = searchFitFourier(_originalImg, getRadiusFourier(exampleImg));
 
