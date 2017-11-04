@@ -825,11 +825,7 @@ OCRDialog::on_binarizationSpinBox_valueChanged(int arg1)
 void
 OCRDialog::on_saveFont_clicked()
 {
-  QString filters(QStringLiteral("font files (*.of)"));
-  QString filename = QFileDialog::getSaveFileName(
-    nullptr, QStringLiteral("Save Font"), QDir::currentPath(), filters);
-  if (! filename.isEmpty())
-    writeFont(filename);
+  saveFont();
 }
 
 QString
