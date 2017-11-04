@@ -41,7 +41,6 @@ RandomDocumentExporter::getFilePath(const QString &prefix,
   else
     filename.append(
       QString("%1").arg(_nbDocWritten, _numberWidth, 10, QChar('0')));
-  filename.append("_");
   filename.append(extension);
 
   return filename;
