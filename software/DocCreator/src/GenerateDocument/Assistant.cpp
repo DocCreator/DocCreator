@@ -4757,7 +4757,7 @@ Assistant::do_shadow(const QString &imageBasename,
   const float angle = ui->shad_angle->value();
 
   const QString &path = outputImageDir;
-  const QString prefix = imageBasename + "_Shadow_";
+  const QString prefix = imageBasename + "Shadow_";
   const QString imgExt = QStringLiteral(".png");
 
   for (int i = 0; i < _Shadow_nbShadSelected; ++i) {
@@ -4804,7 +4804,7 @@ Phantom_applyAndSave(const QImage &recto,
 
   const QString freqStr = Phantom_getFrequencyStr(frequency);
   const QString prefixFilename =
-    imageBasename + "_Phantom_" + freqStr + "_" + QString::number(i);
+    imageBasename + "Phantom_" + freqStr + "_" + QString::number(i);
   const QString filename = prefixFilename + ".png";
 
   imgTmpPhant.save(outputImageDir + filename);
@@ -5004,7 +5004,7 @@ Blur_applyAreaAndSave(const QImage &recto,
   QImage blurTmp =
     Blur_applyArea(recto, f, a, coeff1, vert, horiz, radius, m, intensity);
 
-  const QString prefixFilename = imageBasename + "_Blur_" +
+  const QString prefixFilename = imageBasename + "Blur_" +
                                  Blur_getFunctionStr(f) + "_" +
                                  QString::number(index);
   const QString filename = prefixFilename + ".png";
@@ -5032,7 +5032,7 @@ Blur_applyPageAndSave(const QImage &recto,
   QImage blurTmp = blurFilter(recto, m, intensity);
 
   const QString prefixFilename =
-    imageBasename + "_Blur_Complete_" + QString::number(index);
+    imageBasename + "Blur_Complete_" + QString::number(index);
   const QString filename = prefixFilename + ".png";
 
   blurTmp.save(outputImageDir + filename);
@@ -5214,7 +5214,7 @@ Assistant::do_hole(const QString &imageBasename,
   //B:TODO: clean code
 
   const QString &path = outputImageDir;
-  const QString prefix = imageBasename + "_Hole_";
+  const QString prefix = imageBasename + "Hole_";
   const QString imgExt = QStringLiteral(".png");
 
   const float scaleW = 1.f;
@@ -5240,7 +5240,7 @@ Assistant::do_hole(const QString &imageBasename,
 
     holes = Hole_doHoles(rectoC, scaleW, scaleH, color, randPosX, randPosY);
 
-    const QString lPrefix = prefix + QString::number(i) + '_';
+    const QString lPrefix = prefix + QString::number(i);
     Hole_saveImage(rectoC, path, lPrefix, imgExt, holes);
     //TODO: handle error !
 
@@ -5289,7 +5289,7 @@ Assistant::do_3D(const QString &imageBasename,
     const QString meshBasename = fiMesh.baseName();
 
     const QString prefixFilename =
-      imageBasename + "_Distortion3D_" + meshBasename;
+      imageBasename + "Distortion3D_" + meshBasename;
     const QString filename = prefixFilename + ".png";
 
     img.save(outputImageDir + filename);
