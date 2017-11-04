@@ -24,10 +24,12 @@
 #include "Baseline.hpp"
 #include "Binarization.hpp"
 
+#include "core/configurationmanager.h"
 #include "iomanager/fontfilemanager.h"
 #include "models/character.h"
 #include "models/characterdata.h"
 #include "models/font.h"
+#include "appconstants.h"
 
 //#include "tesseract_config.h" //TESSERACT_TESSDATA_PARENT_DIR;
 
@@ -831,9 +833,17 @@ OCRDialog::on_saveFont_clicked()
 QString
 OCRDialog::saveFont()
 {
-  QString filters(QStringLiteral("font files (*.of)"));
-  QString filename = QFileDialog::getSaveFileName(
-    nullptr, QStringLiteral("Save Font"), QDir::currentPath(), filters);
+  const QString fontPath = QDir(Core::ConfigurationManager::get(
+                                  AppConfigMainGroup, AppConfigFontFolderKey)
+                                  .toString())
+                             .absolutePath();
+  //REM: we open the dialog in the application Font Directory
+  // to be able to save the created font with other application fonts
+  // and thus be able to use it when batch-generating.
+
+  const QString filters(QStringLiteral("font files (*.of)"));
+  const QString filename = QFileDialog::getSaveFileName(
+    nullptr, QStringLiteral("Save Font"), fontPath, filters);
   if (! filename.isEmpty())
     writeFont(filename);
 
