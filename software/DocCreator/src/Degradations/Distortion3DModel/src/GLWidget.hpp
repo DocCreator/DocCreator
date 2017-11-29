@@ -99,6 +99,8 @@ protected:
   void setHiResSize(int &prevW, int &prevH);
   void resetLowResSize(int prevW, int prevH);
 
+  void updateBackgroundTransformation();
+
 private:
   typedef enum { MODE_MOVE_CAMERA = 0, MODE_SELECTION_VERTEX } Mode;
 

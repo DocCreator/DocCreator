@@ -283,8 +283,6 @@ GLWidget::initializeGL()
 
   m_backgroundObject->attachMesh(m_backgroundMeshGL);
 
-  //std::cerr<<"make background plane done\n";
-
   GL_CHECK_ERROR_ALWAYS();
 
   //std::cerr << "GLWidget::initializeGL() done\n";
@@ -372,6 +370,8 @@ GLWidget::loadMesh(const QString &meshFilename)
   updateCameraLookAt();
 
   emit hasTexCoords(m_mesh.hasTexCoords());
+
+  updateBackgroundTransformation(); 
 
   update();
 
@@ -1362,6 +1362,14 @@ GLWidget::setUseBackgroundTexture(bool onoff)
   m_useBackground =
     onoff; //For now, setUSeTexture control both backgroundtexture & background presence
 
+  updateBackgroundTransformation();
+
+  update();
+}
+
+void
+GLWidget::updateBackgroundTransformation()
+{
   if (m_mesh.isValid() && m_useBackground) {
 
     float minB[3], maxB[3];
@@ -1371,16 +1379,18 @@ GLWidget::setUseBackgroundTexture(bool onoff)
     float sx = s * (maxB[0] - minB[0]);
     float sy = s * (maxB[1] - minB[1]);
 
+    const float zoffset = -0.001f;
+
     Eigen::Matrix4f t = Eigen::Matrix4f::Identity();
     //scale on X & Y
     t(0, 0) = sx;
     t(1, 1) = sy;
     //translation on Z
-    t(2, 3) = minB[2];
+    t(2, 3) = minB[2] + zoffset; //Add an offset to avoid z-fighting.
+    
     m_backgroundObject->setTransformation(t);
   }
 
-  update();
 }
 
 void
