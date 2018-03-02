@@ -49,6 +49,8 @@ extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const c
 */
 extern FRAMEWORK_EXPORT float getRadiusFourier(const cv::Mat &img);
 
+extern FRAMEWORK_EXPORT float getRadiusFourier(const QImage &img);
+
 /*
   Search the size of filter that we have to apply to original image & img 
   to look like the dst image.
@@ -57,6 +59,9 @@ extern FRAMEWORK_EXPORT float getRadiusFourier(const cv::Mat &img);
   The obtained filter size can then be used as intensity parameter of blurFilter() function, with method=Method::GAUSSIAN.
 */
 extern FRAMEWORK_EXPORT int searchFitFourier(const cv::Mat &img, float dstRadius);
+
+extern FRAMEWORK_EXPORT int searchFitFourier(const QImage &img, float dstRadius);
+
 
 
 class FRAMEWORK_EXPORT BlurFilter : public DocumentDegradation
