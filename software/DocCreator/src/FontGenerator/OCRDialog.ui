@@ -353,6 +353,19 @@
             </widget>
            </item>
            <item>
+            <spacer name="horizontalSpacer_3b">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>158</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QPushButton" name="pushButton">
              <property name="enabled">
               <bool>false</bool>
@@ -387,13 +400,13 @@
               <widget class="QTableWidget" name="tableLetters">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>100</width>
                  <height>200</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>140</width>
+                 <width>200</width>
                  <height>300</height>
                 </size>
                </property>
@@ -462,7 +475,7 @@
        <item>
         <widget class="QPushButton" name="saveFont">
          <property name="text">
-          <string>Save font</string>
+          <string>Save font...</string>
          </property>
          <property name="checkable">
           <bool>false</bool>
