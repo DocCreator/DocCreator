@@ -3,7 +3,8 @@
 #pragma once
 
 // TODO
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(_WIN64) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(_WIN64) || defined(_WIN32) \
+  || defined(linux) || defined(__linux) || defined(__linux__)
    #undef INT8_MIN
    #undef INT8_MAX
    #undef UINT8_MIN
