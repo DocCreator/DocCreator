@@ -160,7 +160,7 @@ jobs:
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
         #- brew tap homebrew/science 
         - brew outdated opencv || brew upgrade opencv
-        - brew outdated qt5 || brew upgrade qt5
+        - brew outdated qt@5.7 || brew upgrade qt@5.7
         - brew list 
         #- brew list 
         #- brew upgrade --verbose qt@5.7
@@ -169,14 +169,14 @@ jobs:
         #- brew install qt5
         #- brew link --force qt5
         #- echo "brew --prefix qt5=$(brew --prefix qt5)"
-        #- echo "brew --prefix qt@5.7=$(brew --prefix qt@5.7)"
+        - echo "brew --prefix qt@5.7=$(brew --prefix qt@5.7)"
         #- echo "brew --prefix opencv=$(brew --prefix opencv)"
         #- ls -l /usr/local
         #- ls -l /usr/local/opt
         #- ls -l /usr/local/Cellar
-        - brew list | grep -i opencv
-        - brew list | grep -i qt
-        - brew list --versions qt5
+        #- brew list | grep -i opencv
+        #- brew list | grep -i qt
+        #- brew list --versions qt5
         #- ls -l "$(brew --prefix qt5)"
         #- ls -l "$(brew --prefix qt@5.7)"
         #- ls -l /usr/local/Cellar/qt
