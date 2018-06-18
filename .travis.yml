@@ -143,58 +143,58 @@ jobs:
   #######################################################
   
     ###
-    - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
-      os: osx
-      osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
-      compiler: clang
+    # - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
+    #   os: osx
+    #   osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
+    #   compiler: clang
       
-      before_install:
-        - echo $PATH
-        #- rvm use ruby-2.0.0-p648
-        #- echo $PATH
-        - xcodebuild -version
-        - brew update
-        #- brew config
-        #- brew doctor
-        #- brew outdated qt5 || brew upgrade --verbose qt5
-        #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        #- brew tap homebrew/science 
-        - brew list
-        #- brew outdated opencv || brew upgrade opencv
-        - pip2 uninstall -y numpy #see https://github.com/travis-ci/travis-ci/issues/6688
-        - brew install opencv
-        - brew install qt@5.5 
-        - brew list
-        ##- ls /usr/local/Cellar/qt@5.5
-        ##- ls /usr/local/opt/qt@5.5
-        ##- ls /usr/local/opt/qt@5.5/bin
-        - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
-        - export PATH=$PATH:/usr/local/opt/qt@5.5/bin
-        - qmake -version
-        #- brew list 
-        #- brew upgrade --verbose qt@5.7
-        #- brew upgrade opencv
-        #- brew list
-        #- brew install qt5
-        #- brew link --force qt5
-        #- echo "brew --prefix qt5=$(brew --prefix qt5)"
-        - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
-        #- echo "brew --prefix opencv=$(brew --prefix opencv)"
-        #- ls -l /usr/local
-        #- ls -l /usr/local/opt
-        #- ls -l /usr/local/Cellar
-        #- brew list | grep -i opencv
-        #- brew list | grep -i qt
-        #- brew list --versions qt5
-        #- ls -l "$(brew --prefix qt5)"
-        #- ls -l "$(brew --prefix qt@5.7)"
-        #- ls -l /usr/local/Cellar/qt
+    #   before_install:
+    #     - echo $PATH
+    #     #- rvm use ruby-2.0.0-p648
+    #     #- echo $PATH
+    #     - xcodebuild -version
+    #     - brew update
+    #     #- brew config
+    #     #- brew doctor
+    #     #- brew outdated qt5 || brew upgrade --verbose qt5
+    #     #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+    #     #- brew tap homebrew/science 
+    #     - brew list
+    #     #- brew outdated opencv || brew upgrade opencv
+    #     - pip2 uninstall -y numpy #see https://github.com/travis-ci/travis-ci/issues/6688
+    #     - brew install opencv
+    #     - brew install qt@5.5 
+    #     - brew list
+    #     ##- ls /usr/local/Cellar/qt@5.5
+    #     ##- ls /usr/local/opt/qt@5.5
+    #     ##- ls /usr/local/opt/qt@5.5/bin
+    #     - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
+    #     - export PATH=$PATH:/usr/local/opt/qt@5.5/bin
+    #     - qmake -version
+    #     #- brew list 
+    #     #- brew upgrade --verbose qt@5.7
+    #     #- brew upgrade opencv
+    #     #- brew list
+    #     #- brew install qt5
+    #     #- brew link --force qt5
+    #     #- echo "brew --prefix qt5=$(brew --prefix qt5)"
+    #     - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
+    #     #- echo "brew --prefix opencv=$(brew --prefix opencv)"
+    #     #- ls -l /usr/local
+    #     #- ls -l /usr/local/opt
+    #     #- ls -l /usr/local/Cellar
+    #     #- brew list | grep -i opencv
+    #     #- brew list | grep -i qt
+    #     #- brew list --versions qt5
+    #     #- ls -l "$(brew --prefix qt5)"
+    #     #- ls -l "$(brew --prefix qt@5.7)"
+    #     #- ls -l /usr/local/Cellar/qt
 
-      script:
-        - mkdir build
-        - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5.5)
-        - make -j 3
+    #   script:
+    #     - mkdir build
+    #     - cd build
+    #     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5.5)
+    #     - make -j 3
 
     ###
     - stage: Mac OS, recent clang, Qt5 & OpenCV from brew, Release
@@ -204,8 +204,14 @@ jobs:
 
       before_install:
         - brew update
-        - brew outdated qt5 || brew upgrade qt5
-        - brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
+        - brew list
+        - brew outdated -v
+        - brew outdated qt || brew upgrade qt
+        - brew list
+        - ls /usr/local/opt/
+        - export PATH=$PATH:/usr/local/opt/qt/bin
+        - brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
+        - brew list
 
       script:
         - mkdir build
