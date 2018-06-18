@@ -161,6 +161,7 @@ jobs:
         #- brew tap homebrew/science 
         - brew list
         #- brew outdated opencv || brew upgrade opencv
+        - pip2 uninstall -y numpy #see https://github.com/travis-ci/travis-ci/issues/6688
         - brew install opencv
         - brew install qt@5.5 
         - brew list
