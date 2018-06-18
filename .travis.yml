@@ -147,9 +147,6 @@ jobs:
       os: osx
       osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
       compiler: clang
-      env:
-        - QT_VERSION=5.7.1
-        - QT_DIR=qt@5.7
       
       before_install:
         - echo $PATH
@@ -163,9 +160,12 @@ jobs:
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
         #- brew tap homebrew/science 
         - brew outdated opencv || brew upgrade opencv
-        - brew install qt@5.7 && export PATH=$PATH:/usr/local/Cellar/$QT_DIR/$QT_VERSION/bin
+        - brew install qt@5.5 
         - brew list
         - qmake -version
+        - ls /usr/local/Cellar/
+        - ls /usr/local
+        - ls /usr/local/opt
         #- brew list 
         #- brew upgrade --verbose qt@5.7
         #- brew upgrade opencv
@@ -173,7 +173,7 @@ jobs:
         #- brew install qt5
         #- brew link --force qt5
         #- echo "brew --prefix qt5=$(brew --prefix qt5)"
-        - echo "brew --prefix qt@5.7=$(brew --prefix qt@5.7)"
+        - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
         #- echo "brew --prefix opencv=$(brew --prefix opencv)"
         #- ls -l /usr/local
         #- ls -l /usr/local/opt
@@ -188,7 +188,7 @@ jobs:
       script:
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5.7)
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5.5)
         - make -j 3
 
     ###
