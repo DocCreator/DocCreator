@@ -162,10 +162,13 @@ jobs:
         - brew outdated opencv || brew upgrade opencv
         - brew install qt@5.5 
         - brew list
-        - qmake -version
         - ls /usr/local/Cellar/
         - ls /usr/local
         - ls /usr/local/opt
+        - ls /usr/local/opt/qt
+        - ls /usr/local/opt/qt/bin
+        - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
+        - qmake -version
         #- brew list 
         #- brew upgrade --verbose qt@5.7
         #- brew upgrade opencv
