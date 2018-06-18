@@ -158,7 +158,7 @@ jobs:
         #- brew doctor
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
-        - brew tap homebrew/science 
+        #- brew tap homebrew/science 
         - brew outdated opencv || brew upgrade opencv
         - brew outdated qt5 || brew upgrade qt5
         - brew list 
