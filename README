@@ -8,7 +8,7 @@
 
 
 This program should compile under linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
-It has been tested on Fedora (19->27), Ubuntu (14.04->17.04), Mac OS (10.9->10.11), Windows 10.
+It has been tested on Fedora (19->28), Ubuntu (14.04->18.04), Mac OS (10.9->10.11), Windows 10.
 
 
 Dependencies
