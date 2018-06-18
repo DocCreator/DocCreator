@@ -205,18 +205,19 @@ jobs:
       before_install:
         - brew update
         - brew list
-        - brew outdated -v
-        - brew outdated qt || brew upgrade qt
+        #- brew outdated qt || brew upgrade qt
+        - brew install qt
         - brew list
         - ls /usr/local/opt/
         - export PATH=$PATH:/usr/local/opt/qt/bin
-        - brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
+        #- brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
+        - pip2 uninstall -y numpy && brew install opencv #see https://github.com/travis-ci/travis-ci/issues/6688
         - brew list
 
       script:
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt5)
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt)
         - make -j 3
 
         
