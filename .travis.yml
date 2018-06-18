@@ -159,12 +159,14 @@ jobs:
         #- brew outdated qt5 || brew upgrade --verbose qt5
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
         #- brew tap homebrew/science 
-        - brew outdated opencv || brew upgrade opencv
+        - brew list
+        #- brew outdated opencv || brew upgrade opencv
+        - brew install opencv
         - brew install qt@5.5 
         - brew list
-        - ls /usr/local/Cellar/qt@5.5
-        - ls /usr/local/opt/qt@5.5
-        - ls /usr/local/opt/qt@5.5/bin
+        ##- ls /usr/local/Cellar/qt@5.5
+        ##- ls /usr/local/opt/qt@5.5
+        ##- ls /usr/local/opt/qt@5.5/bin
         - echo "brew --prefix qt@5.5=$(brew --prefix qt@5.5)"
         - export PATH=$PATH:/usr/local/opt/qt@5.5/bin
         - qmake -version
