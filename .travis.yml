@@ -147,7 +147,10 @@ jobs:
       os: osx
       osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
       compiler: clang
-
+      env:
+        - QT_VERSION=5.7.1
+        - QT_DIR=qt@5.7
+      
       before_install:
         - echo $PATH
         #- rvm use ruby-2.0.0-p648
@@ -160,8 +163,9 @@ jobs:
         #- brew outdated opencv || (brew tap homebrew/science && brew upgrade opencv)
         #- brew tap homebrew/science 
         - brew outdated opencv || brew upgrade opencv
-        - brew outdated qt@5.7 || brew upgrade qt@5.7
-        - brew list 
+        - brew install qt@5.7 && export PATH=$PATH:/usr/local/Cellar/$QT_DIR/$QT_VERSION/bin
+        - brew list
+        - qmake -version
         #- brew list 
         #- brew upgrade --verbose qt@5.7
         #- brew upgrade opencv
