@@ -46,6 +46,7 @@ private:
   Frequency _frequency;
   int _zoomX;
   int _zoomY;
+  QString _phantomPatternsPath;
 
   QLabel *_originalLabel;
   QLabel *_resultLabel;

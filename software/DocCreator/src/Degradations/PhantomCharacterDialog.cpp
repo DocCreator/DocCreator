@@ -24,6 +24,7 @@ PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
   _frequency = (Frequency)ui->frequencyComboBox->currentIndex();
   _zoomX = ZOOM_X_INIT;
   _zoomY = ZOOM_Y_INIT;
+  _phantomPatternsPath = "../share/DocCreator/data/Image/phantomPatterns/";
 
   ui->xSlider->setValue(_zoomX);
   ui->ySlider->setValue(_zoomY);
@@ -81,7 +82,7 @@ PhantomCharacterDialog::setupGUIImages()
 void
 PhantomCharacterDialog::updateResultImage()
 {
-  _resultImg = phantomCharacter(_originalImg, _frequency);
+  _resultImg = phantomCharacter(_originalImg, _frequency, _phantomPatternsPath);
   _resultImgSmall = _resultImg.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
   _resultLabel->setPixmap(QPixmap::fromImage(_resultImgSmall));

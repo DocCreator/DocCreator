@@ -390,6 +390,7 @@ private:
   bool _Shadow_shadEnable;
 
   bool _Phantom_phantEnable;
+  QString _PhantomPatternsPath = "../share/DocCreator/data/Image/phantomPatterns/";
 
   bool _Blur_pattern1;
   bool _Blur_pattern2;
