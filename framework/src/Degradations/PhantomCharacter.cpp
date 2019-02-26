@@ -639,7 +639,7 @@ degradeComposant(cv::Mat &output,
                  cv::Mat &degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
                  , 
-                 QString phantomPatternsPath
+                 const QString &phantomPatternsPath
 )
 {
   int minX, maxX, minY, maxY;
@@ -887,7 +887,7 @@ degradeComposant(cv::Mat &output,
 }
 
 cv::Mat
-phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, QString phantomPatternsPath)
+phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
 {
   cv::Mat output = imgOriginal.clone();
 
@@ -979,7 +979,7 @@ phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, QString phanto
 }
 
 QImage
-phantomCharacter(const QImage &imgOriginal, Frequency frequency, QString phantomPatternsPath)
+phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
 {
   cv::Mat input = Convertor::getCvMat(imgOriginal);
 
