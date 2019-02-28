@@ -503,7 +503,7 @@ getXNearestNeighbor(cv::Mat &outputBin,
 QImage
 PhantomCharacter::apply()
 {
-  QImage resultImg = phantomCharacter(_original, _frequency);
+  QImage resultImg = phantomCharacter(_original, _frequency, _phantomPatternsPath);
 
   emit imageReady(resultImg);
 
@@ -551,13 +551,6 @@ boundedRand(int minV, int maxV)
     minV + (static_cast<float>(rand()) / RAND_MAX * (maxV - minV + 1)));
   assert(minV <= r && r <= maxV);
   return r;
-}
-
-static QString
-getPhantomPatternsPath()
-{
-  return Context::BackgroundContext::instance()->getPath() +
-         "../Image/phantomPatterns/"; //B:TODO:UGLY !
 }
 
 /**
@@ -645,6 +638,8 @@ degradeComposant(cv::Mat &output,
                  ,
                  cv::Mat &degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
+                 , 
+                 const QString &phantomPatternsPath
 )
 {
   int minX, maxX, minY, maxY;
@@ -683,7 +678,7 @@ degradeComposant(cv::Mat &output,
   if (firstSide == 1 && lastSide == 0)
     return false;
 
-  const QStringList patterns = getDirectoryList(getPhantomPatternsPath());
+  const QStringList patterns = getDirectoryList(phantomPatternsPath);
   if (patterns.isEmpty())
     return false;
   const int numPatterns = patterns.size();
@@ -697,9 +692,9 @@ degradeComposant(cv::Mat &output,
 
       const int pattern = rand() % numPatterns; //choice of pattern
       patternImg = QImage(
-        QDir(getPhantomPatternsPath()).absoluteFilePath(patterns.at(pattern)));
+        QDir(phantomPatternsPath).absoluteFilePath(patterns.at(pattern)));
       assert(!patternImg.isNull());
-
+     
       int widthPattern, maxWidth, minWidth;
       int heightPattern, minHeight, maxHeight;
 
@@ -892,7 +887,7 @@ degradeComposant(cv::Mat &output,
 }
 
 cv::Mat
-phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency)
+phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
 {
   cv::Mat output = imgOriginal.clone();
 
@@ -963,9 +958,6 @@ phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency)
 
     if (chosen < probOccurence) // if random number is included in the x % (x
                                 // which was chosen by the user)
-      chosen = 1;
-
-    if (chosen == 1)
       degradeComposant(output,
                        ccs[i],
                        ccs,
@@ -974,7 +966,7 @@ phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency)
                        ,
                        degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
-      );
+                       , phantomPatternsPath);
   }
 
 #ifdef SAVE_DEGRADATIONS_IMAGE
@@ -987,11 +979,11 @@ phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency)
 }
 
 QImage
-phantomCharacter(const QImage &imgOriginal, Frequency frequency)
+phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
 {
   cv::Mat input = Convertor::getCvMat(imgOriginal);
 
-  cv::Mat output = phantomCharacter(input, frequency);
+  cv::Mat output = phantomCharacter(input, frequency, phantomPatternsPath);
 
   return Convertor::getQImage(output);
 }

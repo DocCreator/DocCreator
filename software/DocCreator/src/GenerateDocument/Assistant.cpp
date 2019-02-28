@@ -4796,11 +4796,12 @@ Phantom_getFrequencyStr(Frequency frequency)
 static void
 Phantom_applyAndSave(const QImage &recto,
                      Frequency frequency,
+                     QString phantomPatternsPath,
                      int i,
                      const QString &imageBasename,
                      const QString &outputImageDir)
 {
-  QImage imgTmpPhant = phantomCharacter(recto, frequency);
+  QImage imgTmpPhant = phantomCharacter(recto, frequency, phantomPatternsPath);
 
   const QString freqStr = Phantom_getFrequencyStr(frequency);
   const QString prefixFilename =
@@ -4839,14 +4840,14 @@ Assistant::do_phantom(const QString &imageBasename,
 
     if (ui->Phantom_Rare->isChecked()) {
       Phantom_applyAndSave(
-        recto, Frequency::RARE, i, imageBasename, outputImageDir);
+        recto, Frequency::RARE, this->_PhantomPatternsPath, i, imageBasename, outputImageDir);
 
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 
     if (ui->Phantom_Frequent->isChecked()) {
       Phantom_applyAndSave(
-        recto, Frequency::FREQUENT, i, imageBasename, outputImageDir);
+        recto, Frequency::FREQUENT, this->_PhantomPatternsPath, i, imageBasename, outputImageDir);
 
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }
@@ -4854,7 +4855,7 @@ Assistant::do_phantom(const QString &imageBasename,
     if (ui->Phantom_VeryFrequent->isChecked()) {
 
       Phantom_applyAndSave(
-        recto, Frequency::VERY_FREQUENT, i, imageBasename, outputImageDir);
+        recto, Frequency::VERY_FREQUENT, this->_PhantomPatternsPath, i, imageBasename, outputImageDir);
 
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }
