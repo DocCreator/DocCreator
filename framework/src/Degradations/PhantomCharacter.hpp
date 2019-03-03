@@ -27,8 +27,8 @@ public :
   /*
 
    */
-  explicit PhantomCharacter(const QImage &original, Frequency frequency, QObject *parent =0) :
-    DocumentDegradation(parent), _frequency(frequency), _original(original)
+  explicit PhantomCharacter(const QImage &original, Frequency frequency, const QString &phantomPatternsPath, QObject *parent =0) :
+    DocumentDegradation(parent), _frequency(frequency), _phantomPatternsPath(phantomPatternsPath), _original(original)
   {}
 
 public slots :
