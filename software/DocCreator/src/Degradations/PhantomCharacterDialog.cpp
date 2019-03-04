@@ -24,7 +24,8 @@ PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
   _frequency = (Frequency)ui->frequencyComboBox->currentIndex();
   _zoomX = ZOOM_X_INIT;
   _zoomY = ZOOM_Y_INIT;
-  _phantomPatternsPath = "../share/DocCreator/data/Image/phantomPatterns/";
+  _phantomPatternsPath = Context::BackgroundContext::instance()->getPath() +
+         "../Image/phantomPatterns/"; //B:TODO:UGLY !
 
   ui->xSlider->setValue(_zoomX);
   ui->ySlider->setValue(_zoomY);
