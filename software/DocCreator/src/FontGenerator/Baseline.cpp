@@ -35,7 +35,7 @@ Baseline::computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines)
   img.copyTo(dst);
 
   if (img.channels() > 1)
-    cvtColor(dst, dst, CV_RGB2GRAY);
+    cvtColor(dst, dst, cv::COLOR_BGR2GRAY);
 
   const std::pair<int, float> pair = getCharacterHeight(dst.clone());
   const int character_height = pair.first;
@@ -142,7 +142,7 @@ Baseline::getCharacterHeight(cv::Mat img)
 
   // CCs extraction
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(img, contours, CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS);
+  cv::findContours(img, contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_TC89_KCOS);
 
   // We sort the array with respect to their height
   sort(contours.begin(),

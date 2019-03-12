@@ -5,6 +5,7 @@
 #define uset(x, y, v) at<unsigned char>(y, x) = v;
 #define fset(x, y, v) at<float>(y, x) = v;
 
+
 void
 Binarization::preProcess(const cv::Mat &src, cv::Mat &dst, int erosion)
 {
@@ -28,7 +29,7 @@ Binarization::preProcess(const cv::Mat &src, cv::Mat &dst, int erosion)
 
   // Background subtraction
   cv::absdiff(dst, background, dst);
-  cv::cvtColor(dst, dst, CV_RGB2GRAY);
+  cv::cvtColor(dst, dst, cv::COLOR_BGR2GRAY);
   cv::bitwise_not(dst, dst);
 }
 void
@@ -131,19 +132,19 @@ Binarization::binarize(const cv::Mat &src,
 
   // Grayscale conversion
   if (src.channels() > 1)
-    cv::cvtColor(src, dst, CV_RGB2GRAY);
+    cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
   else
     src.copyTo(dst);
 
   double th = 0;
 
   switch (method) {
-    case CV_THRESH_OTSU:
-      th = cv::threshold(dst, dst, 0, 255, CV_THRESH_BINARY | method);
+  case cv::THRESH_OTSU:
+    th = cv::threshold(dst, dst, 0, 255, cv::THRESH_BINARY | method);
       break;
-    case cv::ADAPTIVE_THRESH_MEAN_C:
+  case cv::ADAPTIVE_THRESH_MEAN_C:
       cv::adaptiveThreshold(
-        dst, dst, 255, method, CV_THRESH_BINARY, thresholdType, blockSize);
+			    dst, dst, 255, method, cv::THRESH_BINARY, thresholdType, blockSize);
       break;
   }
 
@@ -282,7 +283,7 @@ Binarization::NiblackSauvolaWolfJolion(const cv::Mat &imOrig,
 
   cv::Mat im = imOrig;
   if (im.channels() > 1)
-    cv::cvtColor(imOrig, im, CV_RGB2GRAY);
+    cv::cvtColor(imOrig, im, cv::COLOR_BGR2GRAY);
 
   // Create local statistics and store them in a double matrices
   cv::Mat map_m = cv::Mat::zeros(im.rows, im.cols, CV_32F);

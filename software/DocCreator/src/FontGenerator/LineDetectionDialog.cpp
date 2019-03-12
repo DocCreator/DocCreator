@@ -55,7 +55,7 @@ LineDetectionDialog::getCharacterHeight(cv::Mat img)
 
   // CCs extraction
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(img, contours, CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS);
+  cv::findContours(img, contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_TC89_KCOS);
 
   // We sort the array with respect to their height
   sort(contours.begin(),
@@ -117,9 +117,9 @@ LineDetectionDialog::drawBaseLines(const cv::Mat &img,
 
   // CCs extraction
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(tmp, contours, cv::RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS);
+  cv::findContours(tmp, contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_TC89_KCOS);
 
-  cv::cvtColor(img, dst, CV_GRAY2BGR);
+  cv::cvtColor(img, dst, cv::COLOR_GRAY2BGR);
 
   for (const auto &contour : contours) {
     const cv::Rect r = cv::boundingRect(contour);
@@ -169,7 +169,7 @@ LineDetectionDialog::process()
   cv::Mat src2;
 
   if (src.channels() > 1)
-    cvtColor(src, src, CV_RGB2GRAY);
+    cvtColor(src, src, cv::COLOR_BGR2GRAY);
 
   src.copyTo(src2);
   _character_height = getCharacterHeight(src.clone());
@@ -193,7 +193,7 @@ LineDetectionDialog::process()
   _originalLabel->setPixmap(QPixmap::fromImage(blurred.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation)));
 
-  cv::cvtColor(src, src2, CV_GRAY2BGR);
+  cv::cvtColor(src, src2, cv::COLOR_GRAY2BGR);
   std::vector<cv::Vec4i> lines;
 
   // Hough transform allows to detect global lines

@@ -17,7 +17,13 @@ public:
 
   static double binarize(const cv::Mat &src,
                          cv::Mat &dst,
-                         int method = CV_THRESH_OTSU,
+                         int method =
+#if CV_MAJOR_VERSION*100+CV_MINOR_VERSION*10+CV_SUBMINOR_VERSION <= 345			 
+			 CV_THRESH_OTSU
+#else
+			 cv::THRESH_OTSU			 
+#endif
+			 ,
                          int thresholdType = 17,
                          int blockSize = 11);
   static void preProcess(const cv::Mat &src, cv::Mat &dst, int erosion = 12);

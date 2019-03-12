@@ -204,7 +204,7 @@ OCRDialog::process()
 {
   cv::Mat src(Convertor::getCvMat(m_binarizedImg)),
     original(Convertor::getCvMat(m_originalImg)), tmp;
-  cvtColor(src, tmp, CV_RGB2GRAY);
+  cvtColor(src, tmp, cv::COLOR_BGR2GRAY);
 
   std::vector<cv::Vec4i> baselines_tmp = m_baselines;
   Baseline::computeBaselines(tmp, baselines_tmp);
@@ -779,12 +779,12 @@ OCRDialog::rebinarizeCurrentLetter()
   // Re-binarize the image of the current symbol
   cv::Mat thumb = Convertor::getCvMat(m_originalImg);
   thumb = thumb(m_currentLetter.rect);
-  cv::cvtColor(thumb, thumb, CV_RGB2GRAY);
+  cv::cvtColor(thumb, thumb, cv::COLOR_BGR2GRAY);
 
   cv::Mat img_bin(thumb.rows, thumb.cols, CV_8U);
 
   cv::threshold(
-    thumb, img_bin, m_currentLetter.binarization_step, 255, CV_THRESH_BINARY);
+		thumb, img_bin, m_currentLetter.binarization_step, 255, cv::THRESH_BINARY);
 
   // Holes filling + noise reduction
   if (m_currentLetter.checked)

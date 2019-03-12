@@ -49,7 +49,7 @@ StructureDialog::setOriginalImage(const QImage &img)
 void
 StructureDialog::setBinaryImage(const QImage &img)
 {
-  cv::cvtColor(Convertor::getCvMat(img), _binaryImg, CV_RGB2GRAY);
+  cv::cvtColor(Convertor::getCvMat(img), _binaryImg, cv::COLOR_BGR2GRAY);
 }
 
 void
@@ -161,6 +161,14 @@ StructureDialog::getBlocks()
   cv::Mat model = cv::Mat::ones(width, height, CV_8U);
   model *= 255;
 
+  const int thickness =
+#if CV_MAJOR_VERSION*100+CV_MINOR_VERSION*10+CV_SUBMINOR_VERSION <= 345			 
+			 CV_FILLED
+#else
+			 cv::FILLED
+#endif
+    ;
+  
   switch (_model) {
     case 0:
       _distanceMap.copyTo(model);
@@ -171,7 +179,7 @@ StructureDialog::getBlocks()
         cv::Point((int)((float)height / 7), (int)((float)width / 7)),
         cv::Point((int)((float)height * 6 / 7), (int)((float)width * 6 / 7)),
         cv::Scalar(0),
-        CV_FILLED);
+        thickness);
       break;
     case 2: // Two columns
       cv::rectangle(
@@ -180,13 +188,13 @@ StructureDialog::getBlocks()
         cv::Point((int)((float)height * (3.3) / 7),
                   (int)((float)width * 6 / 7)),
         cv::Scalar(0),
-        CV_FILLED);
+        thickness);
       cv::rectangle(
         model,
         cv::Point((int)((float)height * (3.7) / 7), (int)((float)width / 7)),
         cv::Point((int)((float)height * 6 / 7), (int)((float)width * 6 / 7)),
         cv::Scalar(0),
-        CV_FILLED);
+        thickness);
       break;
     case 3: // Two rows
       cv::rectangle(
@@ -194,13 +202,13 @@ StructureDialog::getBlocks()
         cv::Point((int)((float)height / 7), (int)((float)width / 7)),
         cv::Point((int)((float)height * 6 / 7), (int)((float)width * 3.3 / 7)),
         cv::Scalar(0),
-        CV_FILLED);
+        thickness);
       cv::rectangle(
         model,
         cv::Point((int)((float)height / 7), (int)((float)width * 3.7 / 7)),
         cv::Point((int)((float)height * 6 / 7), (int)((float)width * 6 / 7)),
         cv::Scalar(0),
-        CV_FILLED);
+        thickness);
       break;
 
     default:

@@ -33,7 +33,7 @@ StructureDetection::getBlocks(const cv::Mat &distanceMap, int char_height)
   std::vector<cv::Rect> blocks;
   std::vector<std::vector<cv::Point>> contours;
   cv::findContours(
-    distance2.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_TC89_KCOS);
+		   distance2.clone(), contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_TC89_KCOS);
 
   for (const auto &contour : contours) {
     const cv::Rect r = cv::boundingRect(contour);

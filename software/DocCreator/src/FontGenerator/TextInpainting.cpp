@@ -20,17 +20,25 @@ TextInpainting::getBackground(const cv::Mat &img,
   // from the mask which is to be inpainted
   std::vector<std::vector<cv::Point>> contours;
   cv::findContours(
-    bin.clone(), contours, CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS);
+		   bin.clone(), contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_TC89_KCOS);
 
   // We dilate the mask to inpaint a wider area and remove letters contour
   Binarization::applyDilation(bin, bin, 2, 3);
 
+  const int thickness =
+#if CV_MAJOR_VERSION*100+CV_MINOR_VERSION*10+CV_SUBMINOR_VERSION <= 345			 
+			 CV_FILLED
+#else
+			 cv::FILLED
+#endif
+    ;
+  
   for (size_t i = 0; i < contours.size(); ++i) {
     cv::Rect r = cv::boundingRect(contours[i]);
     if (r.width > img_bin.cols * max_text_width ||
         r.height > img_bin.rows * max_text_height ||
         r.area() > (img_bin.cols * img_bin.rows) * max_text_area) {
-      cv::drawContours(bin, contours, i, cv::Scalar(0), CV_FILLED);
+      cv::drawContours(bin, contours, i, cv::Scalar(0), thickness);
     }
   }
 

@@ -43,8 +43,8 @@ BackgroundReconstructionDialog::setBinarizedImage(const QImage &img)
   QImage small = img.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
 
-  cv::cvtColor(Convertor::getCvMat(small), _smallBinarizedImg, CV_RGB2GRAY);
-  cv::cvtColor(Convertor::getCvMat(img), _binarizedImg, CV_RGB2GRAY);
+  cv::cvtColor(Convertor::getCvMat(small), _smallBinarizedImg, cv::COLOR_BGR2GRAY);
+  cv::cvtColor(Convertor::getCvMat(img), _binarizedImg, cv::COLOR_BGR2GRAY);
 
   process(true);
 }
