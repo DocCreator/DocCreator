@@ -46,7 +46,7 @@ LineDetectionDialog::updateView()
 }
 
 int
-LineDetectionDialog::getCharacterHeight(cv::Mat img)
+LineDetectionDialog::getCharacterHeight(const cv::Mat &img)
 {
   /* Returns the median height of a character in a given binary image */
 

@@ -24,7 +24,7 @@ public:
 protected:
   void updateView();
   void process();
-  int getCharacterHeight(cv::Mat img);
+  int getCharacterHeight(const cv::Mat &img);
   void drawBaseLines(const cv::Mat &img,
                      cv::Mat &dst,
                      const std::vector<cv::Vec4i> &lines);

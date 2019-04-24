@@ -55,7 +55,7 @@ Font::setName(const QString &name)
 }
 
 /* Getters */
-const QString
+QString
 Font::getName() const
 {
   return _name;
