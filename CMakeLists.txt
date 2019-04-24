@@ -51,7 +51,7 @@ ADD_CUSTOM_TARGET(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 FIND_PACKAGE(QtX REQUIRED)
 
-FIND_PACKAGE(OpenCV REQUIRED core imgproc highgui photo)
+FIND_PACKAGE(OpenCV REQUIRED core imgproc imgcodecs highgui photo)
 if( OpenCV_FOUND )
   list( APPEND ThirdParty_LIBS ${OpenCV_LIBS} )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
@@ -240,6 +240,23 @@ IF(BUILD_TESSERACT)
 
 ENDIF()
 
+
+if (BUILD_TESTING)
+  ENABLE_TESTING()
+  include(CTest)
+  message(STATUS "Build test files ENABLED")
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -Wall -Wextra -pedantic -W -Wshadow -Wunused-variable  -Wunused-parameter -Wunused-function        -Wunused  -Wno-long-long -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+  endif(CMAKE_COMPILER_IS_GNUCXX)
+  if (CMAKE_COMPILER_IS_GNUCC)
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -Wall -Wextra -W -Wno-long-long -pedantic -fprofile-arcs -ftest-coverage")
+  endif (CMAKE_COMPILER_IS_GNUCC)
+ELSE (BUILD_TESTING)
+  message(STATUS "Build test files DISABLED (you can activate unit tests with '-DBUILD_TESTING=ON' cmake option)")
+endif (BUILD_TESTING)
+
+
+
 SET(Tesseract_LIBRARIES "${Tesseract_LIBRARIES};${Lept_LIBRARIES}")
 
 include_directories(${Lept_INCLUDE_DIRS})
@@ -256,6 +273,10 @@ SET(FRAMEWORK_INCLUDE_DIRS ${FRAMEWORK_PATH}/src)
 SET(FRAMEWORK_LIBRARIES DocCreatorFramework)
 SET(DocCreator_LIBRARIES DocCreatorFramework)
 
+SET(CATCH_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty/catch)
+
+MESSAGE(CATCH_INCLUDE_DIRS=${CATCH_INCLUDE_DIRS})
+
 SET(SOFTWARE_PATH ${PROJECT_SOURCE_DIR}/software)
 
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -265,4 +286,8 @@ ADD_SUBDIRECTORY(${SOFTWARE_PATH})
 
 ADD_SUBDIRECTORY(bundlers)
 
+
+if (BUILD_TESTING)
+  add_subdirectory (${PROJECT_SOURCE_DIR}/tests)
+endif (BUILD_TESTING)
 
