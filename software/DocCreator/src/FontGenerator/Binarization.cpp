@@ -49,19 +49,19 @@ Binarization::shrinkFilter(const cv::Mat &src, cv::Mat &dst, double v, int win)
    * foreground pixel
    * if this number is to high, the center pixel is considered as noise
    * and thus removed */
-  int ksh = (int)(v * win * win);
+  const int ksh = (int)(v * win * win);
   src.copyTo(dst);
-  for (int i = 0; i < src.rows; i++)
-    for (int j = 0; j < src.cols; j++) {
+  for (int i = 0; i < src.rows; ++i)
+    for (int j = 0; j < src.cols; ++j) {
       if (dst.at<uchar>(i, j) == 0) { // if foreground
         int curr_k = 0;
-        for (int ii = -win / 2; ii < win / 2; ii++)
-          for (int jj = -win / 2; jj < win / 2; jj++) {
+        for (int ii = -win / 2; ii < win / 2; ++ii)
+          for (int jj = -win / 2; jj < win / 2; ++jj) {
             if (i + ii < 0 || i + ii >= src.rows || j + jj < 0 ||
                 j + jj >= src.cols) // deal with borders
               continue;
             if (dst.at<uchar>(i + ii, j + jj) == 255)
-              curr_k++;
+              ++curr_k;
           }
         if (curr_k > ksh)
           dst.at<uchar>(i, j) = 255;
@@ -72,12 +72,12 @@ Binarization::shrinkFilter(const cv::Mat &src, cv::Mat &dst, double v, int win)
 void
 Binarization::connectivityFilter(const cv::Mat &src, cv::Mat &dst)
 {
-  /* We check the symetric sides of any foreground pixel, if they belong to the
-   * same class,
+  /* We check the symetric sides of any foreground pixel, 
+   * if they belong to the same class,
    * one of them is set to foreground, the other to background */
   src.copyTo(dst);
-  for (int i = 1; i < src.rows - 1; i++)
-    for (int j = 1; j < src.cols - 1; j++) {
+  for (int i = 1; i < src.rows - 1; ++i)
+    for (int j = 1; j < src.cols - 1; ++j) {
       if (dst.at<uchar>(i, j) == 0) { // if foreground
         if (dst.at<uchar>(i - 1, j) == dst.at<uchar>(i + 1, j)) {
           dst.at<uchar>(i - 1, j) = 0;
@@ -100,20 +100,20 @@ Binarization::swellFilter(const cv::Mat &src, cv::Mat &dst, int win)
    *  on a background pixel if this number is to high, the center pixel is
    * considered as noise
    * and thus set as foreground */
-  int ksh = (int)(0.35 * win * win);
+  const int ksh = (int)(0.35 * win * win);
 
   src.copyTo(dst);
-  for (int i = 0; i < src.rows; i++)
-    for (int j = 0; j < src.cols; j++) {
+  for (int i = 0; i < src.rows; ++i)
+    for (int j = 0; j < src.cols; ++j) {
       if (dst.at<uchar>(i, j) == 255) { // if background
         int curr_k = 0;
-        for (int ii = -win; ii < win; ii++)
-          for (int jj = -win; jj < win; jj++) {
+        for (int ii = -win; ii < win; ++ii)
+          for (int jj = -win; jj < win; ++jj) {
             if (i + ii < 0 || i + ii >= src.rows || j + jj < 0 ||
                 j + jj >= src.cols) // deal with borders
               continue;
             if (dst.at<uchar>(i + ii, j + jj) == 0)
-              curr_k++;
+              ++curr_k;
           }
         if (curr_k > ksh)
           dst.at<uchar>(i, j) = 255;
@@ -143,8 +143,8 @@ Binarization::binarize(const cv::Mat &src,
     th = cv::threshold(dst, dst, 0, 255, cv::THRESH_BINARY | method);
       break;
   case cv::ADAPTIVE_THRESH_MEAN_C:
-      cv::adaptiveThreshold(
-			    dst, dst, 255, method, cv::THRESH_BINARY, thresholdType, blockSize);
+      cv::adaptiveThreshold(dst, dst, 255, method, cv::THRESH_BINARY,
+			    thresholdType, blockSize);
       break;
   }
 
@@ -188,34 +188,33 @@ Binarization::calcLocalStats(const cv::Mat &im,
                              int winx,
                              int winy)
 {
-  /* Computes global stats of the input image to perform Wolf & Jolion
-   * segmentation */
+  /* Computes global stats of the input image to perform 
+   * Wolf & Jolion segmentation */
   cv::Mat im_sum, im_sum_sq;
   cv::integral(im, im_sum, im_sum_sq, CV_64F);
 
-  double max_s;
-  int wxh = winx / 2;
-  int wyh = winy / 2;
-  int x_firstth = wxh;
-  int y_lastth = std::max(im.rows - wyh - 1, 0);
-  int y_firstth = wyh;
-  double winarea = winx * winy;
+  const int wxh = winx / 2;
+  const int wyh = winy / 2;
+  const int x_firstth = wxh;
+  const int y_lastth = std::max(im.rows - wyh - 1, 0);
+  const int y_firstth = wyh;
+  const double win_area = winx * winy;
 
-  max_s = 0;
-  for (int j = y_firstth; j <= y_lastth; j++) {
+  double max_s = 0;
+  for (int j = y_firstth; j <= y_lastth; ++j) {
     //sum = sum_sq = 0;
 
     double sum = im_sum.at<double>(j - wyh + winy, winx) -
-                 im_sum.at<double>(j - wyh, winx) -
-                 im_sum.at<double>(j - wyh + winy, 0) +
-                 im_sum.at<double>(j - wyh, 0);
+      im_sum.at<double>(j - wyh, winx) -
+      im_sum.at<double>(j - wyh + winy, 0) +
+      im_sum.at<double>(j - wyh, 0);
     double sum_sq = im_sum_sq.at<double>(j - wyh + winy, winx) -
-                    im_sum_sq.at<double>(j - wyh, winx) -
-                    im_sum_sq.at<double>(j - wyh + winy, 0) +
-                    im_sum_sq.at<double>(j - wyh, 0);
+      im_sum_sq.at<double>(j - wyh, winx) -
+      im_sum_sq.at<double>(j - wyh + winy, 0) +
+      im_sum_sq.at<double>(j - wyh, 0);
 
-    const double m = sum / winarea;
-    const double s = sqrt((sum_sq - m * sum) / winarea);
+    const double m = sum / win_area;
+    const double s = sqrt((sum_sq - m * sum) / win_area);
     if (s > max_s)
       max_s = s;
 
@@ -223,7 +222,7 @@ Binarization::calcLocalStats(const cv::Mat &im,
     map_s.fset(x_firstth, j, static_cast<float>(s));
 
     // Shift the window, add and remove	new/old values to the histogram
-    for (int i = 1; i <= im.cols - winx; i++) {
+    for (int i = 1; i <= im.cols - winx; ++i) {
 
       // Remove the left old column and add the right new column
       sum -= im_sum.at<double>(j - wyh + winy, i) -
@@ -244,8 +243,8 @@ Binarization::calcLocalStats(const cv::Mat &im,
                 im_sum_sq.at<double>(j - wyh + winy, i + winx - 1) +
                 im_sum_sq.at<double>(j - wyh, i + winx - 1);
 
-      const double m = sum / winarea;
-      const double s = sqrt((sum_sq - m * sum) / winarea);
+      const double m = sum / win_area;
+      const double s = sqrt((sum_sq - m * sum) / win_area);
       if (s > max_s)
         max_s = s;
 
@@ -282,8 +281,9 @@ Binarization::NiblackSauvolaWolfJolion(const cv::Mat &imOrig,
   }
 
   cv::Mat im = imOrig;
-  if (im.channels() > 1)
+  if (im.channels() > 1) {
     cv::cvtColor(imOrig, im, cv::COLOR_BGR2GRAY);
+  }
 
   // Create local statistics and store them in a double matrices
   cv::Mat map_m = cv::Mat::zeros(im.rows, im.cols, CV_32F);
@@ -380,21 +380,23 @@ Binarization::NiblackSauvolaWolfJolion(const cv::Mat &imOrig,
           thsurf.fset(i, u, th);
   }
 
+
   int rows = im.rows;
   int cols = im.cols;
   if (im.isContinuous() && thsurf.isContinuous() && output.isContinuous()) {
     cols *= rows;
     rows = 1;
   }
-  for (int y = 0; y < im.rows; ++y) {
-    const float *th = thsurf.ptr<float>(y);
+  for (int y = 0; y < rows; ++y) {
+    const float *ths = thsurf.ptr<float>(y);
     const uchar *img = im.ptr<uchar>(y);
     uchar *dst = output.ptr<uchar>(y);
-    for (int x = 0; x < im.cols; ++x) {
-      if (img[x] >=
-          th[x]) { //img.at<unsigned char>(y, x) >= thsurf.at<float>(y, x)) {
+    for (int x = 0; x < cols; ++x) {
+      if (img[x] >= ths[x]) {
+	//(img.at<unsigned char>(y, x) >= thsurf.at<float>(y, x))
         dst[x] = 255;
-      } else {
+      }
+      else {
         dst[x] = 0;
       }
     }
