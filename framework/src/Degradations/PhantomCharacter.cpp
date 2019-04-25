@@ -1,14 +1,13 @@
 #include <iostream> //DEBUG
 
 #include "PhantomCharacter.hpp"
-#include "Utils/connectedcomponentextraction.h"
-#include "Utils/convertor.h"
-#include <QDir>
-#include <QStringList>
+#include "ConnectedComponent.hpp"
+#include "FileUtils.hpp"
 #include <cassert>
 #include <cmath> //sqrt
 #include <ctime> //time
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "Degradations/BlurFilter.hpp" // To test blur
 
@@ -54,21 +53,6 @@ static const int MIN_HEIGHT = 5;
 #include <opencv2/highgui/highgui.hpp>
 #endif //SAVE_DEGRADATIONS_IMAGE
 
-/*
-  Get list of files in directory @a dirName.
-  Directories "." and ".." are removed from the list.
-*/
-static QStringList
-getDirectoryList(const QString &dirName)
-{
-  QStringList list = QDir(dirName).entryList();
-  if (!list.empty()) {
-    assert(list.size() >= 2);
-    list.removeFirst();
-    list.removeFirst();
-  }
-  return list;
-}
 
 /**
    Compute (axis-aligned) bounding box of connected component @a cc.
@@ -639,7 +623,7 @@ degradeComposant(cv::Mat &output,
                  cv::Mat &degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
                  , 
-                 const QString &phantomPatternsPath
+                 const std::string &phantomPatternsPath
 )
 {
   int minX, maxX, minY, maxY;
@@ -668,7 +652,6 @@ degradeComposant(cv::Mat &output,
   if ((rightCharFound && minXRight - maxX < SPACING_MIN) || height == 0)
     lastSide = 0;
 
-  QImage patternImg;
   cv::Mat patternMat;
   cv::Point origin = INVALID_POINT;
 
@@ -678,8 +661,8 @@ degradeComposant(cv::Mat &output,
   if (firstSide == 1 && lastSide == 0)
     return false;
 
-  const QStringList patterns = getDirectoryList(phantomPatternsPath);
-  if (patterns.isEmpty())
+  const std::vector<std::string> patterns = listDirectory(phantomPatternsPath);
+  if (patterns.empty())
     return false;
   const int numPatterns = patterns.size();
 
@@ -691,9 +674,8 @@ degradeComposant(cv::Mat &output,
       int yPattern = minY;
 
       const int pattern = rand() % numPatterns; //choice of pattern
-      patternImg = QImage(
-        QDir(phantomPatternsPath).absoluteFilePath(patterns.at(pattern)));
-      assert(!patternImg.isNull());
+      patternMat = cv::imread(makeAbsolutePath(phantomPatternsPath, patterns.at(pattern)));
+      assert(!patternMat.empty());
      
       int widthPattern, maxWidth, minWidth;
       int heightPattern, minHeight, maxHeight;
@@ -726,7 +708,6 @@ degradeComposant(cv::Mat &output,
       if (widthPattern < MIN_WIDTH)
         widthPattern = MIN_WIDTH;
 
-      patternMat = Convertor::getCvMat(patternImg);
       resize(patternMat, patternMat, cv::Size(widthPattern, heightPattern));
 
       origin =
@@ -874,11 +855,11 @@ degradeComposant(cv::Mat &output,
           widthPattern,
           output.cols - xPattern); //to be sure to not copy outside the mat
         heightPattern = std::min(heightPattern, output.rows - yPattern);
-        cv::Mat boundingBox = cv::Mat(
-          output, cv::Rect(xPattern, yPattern, widthPattern, heightPattern));
-        QImage imageBlur = Convertor::getQImage(boundingBox);
-        imageBlur = blurFilter(imageBlur, Method::GAUSSIAN, 3);
-        copyTo(Convertor::getCvMat(imageBlur), output, xPattern, yPattern);
+        cv::Mat boundingBox = cv::Mat(output,
+				      cv::Rect(xPattern, yPattern, widthPattern, heightPattern));
+
+        cv::Mat boundingBoxBlur = blurFilter(boundingBox, Method::GAUSSIAN, 3);
+        copyTo(boundingBoxBlur, output, xPattern, yPattern);
       }
     }
   }
@@ -887,14 +868,13 @@ degradeComposant(cv::Mat &output,
 }
 
 cv::Mat
-phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
+phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const std::string &phantomPatternsPath)
 {
   cv::Mat output = imgOriginal.clone();
 
   CCs ccs;
   cv::Mat imgOriginalBin = binarize(imgOriginal);
-  ConnectedComponentExtraction::extractAllConnectedComponents(
-    imgOriginalBin, ccs, 4);
+  ConnectedComponent::extractAllConnectedComponents(imgOriginalBin, ccs, 4);
 
   if (ccs.empty())
     return output;
@@ -978,12 +958,16 @@ phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const QString 
   return output;
 }
 
+
+#include "Utils/convertor.h"
+#include <QString>
+
 QImage
 phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
 {
   cv::Mat input = Convertor::getCvMat(imgOriginal);
 
-  cv::Mat output = phantomCharacter(input, frequency, phantomPatternsPath);
+  cv::Mat output = phantomCharacter(input, frequency, phantomPatternsPath.toStdString());
 
   return Convertor::getQImage(output);
 }

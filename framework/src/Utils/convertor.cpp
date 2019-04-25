@@ -29,13 +29,21 @@ Convertor::getCvMat(const QImage &image)
 }
 
 cv::Mat
-Convertor::binarizeOTSU(const cv::Mat &image)
+Convertor::binarizeOTSU(const cv::Mat &img)
 {
-  assert(image.type() == CV_8UC1);
+  assert(img.type() == CV_8UC1 || img.type() == CV_8UC3);
 
-  cv::Mat img_binarization;
-  cv::threshold(image, img_binarization, 0, 255, cv::THRESH_OTSU); //B
-  return img_binarization;
+  cv::Mat binary_img;
+
+  cv::Mat gray_img;
+  if (img.channels() == 3)
+    cv::cvtColor(img, gray_img, cv::COLOR_BGR2GRAY);
+  else
+    gray_img = img;
+
+  cv::threshold(gray_img, binary_img, 0, 255, cv::THRESH_OTSU);
+
+  return binary_img;
 }
 
 /*

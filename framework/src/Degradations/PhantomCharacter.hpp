@@ -15,7 +15,7 @@ enum class Frequency {RARE=0, FREQUENT, VERY_FREQUENT};
 */
 
 extern FRAMEWORK_EXPORT QImage phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &phantomPatternsPath);
-extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const QString &phantomPatternsPath);
+extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const std::string &phantomPatternsPath);
 
 
 class FRAMEWORK_EXPORT PhantomCharacter : public DocumentDegradation

@@ -1,4 +1,4 @@
-#include <Utils/connectedcomponentextraction.h>
+#include <Degradations/ConnectedComponent.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
@@ -109,7 +109,7 @@ drawCCs(const cv::Mat &img)
 
   CCs ccs;
   const int connectivity = 8;
-  ConnectedComponentExtraction::extractAllConnectedComponents(
+  ConnectedComponent::extractAllConnectedComponents(
     img_bin, ccs, connectivity);
 
   int xMin, xMax, yMin, yMax;
@@ -169,7 +169,7 @@ drawCCsRandom(const cv::Mat &img)
 
   CCs ccs;
   const int connectivity = 8;
-  ConnectedComponentExtraction::extractAllConnectedComponents(
+  ConnectedComponent::extractAllConnectedComponents(
     img_bin, ccs, connectivity);
 
   int xMin, xMax, yMin, yMax;

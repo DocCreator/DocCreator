@@ -33,16 +33,12 @@ class FRAMEWORK_EXPORT ConnectedComponentExtraction
 public:
   static QList<Doc::DocComponent *> getListComponents(const QImage &src,
                                                       Doc::Document *document);
-  static cv::Mat getOtsuBinarizedImage(const cv::Mat &src);
 
   /**
        @brief extract all connected componenents from image @a input and fill @a ccs.
 
        @a connectivity must be 4 or 8.
      */
-  static void extractAllConnectedComponents(const cv::Mat &input,
-                                            CCs &ccs,
-                                            int connectivity = 8);
 
 private:
   static void insertToStack(int x,
@@ -62,10 +58,7 @@ private:
   static void updatePixelLabel(std::vector<LabelledPixel *> listLabelledPixels,
                                cv::Point p,
                                int newLabel);
-  static void extractConnectedComponent(cv::Mat &input,
-                                        const cv::Point &seed,
-                                        CC &cc,
-                                        int connectivity);
+
 };
 
 #endif // CONNECTEDCOMPONENTEXTRACTION_H
