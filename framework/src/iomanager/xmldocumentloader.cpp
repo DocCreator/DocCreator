@@ -190,8 +190,9 @@ XMLDocumentLoader::buildParagraph()
            _reader->name() == "paragraph") &&
          !_reader->atEnd()) {
     if (_reader->name() == "string" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       p->add(buildString());
+    }
     _reader->readNext();
   }
 

@@ -33,7 +33,7 @@ public:
   void setName(const QString &name);
 
   /* Getters */
-  const QString getName() const;
+  QString getName() const;
   const CharacterMap &getCharacters() const;
 
 private:

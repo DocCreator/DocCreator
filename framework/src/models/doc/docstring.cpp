@@ -64,7 +64,7 @@ namespace Doc
       return this->currentElement();
     }
 
-    const QList<DocCharacter*> DocString::getCharacters() const
+    const QList<DocCharacter*> &DocString::getCharacters() const
     {
       return _elements;
     }

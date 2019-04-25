@@ -67,15 +67,20 @@ enum class Border {TOP=0, RIGHT, BOTTOM, LEFT};
 enum class Corner {TOPLEFT=0, TOPRIGHT, BOTTOMRIGHT, BOTTOMLEFT};
 enum class HoleType {CENTER=0, BORDER, CORNER, NUM_HOLE_TYPES};
 
-//side is Border or Corner 
+/*
+  @a holePattern must be of type CV_8UC1.
 
-//hole patterns for corner or border must be oriented for top left corner or top border. They will be rotated if necessary.
+  pixels inside hole are filled with pixels from @a matBelow if not empty and visible or color @a color otherwise.
+  If not empty, @a matBelow must be of the same type than @a matOriginal.
+
+  @a side is used only if @a type is BORDER or CORNER.
+  @a holePattern for corner or border must be oriented for top left corner or top border. It will be rotated if necessary.
+
+ */
+extern FRAMEWORK_EXPORT cv::Mat holeDegradation(const cv::Mat &matOriginal, const cv::Mat &holePattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const cv::Scalar &color, const cv::Mat &matBelow=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=1000);
 
 
-extern FRAMEWORK_EXPORT cv::Mat holeDegradation(const cv::Mat &matOriginal, const cv::Mat &pattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const cv::Mat &matBelow=cv::Mat(), int width=0, float intensity=1000);
-
-
-extern FRAMEWORK_EXPORT QImage holeDegradation(const QImage &imgOriginal, const QImage &pattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
+extern FRAMEWORK_EXPORT QImage holeDegradation(const QImage &imgOriginal, const QImage &holePattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
 
 
 class FRAMEWORK_EXPORT HoleDegradation : public DocumentDegradation
@@ -84,8 +89,8 @@ class FRAMEWORK_EXPORT HoleDegradation : public DocumentDegradation
 
 public : 
 
-  explicit HoleDegradation(const QImage &original, const QImage &pattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000, QObject *parent =0) :
-    DocumentDegradation(parent), _pattern(pattern), _xOrigin(xOrigin), _yOrigin(yOrigin), _size(size), _type(type), _side(side), _width(width), _intensity(intensity), _color(color), _pageBelow(pageBelow), _original(original)
+  explicit HoleDegradation(const QImage &original, const QImage &holePattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000, QObject *parent =0) :
+    DocumentDegradation(parent), _pattern(holePattern), _xOrigin(xOrigin), _yOrigin(yOrigin), _size(size), _type(type), _side(side), _width(width), _intensity(intensity), _color(color), _pageBelow(pageBelow), _original(original)
   {}
 
 public slots :

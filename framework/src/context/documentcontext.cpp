@@ -67,4 +67,4 @@ DocumentContext::setNewDocument()
 {
   _currentDocumentPath = QString();
 }
-}
+} //Context

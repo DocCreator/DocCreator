@@ -5,6 +5,9 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+/*
+  Output image is of type CV_8UC3. It is with BGR channel order.
+ */
 cv::Mat
 Convertor::getCvMat(const QImage &image)
 {

@@ -83,12 +83,12 @@ fctHyperbola(int x,
 {
   //Pattern : 0.00801*x*x - 0.03214*y*y + 0.1146*x*y - 123.95975*x - 17.44726*y = -81903.06188
   //others numbers are here to ajust the coefficient chosen to Resize the hyperbola. (For example, the variable x*x is multiplied by 0.00012 when the size is increase by one). These coefficient were computed for this pattern thanks to Geogebra
-  const float a = -0.03214 - (coeff * 0.00013);
-  const float b = (0.1146 * (x + horizontal)) + (-17.44726 + (coeff * 0.24361));
+  const float a = -0.03214f - (coeff * 0.00013f);
+  const float b = (0.1146f * (x + horizontal)) + (-17.44726f + (coeff * 0.24361f));
   const float c =
-    (81903.06188 + (coeff * 206.34517)) +
-    ((0.00801 - (coeff * 0.00012)) * (x + horizontal) * (x + horizontal)) -
-    ((123.95975 + (coeff * 0.17438)) * (x + horizontal));
+    (81903.06188f + (coeff * 206.34517f)) +
+    ((0.00801f - (coeff * 0.00012f)) * (x + horizontal) * (x + horizontal)) -
+    ((123.95975f + (coeff * 0.17438f)) * (x + horizontal));
   const float discr = b * b - (4 * a * c);
   if (discr > 0) {
     BlurFilter::calcSolutions(a, b, discr, y1, y2);
@@ -131,7 +131,8 @@ BlurFilter::calculFunction(Function fct,
       break;
 
     case Function::ELLIPSE: {
-      float y1 = 0, y2 = 0;
+      float y1 = 0;
+      float y2 = 0;
       fctEllipse(x, horizontal, vertical, coeff, y1, y2);
       yFunction = (y != -FLT_MAX ? static_cast<int>(y1)
                                  : -1); //To be sure we are in ellipse
@@ -144,7 +145,8 @@ BlurFilter::calculFunction(Function fct,
     } break;
 
     case Function::HYPERBOLA: {
-      float y1 = 0, y2 = 0;
+      float y1 = 0;
+      float y2 = 0;
       fctHyperbola(x, rows, horizontal, vertical, coeff, y1, y2);
       yFunction = static_cast<int>(y1);
       y2Function = (y2 != -FLT_MAX ? static_cast<int>(y2) : -1);
@@ -162,7 +164,8 @@ BlurFilter::isNearFunction(int x,
                            float coeff,
                            int radius)
 {
-  int yFunction, y2Function = -1;
+  int yFunction = -1;
+  int y2Function = -1;
 
   calculFunction(
     fct, rows, x, y, vertical, horizontal, coeff, yFunction, y2Function);
@@ -218,7 +221,8 @@ BlurFilter::upperThan(Function fct,
                       int horizontal,
                       float coeff)
 {
-  int yFunction, y2Function = -1;
+  int yFunction = -1;
+  int y2Function = -1;
   calculFunction(
     fct, rows, x, y, vertical, horizontal, coeff, yFunction, y2Function);
 
@@ -681,7 +685,8 @@ searchFitFourier(const cv::Mat &original, float radiusExample)
   bool found = false;
   int intensity = 0;
 
-  int intensityMin = MIN_BLUR_FOURIER, intensityMax = MAX_BLUR_FOURIER;
+  int intensityMin = MIN_BLUR_FOURIER;
+  int intensityMax = MAX_BLUR_FOURIER;
 
   while (!found && intensityMax - intensityMin >
                      2) //binary search to find intensity that we need

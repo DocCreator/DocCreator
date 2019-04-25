@@ -22,7 +22,7 @@ namespace Doc
         virtual DocString* getSelection() override;
 
         DocCharacter* currentCharacter();
-        const QList<DocCharacter*> getCharacters() const;
+        const QList<DocCharacter*> &getCharacters() const;
 
         void changeStyle(DocStyle* style);
         DocStyle* getStyle();
