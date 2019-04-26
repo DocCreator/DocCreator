@@ -58,7 +58,7 @@ convertToAtLeast8Bit(QImage &src)
 }
 
 //Qt 8-bit images are indexed ! We cannot use them directly !
-//Thus we use a simple vecot of uchar to store 8-bit grayscale images.
+//Thus we use a simple vector of uchar to store 8-bit grayscale images.
 //REM: In Qt 5.5 there is now QImage::Format_Grayscale8
 static std::vector<uchar>
 getGray(const QImage &psrc)
