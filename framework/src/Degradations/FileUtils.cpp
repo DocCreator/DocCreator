@@ -38,7 +38,7 @@ listDirectory(const std::string &dirname)
 }
 
 std::string
-makeAbsolutePath(const std::string &dirname,
+makePath(const std::string &dirname,
 		 const std::string &filename)
 {
   return (dirname + "/" ) + filename;
@@ -97,7 +97,7 @@ listDirectory(const std::string &dirname)
 }
 
 std::string
-makeAbsolutePath(const std::string &dirname,
+makePath(const std::string &dirname,
 		 const std::string &filename)
 {
   return dirname + "\\" + filename;

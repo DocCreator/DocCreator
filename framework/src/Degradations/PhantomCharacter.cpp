@@ -674,7 +674,7 @@ degradeComposant(cv::Mat &output,
       int yPattern = minY;
 
       const int pattern = rand() % numPatterns; //choice of pattern
-      patternMat = cv::imread(makeAbsolutePath(phantomPatternsPath, patterns.at(pattern)));
+      patternMat = cv::imread(makePath(phantomPatternsPath, patterns.at(pattern)));
       assert(!patternMat.empty());
      
       int widthPattern, maxWidth, minWidth;

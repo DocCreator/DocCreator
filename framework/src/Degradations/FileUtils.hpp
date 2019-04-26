@@ -15,11 +15,11 @@ extern FRAMEWORK_EXPORT std::vector<std::string>
 listDirectory(const std::string &dirname);
 
 /*
-  Return absolute path.
+  Return path.
   On linux/mac, it will be @a dirname + "/" + @a filename.
  */
 extern FRAMEWORK_EXPORT std::string
-makeAbsolutePath(const std::string &dirname, const std::string &filename);
+makePath(const std::string &dirname, const std::string &filename);
 
 
 #endif /* ! FILE_UTILS_HPP */
