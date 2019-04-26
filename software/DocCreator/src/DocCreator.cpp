@@ -1756,11 +1756,6 @@ DocCreator::createMenus()
 
   _grayScaleDegradationSubMenu->addAction(_applyBleedThrough);
   _grayScaleDegradationSubMenu->addAction(_adjusteGrayScaleParameterDialog);
-  _grayScaleDegradationSubMenu->addAction(_distortion3DModelAct);
-  _grayScaleDegradationSubMenu->addAction(_applyBlurFilter);
-  _grayScaleDegradationSubMenu->addAction(_applyShadowBinding);
-  _grayScaleDegradationSubMenu->addAction(_applyHoleDegradation);
-  _grayScaleDegradationSubMenu->addAction(_applyPhantomCharacter);
 
   _colorDegradationSubMenu->addAction(_distortion3DModelAct);
   _colorDegradationSubMenu->addAction(_applyBlurFilter);
