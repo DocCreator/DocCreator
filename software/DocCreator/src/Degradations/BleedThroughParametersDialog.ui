@@ -29,7 +29,7 @@
      <item>
       <widget class="QPushButton" name="versoImagePathButton">
        <property name="text">
-        <string>Browse</string>
+        <string>Browse...</string>
        </property>
       </widget>
      </item>
