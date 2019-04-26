@@ -1,3 +1,12 @@
+- CODE :
+ - use a namespace !!!
+
+- CODE :
+  - framework/src/Degrations
+     - there should be no dependence on Qt, only OpenCV.
+       This way, it will be much easier to make a python wrapper.
+     - Each degradation should output an image of the same type than its input.
+
 
 - CODE : C++11
   - use constexpr
@@ -46,7 +55,7 @@
 - CODE: WRITE UNIT TESTS !!!
 
 - CODE: use shared_ptr ??? 
-   - It seems we stille have memory leaks ! (cf clang -fsanitize=address)
+   - It seems we still have memory leaks ! (cf clang -fsanitize=address)
 
 - TODO:CODE:CLEAN ! DocCreator::generateDocuments has lot of copy/paste !!! UGLY !!!
   This code should be in software/DocCreator/src/GenerateDocument/Assistant.cpp ???
@@ -58,6 +67,13 @@
 
 - TODO:GUI: degradation3D: faire des QTabWidgets :  Screenshot/Light/Texcoords !?! 
 
+- TODO:GUI: font extraction
+   - allow to see the already extracted letters
+       and the missing letters  -> see the web version
+   - allow to see the respective size and possition of letters
+   - allow to build the font from several images
+   - allow to cut some connected components from the letter
+   - allow to aggregate several connected components to form a letter
 
 - TODO:GUI: "recent files"
 - TODO:GUI: better zoom !!!
