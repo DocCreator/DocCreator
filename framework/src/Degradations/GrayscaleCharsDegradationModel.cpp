@@ -26,7 +26,7 @@
 
 #include <QDebug>
 
-#include <Utils/connectedcomponentextraction.h>
+#include "ConnectedComponent.hpp"
 #include <Utils/convertor.h>
 
 //#include <iostream>//DEBUG
@@ -1144,7 +1144,7 @@ GrayscaleCharsDegradationModel::extractConnectedComponantInfos()
 
   CCs ccsInfo;
   const int connectivity = 4;
-  ConnectedComponentExtraction::extractAllConnectedComponents(
+  ConnectedComponent::extractAllConnectedComponents(
     _mat_binary, ccsInfo, connectivity);
 
   _mat_reduce_pixels = cv::Mat::zeros(_mat_binary.size(), _mat_binary.type());
