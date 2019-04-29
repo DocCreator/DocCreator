@@ -36,13 +36,13 @@ public:
 
   int getRadius() const { return _radius; }
 
-  Method getMethod() const { return _method; }
+  dc::Method getMethod() const { return _method; }
 
-  Mode getMode() const { return _mode; }
+  dc::Mode getMode() const { return _mode; }
 
-  Area getArea() const { return _area; }
+  dc::Area getArea() const { return _area; }
 
-  Function getFunction() const { return _function; }
+  dc::Function getFunction() const { return _function; }
 
   void setOriginalImage(const QImage &img);
 
@@ -98,10 +98,10 @@ private:
   int _vertical;
   int _radius;
 
-  Method _method;
-  Mode _mode;
-  Area _area;
-  Function _function;
+  dc::Method _method;
+  dc::Mode _mode;
+  dc::Area _area;
+  dc::Function _function;
 
   QStringList _patterns;
   QStringList _examples;

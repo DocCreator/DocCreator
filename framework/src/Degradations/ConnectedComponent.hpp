@@ -7,6 +7,8 @@
 
 #include <framework_global.h>
 
+namespace dc {
+
 typedef std::vector<cv::Point> CC;
 typedef std::vector<CC> CCs;
 
@@ -33,4 +35,6 @@ private:
                                         int connectivity);
 };
 
+} //namespace dc
+  
 #endif // CONNECTEDCOMPONENT_HPP

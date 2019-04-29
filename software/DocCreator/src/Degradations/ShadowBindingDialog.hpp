@@ -37,7 +37,7 @@ public:
    */
   float getAngle() const { return _angle; }
 
-  const ShadowBorder &getBorder() const { return _border; }
+  const dc::ShadowBorder &getBorder() const { return _border; }
 
   void setOriginalImage(const QImage &img);
 
@@ -61,7 +61,7 @@ private:
   int _distance;
   float _intensity;
   float _angle;
-  ShadowBorder _border;
+  dc::ShadowBorder _border;
 
   QLabel *_originalLabel;
   QLabel *_resultLabel;

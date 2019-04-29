@@ -122,7 +122,7 @@ GrayCharacterDegradationDialog::degrade()
   if (img.isNull())
     return;
 
-  GrayscaleCharsDegradationModel cdg(img);
+  dc::GrayscaleCharsDegradationModel cdg(img);
 
   QImage dst = cdg.degradate(levelOfNoise, I, O, D);
 

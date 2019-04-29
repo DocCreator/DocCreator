@@ -29,6 +29,9 @@
 #include "ConnectedComponent.hpp"
 #include <Utils/convertor.h>
 
+
+namespace dc {
+
 //#include <iostream>//DEBUG
 
 /**
@@ -2606,3 +2609,6 @@ GrayscaleCharsDegradationModel::flipPixelsByProbability(
 
   _listPixels.clear();
 }
+
+
+} //namespace dc

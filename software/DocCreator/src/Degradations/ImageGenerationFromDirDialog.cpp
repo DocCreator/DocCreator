@@ -79,7 +79,7 @@ ImageGenerationFromDirDialog::degrade(
     QString filePath = folder.absoluteFilePath(f);
     QImage input(filePath);
 
-    GrayscaleCharsDegradationModel cdg(input);
+    dc::GrayscaleCharsDegradationModel cdg(input);
     QImage out = cdg.degradateByLevel(level);
 
     QString fileImageOut = filePath;

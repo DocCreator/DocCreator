@@ -54,7 +54,7 @@ GrayCharacterDegradationParameter::degrade()
     return;
 
   // contructor for the degradation model
-  GrayscaleCharsDegradationModel cdg(img);
+  dc::GrayscaleCharsDegradationModel cdg(img);
 
   QImage dst = cdg.degradateByLevel(level);
 

@@ -175,7 +175,7 @@ BleedThroughParametersDialog::updateBleedImage(int nbIter, bool fromZero)
   assert(currRectoImg.size() == _rectoImgPart.size());
 
   _bleedImgPart =
-    bleedThrough(_rectoImgPart, currRectoImg, _versoImgPart, lNbIter);
+    dc::bleedThrough(_rectoImgPart, currRectoImg, _versoImgPart, lNbIter);
 
   _bleedLabel->setPixmap(QPixmap::fromImage(_bleedImgPart));
 }

@@ -8,6 +8,9 @@
 
 #include <framework_global.h>
 
+namespace dc {
+
+
 /**
   * \mainpage
   *
@@ -169,3 +172,6 @@ private:
     int _local_zone;
 
 };
+
+
+} //namespace dc

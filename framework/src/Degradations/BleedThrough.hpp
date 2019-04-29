@@ -5,6 +5,7 @@
 #include "DocumentDegradation.hpp"
 #include <framework_global.h>
 
+namespace dc {
 
 /*
   Apply bleedthrough effect between @a imgRecto and @a imgVerso, with @a nbIter iterations. 
@@ -56,4 +57,6 @@ protected :
 
 };
 
+} //namespace dc
+  
 #endif // BLEEDTHROUGH_HPP

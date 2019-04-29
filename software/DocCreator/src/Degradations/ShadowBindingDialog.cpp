@@ -20,7 +20,7 @@ ShadowBindingDialog::ShadowBindingDialog(QWidget *parent)
   _intensity = getIntensityAux(ui->intensitySlider->value());
   _angle = ui->angleSlider->value();
 
-  _border = ShadowBorder::LEFT;
+  _border = dc::ShadowBorder::LEFT;
 
   connect(ui->intensitySlider,
           SIGNAL(valueChanged(int)),
@@ -145,13 +145,13 @@ void
 ShadowBindingDialog::borderChanged()
 {
   if (ui->leftButton->isChecked())
-    _border = ShadowBorder::LEFT;
+    _border = dc::ShadowBorder::LEFT;
   else if (ui->topButton->isChecked())
-    _border = ShadowBorder::TOP;
+    _border = dc::ShadowBorder::TOP;
   else if (ui->rightButton->isChecked())
-    _border = ShadowBorder::RIGHT;
+    _border = dc::ShadowBorder::RIGHT;
   else
-    _border = ShadowBorder::BOTTOM;
+    _border = dc::ShadowBorder::BOTTOM;
 
   if (!_originalImgSmall.isNull())
     updateResultImage();

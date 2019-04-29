@@ -6,6 +6,8 @@
 #include "Utils/convertor.h"
 #include <opencv2/imgproc/imgproc.hpp>
 
+namespace dc {
+
 static const int COEFF_PARABOLA = 4;
 static const cv::Vec3b WHITE_PIXEL = cv::Vec3b(255, 255, 255);
 static const cv::Vec3b BLACK_PIXEL = cv::Vec3b(0, 0, 0);
@@ -715,3 +717,5 @@ searchFitFourier(const QImage &original, float radiusExample)
 {
   return searchFitFourier(Convertor::getCvMat(original), radiusExample);
 }
+
+} //namespace dc

@@ -7,6 +7,8 @@
 #include <QImage>
 #include <opencv2/core/core.hpp>
 
+namespace dc {
+
 class Hole
 {
   
@@ -117,4 +119,6 @@ protected :
 
 };
 
+} //namespace dc
+  
 #endif //HOLEDEGRADATION_HPP

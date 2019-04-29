@@ -6,6 +6,8 @@
 #include <QImage>
 #include <opencv2/core/core.hpp>
 
+namespace dc {
+
 static const int INTERVAL_FOURIER = 15;
 
 enum class Function {LINEAR=0, LOG, PARABOLA, SINUS, ELLIPSE, HYPERBOLA};
@@ -102,4 +104,6 @@ protected :
 
 };
 
+} //namespace dc
+  
 #endif //BLURFILTER_HPP

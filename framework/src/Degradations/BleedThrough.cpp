@@ -8,6 +8,8 @@
 #include <iostream>
 #include <vector>
 
+namespace dc {
+
 /*
   Code inspired from original Cuong's code.
 
@@ -918,3 +920,5 @@ BleedThrough::setVersoAndApply(const QString &versoPath)
   setVerso(versoPath);
   apply();
 }
+
+} //namespace dc

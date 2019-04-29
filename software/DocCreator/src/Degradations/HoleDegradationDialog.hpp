@@ -44,12 +44,12 @@ public:
 
   int getSize() const { return _size; }
 
-  HoleType getType() const { return _type; }
+  dc::HoleType getType() const { return _type; }
 
   int getSide() const { return _side; }
 
   void setOriginalImage(const QImage &img);
-  void findBound(HoleType type,
+  void findBound(dc::HoleType type,
                  int &minH,
                  int &maxH,
                  int &minV,
@@ -103,13 +103,13 @@ private:
   int _horizontal;
   int _vertical;
   int _size;
-  HoleType _type;
+  dc::HoleType _type;
   int _side;
   int _width;
   float _intensity;
   QColor _color;
 
-  QList<Hole> _holes;
+  QList<dc::Hole> _holes;
   QStringList _patterns;
 
   QLabel *_originalLabel;

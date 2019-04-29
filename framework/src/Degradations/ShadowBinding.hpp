@@ -6,6 +6,7 @@
 #include <QImage>
 #include <opencv2/core/core.hpp>
 
+namespace dc {
 
 /**
    Implements "non-linear illumination model" from :
@@ -93,4 +94,6 @@ protected :
 
 };
 
+} //namespace dc
+  
 #endif //SHADOWBINDING_HPP

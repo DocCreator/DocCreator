@@ -6,6 +6,8 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+namespace dc {
+
 static const uchar BACKGROUND = 255;
 
 /*
@@ -141,3 +143,5 @@ ConnectedComponent::extractAllConnectedComponents(
   }
 }
 
+
+} //namespace dc

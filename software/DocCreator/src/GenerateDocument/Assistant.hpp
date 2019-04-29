@@ -242,11 +242,11 @@ protected:
 
   void CharDeg_updateTirageAndTotal();
 
-  void Shadow_setPreview(ShadowBorder border);
+  void Shadow_setPreview(dc::ShadowBorder border);
   void Shadow_updatePreviewAll();
   void Shadow_updateTirageAndTotal();
 
-  void Phantom_apply(Frequency frequency);
+  void Phantom_apply(dc::Frequency frequency);
   void Phantom_updatePreview();
   void Phantom_updateTirageAndTotal();
 
@@ -346,7 +346,7 @@ private:
   //Paramètre of shadow biding
   QImage _Shadow_rectoImgShad;
   QImage _Shadow_rectoImgShadDeg;
-  ShadowBorder _Shadow_borderStack[4]; //_shadow_nbShadSelected elts in stack
+  dc::ShadowBorder _Shadow_borderStack[4]; //_shadow_nbShadSelected elts in stack
   int _Shadow_nbShadSelected;          //in [0;4]
   int _Shadow_indexRecto = -1;
 

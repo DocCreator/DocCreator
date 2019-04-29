@@ -6,6 +6,8 @@
 #include <QImage>
 #include <opencv2/core/core.hpp>
 
+namespace dc {
+
 enum class Frequency {RARE=0, FREQUENT, VERY_FREQUENT}; 
 
 /*
@@ -46,4 +48,6 @@ protected :
 
 };
 
+} //namespace dc
+  
 #endif //PHANTOMCHARACTER_HPP

@@ -11,6 +11,8 @@
 
 #include "Degradations/BlurFilter.hpp" // To test blur
 
+namespace dc {
+
 //Spacing minimum between two character to be able to paste a pattern
 static const int SPACING_MIN = 10;
 
@@ -858,7 +860,7 @@ degradeComposant(cv::Mat &output,
         cv::Mat boundingBox = cv::Mat(output,
 				      cv::Rect(xPattern, yPattern, widthPattern, heightPattern));
 
-        cv::Mat boundingBoxBlur = blurFilter(boundingBox, Method::GAUSSIAN, 3);
+        cv::Mat boundingBoxBlur = dc::blurFilter(boundingBox, Method::GAUSSIAN, 3);
         copyTo(boundingBoxBlur, output, xPattern, yPattern);
       }
     }
@@ -958,9 +960,13 @@ phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const std::str
   return output;
 }
 
+} //namespace dc
+
 
 #include "Utils/convertor.h"
 #include <QString>
+
+namespace dc {
 
 QImage
 phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &phantomPatternsPath)
@@ -971,3 +977,5 @@ phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &
 
   return Convertor::getQImage(output);
 }
+
+} //namespace dc

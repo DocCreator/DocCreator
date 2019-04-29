@@ -8,6 +8,8 @@
 
 #include <iostream>//DEBUG
 
+namespace dc {
+
 static const int INTENSITY_WHITE = 255;
 static const uchar PIXEL_BLACK = 0;
 
@@ -452,3 +454,5 @@ holeDegradation(const QImage &imgOriginal,
 
   return Convertor::getQImage(matOut);
 }
+
+}//namespace dc

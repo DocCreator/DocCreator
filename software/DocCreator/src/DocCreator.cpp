@@ -986,7 +986,7 @@ DocCreator::applyBleedThrough()
     //        backGround = backGround.scaled(width,height);
     //        verso = verso.scaled(width,height);
 
-    BleedThrough deg(params.getNbIterations(), this);
+    dc::BleedThrough deg(params.getNbIterations(), this);
 
     deg.setVerso(params.getPathToVersoImage());
 
@@ -1021,7 +1021,7 @@ DocCreator::applyBlurFilter()
     _docController->toQImage(WithTextBlocks | WithImageBlocks));
 
   if (dialog.exec()) {
-    BlurFilter deg(_docController->toQImage(WithTextBlocks | WithImageBlocks),
+    dc::BlurFilter deg(_docController->toQImage(WithTextBlocks | WithImageBlocks),
                    dialog.getMethod(),
                    dialog.getIntensity(),
                    dialog.getMode(),
@@ -1059,7 +1059,7 @@ DocCreator::applyShadowBinding()
 
   if (dialog.exec()) {
 
-    ShadowBinding deg(
+    dc::ShadowBinding deg(
       _docController->toQImage(WithTextBlocks | WithImageBlocks),
       dialog.getBorder(),
       dialog.getDistance(),

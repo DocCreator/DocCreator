@@ -9,6 +9,8 @@
 #include "Utils/convertor.h"
 #include <opencv2/imgproc/imgproc.hpp>
 
+namespace dc {
+
 /**
    Darken rectangle @a rect of image @a img with intensity @a intensity.
    
@@ -179,3 +181,6 @@ ShadowBinding::apply()
 
   return out;
 }
+
+} //namespace dc
+  
