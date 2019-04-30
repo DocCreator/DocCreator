@@ -31,6 +31,7 @@
 #include "Degradations/BleedThrough.hpp"
 #include "Degradations/BleedThroughParametersDialog.hpp"
 #include "Degradations/BlurFilterDialog.hpp"
+#include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/MeshWindow.hpp"
 #include "Degradations/GrayCharacterDegradationDialog.hpp"
 #include "Degradations/GrayCharacterDegradationParameter.hpp"
@@ -38,6 +39,7 @@
 #include "Degradations/ImageGenerationFromDirDialog.hpp"
 #include "Degradations/PhantomCharacterDialog.hpp"
 #include "Degradations/ShadowBindingDialog.hpp"
+#include "Degradations/ShadowBindingQ.hpp"
 #include "Degradations/VersoImageChanger.hpp"
 #include "Document/BackGroundChanger.hpp"
 #include "Document/ChooseLabelForComponentForm.hpp"
@@ -1021,7 +1023,7 @@ DocCreator::applyBlurFilter()
     _docController->toQImage(WithTextBlocks | WithImageBlocks));
 
   if (dialog.exec()) {
-    dc::BlurFilter deg(_docController->toQImage(WithTextBlocks | WithImageBlocks),
+    dc::BlurFilterQ deg(_docController->toQImage(WithTextBlocks | WithImageBlocks),
                    dialog.getMethod(),
                    dialog.getIntensity(),
                    dialog.getMode(),
@@ -1059,7 +1061,7 @@ DocCreator::applyShadowBinding()
 
   if (dialog.exec()) {
 
-    dc::ShadowBinding deg(
+    dc::ShadowBindingQ deg(
       _docController->toQImage(WithTextBlocks | WithImageBlocks),
       dialog.getBorder(),
       dialog.getDistance(),

@@ -11,76 +11,76 @@
 namespace dc {
 
 
-/**
-  * \mainpage
-  *
-  * \author kvcuong https://bitbucket.org/kvcuong
-  *
-  * - We propose a local noise model for GRAYSCALE images. Its main principle is to locally degrade the image in the
-  * neighbourhoods of “seed-points” selected close to the character boundary. These points define the center of
-  * “noise regions”. The pixel values inside the noise region are modified by a Gaussian random distribution
-  * to make the final result more realistic. While Kanungo noise models scanning artifacts, our model simulates
-  * degradations due to the age of the document itself and printing/writing process such as ink splotches, white
-  * specks or streaks. It is very easy for users to parameterize and create a set of benchmark databases with
-  * an increasing level of noise. These databases will further be used to test the robustness of different grayscale
-  * document image analysis methods (i.e. text line segmentation, OCR, handwriting recognition).
-  *
-  * - License LGLPL
-  *
-  *    - [number of noise regions  nbp = 100, % of independent spots m = 30, % of overlapping spots n = 40, % of disconnection spots l = 30]
-  */
-const int WHITE = 255;
-const int BLACK = 0;
-const float PERCENT = 0.01f;
+  /**
+   * \mainpage
+   *
+   * \author kvcuong https://bitbucket.org/kvcuong
+   *
+   * - We propose a local noise model for GRAYSCALE images. Its main principle is to locally degrade the image in the
+   * neighbourhoods of “seed-points” selected close to the character boundary. These points define the center of
+   * “noise regions”. The pixel values inside the noise region are modified by a Gaussian random distribution
+   * to make the final result more realistic. While Kanungo noise models scanning artifacts, our model simulates
+   * degradations due to the age of the document itself and printing/writing process such as ink splotches, white
+   * specks or streaks. It is very easy for users to parameterize and create a set of benchmark databases with
+   * an increasing level of noise. These databases will further be used to test the robustness of different grayscale
+   * document image analysis methods (i.e. text line segmentation, OCR, handwriting recognition).
+   *
+   * - License LGLPL
+   *
+   *    - [number of noise regions  nbp = 100, % of independent spots m = 30, % of overlapping spots n = 40, % of disconnection spots l = 30]
+   */
+  const int WHITE = 255;
+  const int BLACK = 0;
+  const float PERCENT = 0.01f;
 
-struct Pixel
-{
-  cv::Point pos;
-  float distanceToEdge;
-  float probability;
-  float gradient_value;
-  float gradient_angle;
-  bool isBackground;
+  struct Pixel
+  {
+    cv::Point pos;
+    float distanceToEdge;
+    float probability;
+    float gradient_value;
+    float gradient_angle;
+    bool isBackground;
   
-  Pixel(int x=0, int y=0) :
-    pos(x, y), 
-    distanceToEdge(0),
-    probability(-1),
-    gradient_value(0),
-    gradient_angle(0),
-    isBackground(true)
-  {}
+    Pixel(int x=0, int y=0) :
+      pos(x, y), 
+      distanceToEdge(0),
+      probability(-1),
+      gradient_value(0),
+      gradient_angle(0),
+      isBackground(true)
+    {}
     
-};
+  };
 
-struct Seedpoint
-{
-  Seedpoint(const Pixel &p = Pixel(),
-	    float sz = 0.f,
-	    float tache = -1.f,
-	    float cheval = -1.f,
-	    float diffusion = FLT_MAX,
-	    int t = -1) :
-    pixel(p), 
-    size(sz), 
-    b_tache(tache),
-    b_cheval(cheval),
-    b_diffusion(diffusion),
-    type(t)
-  {}
+  struct Seedpoint
+  {
+    Seedpoint(const Pixel &p = Pixel(),
+	      float sz = 0.f,
+	      float tache = -1.f,
+	      float cheval = -1.f,
+	      float diffusion = FLT_MAX,
+	      int t = -1) :
+      pixel(p), 
+      size(sz), 
+      b_tache(tache),
+      b_cheval(cheval),
+      b_diffusion(diffusion),
+      type(t)
+    {}
 
-  Pixel pixel;
-  float size;
-  float b_tache;
-  float b_cheval;
-  float b_diffusion;
-  int type;
-};
+    Pixel pixel;
+    float size;
+    float b_tache;
+    float b_cheval;
+    float b_diffusion;
+    int type;
+  };
 
 
-class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
-{
-public:
+  class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
+  {
+  public:
     explicit GrayscaleCharsDegradationModel(const QImage &img);
     explicit GrayscaleCharsDegradationModel(const cv::Mat &img);
     ~GrayscaleCharsDegradationModel();
@@ -94,7 +94,7 @@ public:
     cv::Mat getImageGray_cv();
     cv::Mat getImageDegraded_cv();
 
-private:
+  private:
 
     int getMinStrokeWidthAtASeedPoint(const Seedpoint &sp, int &angle, cv::Point &A, cv::Point &B) const;
 
@@ -108,7 +108,7 @@ private:
     void calculateNoiseRegionType();
 
     void grayscaleDegradationByTypes();
-  //void RapidlyGrayscaleDegradationByTypes();
+    //void RapidlyGrayscaleDegradationByTypes();
     void separateSeedPointsByTypes(float percent_cheval, float percent_diffusion);
     void assignmentSizeOfNoiseRegion();
 
@@ -119,24 +119,24 @@ private:
     int calculateApproximatelyDistanceFromBord(const Pixel &pixel) const;
 
     std::vector<float*> getEllipsePoints(cv::Rect &rec,int &max_B, int &min_B, cv::Point centre, double semi_minor_axis, double semi_major_axis, double theta);
-  //std::vector<cv::Point> getLinePoints(cv::Point A, cv::Point B) const;
+    //std::vector<cv::Point> getLinePoints(cv::Point A, cv::Point B) const;
 
     void DegradedLine(const float* Line, cv::Point Centre, int Centre_gray, int pixel_signma, int sigma_gaussien,
                       cv::Mat &imgGrayOutput, bool isFtoB);
     void RapidlyDegradeLine(const float* Line, cv::Point Centre, int Centre_gray, cv::Mat &imgGrayOutput);
  
-  //unsigned int* calHist(cv::Mat src);
+    //unsigned int* calHist(cv::Mat src);
 
     cv::Mat binarize();
 
     void flipPixelsByProbability(float percent_independent);
     void calculatePixelsProbability();
 
-  //int getTypeNoiseRegion(const std::vector<cv::Point> &listElipseEdgePoints);
+    //int getTypeNoiseRegion(const std::vector<cv::Point> &listElipseEdgePoints);
 
     void calculatePixelsDistanceTransform();
 
-private:
+  private:
 
     bool _isTest;
 
@@ -171,7 +171,7 @@ private:
     int _nbSPs_User;
     int _local_zone;
 
-};
+  };
 
 
 } //namespace dc

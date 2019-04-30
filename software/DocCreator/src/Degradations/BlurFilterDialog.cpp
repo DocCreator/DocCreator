@@ -1,5 +1,6 @@
 #include "BlurFilterDialog.hpp"
 #include "ui_BlurFilterDialog.h"
+#include "BlurFilterQ.hpp"
 
 #include <cassert>
 
@@ -103,10 +104,10 @@ BlurFilterDialog::BlurFilterDialog(QWidget *parent)
   _vertical = ui->verticalSlider->value();
   _horizontal = ui->horizontalSlider->value();
   _radius = ui->radiusSlider->value();
-  _method = (dc::Method)ui->methodComboBox->currentIndex();
-  _mode = (dc::Mode)ui->modeComboBox->currentIndex();
-  _area = (dc::Area)ui->areaComboBox->currentIndex();
-  _function = dc::Function::ELLIPSE;
+  _method = (dc::BlurFilter::Method)ui->methodComboBox->currentIndex();
+  _mode = (dc::BlurFilter::Mode)ui->modeComboBox->currentIndex();
+  _area = (dc::BlurFilter::Area)ui->areaComboBox->currentIndex();
+  _function = dc::BlurFilter::Function::ELLIPSE;
   _currentExample = 1;
   _currentPattern = 4;
   _patternImg = QImage(QDir(getBlurPatternsPath())
@@ -239,9 +240,9 @@ BlurFilterDialog::exampleChosen()
     QDir(getBlurExamplesPath()).absoluteFilePath(_examples.at(_currentExample));
   QImage exampleImg(path);
 
-  _intensity = dc::searchFitFourier(_originalImg, dc::getRadiusFourier(exampleImg));
+  _intensity = dc::BlurFilter::searchFitFourier(_originalImg, dc::BlurFilter::getRadiusFourier(exampleImg));
 
-  _method = dc::Method::GAUSSIAN;
+  _method = dc::BlurFilter::Method::GAUSSIAN;
   ui->intensitySlider->setValue(_intensity);
   ui->intensitySlider->setSliderPosition(_intensity);
   intensityChanged(_intensity);
@@ -455,17 +456,17 @@ void
 BlurFilterDialog::updateBlurredImage()
 {
 
-  if (_mode == dc::Mode::COMPLETE)
-    _blurredImg = dc::blurFilter(_originalImg, _method, _intensity);
+  if (_mode == dc::BlurFilter::Mode::COMPLETE)
+    _blurredImg = dc::BlurFilter::blur(_originalImg, _method, _intensity);
   else
     _blurredImg = applyPattern(_originalImg, _patternImg, _method, _intensity);
-  //_blurredImg = dc::blurFilter(_originalImg, _method,  _intensity, _mode, _function, _area, _coeff,  _vertical, _horizontal, _radius);
+  //_blurredImg = dc::BlurFilter::blur(_originalImg, _method,  _intensity, _mode, _function, _area, _coeff,  _vertical, _horizontal, _radius);
 
   _blurredImgSmall = _blurredImg.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
   _blurredImgPart = takePart(_blurredImg);
 
-  if (_mode == dc::Mode::COMPLETE)
+  if (_mode == dc::BlurFilter::Mode::COMPLETE)
     _blurredLabel->setPixmap(QPixmap::fromImage(_blurredImgPart));
   else
     _blurredLabel->setPixmap(QPixmap::fromImage(_blurredImgSmall));
@@ -557,7 +558,7 @@ BlurFilterDialog::hideAdvancedOptions()
   ui->patternButton->setVisible(false);
 
   ui->modeComboBox->setCurrentIndex(0);
-  modeChanged(static_cast<int>(dc::Mode::COMPLETE));
+  modeChanged(static_cast<int>(dc::BlurFilter::Mode::COMPLETE));
 
   this->adjustSize();
 }
@@ -593,14 +594,14 @@ BlurFilterDialog::intensityChanged(int intensity)
       _exampleChosen !=
         -1) //if advanced options are used and an example is chosen
   {
-    const int radiusFourier = dc::getRadiusFourier(_blurredImg);
+    const int radiusFourier = dc::BlurFilter::getRadiusFourier(_blurredImg);
     const QString path = QDir(getBlurExamplesPath())
                            .absoluteFilePath(_examples.at(_exampleChosen));
     const QImage exampleImg = QImage(path);
-    const int radiusExample = dc::getRadiusFourier(exampleImg);
+    const int radiusExample = dc::BlurFilter::getRadiusFourier(exampleImg);
 
-    if (radiusFourier > radiusExample - dc::INTERVAL_FOURIER &&
-        radiusFourier < radiusExample + dc::INTERVAL_FOURIER)
+    if (radiusFourier > radiusExample - dc::BlurFilter::INTERVAL_FOURIER &&
+        radiusFourier < radiusExample + dc::BlurFilter::INTERVAL_FOURIER)
       ui->fitLabel->setVisible(true);
     else
       ui->fitLabel->setVisible(false);
@@ -615,7 +616,7 @@ BlurFilterDialog::coeffChanged(int coeff)
 {
   _coeff = coeff;
 
-  if (_function == dc::Function::PARABOLA)
+  if (_function == dc::BlurFilter::Function::PARABOLA)
     _coeff = coeff * 0.001f;
   ; //to get a three decimal float
 
@@ -661,7 +662,7 @@ BlurFilterDialog::radiusChanged(int radius)
 void
 BlurFilterDialog::methodChanged(int method)
 {
-  _method = static_cast<dc::Method>(method);
+  _method = static_cast<dc::BlurFilter::Method>(method);
 
   if (!_originalImgSmall.isNull()) {
     updatePatterns();
@@ -672,9 +673,9 @@ BlurFilterDialog::methodChanged(int method)
 void
 BlurFilterDialog::modeChanged(int mode)
 {
-  _mode = static_cast<dc::Mode>(mode);
+  _mode = static_cast<dc::BlurFilter::Mode>(mode);
 
-  if (_mode == dc::Mode::COMPLETE) {
+  if (_mode == dc::BlurFilter::Mode::COMPLETE) {
     ui->exampleButton->setVisible(true);
     if (_originalLabel != nullptr) {
       _originalLabel->setPixmap(QPixmap::fromImage(_originalImgPart));
@@ -706,7 +707,7 @@ BlurFilterDialog::modeChanged(int mode)
 void
 BlurFilterDialog::functionChanged(int function)
 {
-  _function = static_cast<dc::Function>(function);
+  _function = static_cast<dc::BlurFilter::Function>(function);
 
   _currentPattern = function + 1;
   updatePatterns();
@@ -720,7 +721,7 @@ BlurFilterDialog::functionChanged(int function)
 void
 BlurFilterDialog::areaChanged(int area)
 {
-  _area = static_cast<dc::Area>(area);
+  _area = static_cast<dc::BlurFilter::Area>(area);
 
   updateSliders();
 
@@ -741,7 +742,7 @@ BlurFilterDialog::updateSliders()
   }
 
   switch (_function) {
-  case dc::Function::LINEAR:
+  case dc::BlurFilter::Function::LINEAR:
       _coeff = DEFAULT_COEFF_LINEAR;
       _vertical = _originalImg.height() / 5;
       ui->coeffSlider->setMinimum(MIN_COEFF_LINEAR);
@@ -750,7 +751,7 @@ BlurFilterDialog::updateSliders()
       ui->horizontalSlider->setVisible(false);
       break;
 
-  case dc::Function::LOG:
+  case dc::BlurFilter::Function::LOG:
       _coeff = DEFAULT_COEFF_LOG;
       _vertical = _originalImg.height() / 10;
       ui->coeffSlider->setMinimum(MIN_COEFF_LOG);
@@ -759,7 +760,7 @@ BlurFilterDialog::updateSliders()
       ui->horizontalSlider->setVisible(false);
       break;
 
-  case dc::Function::PARABOLA:
+  case dc::BlurFilter::Function::PARABOLA:
       _coeff = DEFAULT_COEFF_PARABOLA;
       _vertical = ui->verticalSlider->minimum();
       ui->coeffSlider->setMinimum(MIN_COEFF_PARABOLA);
@@ -767,7 +768,7 @@ BlurFilterDialog::updateSliders()
       _horizontal = 0;
       break;
 
-  case dc::Function::SINUS:
+  case dc::BlurFilter::Function::SINUS:
       _coeff = DEFAULT_COEFF_SINUS;
       _vertical = _originalImg.height() / 2;
       ui->coeffSlider->setMinimum(MIN_COEFF_SINUS);
@@ -775,7 +776,7 @@ BlurFilterDialog::updateSliders()
       _horizontal = 0;
       break;
 
-  case dc::Function::ELLIPSE:
+  case dc::BlurFilter::Function::ELLIPSE:
       _vertical = 0;
       _horizontal = 0;
       _coeff = DEFAULT_COEFF_ELLIPSE;
@@ -783,7 +784,7 @@ BlurFilterDialog::updateSliders()
       ui->coeffSlider->setMaximum(MAX_COEFF_ELLIPSE);
       break;
 
-  case dc::Function::HYPERBOLA:
+  case dc::BlurFilter::Function::HYPERBOLA:
       _vertical = 0;
       _horizontal = 0;
       _coeff = DEFAULT_COEFF_HYPERBOLA;
@@ -792,7 +793,7 @@ BlurFilterDialog::updateSliders()
       break;
   }
 
-  if (_area == dc::Area::CENTERED) {
+  if (_area == dc::BlurFilter::Area::CENTERED) {
     ui->radiusLabel->setVisible(true);
     ui->radiusSlider->setVisible(true);
   } else {

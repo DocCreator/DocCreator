@@ -1,5 +1,6 @@
 #include "PhantomCharacterDialog.hpp"
 #include "ui_PhantomCharacterDialog.h"
+#include "PhantomCharacterQ.hpp"
 
 #include <QLabel>
 #include <cassert>
@@ -21,7 +22,7 @@ PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
   , _resultLabel(nullptr)
 {
   ui->setupUi(this);
-  _frequency = (dc::Frequency)ui->frequencyComboBox->currentIndex();
+  _frequency = (dc::PhantomCharacter::Frequency)ui->frequencyComboBox->currentIndex();
   _zoomX = ZOOM_X_INIT;
   _zoomY = ZOOM_Y_INIT;
   _phantomPatternsPath = Context::BackgroundContext::instance()->getPath() +
@@ -83,7 +84,7 @@ PhantomCharacterDialog::setupGUIImages()
 void
 PhantomCharacterDialog::updateResultImage()
 {
-  _resultImg = phantomCharacter(_originalImg, _frequency, _phantomPatternsPath);
+  _resultImg = dc::PhantomCharacter::phantomCharacter(_originalImg, _frequency, _phantomPatternsPath);
   _resultImgSmall = _resultImg.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
   _resultLabel->setPixmap(QPixmap::fromImage(_resultImgSmall));
@@ -107,7 +108,7 @@ PhantomCharacterDialog::updateZoom()
 void
 PhantomCharacterDialog::frequencyChanged(int frequency)
 {
-  _frequency = (dc::Frequency)frequency;
+  _frequency = (dc::PhantomCharacter::Frequency)frequency;
 
   if (!_originalImgSmall.isNull())
     updateResultImage();

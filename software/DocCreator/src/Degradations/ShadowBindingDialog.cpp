@@ -1,5 +1,6 @@
 #include "ShadowBindingDialog.hpp"
 #include "ui_ShadowBindingDialog.h"
+#include "ShadowBindingQ.hpp"
 
 #include <cassert>
 
@@ -20,7 +21,7 @@ ShadowBindingDialog::ShadowBindingDialog(QWidget *parent)
   _intensity = getIntensityAux(ui->intensitySlider->value());
   _angle = ui->angleSlider->value();
 
-  _border = dc::ShadowBorder::LEFT;
+  _border = dc::ShadowBinding::Border::LEFT;
 
   connect(ui->intensitySlider,
           SIGNAL(valueChanged(int)),
@@ -81,7 +82,7 @@ void
 ShadowBindingDialog::updateResultImage()
 {
   _resultImg =
-    shadowBinding(_originalImg, _border, _distance, _intensity, _angle);
+    dc::ShadowBinding::shadowBinding(_originalImg, _border, _distance, _intensity, _angle);
   _resultImgSmall = _resultImg.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
   _resultLabel->setPixmap(QPixmap::fromImage(_resultImgSmall));
@@ -145,13 +146,13 @@ void
 ShadowBindingDialog::borderChanged()
 {
   if (ui->leftButton->isChecked())
-    _border = dc::ShadowBorder::LEFT;
+    _border = dc::ShadowBinding::Border::LEFT;
   else if (ui->topButton->isChecked())
-    _border = dc::ShadowBorder::TOP;
+    _border = dc::ShadowBinding::Border::TOP;
   else if (ui->rightButton->isChecked())
-    _border = dc::ShadowBorder::RIGHT;
+    _border = dc::ShadowBinding::Border::RIGHT;
   else
-    _border = dc::ShadowBorder::BOTTOM;
+    _border = dc::ShadowBinding::Border::BOTTOM;
 
   if (!_originalImgSmall.isNull())
     updateResultImage();

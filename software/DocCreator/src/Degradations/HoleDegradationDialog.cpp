@@ -1,5 +1,6 @@
 #include "HoleDegradationDialog.hpp"
 #include "ui_HoleDegradationDialog.h"
+#include "HoleDegradationQ.hpp"
 
 #include <cassert>
 #include <ctime> //time
@@ -97,11 +98,11 @@ HoleDegradationDialog::HoleDegradationDialog(QWidget *parent)
   _horizontal = ui->horizontalSlider->value();
   _vertical = ui->verticalSlider->value();
   _size = ui->sizeSlider->value();
-  _type = (dc::HoleType)ui->typeComboBox->currentIndex();
-  _side = static_cast<int>(dc::Border::TOP);
+  _type = (dc::HoleDegradation::HoleType)ui->typeComboBox->currentIndex();
+  _side = static_cast<int>(dc::HoleDegradation::Border::TOP);
   _width = 0;
   _intensity = ui->intensitySlider->value();
-  _holes = QList<dc::Hole>();
+  _holes = QList<Hole>();
   ui->borderGroupBox->setVisible(false);
   ui->cornerGroupBox->setVisible(false);
 
@@ -200,11 +201,11 @@ HoleDegradationDialog::updatePatterns()
 
   QString path;
 
-  if (_type == dc::HoleType::CENTER)
+  if (_type == dc::HoleDegradation::HoleType::CENTER)
     path = getCenterHolePatternsPath();
-  if (_type == dc::HoleType::BORDER)
+  if (_type == dc::HoleDegradation::HoleType::BORDER)
     path = getBorderHolePatternsPath();
-  else if (_type == dc::HoleType::CORNER)
+  else if (_type == dc::HoleDegradation::HoleType::CORNER)
     path = getCornerHolePatternsPath();
 
   _patterns = getDirectoryList(path);
@@ -246,7 +247,7 @@ HoleDegradationDialog::setHole()
     ui->horizontalSlider->setMaximum(_originalImg.width());
     ui->verticalSlider->setMaximum(_originalImg.height());
 
-    _holes.append(dc::Hole(_horizontal, _vertical, _size, _color, _patternImg));
+    _holes.append(Hole(_horizontal, _vertical, _size, _color, _patternImg));
     // _originalLabel->setPixmap(QPixmap::fromImage(_originalImgSmall));
   }
 }
@@ -305,7 +306,7 @@ void
 HoleDegradationDialog::updateResultImage()
 {
   if (_holes.isEmpty())
-    _resultImg = holeDegradation(_originalImg,
+    _resultImg = dc::HoleDegradation::holeDegradation(_originalImg,
                                  _patternImg,
                                  _horizontal,
                                  _vertical,
@@ -317,7 +318,7 @@ HoleDegradationDialog::updateResultImage()
                                  _width,
                                  _intensity);
   else
-    _resultImg = holeDegradation(_degradedImg,
+    _resultImg = dc::HoleDegradation::holeDegradation(_degradedImg,
                                  _patternImg,
                                  _horizontal,
                                  _vertical,
@@ -344,8 +345,9 @@ HoleDegradationDialog::updateZoom()
   //int w = std::min(_patternImg.width()+_size, _resultImg.width());
   //int h = std::min(_patternImg.height()+_size, _resultImg.height());
   int w, h;
-  if (_type == dc::HoleType::BORDER && (_side == static_cast<int>(dc::Border::LEFT) ||
-					_side == static_cast<int>(dc::Border::RIGHT))) {
+  if (_type == dc::HoleDegradation::HoleType::BORDER
+      && (_side == static_cast<int>(dc::HoleDegradation::Border::LEFT) ||
+	  _side == static_cast<int>(dc::HoleDegradation::Border::RIGHT))) {
     w = std::min(_patternImg.height() + _size, _resultImg.width());
     h = std::min(_patternImg.width() + _size, _resultImg.height());
   } else {
@@ -478,30 +480,30 @@ void
 HoleDegradationDialog::borderButtonClicked()
 {
   if (ui->topButton->isChecked())
-    sideChanged(static_cast<int>(dc::Border::TOP));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Border::TOP));
   else if (ui->rightButton->isChecked())
-    sideChanged(static_cast<int>(dc::Border::RIGHT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Border::RIGHT));
   else if (ui->bottomButton->isChecked())
-    sideChanged(static_cast<int>(dc::Border::BOTTOM));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Border::BOTTOM));
   else if (ui->leftButton->isChecked())
-    sideChanged(static_cast<int>(dc::Border::LEFT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Border::LEFT));
 }
 
 void
 HoleDegradationDialog::cornerButtonClicked()
 {
   if (ui->topLeftButton->isChecked())
-    sideChanged(static_cast<int>(dc::Corner::TOPLEFT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Corner::TOPLEFT));
   else if (ui->topRightButton->isChecked())
-    sideChanged(static_cast<int>(dc::Corner::TOPRIGHT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Corner::TOPRIGHT));
   else if (ui->bottomRightButton->isChecked())
-    sideChanged(static_cast<int>(dc::Corner::BOTTOMRIGHT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Corner::BOTTOMRIGHT));
   else if (ui->bottomLeftButton->isChecked())
-    sideChanged(static_cast<int>(dc::Corner::BOTTOMLEFT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Corner::BOTTOMLEFT));
 }
 
 void
-HoleDegradationDialog::findBound(dc::HoleType type,
+HoleDegradationDialog::findBound(dc::HoleDegradation::HoleType type,
                                  int &minH,
                                  int &maxH,
                                  int &minV,
@@ -510,34 +512,34 @@ HoleDegradationDialog::findBound(dc::HoleType type,
                                  const QImage &patternImg)
 {
   switch (type) {
-  case dc::HoleType::CENTER:
+  case dc::HoleDegradation::HoleType::CENTER:
       minH = 0;
       maxH = _originalImg.width() - patternImg.width(); // + MARGIN;
       minV = 0;
       maxV = _originalImg.height() - patternImg.height(); // + MARGIN;
       break;
 
-  case dc::HoleType::BORDER:
-    switch (static_cast<dc::Border>(side)) {
-      case dc::Border::TOP:
+  case dc::HoleDegradation::HoleType::BORDER:
+    switch (static_cast<dc::HoleDegradation::Border>(side)) {
+      case dc::HoleDegradation::Border::TOP:
           minH = -patternImg.width() + MARGIN;
           maxH = _originalImg.width() - MARGIN;
           minV = -patternImg.height() + MARGIN;
           maxV = 0;
           break;
-      case dc::Border::RIGHT:
+      case dc::HoleDegradation::Border::RIGHT:
           minH = _originalImg.width() - patternImg.height();
           maxH = _originalImg.width() - MARGIN;
           minV = -patternImg.width() + MARGIN;
           maxV = _originalImg.width() - MARGIN;
           break;
-      case dc::Border::BOTTOM:
+      case dc::HoleDegradation::Border::BOTTOM:
           minH = -patternImg.width() + MARGIN;
           maxH = _originalImg.width() - MARGIN;
           minV = _originalImg.height() - patternImg.height();
           maxV = _originalImg.height() - MARGIN;
           break;
-      case dc::Border::LEFT:
+      case dc::HoleDegradation::Border::LEFT:
           minH = -patternImg.height() + MARGIN;
           maxH = 0;
           minV = -patternImg.width() + MARGIN;
@@ -546,27 +548,27 @@ HoleDegradationDialog::findBound(dc::HoleType type,
       }
       break;
 
-  case dc::HoleType::CORNER:
-    switch (static_cast<dc::Corner>(side)) {
-      case dc::Corner::TOPLEFT:
+  case dc::HoleDegradation::HoleType::CORNER:
+    switch (static_cast<dc::HoleDegradation::Corner>(side)) {
+      case dc::HoleDegradation::Corner::TOPLEFT:
           minH = -patternImg.width() + MARGIN;
           maxH = 0;
           minV = -patternImg.height() + MARGIN;
           maxV = 0;
           break;
-      case dc::Corner::TOPRIGHT:
+      case dc::HoleDegradation::Corner::TOPRIGHT:
           minH = _originalImg.width() - patternImg.width();
           maxH = _originalImg.width() - MARGIN;
           minV = -patternImg.height() + MARGIN;
           maxV = 0;
           break;
-      case dc::Corner::BOTTOMRIGHT:
+      case dc::HoleDegradation::Corner::BOTTOMRIGHT:
           minH = _originalImg.width() - patternImg.width();
           maxH = _originalImg.width() - MARGIN;
           minV = _originalImg.height() - patternImg.height();
           maxV = _originalImg.height() - MARGIN;
           break;
-      case dc::Corner::BOTTOMLEFT:
+      case dc::HoleDegradation::Corner::BOTTOMLEFT:
           minH = -patternImg.width() + MARGIN;
           maxH = 0;
           minV = _originalImg.height() - patternImg.height();
@@ -575,7 +577,7 @@ HoleDegradationDialog::findBound(dc::HoleType type,
       }
       break;
 
-  case dc::HoleType::NUM_HOLE_TYPES:
+  case dc::HoleDegradation::HoleType::NUM_HOLE_TYPES:
     default:
       minH = 0;
       maxH = 0;
@@ -617,9 +619,9 @@ HoleDegradationDialog::sideChanged(int side)
       _vertical = 0;
       break;
     case 2: //BOTTOM OR BOTTOMRIGHT
-      if (_type == dc::HoleType::BORDER)
+      if (_type == dc::HoleDegradation::HoleType::BORDER)
         _horizontal = 0;
-      else if (_type == dc::HoleType::CORNER)
+      else if (_type == dc::HoleDegradation::HoleType::CORNER)
         _horizontal = _originalImg.width() - _patternImg.width();
 
       _vertical = _originalImg.height() - _patternImg.height();
@@ -627,9 +629,9 @@ HoleDegradationDialog::sideChanged(int side)
     case 3: //LEFT OR BOTTOM LEF
       _horizontal = 0;
 
-      if (_type == dc::HoleType::BORDER)
+      if (_type == dc::HoleDegradation::HoleType::BORDER)
         _vertical = 0;
-      else if (_type == dc::HoleType::CORNER)
+      else if (_type == dc::HoleDegradation::HoleType::CORNER)
         _vertical = _originalImg.height() - _patternImg.height();
 
       break;
@@ -723,19 +725,19 @@ HoleDegradationDialog::intensityChanged(int intensity)
 void
 HoleDegradationDialog::typeChanged(int type)
 {
-  _type = static_cast<dc::HoleType>(type);
+  _type = static_cast<dc::HoleDegradation::HoleType>(type);
 
   ui->borderGroupBox->setVisible(false);
   ui->cornerGroupBox->setVisible(false);
 
-  if (_type == dc::HoleType::BORDER) {
+  if (_type == dc::HoleDegradation::HoleType::BORDER) {
     ui->borderGroupBox->setVisible(true);
     ui->topButton->setChecked(true);
-    sideChanged(static_cast<int>(dc::Border::TOP));
-  } else if (_type == dc::HoleType::CORNER) {
+    sideChanged(static_cast<int>(dc::HoleDegradation::Border::TOP));
+  } else if (_type == dc::HoleDegradation::HoleType::CORNER) {
     ui->cornerGroupBox->setVisible(true);
     ui->topLeftButton->setChecked(true);
-    sideChanged(static_cast<int>(dc::Corner::TOPLEFT));
+    sideChanged(static_cast<int>(dc::HoleDegradation::Corner::TOPLEFT));
   }
 
   updatePatterns();
@@ -761,7 +763,7 @@ void
 HoleDegradationDialog::removeHole()
 {
   if (!_holes.isEmpty()) {
-    dc::Hole hole = _holes.last();
+    Hole hole = _holes.last();
     _holes.removeLast();
 
     cv::Mat tmpMat = Convertor::getCvMat(_originalImg);
@@ -783,21 +785,21 @@ HoleDegradationDialog::removeHole()
 //RANDOM
 
 static int
-countHole(dc::HoleType type)
+countHole(dc::HoleDegradation::HoleType type)
 {
   QString dirName;
 
   switch (type) {
-  case dc::HoleType::CENTER:
+  case dc::HoleDegradation::HoleType::CENTER:
       dirName = HoleDegradationDialog::getCenterHolePatternsPath();
       break;
-  case dc::HoleType::BORDER:
+  case dc::HoleDegradation::HoleType::BORDER:
       dirName = HoleDegradationDialog::getBorderHolePatternsPath();
       break;
-  case dc::HoleType::CORNER:
+  case dc::HoleDegradation::HoleType::CORNER:
       dirName = HoleDegradationDialog::getCornerHolePatternsPath();
       break;
-  case dc::HoleType::NUM_HOLE_TYPES:
+  case dc::HoleDegradation::HoleType::NUM_HOLE_TYPES:
       break;
   }
 
@@ -810,15 +812,15 @@ countHole(dc::HoleType type)
 Allow to get the path of a pattern just with the type of hole and the number of the pattern
  */
 static QString
-getPath(dc::HoleType type, int pattern)
+getPath(dc::HoleDegradation::HoleType type, int pattern)
 {
   QString path;
 
-  if (type == dc::HoleType::CENTER)
+  if (type == dc::HoleDegradation::HoleType::CENTER)
     path = HoleDegradationDialog::getCenterHolePatternsPath();
-  if (type == dc::HoleType::BORDER)
+  if (type == dc::HoleDegradation::HoleType::BORDER)
     path = HoleDegradationDialog::getBorderHolePatternsPath();
-  else if (type == dc::HoleType::CORNER)
+  else if (type == dc::HoleDegradation::HoleType::CORNER)
     path = HoleDegradationDialog::getCornerHolePatternsPath();
 
   const QStringList patterns = HoleDegradationDialog::getDirectoryList(path);
@@ -828,8 +830,8 @@ getPath(dc::HoleType type, int pattern)
   return path;
 }
 
-static bool
-containsHole(const QList<dc::Hole> &holes,
+bool
+HoleDegradationDialog::containsHole(const QList<Hole> &holes,
              const QImage &pattern,
              int horizontal,
              int vertical,
@@ -840,7 +842,7 @@ containsHole(const QList<dc::Hole> &holes,
   const QPoint bottomLeft =
     QPoint(horizontal, vertical + pattern.height() + size);
 
-  for (const dc::Hole &hole : holes) {
+  for (const Hole &hole : holes) {
     const int x = hole.getX();
     const int y = hole.getY();
     const int w = hole.getWidth();
@@ -863,11 +865,11 @@ HoleDegradationDialog::generateHoles()
   // for (int i = 0; i<number; i++)
 
   srand(time(nullptr)); // initialisation
-  dc::HoleType type = dc::HoleType::CENTER;
+  dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
   int hole = 0;
   int horizontal = 0, vertical = 0;
   int minH, maxH, minV, maxV;
-  int side = static_cast<int>(dc::Border::TOP);
+  int side = static_cast<int>(dc::HoleDegradation::Border::TOP);
   int size = 0;
   int minSize = -100;
   int maxSize =
@@ -880,11 +882,11 @@ HoleDegradationDialog::generateHoles()
     const int tmpType = rand() % 3; //random type
 
     if (tmpType == 0) //Can't cast directly ? (error -fpermissive)
-      type = dc::HoleType::CENTER;
+      type = dc::HoleDegradation::HoleType::CENTER;
     else if (tmpType == 1)
-      type = dc::HoleType::BORDER;
+      type = dc::HoleDegradation::HoleType::BORDER;
     else if (tmpType == 2)
-      type = dc::HoleType::CORNER;
+      type = dc::HoleDegradation::HoleType::CORNER;
 
     const int numberOfHole = countHole(type);
 
@@ -895,7 +897,7 @@ HoleDegradationDialog::generateHoles()
 
     pattern = QImage(getPath(type, hole));
 
-    if (type == dc::HoleType::BORDER || type == dc::HoleType::CORNER)
+    if (type == dc::HoleDegradation::HoleType::BORDER || type == dc::HoleDegradation::HoleType::CORNER)
       side = rand() % 4;
 
     findBound(
@@ -931,25 +933,25 @@ HoleDegradationDialog::generateHoles()
     side); //Allow to set new side, update radio button, update result image in same time ans also set constraints
 
   //update dialog (IHM)
-  if (type == dc::HoleType::BORDER) {
-    dc::Border border = static_cast<dc::Border>(side);
-    if (border == dc::Border::TOP)
+  if (type == dc::HoleDegradation::HoleType::BORDER) {
+    dc::HoleDegradation::Border border = static_cast<dc::HoleDegradation::Border>(side);
+    if (border == dc::HoleDegradation::Border::TOP)
       ui->topButton->setChecked(true);
-    else if (border == dc::Border::RIGHT)
+    else if (border == dc::HoleDegradation::Border::RIGHT)
       ui->rightButton->setChecked(true);
-    else if (border == dc::Border::BOTTOM)
+    else if (border == dc::HoleDegradation::Border::BOTTOM)
       ui->bottomButton->setChecked(true);
-    else if (border == dc::Border::LEFT)
+    else if (border == dc::HoleDegradation::Border::LEFT)
       ui->leftButton->setChecked(true);
-  } else if (type == dc::HoleType::CORNER) {
-    dc::Corner corner = static_cast<dc::Corner>(side);
-    if (corner == dc::Corner::TOPLEFT)
+  } else if (type == dc::HoleDegradation::HoleType::CORNER) {
+    dc::HoleDegradation::Corner corner = static_cast<dc::HoleDegradation::Corner>(side);
+    if (corner == dc::HoleDegradation::Corner::TOPLEFT)
       ui->topLeftButton->setChecked(true);
-    else if (corner == dc::Corner::TOPRIGHT)
+    else if (corner == dc::HoleDegradation::Corner::TOPRIGHT)
       ui->topRightButton->setChecked(true);
-    else if (corner == dc::Corner::BOTTOMRIGHT)
+    else if (corner == dc::HoleDegradation::Corner::BOTTOMRIGHT)
       ui->bottomRightButton->setChecked(true);
-    else if (corner == dc::Corner::BOTTOMLEFT)
+    else if (corner == dc::HoleDegradation::Corner::BOTTOMLEFT)
       ui->bottomLeftButton->setChecked(true);
   }
 }

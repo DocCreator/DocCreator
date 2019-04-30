@@ -55,9 +55,13 @@ SET(
   src/Degradations/VersoImageChangerParameters.hpp
   src/Degradations/BleedThroughParametersDialog.hpp
   src/Degradations/BlurFilterDialog.hpp
+  src/Degradations/BlurFilterQ.hpp
   src/Degradations/ShadowBindingDialog.hpp
+  src/Degradations/ShadowBindingQ.hpp
   src/Degradations/HoleDegradationDialog.hpp
+  src/Degradations/HoleDegradationQ.hpp
   src/Degradations/PhantomCharacterDialog.hpp
+  src/Degradations/PhantomCharacterQ.hpp
   src/Degradations/VersoImageChanger.hpp
   src/RandomDocument/RandomDocumentParameters.hpp
   src/RandomDocument/RandomDocumentExporter.hpp
@@ -105,9 +109,13 @@ SET(
   src/Degradations/VersoImageChangerParameters.cpp
   src/Degradations/BleedThroughParametersDialog.cpp
   src/Degradations/BlurFilterDialog.cpp
+  src/Degradations/BlurFilterQ.cpp
   src/Degradations/ShadowBindingDialog.cpp
+  src/Degradations/ShadowBindingQ.cpp
   src/Degradations/HoleDegradationDialog.cpp
+  src/Degradations/HoleDegradationQ.cpp
   src/Degradations/PhantomCharacterDialog.cpp
+  src/Degradations/PhantomCharacterQ.cpp
   src/Degradations/ImageGenerationFromDirDialog.cpp
   src/RandomDocument/RandomDocumentCreator.cpp
   src/RandomDocument/RandomBackGroundChanger.cpp
@@ -352,12 +360,12 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 IF(BUILD_OTHER_PROGS)
 
 
-  SET(SOURCES src/testBlurFilter.cpp)
+  SET(SOURCES src/testBlurFilter.cpp src/Degradations/BlurFilterQ.cpp)
   #src/Degradations/BlurFilterDialog.cpp src/Degradations/BlurFilterDialog.hpp)
   #SET(MY_UI_FILES src/Degradations/BlurFilterDialog.ui) 
   #QTX_WRAP_UI(MY_UI ${MY_UI_FILES})
-  #SET(MY_MOC_FILES src/Degradations/BlurFilterDialog.hpp )
-  #QTX_WRAP_CPP(MY_MOC ${MY_MOC_FILES})
+  SET(MY_MOC_FILES src/Degradations/BlurFilterQ.hpp )
+  QTX_WRAP_CPP(MY_MOC ${MY_MOC_FILES})
   ADD_EXECUTABLE(testBlurFilter ${SOURCES} ${MY_MOC} ${MY_UI})
   TARGET_LINK_LIBRARIES(testBlurFilter ${EXTRA_LIBS})
   IF(BUILD_TESSERACT)
@@ -365,9 +373,9 @@ IF(BUILD_OTHER_PROGS)
   ENDIF(BUILD_TESSERACT)
 
 
-  SET(SHADOW_SOURCES src/testShadowBinding.cpp)
-  #SET(SHADOW_MOC_FILES  src/Degradations/ShadowBinding.hpp )
-  #QTX_WRAP_CPP(SHADOW_MOC ${SHADOW_MOC_FILES})
+  SET(SHADOW_SOURCES src/testShadowBinding.cpp src/Degradations/ShadowBindingQ.cpp)
+  SET(SHADOW_MOC_FILES  src/Degradations/ShadowBindingQ.hpp )
+  QTX_WRAP_CPP(SHADOW_MOC ${SHADOW_MOC_FILES})
   ADD_EXECUTABLE(testShadow ${SHADOW_SOURCES} ${SHADOW_MOC})
   TARGET_LINK_LIBRARIES(testShadow ${EXTRA_LIBS})
   IF(BUILD_TESSERACT)
@@ -375,10 +383,9 @@ IF(BUILD_OTHER_PROGS)
   ENDIF(BUILD_TESSERACT)
 
 
-
-  SET(HOLE_SOURCES src/testHoleDegradation.cpp)
-  #SET(HOLE_MOC_FILES src/Degradations/HoleDegradation.hpp )
-  #QTX_WRAP_CPP(HOLE_MOC ${HOLE_MOC_FILES})
+  SET(HOLE_SOURCES src/testHoleDegradation.cpp src/Degradations/HoleDegradationQ.cpp)
+  SET(HOLE_MOC_FILES src/Degradations/HoleDegradationQ.hpp )
+  QTX_WRAP_CPP(HOLE_MOC ${HOLE_MOC_FILES})
   ADD_EXECUTABLE(testHole ${HOLE_SOURCES} ${HOLE_MOC})
   TARGET_LINK_LIBRARIES(testHole ${EXTRA_LIBS})
   IF(BUILD_TESSERACT)

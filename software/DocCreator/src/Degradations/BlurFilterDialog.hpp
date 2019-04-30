@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QStringList>
 
-#include "Degradations/BlurFilter.hpp" //for Method, Moe, Area, ...
+#include "Degradations/BlurFilter.hpp" //for Method, Mode, Area, ...
 
 class QLabel;
 
@@ -36,13 +36,13 @@ public:
 
   int getRadius() const { return _radius; }
 
-  dc::Method getMethod() const { return _method; }
+  dc::BlurFilter::Method getMethod() const { return _method; }
 
-  dc::Mode getMode() const { return _mode; }
+  dc::BlurFilter::Mode getMode() const { return _mode; }
 
-  dc::Area getArea() const { return _area; }
+  dc::BlurFilter::Area getArea() const { return _area; }
 
-  dc::Function getFunction() const { return _function; }
+  dc::BlurFilter::Function getFunction() const { return _function; }
 
   void setOriginalImage(const QImage &img);
 
@@ -98,10 +98,10 @@ private:
   int _vertical;
   int _radius;
 
-  dc::Method _method;
-  dc::Mode _mode;
-  dc::Area _area;
-  dc::Function _function;
+  dc::BlurFilter::Method _method;
+  dc::BlurFilter::Mode _mode;
+  dc::BlurFilter::Area _area;
+  dc::BlurFilter::Function _function;
 
   QStringList _patterns;
   QStringList _examples;

@@ -1,4 +1,4 @@
-#include "Degradations/ShadowBinding.hpp"
+#include "Degradations/ShadowBindingQ.hpp"
 #include "Utils/convertor.h"
 #include <QApplication>
 #include <QLabel>
@@ -42,7 +42,7 @@ main(int argc, char *argv[])
   QLabel *label = new QLabel();
 
   QImage imOut;
-  imOut = shadowBinding(imIn, (ShadowBorder)border, distance, intensity, angle);
+  imOut = dc::ShadowBinding::shadowBinding(imIn, (dc::ShadowBinding::Border)border, distance, intensity, angle);
 
   if (argc > 5) {
     imOut.save(argv[5]);

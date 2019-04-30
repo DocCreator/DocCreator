@@ -28,7 +28,7 @@ main(int argc, char *argv[])
   float O = 30;
   float D = 50;
 
-  GrayscaleCharsDegradationModel gdm(img);
+  dc::GrayscaleCharsDegradationModel gdm(img);
 
   cv::Mat outImg = gdm.degradate_cv(level, I, O, D);
 

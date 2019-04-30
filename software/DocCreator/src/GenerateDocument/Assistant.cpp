@@ -15,10 +15,12 @@
 #include <QTextStream>
 
 #include "Degradations/BleedThrough.hpp"
-#include "Degradations/BlurFilter.hpp"
+#include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
-#include "Degradations/HoleDegradation.hpp"
+#include "Degradations/HoleDegradationQ.hpp"
+#include "Degradations/PhantomCharacterQ.hpp"
+#include "Degradations/ShadowBindingQ.hpp"
 #include "Document/DocumentController.hpp"
 #include "Document/DocumentToXMLExporter.hpp"
 #include "RandomDocument/RandomDocumentCreator.hpp"
@@ -2040,7 +2042,7 @@ Assistant::Shadow_setupGUIImages()
 }
 
 void
-Assistant::Shadow_setPreview(dc::ShadowBorder border)
+Assistant::Shadow_setPreview(dc::ShadowBinding::Border border)
 {
   const float distanceRatio =
     ui->shad_width->value() / (float)ui->shad_width->maximum();
@@ -2048,7 +2050,7 @@ Assistant::Shadow_setPreview(dc::ShadowBorder border)
     1.f - ui->shad_intensity->value() / (float)ui->shad_intensity->maximum();
   const float angle = ui->shad_angle->value();
 
-  QImage deg = dc::shadowBinding(
+  QImage deg = dc::ShadowBinding::shadowBinding(
     _Shadow_rectoImgShad, distanceRatio, border, intensity, angle);
   ui->ShadPreviewLabel->setPixmap(QPixmap::fromImage(deg));
   ui->ShadPreviewLabel->setMinimumSize(deg.size());
@@ -2081,15 +2083,15 @@ Assistant::Shadow_selectionChanged()
   QCheckBox *cb = qobject_cast<QCheckBox *>(sender());
   assert(cb);
   const bool checked = cb->isChecked();
-  dc::ShadowBorder border;
+  dc::ShadowBinding::Border border;
   if (cb == ui->RightShad)
-    border = dc::ShadowBorder::RIGHT;
+    border = dc::ShadowBinding::Border::RIGHT;
   else if (cb == ui->TopShad)
-    border = dc::ShadowBorder::TOP;
+    border = dc::ShadowBinding::Border::TOP;
   else if (cb == ui->LeftShad)
-    border = dc::ShadowBorder::LEFT;
+    border = dc::ShadowBinding::Border::LEFT;
   else //if (cb == ui->BottomShad)
-    border = dc::ShadowBorder::BOTTOM;
+    border = dc::ShadowBinding::Border::BOTTOM;
 
   if (checked) {
 #ifndef NDEBUG
@@ -2219,11 +2221,11 @@ Assistant::Phantom_LoadPrevImgPhant()
 
       //apply current parameters
       if (ui->Phantom_VeryFrequent->isChecked()) {
-        Phantom_apply(dc::Frequency::VERY_FREQUENT);
+        Phantom_apply(dc::PhantomCharacter::Frequency::VERY_FREQUENT);
       } else if (ui->Phantom_Frequent->isChecked()) {
-        Phantom_apply(dc::Frequency::FREQUENT);
+        Phantom_apply(dc::PhantomCharacter::Frequency::FREQUENT);
       } else if (ui->Phantom_Rare->isChecked()) {
-        Phantom_apply(dc::Frequency::RARE);
+        Phantom_apply(dc::PhantomCharacter::Frequency::RARE);
       } else {
         ui->PhantomPreviewLabel->setPixmap(
           QPixmap::fromImage(_Phantom_rectoImgPartPhant));
@@ -2337,9 +2339,9 @@ Assistant::Phantom_OptionCheckedPhant()
 }
 
 void
-Assistant::Phantom_apply(dc::Frequency frequency)
+Assistant::Phantom_apply(dc::PhantomCharacter::Frequency frequency)
 {
-  dc::PhantomCharacter phant(
+  dc::PhantomCharacterQ phant(
     _Phantom_rectoImgPartPhant,
     frequency,
     _PhantomPatternsPath); //B? should we apply on big image and takePart afterwards ?
@@ -2354,11 +2356,11 @@ Assistant::Phantom_updatePreview()
   //we apply the most frequent checked one to be more visible
 
   if (ui->Phantom_VeryFrequent->isChecked()) {
-    Phantom_apply(dc::Frequency::VERY_FREQUENT);
+    Phantom_apply(dc::PhantomCharacter::Frequency::VERY_FREQUENT);
   } else if (ui->Phantom_Frequent->isChecked()) {
-    Phantom_apply(dc::Frequency::FREQUENT);
+    Phantom_apply(dc::PhantomCharacter::Frequency::FREQUENT);
   } else if (ui->Phantom_Rare->isChecked()) {
-    Phantom_apply(dc::Frequency::RARE);
+    Phantom_apply(dc::PhantomCharacter::Frequency::RARE);
   } else {
     ui->PhantomPreviewLabel->setPixmap(
       QPixmap::fromImage(_Phantom_rectoImgPartPhant));
@@ -2605,7 +2607,7 @@ Assistant::Blur_PageChanged()
     std::cout << "Blur: intensity=" << intensity << " in [" << blurMin() << "; "
               << blurMax() << "]" << std::endl;
     QImage blurTmp =
-      dc::blurFilter(_Blur_rectoImgBlur, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::blur(_Blur_rectoImgBlur, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(blurTmp));
     ui->BlurPreviewLabel->setMinimumSize(blurTmp.size());
     _Blur_PageEnable = true;
@@ -2682,9 +2684,9 @@ Assistant::Blur_CheckedPattern1()
   if (ui->CheckPattern1->isChecked()) {
     const int intensity = Blur_getIntensityMean(blurMin(), blurMax());
     QImage pattern =
-      dc::makePattern(_Blur_rectoImgBlur, dc::Function::LINEAR, dc::Area::UP, 1, 50, 50);
+      dc::BlurFilter::makePattern(_Blur_rectoImgBlur, dc::BlurFilter::Function::LINEAR, dc::BlurFilter::Area::UP, 1, 50, 50);
     QImage Deg =
-      dc::applyPattern(_Blur_rectoImgBlur, pattern, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::applyPattern(_Blur_rectoImgBlur, pattern, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
   } else {
@@ -2711,9 +2713,9 @@ Assistant::Blur_CheckedPattern2()
   if (ui->CheckPattern2->isChecked()) {
     const int intensity = Blur_getIntensityMean(blurMin(), blurMax());
     QImage pattern =
-      dc::makePattern(_Blur_rectoImgBlur, dc::Function::LOG, dc::Area::UP, 1, 50, 50);
+      dc::BlurFilter::makePattern(_Blur_rectoImgBlur, dc::BlurFilter::Function::LOG, dc::BlurFilter::Area::UP, 1, 50, 50);
     QImage Deg =
-      dc::applyPattern(_Blur_rectoImgBlur, pattern, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::applyPattern(_Blur_rectoImgBlur, pattern, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
   } else {
@@ -2740,9 +2742,9 @@ Assistant::Blur_CheckedPattern3()
   if (ui->CheckPattern3->isChecked()) {
     const int intensity = Blur_getIntensityMean(blurMin(), blurMax());
     QImage pattern =
-      dc::makePattern(_Blur_rectoImgBlur, dc::Function::PARABOLA, dc::Area::UP, 1, 50, 50);
+      dc::BlurFilter::makePattern(_Blur_rectoImgBlur, dc::BlurFilter::Function::PARABOLA, dc::BlurFilter::Area::UP, 1, 50, 50);
     QImage Deg =
-      dc::applyPattern(_Blur_rectoImgBlur, pattern, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::applyPattern(_Blur_rectoImgBlur, pattern, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
   } else {
@@ -2769,9 +2771,9 @@ Assistant::Blur_CheckedPattern4()
   if (ui->CheckPattern4->isChecked()) {
     const int intensity = Blur_getIntensityMean(blurMin(), blurMax());
     QImage pattern =
-      dc::makePattern(_Blur_rectoImgBlur, dc::Function::SINUS, dc::Area::UP, 1, 50, 50);
+      dc::BlurFilter::makePattern(_Blur_rectoImgBlur, dc::BlurFilter::Function::SINUS, dc::BlurFilter::Area::UP, 1, 50, 50);
     QImage Deg =
-      dc::applyPattern(_Blur_rectoImgBlur, pattern, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::applyPattern(_Blur_rectoImgBlur, pattern, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
 
@@ -2799,9 +2801,9 @@ Assistant::Blur_CheckedPattern5()
   if (ui->CheckPattern5->isChecked()) {
     const int intensity = Blur_getIntensityMean(blurMin(), blurMax());
     QImage pattern =
-      dc::makePattern(_Blur_rectoImgBlur, dc::Function::ELLIPSE, dc::Area::UP, 1, 50, 50);
+      dc::BlurFilter::makePattern(_Blur_rectoImgBlur, dc::BlurFilter::Function::ELLIPSE, dc::BlurFilter::Area::UP, 1, 50, 50);
     QImage Deg =
-      dc::applyPattern(_Blur_rectoImgBlur, pattern, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::applyPattern(_Blur_rectoImgBlur, pattern, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
   } else {
@@ -2828,9 +2830,9 @@ Assistant::Blur_CheckedPattern6()
   if (ui->CheckPattern6->isChecked()) {
     const int intensity = Blur_getIntensityMean(blurMin(), blurMax());
     QImage pattern =
-      dc::makePattern(_Blur_rectoImgBlur, dc::Function::HYPERBOLA, dc::Area::UP, 1, 50, 50);
+      dc::BlurFilter::makePattern(_Blur_rectoImgBlur, dc::BlurFilter::Function::HYPERBOLA, dc::BlurFilter::Area::UP, 1, 50, 50);
     QImage Deg =
-      dc::applyPattern(_Blur_rectoImgBlur, pattern, dc::Method::GAUSSIAN, intensity);
+      dc::BlurFilter::applyPattern(_Blur_rectoImgBlur, pattern, dc::BlurFilter::Method::GAUSSIAN, intensity);
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
   } else {
@@ -3293,7 +3295,7 @@ struct HoleData
   int posX;
   int posY;
   int size;
-  dc::HoleType type;
+  dc::HoleDegradation::HoleType type;
   int side;
   QColor color;
 
@@ -3301,7 +3303,7 @@ struct HoleData
                     int pX = 0,
                     int pY = 0,
                     int pSize = 0,
-                    dc::HoleType pType = dc::HoleType::CENTER,
+                    dc::HoleDegradation::HoleType pType = dc::HoleDegradation::HoleType::CENTER,
                     int pSide = 0,
                     QColor pColor = QColor())
     : patternFilename(pattern)
@@ -3324,7 +3326,7 @@ Hole_degradateImageRandom(QImage &degImg,
                           float scaleH,
                           bool randPosX,
                           bool randPosY,
-                          dc::HoleType type,
+                          dc::HoleDegradation::HoleType type,
                           const QColor &color,
                           int side = 0)
 {
@@ -3370,29 +3372,29 @@ Hole_degradateImageRandom(QImage &degImg,
     const int rw = std::max(static_cast<int>(holeW * ratio), 1);
     const int rh = std::max(static_cast<int>(holeH * ratio), 1);
 
-    if (type == dc::HoleType::CORNER) {
+    if (type == dc::HoleDegradation::HoleType::CORNER) {
 
       //holePattern is oriented to be top-left corner. But pattern geometry does not change for other corners.
-      switch (static_cast<dc::Corner>(side)) {
-      case dc::Corner::TOPLEFT:
+      switch (static_cast<dc::HoleDegradation::Corner>(side)) {
+      case dc::HoleDegradation::Corner::TOPLEFT:
           startX = -rw;
           endX = 1;
           startY = -rh;
           endY = 1;
           break;
-      case dc::Corner::TOPRIGHT:
+      case dc::HoleDegradation::Corner::TOPRIGHT:
           startX = imgW - holeW;
           endX = imgW + rw - holeW;
           startY = -rh;
           endY = 1;
           break;
-      case dc::Corner::BOTTOMRIGHT:
+      case dc::HoleDegradation::Corner::BOTTOMRIGHT:
           startX = imgW - holeW;
           endX = imgW + rw - holeW;
           startY = imgH - holeH;
           endY = imgH + rh - holeH;
           break;
-      case dc::Corner::BOTTOMLEFT:
+      case dc::HoleDegradation::Corner::BOTTOMLEFT:
         default:
           startX = -rw;
           endX = 1;
@@ -3402,28 +3404,28 @@ Hole_degradateImageRandom(QImage &degImg,
       }
 
       //std::cerr<<"   corner side="<<side<<" startX="<<startX<<" endX="<<endX<<" startY="<<startY<<" endY="<<endY<<"\n";
-    } else if (type == dc::HoleType::BORDER) {
+    } else if (type == dc::HoleDegradation::HoleType::BORDER) {
       //Warning: hole pattern is oriented for top border. Its geometry changes for borders LEFT & RIGHT
-      switch (static_cast<dc::Border>(side)) {
-      case dc::Border::TOP:
+      switch (static_cast<dc::HoleDegradation::Border>(side)) {
+      case dc::HoleDegradation::Border::TOP:
           startX = -rw;
           endX = imgW + rw - holeW;
           startY = -rh; //0
           endY = 1;     //1
           break;
-      case dc::Border::RIGHT:
+      case dc::HoleDegradation::Border::RIGHT:
           startX = imgW - holeH;    //imgW-holeH;
           endX = imgW - holeH + rh; //imgW-holeH+1;
           startY = -rw;
           endY = imgH + rw - holeW;
           break;
-      case dc::Border::BOTTOM:
+      case dc::HoleDegradation::Border::BOTTOM:
           startX = -rw;
           endX = imgW + rw - holeW;
           startY = imgH - holeH;
           endY = imgH + rh - holeH; //imgH-holeH+1;
           break;
-      case dc::Border::LEFT:
+      case dc::HoleDegradation::Border::LEFT:
           startX = -rh; //0;
           endX = 1;
           startY = -rw;
@@ -3446,7 +3448,7 @@ Hole_degradateImageRandom(QImage &degImg,
     result = HoleData(filename, posX, posY, size, type, side, color);
 
     degImg =
-      dc::holeDegradation(degImg, holePattern, posX, posY, size, type, side, color);
+      dc::HoleDegradation::holeDegradation(degImg, holePattern, posX, posY, size, type, side, color);
 
   } else {
     qDebug() << "ERROR: unable to load hole file: " << filename;
@@ -3619,7 +3621,7 @@ Assistant::Hole_doHoles(QImage &recto,
   if (this->nbHoleCornerSelected() > 0) {
 
     const QStringList &patterns = _Hole_CornerHoles;
-    const dc::HoleType type = dc::HoleType::CORNER;
+    const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CORNER;
 
     const int nbPatterns = patterns.size();
     const int minNb = ui->HoleCornerMinNb->value();
@@ -3688,7 +3690,7 @@ Assistant::Hole_doHoles(QImage &recto,
   if (this->nbHoleBorderSelected() > 0) {
 
     const QStringList &patterns = _Hole_BorderHoles;
-    const dc::HoleType type = dc::HoleType::BORDER;
+    const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::BORDER;
 
     const int nbPatterns = patterns.size();
     const int minNb = ui->HoleBorderMinNb->value();
@@ -3759,7 +3761,7 @@ Assistant::Hole_doHoles(QImage &recto,
   if (this->nbHoleCenterSelected() > 0) {
 
     const QStringList &patterns = _Hole_CenterHoles;
-    const dc::HoleType type = dc::HoleType::CENTER;
+    const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
 
     const int nbPatterns = patterns.size();
     const int minNb = this->holeMin();
@@ -4340,7 +4342,7 @@ Assistant::dist3DEnable() const
 static QString
 Shadow_getXML(const QString &filename,
               float distanceRatio,
-              dc::ShadowBorder border,
+              dc::ShadowBinding::Border border,
               float intensity,
               float angle)
 {
@@ -4393,19 +4395,19 @@ Shadow_saveImage(const QImage &img,
 }
 
 static QString
-Shadow_getBorderStr(dc::ShadowBorder border)
+Shadow_getBorderStr(dc::ShadowBinding::Border border)
 {
   switch (border) {
-  case dc::ShadowBorder::TOP:
+  case dc::ShadowBinding::Border::TOP:
       return QStringLiteral("Top");
       break;
-  case dc::ShadowBorder::RIGHT:
+  case dc::ShadowBinding::Border::RIGHT:
       return QStringLiteral("Right");
       break;
-  case dc::ShadowBorder::BOTTOM:
+  case dc::ShadowBinding::Border::BOTTOM:
       return QStringLiteral("Bottom");
       break;
-  case dc::ShadowBorder::LEFT:
+  case dc::ShadowBinding::Border::LEFT:
     default:
       return QStringLiteral("Left");
       break;
@@ -4418,7 +4420,7 @@ Shadow_saveImage(const QImage &img,
                  const QString &prefixStr,
                  const QString &ext,
                  float distanceRatio,
-                 dc::ShadowBorder border,
+                 dc::ShadowBinding::Border border,
                  float intensity,
                  float angle)
 {
@@ -4762,8 +4764,8 @@ Assistant::do_shadow(const QString &imageBasename,
   const QString imgExt = QStringLiteral(".png");
 
   for (int i = 0; i < _Shadow_nbShadSelected; ++i) {
-    const dc::ShadowBorder border = _Shadow_borderStack[i];
-    picTmpShad = dc::shadowBinding(recto, distanceRatio, border, intensity, angle);
+    const dc::ShadowBinding::Border border = _Shadow_borderStack[i];
+    picTmpShad = dc::ShadowBinding::shadowBinding(recto, distanceRatio, border, intensity, angle);
     Shadow_saveImage(picTmpShad,
                      path,
                      prefix,
@@ -4778,16 +4780,16 @@ Assistant::do_shadow(const QString &imageBasename,
 }
 
 static QString
-Phantom_getFrequencyStr(dc::Frequency frequency)
+Phantom_getFrequencyStr(dc::PhantomCharacter::Frequency frequency)
 {
   switch (frequency) {
-  case dc::Frequency::RARE:
+  case dc::PhantomCharacter::Frequency::RARE:
       return QStringLiteral("RARE");
       break;
-  case dc::Frequency::FREQUENT:
+  case dc::PhantomCharacter::Frequency::FREQUENT:
       return QStringLiteral("FREQUENT");
       break;
-  case dc::Frequency::VERY_FREQUENT:
+  case dc::PhantomCharacter::Frequency::VERY_FREQUENT:
     default:
       return QStringLiteral("VERY_FREQUENT");
       break;
@@ -4796,13 +4798,13 @@ Phantom_getFrequencyStr(dc::Frequency frequency)
 
 static void
 Phantom_applyAndSave(const QImage &recto,
-                     dc::Frequency frequency,
+                     dc::PhantomCharacter::Frequency frequency,
                      const QString &phantomPatternsPath,
                      int i,
                      const QString &imageBasename,
                      const QString &outputImageDir)
 {
-  QImage imgTmpPhant = dc::phantomCharacter(recto, frequency, phantomPatternsPath);
+  QImage imgTmpPhant = dc::PhantomCharacter::phantomCharacter(recto, frequency, phantomPatternsPath);
 
   const QString freqStr = Phantom_getFrequencyStr(frequency);
   const QString prefixFilename =
@@ -4840,23 +4842,23 @@ Assistant::do_phantom(const QString &imageBasename,
     //QImage imgTmpPhant;
 
     if (ui->Phantom_Rare->isChecked()) {
-      Phantom_applyAndSave(
-			   recto, dc::Frequency::RARE, _PhantomPatternsPath, i, imageBasename, outputImageDir);
+      Phantom_applyAndSave(recto, dc::PhantomCharacter::Frequency::RARE,
+			   _PhantomPatternsPath, i, imageBasename, outputImageDir);
 
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 
     if (ui->Phantom_Frequent->isChecked()) {
-      Phantom_applyAndSave(
-			   recto, dc::Frequency::FREQUENT, _PhantomPatternsPath, i, imageBasename, outputImageDir);
+      Phantom_applyAndSave(recto, dc::PhantomCharacter::Frequency::FREQUENT,
+			   _PhantomPatternsPath, i, imageBasename, outputImageDir);
 
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 
     if (ui->Phantom_VeryFrequent->isChecked()) {
 
-      Phantom_applyAndSave(
-			   recto, dc::Frequency::VERY_FREQUENT, _PhantomPatternsPath, i, imageBasename, outputImageDir);
+      Phantom_applyAndSave(recto, dc::PhantomCharacter::Frequency::VERY_FREQUENT,
+			   _PhantomPatternsPath, i, imageBasename, outputImageDir);
 
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }
@@ -4864,25 +4866,25 @@ Assistant::do_phantom(const QString &imageBasename,
 }
 
 static QString
-Blur_getFunctionStr(dc::Function f)
+Blur_getFunctionStr(dc::BlurFilter::Function f)
 {
   switch (f) {
-  case dc::Function::LINEAR:
+  case dc::BlurFilter::Function::LINEAR:
       return QStringLiteral("LINEAR");
       break;
-  case dc::Function::LOG:
+  case dc::BlurFilter::Function::LOG:
       return QStringLiteral("LOG");
       break;
-  case dc::Function::PARABOLA:
+  case dc::BlurFilter::Function::PARABOLA:
       return QStringLiteral("PARABOLA");
       break;
-  case dc::Function::SINUS:
+  case dc::BlurFilter::Function::SINUS:
       return QStringLiteral("SINUS");
       break;
-  case dc::Function::ELLIPSE:
+  case dc::BlurFilter::Function::ELLIPSE:
       return QStringLiteral("ELLIPSE");
       break;
-  case dc::Function::HYPERBOLA:
+  case dc::BlurFilter::Function::HYPERBOLA:
     default:
       return QStringLiteral("HYPERBOLA");
       break;
@@ -4890,16 +4892,16 @@ Blur_getFunctionStr(dc::Function f)
 }
 
 static QString
-Blur_getMethodStr(dc::Method m)
+Blur_getMethodStr(dc::BlurFilter::Method m)
 {
   switch (m) {
-  case dc::Method::GAUSSIAN:
+  case dc::BlurFilter::Method::GAUSSIAN:
       return QStringLiteral("GAUSSIAN");
       break;
-  case dc::Method::MEDIAN:
+  case dc::BlurFilter::Method::MEDIAN:
       return QStringLiteral("MEDIAN");
       break;
-  case dc::Method::NORMAL:
+  case dc::BlurFilter::Method::NORMAL:
     default:
       return QStringLiteral("NORMAL");
       break;
@@ -4907,16 +4909,16 @@ Blur_getMethodStr(dc::Method m)
 }
 
 static QString
-Blur_getAreaStr(dc::Area a)
+Blur_getAreaStr(dc::BlurFilter::Area a)
 {
   switch (a) {
-  case dc::Area::UP:
+  case dc::BlurFilter::Area::UP:
       return QStringLiteral("UP");
       break;
-  case dc::Area::DOWN:
+  case dc::BlurFilter::Area::DOWN:
       return QStringLiteral("DOWN");
       break;
-  case dc::Area::CENTERED:
+  case dc::BlurFilter::Area::CENTERED:
     default:
       return QStringLiteral("CENTERED");
       break;
@@ -4925,13 +4927,13 @@ Blur_getAreaStr(dc::Area a)
 
 static QString
 Blur_getXML_area(const QString &filename,
-                 dc::Function function,
-                 dc::Area area,
+                 dc::BlurFilter::Function function,
+                 dc::BlurFilter::Area area,
                  float coeff1,
                  int vert,
                  int horiz,
                  int radius,
-                 dc::Method method,
+                 dc::BlurFilter::Method method,
                  int intensity)
 {
   QString saveXml = QStringLiteral("<Degradation>\n");
@@ -4952,7 +4954,7 @@ Blur_getXML_area(const QString &filename,
 }
 
 static QString
-Blur_getXML_page(const QString &filename, dc::Method method, int intensity)
+Blur_getXML_page(const QString &filename, dc::BlurFilter::Method method, int intensity)
 {
   QString saveXml = QStringLiteral("<Degradation>\n");
   saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
@@ -4973,32 +4975,32 @@ apply blur on a specific area
 */
 static QImage
 Blur_applyArea(const QImage &recto,
-               dc::Function function,
-               dc::Area area,
+               dc::BlurFilter::Function function,
+               dc::BlurFilter::Area area,
                float coeff1,
                int vert,
                int horiz,
                int radius,
-               dc::Method method,
+               dc::BlurFilter::Method method,
                int intensity)
 {
   //B:TODO: is it equivalent ???
   //QImage pattern = makePattern(recto, function, area, coeff1, vert, horiz, radius);
   //return applyPattern(recto, pattern, method, intensity);
-  return dc::blurFilter(
+  return dc::BlurFilter::blur(
     recto, method, intensity, function, area, coeff1, vert, horiz, radius);
 }
 
 static void
 Blur_applyAreaAndSave(const QImage &recto,
                       int index,
-                      dc::Function f,
-                      dc::Area a,
+                      dc::BlurFilter::Function f,
+                      dc::BlurFilter::Area a,
                       float coeff1,
                       int vert,
                       int horiz,
                       int radius,
-                      dc::Method m,
+                      dc::BlurFilter::Method m,
                       int intensity,
                       const QString &imageBasename,
                       const QString &outputImageDir)
@@ -5026,12 +5028,12 @@ Blur_applyAreaAndSave(const QImage &recto,
 static void
 Blur_applyPageAndSave(const QImage &recto,
                       int index,
-                      dc::Method m,
+                      dc::BlurFilter::Method m,
                       int intensity,
                       const QString &imageBasename,
                       const QString &outputImageDir)
 {
-  QImage blurTmp = dc::blurFilter(recto, m, intensity);
+  QImage blurTmp = dc::BlurFilter::blur(recto, m, intensity);
 
   const QString prefixFilename =
     imageBasename + "Blur_Complete_" + QString::number(index);
@@ -5067,18 +5069,18 @@ Assistant::do_blur(const QString &imageBasename,
 
   if (this->getBlur_ZoneEnable()) {
 
-    const dc::Area a = dc::Area::UP;
+    const dc::BlurFilter::Area a = dc::BlurFilter::Area::UP;
     const float coeff1 = 1.f;
     const int vert = 50;
     const int horiz = 50;
     const int radius = 10;
-    const dc::Method m = dc::Method::GAUSSIAN;
+    const dc::BlurFilter::Method m = dc::BlurFilter::Method::GAUSSIAN;
 
     if (this->pattern1()) {
       for (int i = 0; i < this->nbTirageBlur(); ++i) {
         Blur_applyAreaAndSave(recto,
                               i,
-                              dc::Function::LINEAR,
+                              dc::BlurFilter::Function::LINEAR,
                               a,
                               coeff1,
                               vert,
@@ -5097,7 +5099,7 @@ Assistant::do_blur(const QString &imageBasename,
       for (int i = 0; i < this->nbTirageBlur(); ++i) {
         Blur_applyAreaAndSave(recto,
                               i,
-                              dc::Function::LOG,
+                              dc::BlurFilter::Function::LOG,
                               a,
                               coeff1,
                               vert,
@@ -5116,7 +5118,7 @@ Assistant::do_blur(const QString &imageBasename,
       for (int i = 0; i < this->nbTirageBlur(); ++i) {
         Blur_applyAreaAndSave(recto,
                               i,
-                              dc::Function::PARABOLA,
+                              dc::BlurFilter::Function::PARABOLA,
                               a,
                               coeff1,
                               vert,
@@ -5135,7 +5137,7 @@ Assistant::do_blur(const QString &imageBasename,
       for (int i = 0; i < this->nbTirageBlur(); ++i) {
         Blur_applyAreaAndSave(recto,
                               i,
-                              dc::Function::SINUS,
+                              dc::BlurFilter::Function::SINUS,
                               a,
                               coeff1,
                               vert,
@@ -5154,7 +5156,7 @@ Assistant::do_blur(const QString &imageBasename,
       for (int i = 0; i < this->nbTirageBlur(); ++i) {
         Blur_applyAreaAndSave(recto,
                               i,
-                              dc::Function::ELLIPSE,
+                              dc::BlurFilter::Function::ELLIPSE,
                               a,
                               coeff1,
                               vert,
@@ -5173,7 +5175,7 @@ Assistant::do_blur(const QString &imageBasename,
       for (int i = 0; i < this->nbTirageBlur(); ++i) {
         Blur_applyAreaAndSave(recto,
                               i,
-                              dc::Function::HYPERBOLA,
+                              dc::BlurFilter::Function::HYPERBOLA,
                               a,
                               coeff1,
                               vert,
@@ -5192,7 +5194,7 @@ Assistant::do_blur(const QString &imageBasename,
   //blur on whole page
   if (this->getBlur_PageEnable()) {
 
-    const dc::Method m = dc::Method::GAUSSIAN;
+    const dc::BlurFilter::Method m = dc::BlurFilter::Method::GAUSSIAN;
 
     for (int i = 0; i < this->nbTirageBlur(); ++i) {
 

@@ -63,7 +63,7 @@ hsv2rgb(float h,
 }
 
 static void
-copyCC(cv::Mat &outImg, CC cc, cv::Vec3b color)
+copyCC(cv::Mat &outImg, dc::CC cc, cv::Vec3b color)
 {
   assert(outImg.type() == CV_8UC3);
 
@@ -76,7 +76,7 @@ copyCC(cv::Mat &outImg, CC cc, cv::Vec3b color)
 }
 
 static void
-getBB(const CCs &ccs, int &xMin, int &xMax, int &yMin, int &yMax)
+getBB(const dc::CCs &ccs, int &xMin, int &xMax, int &yMin, int &yMax)
 {
   assert(!ccs.empty());
 
@@ -107,9 +107,9 @@ drawCCs(const cv::Mat &img)
   cv::Mat img_bin;
   cv::threshold(img, img_bin, 0, 255, cv::THRESH_OTSU);
 
-  CCs ccs;
+  dc::CCs ccs;
   const int connectivity = 8;
-  ConnectedComponent::extractAllConnectedComponents(
+  dc::ConnectedComponent::extractAllConnectedComponents(
     img_bin, ccs, connectivity);
 
   int xMin, xMax, yMin, yMax;
@@ -167,9 +167,9 @@ drawCCsRandom(const cv::Mat &img)
   cv::Mat img_bin;
   cv::threshold(img, img_bin, 0, 255, cv::THRESH_OTSU);
 
-  CCs ccs;
+  dc::CCs ccs;
   const int connectivity = 8;
-  ConnectedComponent::extractAllConnectedComponents(
+  dc::ConnectedComponent::extractAllConnectedComponents(
     img_bin, ccs, connectivity);
 
   int xMin, xMax, yMin, yMax;

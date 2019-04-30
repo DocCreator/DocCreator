@@ -1,4 +1,4 @@
-#include "Degradations/HoleDegradation.hpp"
+#include "Degradations/HoleDegradationQ.hpp"
 #include "Utils/convertor.h"
 #include <QApplication>
 #include <QColor>
@@ -57,17 +57,17 @@ main(int argc, char *argv[])
   path += QString::number(pattern) + ".png";
 
   QImage patternImg = QImage(path);
-  imOut = holeDegradation(imIn,
-                          patternImg,
-                          xOrigin,
-                          yOrigin,
-                          0,
-                          (HoleType)type,
-                          side,
-                          QColor(0, 0, 0, 0),
-                          pageBelow,
-                          5,
-                          1000);
+  imOut = dc::HoleDegradation::holeDegradation(imIn,
+					       patternImg,
+					       xOrigin,
+					       yOrigin,
+					       0,
+					       (dc::HoleDegradation::HoleType)type,
+					       side,
+					       QColor(0, 0, 0, 0),
+					       pageBelow,
+					       5,
+					       1000);
 
   if (argc > 7) {
     imOut.save(argv[7]);

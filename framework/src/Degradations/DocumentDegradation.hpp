@@ -9,7 +9,7 @@
 class FRAMEWORK_EXPORT DocumentDegradation : public QObject
 {
   Q_OBJECT
-public:
+ public:
 
   explicit DocumentDegradation(QObject *parent = 0):
     QObject(parent)
@@ -26,7 +26,7 @@ public:
     return background;
   }
 
-public slots :
+ public slots :
   virtual QImage apply() = 0;
 
 };

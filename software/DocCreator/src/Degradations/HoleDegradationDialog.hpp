@@ -44,12 +44,12 @@ public:
 
   int getSize() const { return _size; }
 
-  dc::HoleType getType() const { return _type; }
+  dc::HoleDegradation::HoleType getType() const { return _type; }
 
   int getSide() const { return _side; }
 
   void setOriginalImage(const QImage &img);
-  void findBound(dc::HoleType type,
+  void findBound(dc::HoleDegradation::HoleType type,
                  int &minH,
                  int &maxH,
                  int &minV,
@@ -98,18 +98,83 @@ protected:
   //void updateSliders();
 
 private:
+  
+  class Hole
+  {
+    
+  public :
+    
+    Hole(int posX, int posY, int size, const QColor &color, const QImage &pattern) :
+      _posX(posX), _posY(posY), _width(pattern.width()+ size), _height(pattern.height()+size),
+      _size(size), _color(color), _pattern(pattern)
+    { }
+    
+    int getX() const
+    {
+      return _posX;
+    }
+    
+    int getY() const
+    {
+      return _posY;
+    }
+    
+    int getWidth() const
+    {
+      return _width;
+    }
+    
+    int getHeight() const
+    {
+      return _height;
+    }
+    
+    int getSize() const
+    {
+      return _size;
+    }
+    
+    const QColor &getColor() const
+    {
+      return _color;
+    }
+    
+    const QImage &getPattern() const
+    {
+      return _pattern;
+    }
+  
+  private :
+    int _posX;
+    int _posY;
+    int _width;
+    int _height;
+    int _size;
+    QColor _color;
+    QImage _pattern;
+  };
+
+private:
+  bool containsHole(const QList<Hole> &holes,
+		    const QImage &pattern,
+		    int horizontal,
+		    int vertical,
+		    int size);
+
+
+private:
   Ui::HoleDegradationDialog *ui;
   int _pattern;
   int _horizontal;
   int _vertical;
   int _size;
-  dc::HoleType _type;
+  dc::HoleDegradation::HoleType _type;
   int _side;
   int _width;
   float _intensity;
   QColor _color;
 
-  QList<dc::Hole> _holes;
+  QList<Hole> _holes;
   QStringList _patterns;
 
   QLabel *_originalLabel;
