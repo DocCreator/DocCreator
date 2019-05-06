@@ -31,7 +31,7 @@ OCRSettingsDialog::buildGUI()
   m_dirLE = new QLineEdit(this);
   m_dirLE->setReadOnly(true);
   connect(m_dirLE,
-          SIGNAL(textChanged(const QString &)),
+          SIGNAL(textChanged(QString)),
           this,
           SLOT(updateLanguages()));
 

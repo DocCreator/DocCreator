@@ -79,9 +79,9 @@ GraphicsCharacterItem::openCharacterChoice(QPoint pos)
   auto characterList = new CharacterListView(_character, pos, nullptr);
 
   connect(characterList,
-          SIGNAL(characterItemClicked(CharacterListWidgetItem *)),
+          SIGNAL(characterItemClicked(CharacterListWidgetItem*)),
           this,
-          SLOT(onCharacterItemClicked(CharacterListWidgetItem *)));
+          SLOT(onCharacterItemClicked(CharacterListWidgetItem*)));
 
   characterList->show();
 }

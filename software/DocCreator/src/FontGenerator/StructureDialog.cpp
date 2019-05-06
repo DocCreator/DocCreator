@@ -119,7 +119,7 @@ StructureDialog::loremIpsum()
   const int lineSpacing = computeBestLineSpacing(*font);
 
   // We generate a new lorem ipsum object for each text block
-  for (const cv::Rect r : blocks) {
+  for (const cv::Rect &r : blocks) {
 
     _ctrl->addTextBlock(r.x, r.y, r.width, r.height);
 

@@ -29,7 +29,7 @@ public:
   float getMaxTextHeight() const { return max_text_area * 0.005f; }
 
 private slots:
-  void on_slider_valueChanged(int value);
+  void valueChanged(int value);
 
 private:
   int max_text_area = 20;

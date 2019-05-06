@@ -154,9 +154,9 @@ CharacterButtonView::openCharacterChoice()
     new CharacterListView(c, pos(), static_cast<QWidget *>(parent()));
 
   connect(characterList,
-          SIGNAL(characterItemClicked(CharacterListWidgetItem *)),
+          SIGNAL(characterItemClicked(CharacterListWidgetItem*)),
           this,
-          SLOT(onCharacterItemClicked(CharacterListWidgetItem *)));
+          SLOT(onCharacterItemClicked(CharacterListWidgetItem*)));
 
   characterList->show();
 }

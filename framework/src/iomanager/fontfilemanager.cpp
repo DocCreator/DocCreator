@@ -137,7 +137,7 @@ FontFileManager::fontFromDirectory(const QString &dirpath,
                 strtoul(code.toStdString().c_str(), nullptr, 16);
               QChar qchar = QChar((int)ucs2);
               character = QString(qchar);
-              if (character == QStringLiteral(""))
+              if (character == QLatin1String(""))
                 continue; // unknown character.
               qDebug() << "\t char = " << character << " code= " << code;
             } else
@@ -324,7 +324,7 @@ FontFileManager::saveBaseLineInformation(const QString &path,
 
   for (int i = 0; i < letters.size(); ++i) {
     if (letters.at(i).toElement().attribute(QStringLiteral("char"),
-                                            QStringLiteral("")) == character) {
+                                            QLatin1String("")) == character) {
       //change the baseline value
       //std::cout << "avant" << letters.at(i).firstChildElement("anchor").elementsByTagName("baseLine").at(0).firstChild().nodeValue().toStdString()  << std::endl;
       letters.at(i)

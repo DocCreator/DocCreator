@@ -35,9 +35,9 @@ CharacterListView::CharacterListView(Models::Character *character,
   setGeometry(pos.x(), pos.y(), width, height);
 
   connect(this,
-          SIGNAL(itemClicked(QListWidgetItem *)),
+          SIGNAL(itemClicked(QListWidgetItem*)),
           this,
-          SLOT(onItemClicked(QListWidgetItem *)));
+          SLOT(onItemClicked(QListWidgetItem*)));
 }
 
 //Slots

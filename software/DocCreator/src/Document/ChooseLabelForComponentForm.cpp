@@ -102,17 +102,17 @@ ChooseLabelForComponentForm::ChooseLabelForComponentForm(
   _originalImage = tmp_bg.scaled(size.width(), size.height());
 
   connect(_listWidgetSmall,
-          SIGNAL(itemClicked(QListWidgetItem *)),
+          SIGNAL(itemClicked(QListWidgetItem*)),
           this,
-          SLOT(smallItemClicked(QListWidgetItem *)));
+          SLOT(smallItemClicked(QListWidgetItem*)));
   connect(_listWidgetMedium,
-          SIGNAL(itemClicked(QListWidgetItem *)),
+          SIGNAL(itemClicked(QListWidgetItem*)),
           this,
-          SLOT(mediumItemClicked(QListWidgetItem *)));
+          SLOT(mediumItemClicked(QListWidgetItem*)));
   connect(_listWidgetBig,
-          SIGNAL(itemClicked(QListWidgetItem *)),
+          SIGNAL(itemClicked(QListWidgetItem*)),
           this,
-          SLOT(bigItemClicked(QListWidgetItem *)));
+          SLOT(bigItemClicked(QListWidgetItem*)));
 
   connect(ui->btnLabeling, SIGNAL(clicked()), this, SLOT(btnLabelingClicked()));
   connect(ui->btnCreateFont, SIGNAL(clicked()), this, SLOT(createNewFont()));

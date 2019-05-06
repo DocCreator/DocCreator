@@ -14,7 +14,7 @@
 #include <Utils/convertor.h>
 #include <models/doc/doccomponent.h>
 
-static const uchar BACKGROUND = 255;
+//static const uchar BACKGROUND = 255;
 
 
 int

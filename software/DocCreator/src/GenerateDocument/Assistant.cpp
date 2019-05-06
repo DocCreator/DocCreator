@@ -1452,9 +1452,9 @@ Assistant::generateTxtImages()
   DocumentToXMLExporter xmlDocExporter(_outputTxtImageDir);
   RandomDocumentExporter docExporter(_DocController, _outputTxtImageDir, this);
   QObject::connect(&docExporter,
-                   SIGNAL(imageSaved(const QString &)),
+                   SIGNAL(imageSaved(QString)),
                    this,
-                   SLOT(addInputImage(const QString &)));
+                   SLOT(addInputImage(QString)));
 
   if (ui->zeroPaddingTextCB->isChecked()) {
     const int nbGeneratedTexts = computeNbGeneratedTexts();

@@ -999,9 +999,9 @@ DocCreator::applyBleedThrough()
     //ImageExporter exporter("doc", this);
 
     connect(&deg,
-            SIGNAL(imageReady(const QImage &)),
+            SIGNAL(imageReady(QImage)),
             &changer,
-            SLOT(changeBackGroundImage(const QImage &)));
+            SLOT(changeBackGroundImage(QImage)));
     //connect(&changer, SIGNAL(backgroundChanged()),&docCreator, SLOT(create()));
     //connect(&docCreator, SIGNAL(imageReady(const QImage*)),&exporter, SLOT(writeImage(const QImage*)));
 
@@ -1039,9 +1039,9 @@ DocCreator::applyBlurFilter()
     BackGroundChanger changer;
 
     connect(&deg,
-            SIGNAL(imageReady(const QImage &)),
+            SIGNAL(imageReady(QImage)),
             &changer,
-            SLOT(changeBackGroundImage(const QImage &)));
+            SLOT(changeBackGroundImage(QImage)));
 
     deg.apply();
   }
@@ -1073,9 +1073,9 @@ DocCreator::applyShadowBinding()
 
     //To remove ?
     connect(&deg,
-            SIGNAL(imageReady(const QImage &)),
+            SIGNAL(imageReady(QImage)),
             &changer,
-            SLOT(changeBackGroundImage(const QImage &)));
+            SLOT(changeBackGroundImage(QImage)));
 
     deg.apply();
   }
@@ -1381,9 +1381,9 @@ DocCreator::createActions()
 
   //Gestion du focus
   connect(qApp,
-          SIGNAL(focusChanged(QWidget *, QWidget *)),
+          SIGNAL(focusChanged(QWidget*,QWidget*)),
           this,
-          SLOT(onFocusChanged(QWidget *, QWidget *)));
+          SLOT(onFocusChanged(QWidget*,QWidget*)));
 }
 /** Degradation connected components function
  * kvcuong

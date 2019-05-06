@@ -122,7 +122,7 @@ protected:
   void setDocController(DocumentController *DocController);
 
 signals:
-  void generationReady() const;
+  void generationReady();
 
 protected slots:
 

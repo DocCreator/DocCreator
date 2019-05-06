@@ -78,7 +78,7 @@ BackgroundReconstructionDialog::process(bool preview)
 }
 
 void
-BackgroundReconstructionDialog::on_slider_valueChanged(int value)
+BackgroundReconstructionDialog::valueChanged(int value)
 {
   max_text_area = value;
   process(true);

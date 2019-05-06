@@ -17,6 +17,10 @@ public:
 
   ~KeyboardViewDirector() { delete _keyboardViewBuilder; }
 
+  KeyboardViewDirector(const KeyboardViewDirector &) = delete;
+  KeyboardViewDirector &operator=(const KeyboardViewDirector &) = delete;
+  
+  
   KeyboardView *getKeyboardView()
   {
     return _keyboardViewBuilder->getKeyboardView();
