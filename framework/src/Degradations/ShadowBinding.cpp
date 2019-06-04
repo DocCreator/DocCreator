@@ -53,16 +53,15 @@ namespace dc {
       }
     }
 
-    /**
-       @param[in, out] matOut.
-    */
-    void
-    shadowBinding(cv::Mat &matOut,
+    cv::Mat 
+    shadowBinding(const cv::Mat &matIn,
 		  Border border,
 		  int distance,
 		  float intensity,
 		  float angle)
     {
+      cv::Mat matOut = matIn.clone();
+      
       cv::Rect rec;
 
       const float theta = angle * M_PI / 180.f;
@@ -99,6 +98,8 @@ namespace dc {
 
 	darkenImagePart(matOut, rec, coeff);
       }
+
+      return matOut;
     }
 
     static inline int
@@ -112,17 +113,17 @@ namespace dc {
     /**
        @param[in, out] matOut.
     */
-    void
-    shadowBinding(cv::Mat &matOut,
+    cv::Mat
+    shadowBinding(const cv::Mat &matIn,
 		  float distanceRatio,
 		  Border border,
 		  float intensity,
 		  float angle)
     {
       const int distance =
-	getDistance(border, distanceRatio, matOut.cols, matOut.rows);
+	getDistance(border, distanceRatio, matIn.cols, matIn.rows);
 
-      shadowBinding(matOut, border, distance, intensity, angle);
+      return shadowBinding(matIn, border, distance, intensity, angle);
     }
 
 

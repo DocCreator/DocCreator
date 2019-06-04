@@ -458,7 +458,7 @@ namespace dc {
       // we apply the blur on the whole image
       // and then keep only the part in the computed pattern.
       // We should have a function to get the bounding box of the pattern
-      // and apply the blur only in this bunding box...
+      // and apply the blur only in this bounding box...
 
       cv::Mat matOut = blur(originalImg, method, intensity);
       return degradateArea(

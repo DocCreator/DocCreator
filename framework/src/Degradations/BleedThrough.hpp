@@ -15,6 +15,8 @@ namespace dc {
     @warning @a imgVerso is not transformed. In particular, it is considered already mirrored.
 
     If @a nbThreads is negative a value is determined according to image size.
+
+    @return modified image.
   */
   extern FRAMEWORK_EXPORT QImage bleedThrough(const QImage &imgRecto, const QImage &imgVerso, int nbIter, int x=0, int y=0, int nbThreads=-1);
 
@@ -23,6 +25,7 @@ namespace dc {
   
     Apply bleedthrough effect between @a imgRecto and @a imgVerso, with @a nbIter iterations, but considering @a originalRecto as the original recto image. It allows to apply the bleedthrough incrementally.
 
+    @return modified image.
   */
   extern FRAMEWORK_EXPORT QImage bleedThrough(const QImage &originalRecto, const QImage &imgRecto, const QImage &imgVerso, int nbIter, int x=0, int y=0, int nbThreads=-1);
 

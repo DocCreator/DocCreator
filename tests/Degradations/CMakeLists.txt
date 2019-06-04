@@ -1,6 +1,9 @@
 
 SET(TESTS_DEGRADATIONS_SRC
   testHoleDegradation
+  testBlurDegradation
+  testShadowBinding
+  testPhantomCharacter
   )
 
 SET(LIBS  ${QT_LIBRARIES} ${DocCreator_LIBRARIES} ${OpenCV_LIBS})

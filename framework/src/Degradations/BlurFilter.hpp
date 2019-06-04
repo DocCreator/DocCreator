@@ -17,13 +17,19 @@ namespace dc {
 
     /*
       Apply blur to whole image
+
+      @param intensity is kernel size.
+
+      @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &originalImg, Method method, int intensity);
 
     /*
       Apply blur to specific image area
+
+      @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &originalImg, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1, int vertical=0, int horizontal=0, int radius=0); 
+    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &originalImg, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0); 
 
     extern FRAMEWORK_EXPORT cv::Mat makePattern(const cv::Mat &originalMat, Function function, Area area, float coeff1, int vertical, int horizontal, int radius = 10);
     extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int intensity);

@@ -18,20 +18,34 @@ namespace dc {
     enum class Border {TOP=0, RIGHT, BOTTOM, LEFT};
 
     /*
+      Add a shadow on a given border of image.
+
+      @prama[in] img  input original image.
+      @param[in] border  border on which shadow is added.
       @param[in] distance   size in pixels of degradation.
       @param[in] intensity intinsity in [0; 1]
       @param[in] angle angle in degrees in [0; 90]
+
+      @return modified image.
     */
-    extern FRAMEWORK_EXPORT void shadowBinding(cv::Mat &matOut, Border border,
-					       int distance, float intensity, float angle);
+    extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img, Border border,
+						  int distance, float intensity, float angle);
 
     /*
+      Add a shadow on a given border of image.
+
+      Shadow width is computed as @a distanceRatio * image width if border is LEFT or RIGHT, @a distanceRatio * image height if border is TOP or BOTTOM. 
+
+      @prama[in] img  input original image.
+      @param[in] border  border on which shadow is added.
       @param[in] distanceRatio  ratio of width or height used to compute size in pixels of degradation, in [0; 1].
       @param[in] intensity intinsity in [0; 1]
       @param[in] angle angle in degrees in [0; 90]
+
+      @return modified image.
     */
-    extern FRAMEWORK_EXPORT void shadowBinding(cv::Mat &matOut, float distanceRatio,
-					       Border border, float intensity, float angle);
+    extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img, float distanceRatio,
+						  Border border, float intensity, float angle);
 
 
   } //namespace ShadowBinding 

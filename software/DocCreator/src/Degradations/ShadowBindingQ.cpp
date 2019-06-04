@@ -12,9 +12,9 @@ namespace dc {
 		  float intensity,
 		  float angle)
     {
-      cv::Mat matOut = Convertor::getCvMat(imgOriginal);
+      const cv::Mat matIn = Convertor::getCvMat(imgOriginal);
 
-      dc::ShadowBinding::shadowBinding(matOut, border, distance, intensity, angle);
+      const cv::Mat matOut = dc::ShadowBinding::shadowBinding(matIn, border, distance, intensity, angle);
 
       const QImage out = Convertor::getQImage(matOut);
 
@@ -28,9 +28,9 @@ namespace dc {
 		  float intensity,
 		  float angle)
     {
-      cv::Mat matOut = Convertor::getCvMat(imgOriginal);
+      const cv::Mat matIn = Convertor::getCvMat(imgOriginal);
 
-      dc::ShadowBinding::shadowBinding(matOut, distanceRatio, border, intensity, angle);
+      const cv::Mat matOut = dc::ShadowBinding::shadowBinding(matIn, distanceRatio, border, intensity, angle);
 
       const QImage out = Convertor::getQImage(matOut);
 

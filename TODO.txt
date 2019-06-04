@@ -7,6 +7,21 @@
        This way, it will be much easier to make a python wrapper.
      - Each degradation should output an image of the same type than its input.
 
+   In particular :
+    - BleedThrough
+       - should also work with color
+       - should also have an option to not reverse recto image)
+    - GrayscaleCharsDegradationModel : 
+       - should also work with color
+
+  Rename all degradations with degradation at the end ???
+    - BleedThrough -> BleedThroughDegradation
+    - ShadowBinding -> ShadowBindingDegradation
+    - BlurFilter -> BlurDegradation
+    - PhantomCharacter -> PhantomCharacterDegradation
+     ...
+
+- CODE : use namespace dc everywhere !!!!
 
 - CODE : C++11
   - use constexpr

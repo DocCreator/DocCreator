@@ -13,8 +13,9 @@ namespace dc {
       RARE is 15% probability of occurrence of phantom character.
       FREQUENT is 40%
       VERY_FREQUENT is 70%
-    */
 
+      @return modified image.
+    */
     extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &imgOriginal,
 						     Frequency frequency,
 						     const std::string &phantomPatternsPath);

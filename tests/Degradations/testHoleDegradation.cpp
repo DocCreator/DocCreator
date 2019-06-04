@@ -6,7 +6,6 @@
 #include "Degradations/HoleDegradation.hpp"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp> //DEBUG
 
 
 template <typename T>
@@ -96,8 +95,8 @@ testSimple0(int imageType)
   const int xOrigin = 0;
   const int yOrigin = 0;
   const int size = 0;
-  const HoleType type = HoleType::CENTER;
-  int side = 0;
+  const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
+  const int side = 0;
     
   cv::Mat out = holeDegradation(img, hole,
 				xOrigin, yOrigin,
@@ -137,8 +136,8 @@ testSimple1(int imageType)
   const int xOrigin = HOLE_ROWS;
   const int yOrigin = HOLE_COLS;
   const int size = 0;
-  const HoleType type = HoleType::CENTER;
-  int side = 0;
+  const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
+  const int side = 0;
     
   cv::Mat out = holeDegradation(img, hole,
 				xOrigin, yOrigin,
@@ -175,8 +174,8 @@ testSimple2(int imageType)
   const int xOrigin = ROWS;
   const int yOrigin = COLS;
   const int size = 0;
-  const HoleType type = HoleType::CENTER;
-  int side = 0;
+  const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
+  const int side = 0;
     
   cv::Mat out = holeDegradation(img, hole,
 				xOrigin, yOrigin,
