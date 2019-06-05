@@ -111,17 +111,18 @@ namespace dc {
 
        Search in four directions.
     */
-    static int
+    static
+    int
     getDistanceBorder(const cv::Mat &pattern, int xOrigin, int yOrigin)
     {
       int minDist = INT_MAX;
 
-      assert(pattern.type() == CV_8UC3);
+      assert(pattern.type() == CV_8UC1);
 
-      const cv::Vec3b BLACK(0, 0, 0);
+      const uchar BLACK = 0;
 
       //search toward right
-      const cv::Vec3b *p = pattern.ptr<cv::Vec3b>(yOrigin);
+      const uchar *p = pattern.ptr<uchar>(yOrigin);
       int d = 0;
       for (int x = xOrigin; x < pattern.cols; ++x) {
 	if (p[x] != BLACK)
@@ -149,7 +150,7 @@ namespace dc {
       d = 0;
       const int y1 = std::min(yOrigin + minDist, pattern.rows);
       for (int y = yOrigin; y < y1; ++y) {
-	p = pattern.ptr<cv::Vec3b>(y);
+	p = pattern.ptr<uchar>(y);
 	if (p[xOrigin] != BLACK)
 	  break;
 	++d;
@@ -161,7 +162,7 @@ namespace dc {
       d = 0;
       const int y0 = std::max(yOrigin - minDist, 0);
       for (int y = yOrigin; y >= y0; --y) {
-	p = pattern.ptr<cv::Vec3b>(y);
+	p = pattern.ptr<uchar>(y);
 	if (p[xOrigin] != BLACK)
 	  break;
 	++d;
@@ -205,8 +206,9 @@ namespace dc {
       */
     }
 
-    static cv::Vec3b
-    makeGradient(cv::Vec3b oldPixel, cv::Vec3b newPixel, int distance)
+    template <typename V>
+    V
+    makeGradient(V oldPixel, V newPixel, int distance)
     {
       if (distance > 1)
 	return newPixel;
@@ -214,7 +216,7 @@ namespace dc {
       const float alpha = 0.3;
       const float oneMinusAlpha = 1 - alpha;
 
-      cv::Vec3b resPixel;
+      V resPixel = oldPixel; //import for V=cv::Vec4
       resPixel[0] =
 	cv::saturate_cast<uchar>(alpha * oldPixel[0] + oneMinusAlpha * newPixel[0]);
       resPixel[1] =
@@ -225,6 +227,24 @@ namespace dc {
       return resPixel;
     }
 
+    template <>
+    uchar
+    makeGradient<uchar>(uchar oldPixel, uchar newPixel, int distance)
+    {
+      if (distance > 1)
+	return newPixel;
+
+      const float alpha = 0.3;
+      const float oneMinusAlpha = 1 - alpha;
+
+      const uchar resPixel = 
+	cv::saturate_cast<uchar>(alpha * oldPixel + oneMinusAlpha * newPixel);
+
+      return resPixel;
+    }
+    
+
+    
     /**
      * Compute (axis-aligned) bounding box of black pixels in @a mat.
      */
@@ -338,7 +358,8 @@ namespace dc {
 
        @Warning we check only the (axis-aligned) bounding box of the CC and not the CC itself !
     */
-    static cv::Point
+    static
+    cv::Point
     contains(const cv::Mat &matBin,
 	     const CC & /*charToTest*/,
 	     int minX,
@@ -365,8 +386,12 @@ namespace dc {
       assert(p_minY + p_height <= matPattern.rows);
 
       cv::Mat p_mat = matPattern(cv::Rect(p_minX, p_minY, p_width, p_height));
-      cvtColor(p_mat, p_mat, cv::COLOR_BGR2GRAY); //TO get a CV_8UC1 type
-
+      if (p_mat.type() == CV_8UC3)
+	cvtColor(p_mat, p_mat, cv::COLOR_BGR2GRAY); //TO get a CV_8UC1 type
+      else if (p_mat.type() == CV_8UC4)
+	cvtColor(p_mat, p_mat, cv::COLOR_BGRA2GRAY); //TO get a CV_8UC1 type
+      assert(p_mat.type() == CV_8UC1);
+      
       const cv::Vec3b BLACK(0, 0, 0);
 
       assert(p_mat.cols <= maxX + 1);
@@ -415,12 +440,20 @@ namespace dc {
     static cv::Mat
     binarize(const cv::Mat &mat, double threshold = 127)
     {
+      assert(mat.channels() == 1 || mat.channels() == 3 || mat.channels() == 4);
+      
       cv::Mat mat_gray;
 
-      if (mat.channels() == 3)
+      const int numChannels = mat.channels();
+      if (numChannels == 3) {
 	cvtColor(mat, mat_gray, cv::COLOR_BGR2GRAY);
-      else
+      }
+      else if (numChannels == 4) {
+	cvtColor(mat, mat_gray, cv::COLOR_BGRA2GRAY);
+      }
+      else if (numChannels == 1) {
 	mat_gray = mat.clone();
+      }
 
       cv::threshold(mat_gray, mat_gray, threshold, 255, cv::THRESH_BINARY);
 
@@ -493,32 +526,39 @@ namespace dc {
       copy @a src image block at point (@a origin_x, @a origin_y) in @a dst image.
 
     */
+
+    template <typename V>
     void
     copyTo(const cv::Mat &src, cv::Mat &dst, int origin_x, int origin_y)
     {
       assert(dst.rows >= origin_y + src.rows);
       assert(dst.cols >= origin_x + src.cols);
       assert(src.type() == dst.type());
-      assert(src.type() == CV_8UC1 || src.type() == CV_8UC3);
+      assert(src.type() == CV_8UC1 || src.type() == CV_8UC3 || src.type() == CV_8UC4);
 
       const int bw = src.cols;
       const int bh = src.rows;
 
+      for (int y = 0; y < bh; ++y) {
+	V *d = dst.ptr<V>(origin_y + y) + origin_x;
+	const V *s = src.ptr<V>(y);
+	for (int x = 0; x < bw; ++x)
+	  d[x] = s[x];
+      }
+    }
+    
+    void
+    copyTo(const cv::Mat &src, cv::Mat &dst, int origin_x, int origin_y)
+    {
+      assert(src.type() == dst.type());
       if (src.type() == CV_8UC3) {
-	for (int y = 0; y < bh; ++y) {
-	  cv::Vec3b *d = dst.ptr<cv::Vec3b>(origin_y + y) + origin_x;
-	  const cv::Vec3b *s = src.ptr<cv::Vec3b>(y);
-	  for (int x = 0; x < bw; ++x)
-	    d[x] = s[x];
-	}
-      } else {
-	assert(src.type() == CV_8UC1);
-	for (int y = 0; y < bh; ++y) {
-	  uchar *d = dst.ptr<uchar>(origin_y + y) + origin_x;
-	  const uchar *s = src.ptr<uchar>(y);
-	  for (int x = 0; x < bw; ++x)
-	    d[x] = s[x];
-	}
+	copyTo<cv::Vec3b>(src, dst, origin_x, origin_y);
+      }
+      else if (src.type() == CV_8UC1) {
+	copyTo<uchar>(src, dst, origin_x, origin_y);
+      }
+      else if (src.type() == CV_8UC4) {
+	copyTo<cv::Vec4b>(src, dst, origin_x, origin_y);
       }
     }
 
@@ -531,34 +571,18 @@ namespace dc {
       return r;
     }
 
-    /**
-       Copy pixels from @a srcPoint to @a dstPoint in @a output
-       when pixels are black in pattern @a pattern.
-
-    */
-    static void
+    template <typename V>
+    void
     transferPattern(const cv::Mat &pattern,
 		    const cv::Point dstPoint,
 		    const cv::Point srcPoint,
 		    cv::Mat &output
 #ifdef SAVE_DEGRADATIONS_IMAGE
-		    ,
-		    cv::Mat &degrads
+		    , cv::Mat &degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
 		    )
     {
-      assert(pattern.type() == CV_8UC3);
-      assert(output.type() == CV_8UC3);
-#ifdef SAVE_DEGRADATIONS_IMAGE
-      assert(degrads.type() == CV_8UC3);
-#endif //SAVE_DEGRADATIONS_IMAGE
-
-      assert(dstPoint.x < output.cols && dstPoint.y < output.rows);
-      assert(srcPoint.x < output.cols && srcPoint.y < output.rows);
-      assert(srcPoint.x + pattern.cols <= output.cols &&
-	     srcPoint.y + pattern.rows <= output.rows);
-
-      const cv::Vec3b BLACK(0, 0, 0);
+      const V BLACK(0, 0, 0);
 
       const int p_w = std::min(pattern.cols, output.cols - dstPoint.x);
       const int p_h = std::min(pattern.rows, output.rows - dstPoint.y);
@@ -570,11 +594,11 @@ namespace dc {
 	assert(dstPoint.y + y >= 0 && dstPoint.y + y < degrads.rows);
 #endif //SAVE_DEGRADATIONS_IMAGE
 
-	const cv::Vec3b *p = pattern.ptr<cv::Vec3b>(y);
-	const cv::Vec3b *s = output.ptr<cv::Vec3b>(srcPoint.y + y);
-	cv::Vec3b *d = output.ptr<cv::Vec3b>(dstPoint.y + y);
+	const V *p = pattern.ptr<V>(y);
+	const V *s = output.ptr<V>(srcPoint.y + y);
+	V *d = output.ptr<V>(dstPoint.y + y);
 #ifdef SAVE_DEGRADATIONS_IMAGE
-	cv::Vec3b *dg = degrads.ptr<cv::Vec3b>(dstPoint.y + y);
+	V *dg = degrads.ptr<V>(dstPoint.y + y);
 #endif //SAVE_DEGRADATIONS_IMAGE
 
 	for (int x = 0; x < p_w; ++x) {
@@ -585,10 +609,10 @@ namespace dc {
 #endif //SAVE_DEGRADATIONS_IMAGE
 
 	  if (p[x] == BLACK) {
-	    const cv::Vec3b oldPixel =
-	      d[dstPoint.x + x]; //output.at<cv::Vec3b>(y+dstPoint.y, x+dstPoint.x)
-	    const cv::Vec3b newPixel =
-	      s[srcPoint.x + x]; //output.at<cv::Vec3b>(y+srcPoint.y, x+srcPoint.x)
+	    const V oldPixel = d[dstPoint.x + x];
+	    // = output.at<V>(y+dstPoint.y, x+dstPoint.x)
+	    const V newPixel = s[srcPoint.x + x];
+	    // = output.at<V>(y+srcPoint.y, x+srcPoint.x)
 
 	    const uchar oldGray = (oldPixel[0] + oldPixel[1] + oldPixel[2]) / 3;
 	    const uchar newGray = (newPixel[0] + newPixel[1] + newPixel[2]) / 3;
@@ -596,12 +620,123 @@ namespace dc {
 	      d[dstPoint.x + x] =
 		makeGradient(oldPixel, newPixel, getDistanceBorder(pattern, x, y));
 #ifdef SAVE_DEGRADATIONS_IMAGE
-	      dg[dstPoint.x + x] = cv::Vec3b(0, 0, 0);
+	      dg[dstPoint.x + x] = BLACK;
 #endif //SAVE_DEGRADATIONS_IMAGE
 	    }
 	  }
 	}
       }
+    }
+
+    template <>
+    void
+    transferPattern<uchar>(const cv::Mat &pattern,
+			   const cv::Point dstPoint,
+			   const cv::Point srcPoint,
+			   cv::Mat &output
+#ifdef SAVE_DEGRADATIONS_IMAGE
+			   , cv::Mat &degrads
+#endif //SAVE_DEGRADATIONS_IMAGE
+		    )
+    {
+      const uchar BLACK = 0;
+
+      const int p_w = std::min(pattern.cols, output.cols - dstPoint.x);
+      const int p_h = std::min(pattern.rows, output.rows - dstPoint.y);
+
+      for (int y = 0; y < p_h; ++y) {
+	assert(dstPoint.y + y >= 0 && dstPoint.y + y < output.rows);
+	assert(srcPoint.y + y >= 0 && srcPoint.y + y < output.rows);
+#ifdef SAVE_DEGRADATIONS_IMAGE
+	assert(dstPoint.y + y >= 0 && dstPoint.y + y < degrads.rows);
+#endif //SAVE_DEGRADATIONS_IMAGE
+
+	const uchar *p = pattern.ptr<uchar>(y);
+	const uchar *s = output.ptr<uchar>(srcPoint.y + y);
+	uchar *d = output.ptr<uchar>(dstPoint.y + y);
+#ifdef SAVE_DEGRADATIONS_IMAGE
+	uchar *dg = degrads.ptr<uchar>(dstPoint.y + y);
+#endif //SAVE_DEGRADATIONS_IMAGE
+
+	for (int x = 0; x < p_w; ++x) {
+	  assert(dstPoint.x + x >= 0 && dstPoint.x + x < output.cols);
+	  assert(srcPoint.x + x >= 0 && srcPoint.x + x < output.cols);
+#ifdef SAVE_DEGRADATIONS_IMAGE
+	  assert(dstPoint.x + x >= 0 && dstPoint.x + x < degrads.cols);
+#endif //SAVE_DEGRADATIONS_IMAGE
+
+	  if (p[x] == BLACK) {
+	    const uchar oldPixel = d[dstPoint.x + x];
+	    // = output.at<uchar>(y+dstPoint.y, x+dstPoint.x)
+	    const uchar newPixel = s[srcPoint.x + x];
+	    // = output.at<uchar>(y+srcPoint.y, x+srcPoint.x)
+
+	    const uchar oldGray = oldPixel;
+	    const uchar newGray = newPixel;
+	    if (oldGray > newGray) {
+	      d[dstPoint.x + x] =
+		makeGradient(oldPixel, newPixel, getDistanceBorder(pattern, x, y));
+#ifdef SAVE_DEGRADATIONS_IMAGE
+	      dg[dstPoint.x + x] = BLACK;
+#endif //SAVE_DEGRADATIONS_IMAGE
+	    }
+	  }
+	}
+      }
+    }
+    
+      
+    /**
+       Copy pixels from @a srcPoint to @a dstPoint in @a output
+       when pixels are black in pattern @a pattern.
+
+    */
+    static
+    void
+    transferPattern(const cv::Mat &pattern,
+		    const cv::Point dstPoint,
+		    const cv::Point srcPoint,
+		    cv::Mat &output
+#ifdef SAVE_DEGRADATIONS_IMAGE
+		    ,
+		    cv::Mat &degrads
+#endif //SAVE_DEGRADATIONS_IMAGE
+		    )
+    {
+      assert(pattern.type() == CV_8UC1);
+      assert(output.type() == CV_8UC1 || output.type() == CV_8UC3 || output.type() == CV_8UC4);
+#ifdef SAVE_DEGRADATIONS_IMAGE
+      assert(degrads.type() == output.type());
+#endif //SAVE_DEGRADATIONS_IMAGE
+
+      assert(dstPoint.x < output.cols && dstPoint.y < output.rows);
+      assert(srcPoint.x < output.cols && srcPoint.y < output.rows);
+      assert(srcPoint.x + pattern.cols <= output.cols &&
+	     srcPoint.y + pattern.rows <= output.rows);
+
+
+      if (output.type() == CV_8UC3) {
+	transferPattern<cv::Vec3b>(pattern, dstPoint, srcPoint, output
+#ifdef SAVE_DEGRADATIONS_IMAGE
+				  , cv::Mat &degrads
+#endif //SAVE_DEGRADATIONS_IMAGE
+				  );
+      }  
+      else if (output.type() == CV_8UC4) {
+	transferPattern<cv::Vec4b>(pattern, dstPoint, srcPoint, output
+#ifdef SAVE_DEGRADATIONS_IMAGE
+				  , cv::Mat &degrads
+#endif //SAVE_DEGRADATIONS_IMAGE
+				  );
+      }				   
+      else if (output.type() == CV_8UC1) {
+	transferPattern<uchar>(pattern, dstPoint, srcPoint, output
+#ifdef SAVE_DEGRADATIONS_IMAGE
+				  , cv::Mat &degrads
+#endif //SAVE_DEGRADATIONS_IMAGE
+				  );
+      }				   
+
     }
 
     /**
@@ -626,8 +761,8 @@ namespace dc {
       const int height = maxY - minY + 1;
       bool applied = false;
 
-      assert(output.type() == CV_8UC3);
       cv::Mat outputBin = binarize(output);
+      assert(outputBin.type() == CV_8UC1);
 
       const int maxXLeft = getXNearestNeighbor(outputBin, minX, minY, height, true);
       const int minXRight =
@@ -668,7 +803,7 @@ namespace dc {
 	  int yPattern = minY;
 
 	  const int pattern = rand() % numPatterns; //choice of pattern
-	  patternMat = cv::imread(makePath(phantomPatternsPath, patterns.at(pattern)));
+	  patternMat = cv::imread(makePath(phantomPatternsPath, patterns.at(pattern)), CV_LOAD_IMAGE_GRAYSCALE);
 	  assert(!patternMat.empty());
      
 	  int widthPattern, maxWidth, minWidth;
