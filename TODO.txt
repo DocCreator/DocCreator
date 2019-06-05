@@ -1,11 +1,10 @@
-- CODE :
- - use a namespace !!!
 
 - CODE :
   - framework/src/Degrations
      - there should be no dependence on Qt, only OpenCV.
        This way, it will be much easier to make a python wrapper.
      - Each degradation should output an image of the same type than its input.
+     - Each method must be documented !!!
 
    In particular :
     - BleedThrough
@@ -21,14 +20,16 @@
     - PhantomCharacter -> PhantomCharacterDegradation
      ...
 
-- CODE : use namespace dc everywhere !!!!
+- CODE:DOC: documente all public API !!!
+
+- CODE : use namespace "dc" everywhere !!!
 
 - CODE : C++11
   - use constexpr
   - use emplace_back ?
 
 
-- CMAKE: be able to chhose what is built: just framework library or all soft
+- CMAKE: be able to choose what is built: just framework library or all soft
 - CMAKE: do DocCreatorConfig.cmake to be able to use the library ?
  
 
