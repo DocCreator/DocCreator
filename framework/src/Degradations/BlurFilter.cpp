@@ -5,12 +5,11 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+
 namespace dc {
   namespace BlurFilter {
   
     static const int COEFF_PARABOLA = 4;
-    static const cv::Vec3b WHITE_PIXEL = cv::Vec3b(255, 255, 255);
-    static const cv::Vec3b BLACK_PIXEL = cv::Vec3b(0, 0, 0);
 
   
     void
@@ -184,7 +183,8 @@ namespace dc {
       return false;
     }
 
-    static cv::Mat
+    template <typename V>
+    cv::Mat
     degradateCenter(const cv::Mat &blurredMat,
 		    cv::Mat &resultMat,
 		    Function function,
@@ -196,13 +196,12 @@ namespace dc {
       const int rows = blurredMat.rows;
       const int cols = blurredMat.cols;
 
-      assert(resultMat.type() == CV_8UC3);
-      assert(blurredMat.type() == CV_8UC3);
+      assert(resultMat.type() == blurredMat.type());
       assert(blurredMat.size() == resultMat.size());
 
       for (int y = 0; y < rows; ++y) {
-	const cv::Vec3b *b = blurredMat.ptr<cv::Vec3b>(y);
-	cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	const V *b = blurredMat.ptr<V>(y);
+	V *r = resultMat.ptr<V>(y);
 	for (int x = 0; x < cols; ++x) {
 	  if (isNearFunction(
 			     x, y, rows, function, horizontal, vertical, coeff, radius)) //Center
@@ -213,6 +212,33 @@ namespace dc {
       }
 
       return resultMat;
+    }    
+    
+    static
+    cv::Mat
+    degradateCenter(const cv::Mat &blurredMat,
+		    cv::Mat &resultMat,
+		    Function function,
+		    int horizontal,
+		    int vertical,
+		    float coeff,
+		    int radius)
+    {
+      assert(resultMat.type() == blurredMat.type());
+      assert(blurredMat.type() == CV_8UC3 || blurredMat.type() == CV_8UC4 || blurredMat.type() == CV_8UC1);
+
+      if (blurredMat.type() == CV_8UC3) {
+	return degradateCenter<cv::Vec3b>(blurredMat, resultMat, function, horizontal, vertical, coeff, radius);
+      }
+      else if (blurredMat.type() == CV_8UC4) {
+	return degradateCenter<cv::Vec4b>(blurredMat, resultMat, function, horizontal, vertical, coeff, radius);
+      }
+      else if (blurredMat.type() == CV_8UC1) {
+	return degradateCenter<uchar>(blurredMat, resultMat, function, horizontal, vertical, coeff, radius);
+      }
+
+      assert(false);
+      return blurredMat;
     }
 
     bool
@@ -244,7 +270,8 @@ namespace dc {
       return false;
     }
 
-    static cv::Mat
+    template <typename V>
+    cv::Mat
     degradateBorder(const cv::Mat &blurredMat,
 		    cv::Mat &resultMat,
 		    Function function,
@@ -254,8 +281,7 @@ namespace dc {
 		    int horizontal)
     {
       //TODO : Make it work with grayscale image too ?
-      assert(blurredMat.type() == CV_8UC3);
-      assert(resultMat.type() == CV_8UC3);
+      assert(blurredMat.type() == resultMat.type());
       assert(blurredMat.size() == resultMat.size());
 
       const int rows = resultMat.rows;
@@ -263,18 +289,19 @@ namespace dc {
 
       if (area == Area::UP) {
 	for (int y = 0; y < rows; ++y) {
-	  const cv::Vec3b *b = blurredMat.ptr<cv::Vec3b>(y);
-	  cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	  const V *b = blurredMat.ptr<V>(y);
+	  V *r = resultMat.ptr<V>(y);
 	  for (int x = 0; x < cols; ++x) {
 	    if (upperThan(
 			  function, rows, x, y, vertical, horizontal, coeff))
 	      r[x] = b[x];
 	  }
 	}
-      } else if (area == Area::DOWN) {
+      }
+      else if (area == Area::DOWN) {
 	for (int y = 0; y < rows; ++y) {
-	  const cv::Vec3b *b = blurredMat.ptr<cv::Vec3b>(y);
-	  cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	  const V *b = blurredMat.ptr<V>(y);
+	  V *r = resultMat.ptr<V>(y);
 	  for (int x = 0; x < cols; ++x) {
 	    if (!upperThan(
 			   function, rows, x, y, vertical, horizontal, coeff))
@@ -292,47 +319,116 @@ namespace dc {
 
       return resultMat;
     }
+    
+    
+    static
+    cv::Mat
+    degradateBorder(const cv::Mat &blurredMat,
+		    cv::Mat &resultMat,
+		    Function function,
+		    Area area,
+		    int vertical,
+		    float coeff,
+		    int horizontal)
+    {
+      //TODO : Make it work with grayscale image too ?
+      assert(blurredMat.type() == CV_8UC3 || blurredMat.type() == CV_8UC4 || blurredMat.type() == CV_8UC1);
+      assert(resultMat.type() == blurredMat.type());
+      assert(blurredMat.size() == resultMat.size());
 
+      if (blurredMat.type() == CV_8UC3) {
+	return degradateBorder<cv::Vec3b>(blurredMat, resultMat,
+					  function, area,
+					  vertical, coeff, horizontal);
+      }
+      else if (blurredMat.type() == CV_8UC4) {
+	return degradateBorder<cv::Vec4b>(blurredMat, resultMat,
+					  function, area,
+					  vertical, coeff, horizontal);
+      }
+      else if (blurredMat.type() == CV_8UC1) {
+	return degradateBorder<uchar>(blurredMat, resultMat,
+				      function, area,
+				      vertical, coeff, horizontal);
+      }
+      assert(false);
+      return blurredMat;
+    }
+
+    template <typename V>
     cv::Mat
     applyPattern(const cv::Mat &originalMat,
 		 const cv::Mat &patternMat,
 		 Method method,
 		 int intensity)
     {
+      assert(patternMat.type() == CV_8UC1);
+
       cv::Mat resultMat = originalMat.clone();
+      assert(resultMat.type() == originalMat.type());
+      assert(resultMat.size() == originalMat.size());
 
       cv::Mat blurredMat = blur(originalMat, method, intensity);
+      assert(blurredMat.type() == originalMat.type());
+      assert(blurredMat.size() == originalMat.size());
 
       //resize pattern to the size of original
-      resize(patternMat, patternMat, cv::Size(originalMat.cols, originalMat.rows));
+      cv::Mat patternMatS;
+      resize(patternMat, patternMatS, cv::Size(originalMat.cols, originalMat.rows));
 
-      assert(patternMat.type() == CV_8UC3);
-      assert(resultMat.type() == CV_8UC3);
-      assert(blurredMat.type() == CV_8UC3);
-      assert(patternMat.size() == originalMat.size());
-      assert(blurredMat.size() == originalMat.size());
-      assert(resultMat.size() == originalMat.size());
+      assert(patternMatS.type() == CV_8UC1);
+      assert(patternMatS.size() == originalMat.size());
 
       int rows = resultMat.rows;
       int cols = resultMat.cols;
-      if (patternMat.isContinuous() && resultMat.isContinuous() &&
-	  blurredMat.isContinuous()) {
+      if (patternMatS.isContinuous()
+	  && resultMat.isContinuous()
+	  && blurredMat.isContinuous()) {
 	cols *= rows;
 	rows = 1;
       }
 
+      const uchar BLACK = 0;
+      
       for (int y = 0; y < rows; ++y) {
-	const cv::Vec3b *p = patternMat.ptr<cv::Vec3b>(y);
-	const cv::Vec3b *b = blurredMat.ptr<cv::Vec3b>(y);
-	cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	const uchar *p = patternMatS.ptr<uchar>(y);
+	const V *b = blurredMat.ptr<V>(y);
+	V *r = resultMat.ptr<V>(y);
 
 	for (int x = 0; x < cols; ++x) {
-	  if (p[x] == BLACK_PIXEL)
+	  if (p[x] == BLACK)
 	    r[x] = b[x];
 	}
       }
 
       return resultMat;
+    }
+
+    
+    cv::Mat
+    applyPattern(const cv::Mat &originalMat,
+		 const cv::Mat &patternMat,
+		 Method method,
+		 int intensity)
+    {
+      assert(patternMat.type() == CV_8UC1);
+      assert(originalMat.type() == CV_8UC3 || originalMat.type() == CV_8UC4 || originalMat.type() == CV_8UC1);
+      
+      if (originalMat.type() == CV_8UC3) {
+	return applyPattern<cv::Vec3b>(originalMat, patternMat,
+				       method, intensity);
+      }
+      else if (originalMat.type() == CV_8UC4) {
+	return applyPattern<cv::Vec4b>(originalMat, patternMat,
+				       method, intensity);
+      }
+      else if (originalMat.type() == CV_8UC1) {
+	return applyPattern<uchar>(originalMat, patternMat,
+				   method, intensity);
+      }
+      
+      assert(false);
+      return originalMat;
     }
 
     cv::Mat
@@ -345,16 +441,15 @@ namespace dc {
 		int radius)
     {
       cv::Mat resultMat =
-	cv::Mat::zeros(originalMat.rows, originalMat.cols, originalMat.type());
+	cv::Mat::zeros(originalMat.rows, originalMat.cols, CV_8UC1);
 
+      const uchar WHITE = 255;
       const int rows = originalMat.rows;
       const int cols = originalMat.cols;
 
-      assert(resultMat.type() == CV_8UC3);
-
       if (area == Area::CENTERED) {
 	for (int y = 0; y < rows; ++y) {
-	  cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
 	    if (!isNearFunction(x,
 				y,
@@ -364,34 +459,41 @@ namespace dc {
 				vertical,
 				coeff,
 				radius)) //Center
-	      r[x] = WHITE_PIXEL;
+	      r[x] = WHITE;
 	  }
 	}
-      } else if (area == Area::UP) {
+      }
+      else if (area == Area::UP) {
 	for (int y = 0; y < rows; ++y) {
-	  cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
 	    if (!upperThan(
 			   function, rows, x, y, vertical, horizontal, coeff))
-	      r[x] = WHITE_PIXEL;
+	      r[x] = WHITE;
 	  }
 	}
-      } else {
+      }
+      else {
 	assert(area == Area::DOWN);
 	for (int y = 0; y < rows; ++y) {
-	  cv::Vec3b *r = resultMat.ptr<cv::Vec3b>(y);
+	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
 	    if (upperThan(
 			  function, rows, x, y, vertical, horizontal, coeff))
-	      r[x] = WHITE_PIXEL;
+	      r[x] = WHITE;
 	  }
 	}
       }
 
+      assert(resultMat.type() == CV_8UC1);
+      assert(resultMat.size() == originalMat.size());
+      
       return resultMat;
     }
-
-    static cv::Mat
+    
+    
+    static
+    cv::Mat
     degradateArea(const cv::Mat &originalMat,
 		  const cv::Mat &blurredMat,
 		  Function function,
@@ -404,11 +506,11 @@ namespace dc {
       cv::Mat resultMat = originalMat.clone();
 
       if (area == Area::CENTERED)
-	degradateCenter(
-			blurredMat, resultMat, function, horizontal, vertical, coeff, radius);
+	degradateCenter(blurredMat, resultMat, function,
+			horizontal, vertical, coeff, radius);
       else
-	degradateBorder(
-			blurredMat, resultMat, function, area, vertical, coeff, horizontal);
+	degradateBorder(blurredMat, resultMat, function,
+			area, vertical, coeff, horizontal);
 
       return resultMat;
     }
@@ -427,8 +529,8 @@ namespace dc {
 
       switch (method) {
       case Method::GAUSSIAN:
-	cv::GaussianBlur(
-			 originalImg, matOut, cv::Size(intensity, intensity), 0, 0);
+	cv::GaussianBlur(originalImg, matOut,
+			 cv::Size(intensity, intensity), 0, 0);
 	break;
 
       case Method::MEDIAN:
@@ -440,6 +542,8 @@ namespace dc {
 	break;
       }
 
+      assert(matOut.type() == originalImg.type());
+      
       return matOut;
     }
 
@@ -454,6 +558,8 @@ namespace dc {
 	 int horizontal,
 	 int radius)
     {
+      assert(originalImg.type() == CV_8UC3 || originalImg.type() == CV_8UC4 || originalImg.type() == CV_8UC1);
+      
       //B:TODO:OPTIM:
       // we apply the blur on the whole image
       // and then keep only the part in the computed pattern.
@@ -461,8 +567,9 @@ namespace dc {
       // and apply the blur only in this bounding box...
 
       cv::Mat matOut = blur(originalImg, method, intensity);
-      return degradateArea(
-			   originalImg, matOut, function, area, coeff, vertical, horizontal, radius);
+      assert(matOut.type() == originalImg.type());
+      return degradateArea(originalImg, matOut,
+			   function, area, coeff, vertical, horizontal, radius);
     }
 
 
@@ -485,8 +592,8 @@ namespace dc {
 		   cv::COLOR_BGR2GRAY); //To get a grayscale image
 
       cv::Mat padded; //expand input image to optimal size
-      int m = cv::getOptimalDFTSize(originalMat.rows);
-      int n = cv::getOptimalDFTSize(originalMat.cols);
+      const int m = cv::getOptimalDFTSize(originalMat.rows);
+      const int n = cv::getOptimalDFTSize(originalMat.cols);
       copyMakeBorder(originalMat,
 		     padded,
 		     0,
@@ -513,8 +620,8 @@ namespace dc {
       cv::log(magI, magI);
 
       magI = magI(cv::Rect(0, 0, magI.cols & -2, magI.rows & -2));
-      int cx = magI.cols / 2;
-      int cy = magI.rows / 2;
+      const int cx = magI.cols / 2;
+      const int cy = magI.rows / 2;
 
       cv::Mat q0(magI,
 		 cv::Rect(0, 0, cx, cy)); // Top-Left - Create a ROI per quadrant
@@ -537,7 +644,7 @@ namespace dc {
       // (float between values 0
       // and 1).
       cv::threshold(magI, magI, 127, 255, cv::THRESH_BINARY);
-      int erosion_size = 1;
+      const int erosion_size = 1;
       cv::Mat element = cv::getStructuringElement(
 						  cv::MORPH_RECT,
 						  cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),

@@ -362,18 +362,21 @@ BlurFilterDialog::changePatterns()
                                           EXAMPLE_HEIGHT,
                                           Qt::KeepAspectRatio,
                                           Qt::FastTransformation)));
+
 }
 
 void
 BlurFilterDialog::updatePatterns()
 {
-  _patternImg = makePattern(
-    _originalImg, _function, _area, _coeff, _vertical, _horizontal, _radius);
+  _patternImg = dc::BlurFilter::makePattern(_originalImg,
+					    _function, _area,
+					    _coeff, _vertical, _horizontal, _radius);
   ui->patternLabel->setPixmap(
     QPixmap::fromImage(_patternImg.scaled(EXAMPLE_WIDTH,
                                           EXAMPLE_HEIGHT,
                                           Qt::KeepAspectRatio,
                                           Qt::FastTransformation)));
+
 }
 
 void
@@ -455,15 +458,17 @@ BlurFilterDialog::setupGUIImages()
 void
 BlurFilterDialog::updateBlurredImage()
 {
-
-  if (_mode == dc::BlurFilter::Mode::COMPLETE)
+  if (_mode == dc::BlurFilter::Mode::COMPLETE) {
     _blurredImg = dc::BlurFilter::blur(_originalImg, _method, _intensity);
-  else
-    _blurredImg = applyPattern(_originalImg, _patternImg, _method, _intensity);
+  }
+  else {
+    _blurredImg = dc::BlurFilter::applyPattern(_originalImg, _patternImg, _method, _intensity);
   //_blurredImg = dc::BlurFilter::blur(_originalImg, _method,  _intensity, _mode, _function, _area, _coeff,  _vertical, _horizontal, _radius);
+  }
 
-  _blurredImgSmall = _blurredImg.scaled(
-    IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
+  _blurredImgSmall = _blurredImg.scaled(IMG_WIDTH, IMG_HEIGHT,
+					Qt::KeepAspectRatio,
+					Qt::FastTransformation);
   _blurredImgPart = takePart(_blurredImg);
 
   if (_mode == dc::BlurFilter::Mode::COMPLETE)

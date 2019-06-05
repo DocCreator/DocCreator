@@ -31,7 +31,14 @@ namespace dc {
     */
     extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &originalImg, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0); 
 
+    /*
+      return a CV_8UC1 mat the same size than @a originalMat.
+     */
     extern FRAMEWORK_EXPORT cv::Mat makePattern(const cv::Mat &originalMat, Function function, Area area, float coeff1, int vertical, int horizontal, int radius = 10);
+
+    /*
+      @param patternMat CV_8UC1 mat. Blur will be applied only at white pixels.
+     */
     extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int intensity);
 
     /*

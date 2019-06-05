@@ -30,7 +30,11 @@ namespace dc {
       cv::Mat originalMat = Convertor::getCvMat(originalImg);
       cv::Mat patternMat = Convertor::getCvMat(pattern);
 
+      patternMat = Convertor::binarizeOTSU(patternMat);
+      assert(patternMat.type() == CV_8UC1);
+
       cv::Mat resultMat = applyPattern(originalMat, patternMat, method, intensity);
+      assert(resultMat.type() == originalMat.type());
 
       return Convertor::getQImage(resultMat);
     }
@@ -46,8 +50,10 @@ namespace dc {
     {
       cv::Mat originalMat = Convertor::getCvMat(originalImg);
 
-      cv::Mat resultMat = makePattern(
-				      originalMat, function, area, coeff, vertical, horizontal, radius);
+      cv::Mat resultMat = makePattern(originalMat,
+				      function, area,
+				      coeff, vertical, horizontal, radius);
+      assert(resultMat.type() == CV_8UC1);
 
       return Convertor::getQImage(resultMat);
     }
@@ -70,6 +76,7 @@ namespace dc {
       cv::Mat matIn = Convertor::getCvMat(originalImg);
 
       cv::Mat matOut = dc::BlurFilter::blur(matIn, method, intensity);
+      assert(matIn.type() == matOut.type());
 
       QImage res = Convertor::getQImage(matOut);
 
@@ -98,6 +105,7 @@ namespace dc {
 					    vertical,
 					    horizontal,
 					    radius);
+      assert(matIn.type() == matOut.type());
 
       QImage res = Convertor::getQImage(matOut);
 
