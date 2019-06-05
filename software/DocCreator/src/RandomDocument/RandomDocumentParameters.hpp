@@ -9,7 +9,7 @@ class RandomDocumentParameters : public QObject
 {
   Q_OBJECT
 public:
-  Q_PROPERTY(QString Name READ getName WRITE setName);
+  Q_PROPERTY(QString Name READ getName WRITE setName)
 
   explicit RandomDocumentParameters(QObject *parent = 0);
 
