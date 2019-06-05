@@ -34,7 +34,7 @@ testSimple0(int imageType)
     
     const dc::PhantomCharacter::Frequency frequency = (dc::PhantomCharacter::Frequency)(i);
 
-    const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img, frequency, PATTERN_PATH);
+    const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img2, frequency, PATTERN_PATH);
 
     REQUIRE( out.type() == imageType );
   }
