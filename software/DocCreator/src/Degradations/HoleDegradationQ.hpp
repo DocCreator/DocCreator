@@ -10,6 +10,8 @@ namespace dc {
 
     extern FRAMEWORK_EXPORT QImage holeDegradation(const QImage &imgOriginal, const QImage &holePattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
 
+    extern FRAMEWORK_EXPORT QImage holeDegradation(const QImage &imgOriginal, const QImage &holePattern, float ratioOutside, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
+    
 
   } //namespace HoleDegradation
 

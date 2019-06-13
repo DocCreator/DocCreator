@@ -2,13 +2,14 @@
 
 #include <cassert>
 #include <cmath> //cos, sin
+#include <random>
 
 #include <opencv2/imgproc/imgproc.hpp>
 
 namespace dc {
   namespace HoleDegradation {
 
-    static const int INTENSITY_WHITE = 255;
+    //static const int INTENSITY_WHITE = 255;
     static const uchar PIXEL_BLACK = 0;
 
     static cv::Mat
@@ -176,6 +177,7 @@ namespace dc {
 
        output image will be opage (all alpha channel is set to INTENSITY_WHITE)
     */
+    /*
     static cv::Mat
     makeFourChanImage(const cv::Mat &src)
     {
@@ -201,6 +203,7 @@ namespace dc {
 
       return dst;
     }
+    */
 
     template <typename T>
     void
@@ -325,8 +328,6 @@ namespace dc {
       }
     }
 
-
-
     cv::Mat
     holeDegradation(const cv::Mat &matOriginal,
 		    const cv::Mat &holePattern,
@@ -353,6 +354,7 @@ namespace dc {
 	matPattern = changeCornerPattern(matPattern, (Corner)side);
       }
 
+      //B:TODO: remove this "size" parameter 
       if (size != 0 && matPattern.cols + size > 0 && matPattern.rows + size > 0) {
 	resize(matPattern,
 	       matPattern,
@@ -385,6 +387,153 @@ namespace dc {
       return matOut;
     }
 
+
+    namespace {
+      std::random_device rd;
+      std::mt19937 mt(rd());
+      
+      //return a random value in [rMin; rMax]
+      int
+      random_in_range(int rMin, int rMax)
+      {
+	std::uniform_int_distribution<int> dist(rMin, rMax);
+	return dist(mt);
+      }
+    } //anonymous namespace
+
+
+    
+    cv::Point
+    getRandomPosition(const cv::Size &matOriginalSize,
+		      const cv::Size &holePatternSize,
+		      HoleType type,
+		      float ratioOutside,
+		      int side)
+    {
+      //b: we want to draw xOrigin in [startX, endX] and yOrigin in [startY, endY]
+      
+      int startX = 0;
+      int startY = 0;
+      int endX = matOriginalSize.width;
+      int endY = matOriginalSize.height;
+
+      //B: Here we move the corner/border pattern
+      //   according to its 'side'.
+      //top left corner of pattern x coord will be in [startX; endX]
+      // and y coord will be in [startY; endY]
+
+      const int holeW = holePatternSize.width;
+      const int holeH = holePatternSize.height;
+      const int imgW = matOriginalSize.width;
+      const int imgH = matOriginalSize.height;
+      
+      const int rw = std::max(static_cast<int>(holeW * ratioOutside), 1);
+      const int rh = std::max(static_cast<int>(holeH * ratioOutside), 1);
+      
+      if (type == dc::HoleDegradation::HoleType::CORNER) {
+	//holePattern is oriented to be top-left corner. But pattern geometry does not change for other corners.
+	switch (static_cast<dc::HoleDegradation::Corner>(side)) {
+	case dc::HoleDegradation::Corner::TOPLEFT:
+	  startX = -rw;
+	  endX = 1;
+	  startY = -rh;
+	  endY = 1;
+	  break;
+	case dc::HoleDegradation::Corner::TOPRIGHT:
+	  startX = imgW - holeW;
+	  endX = imgW + rw - holeW;
+	  startY = -rh;
+	  endY = 1;
+	  break;
+	case dc::HoleDegradation::Corner::BOTTOMRIGHT:
+	  startX = imgW - holeW;
+	  endX = imgW + rw - holeW;
+	  startY = imgH - holeH;
+	  endY = imgH + rh - holeH;
+	  break;
+	case dc::HoleDegradation::Corner::BOTTOMLEFT:
+	default:
+	  startX = -rw;
+	  endX = 1;
+	  startY = imgH - holeH;
+	  endY = imgH + rh - holeH;
+	  break;
+	}
+
+	//std::cerr<<"   corner side="<<side<<" startX="<<startX<<" endX="<<endX<<" startY="<<startY<<" endY="<<endY<<"\n";
+      }
+      else if (type == dc::HoleDegradation::HoleType::BORDER) {
+	//Warning: hole pattern is oriented for top border. Its geometry changes for borders LEFT & RIGHT
+	switch (static_cast<dc::HoleDegradation::Border>(side)) {
+	case dc::HoleDegradation::Border::TOP:
+	  startX = -rw;
+	  endX = imgW + rw - holeW;
+	  startY = -rh; //0
+	  endY = 1;     //1
+	  break;
+	case dc::HoleDegradation::Border::RIGHT:
+	  startX = imgW - holeH;    //imgW-holeH;
+	  endX = imgW - holeH + rh; //imgW-holeH+1;
+	  startY = -rw;
+	  endY = imgH + rw - holeW;
+	  break;
+	case dc::HoleDegradation::Border::BOTTOM:
+	  startX = -rw;
+	  endX = imgW + rw - holeW;
+	  startY = imgH - holeH;
+	  endY = imgH + rh - holeH; //imgH-holeH+1;
+	  break;
+	case dc::HoleDegradation::Border::LEFT:
+	  startX = -rh; //0;
+	  endX = 1;
+	  startY = -rw;
+	  endY = imgH + holeW - rw;
+	  break;
+	}
+      }
+      
+
+      int xOrigin = random_in_range(startX, endX-1);
+      int yOrigin = random_in_range(startY, endY-1);
+      return cv::Point(xOrigin, yOrigin);
+    }
+    
+
+    cv::Mat
+    holeDegradation(const cv::Mat &matOriginal,
+		    const cv::Mat &holePattern,
+		    int size,
+		    HoleType type,
+		    float ratioOutside,
+		    int side,
+		    const cv::Scalar &color,
+		    const cv::Mat &matBelow,
+		    int shadowBorderWidth,
+		    float shadowBorderIntensity)
+    {
+      const cv::Point pos = getRandomPosition(matOriginal.size(),
+					      holePattern.size(),
+					      type,
+					      ratioOutside,
+					      side);
+      
+      return holeDegradation(matOriginal,
+			     holePattern,
+			     pos.x,
+			     pos.y,
+			     size,
+			     type,
+			     side,
+			     color,
+			     matBelow,
+			     shadowBorderWidth,
+			     shadowBorderIntensity);
+
+
+    }
+
+
+    
   }//namespace HoleDegradation
 
 }//namespace dc

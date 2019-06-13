@@ -3349,106 +3349,29 @@ Hole_degradateImageRandom(QImage &degImg,
 
     assert(!holePattern.isNull());
 
-    //B: Some of these checks should be in lower-level function !
-    int startX = 0;
-    int startY = 0;
-    int endX = degImg.width();
-    int endY = degImg.height();
-
-    //B: Here we move the corner/border pattern
-    //   according to its 'side'.
-    //top left corner of pattern x coord will be in [startX; endX]
-    // and y coord will be in [startY; endY]
-
-    const float ratio = 0.3f; //must be in [0; 1.0]
+    const float ratioOutside = 0.3f; //must be in [0; 1.0]
     // 0.6 means 60% of pattern can be outside
     // With ratio=1 we often have pattern completely outside
 
-    const int holeW = holePattern.width();
-    const int holeH = holePattern.height();
-    const int imgW = degImg.width();
-    const int imgH = degImg.height();
-
-    const int rw = std::max(static_cast<int>(holeW * ratio), 1);
-    const int rh = std::max(static_cast<int>(holeH * ratio), 1);
-
-    if (type == dc::HoleDegradation::HoleType::CORNER) {
-
-      //holePattern is oriented to be top-left corner. But pattern geometry does not change for other corners.
-      switch (static_cast<dc::HoleDegradation::Corner>(side)) {
-      case dc::HoleDegradation::Corner::TOPLEFT:
-          startX = -rw;
-          endX = 1;
-          startY = -rh;
-          endY = 1;
-          break;
-      case dc::HoleDegradation::Corner::TOPRIGHT:
-          startX = imgW - holeW;
-          endX = imgW + rw - holeW;
-          startY = -rh;
-          endY = 1;
-          break;
-      case dc::HoleDegradation::Corner::BOTTOMRIGHT:
-          startX = imgW - holeW;
-          endX = imgW + rw - holeW;
-          startY = imgH - holeH;
-          endY = imgH + rh - holeH;
-          break;
-      case dc::HoleDegradation::Corner::BOTTOMLEFT:
-        default:
-          startX = -rw;
-          endX = 1;
-          startY = imgH - holeH;
-          endY = imgH + rh - holeH;
-          break;
-      }
-
-      //std::cerr<<"   corner side="<<side<<" startX="<<startX<<" endX="<<endX<<" startY="<<startY<<" endY="<<endY<<"\n";
-    } else if (type == dc::HoleDegradation::HoleType::BORDER) {
-      //Warning: hole pattern is oriented for top border. Its geometry changes for borders LEFT & RIGHT
-      switch (static_cast<dc::HoleDegradation::Border>(side)) {
-      case dc::HoleDegradation::Border::TOP:
-          startX = -rw;
-          endX = imgW + rw - holeW;
-          startY = -rh; //0
-          endY = 1;     //1
-          break;
-      case dc::HoleDegradation::Border::RIGHT:
-          startX = imgW - holeH;    //imgW-holeH;
-          endX = imgW - holeH + rh; //imgW-holeH+1;
-          startY = -rw;
-          endY = imgH + rw - holeW;
-          break;
-      case dc::HoleDegradation::Border::BOTTOM:
-          startX = -rw;
-          endX = imgW + rw - holeW;
-          startY = imgH - holeH;
-          endY = imgH + rh - holeH; //imgH-holeH+1;
-          break;
-      case dc::HoleDegradation::Border::LEFT:
-          startX = -rh; //0;
-          endX = 1;
-          startY = -rw;
-          endY = imgH + holeW - rw;
-          break;
-      }
-    }
-
-    int posX = 0;
-    if (randPosX)
-      posX = P_bounded_rand(startX, endX);
-    int posY = 0;
-    if (randPosY)
-      posY = P_bounded_rand(startY, endY);
-
-    //std::cerr<<"    posX="<<posX<<" posY="<<posY<<"  img w="<<imgW<<" h="<<imgH<<" hole w="<<holeW<<" h="<<holeH<<"\n";
-
     const int size = 0;
 
+    const cv::Point pos = dc::HoleDegradation::getRandomPosition(cv::Size(degImg.width(), degImg.height()),
+								 cv::Size(holePattern.width(), holePattern.height()),
+								 type,
+								 ratioOutside,
+								 side);
+    int posX = 0;
+    if (randPosX)
+      posX = pos.x;
+    int posY = 0;
+    if (randPosY)
+      posY = pos.y;
+ 
     result = HoleData(filename, posX, posY, size, type, side, color);
 
-    degImg =
-      dc::HoleDegradation::holeDegradation(degImg, holePattern, posX, posY, size, type, side, color);
+    degImg = dc::HoleDegradation::holeDegradation(degImg, holePattern,
+						  posX, posY,
+						  size, type, side, color);
 
   } else {
     qDebug() << "ERROR: unable to load hole file: " << filename;
