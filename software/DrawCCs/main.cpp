@@ -233,7 +233,12 @@ main(int argc, char *argv[])
   const char *inputImageFilename = argv[1];
   const char *outputImageFilename = argv[2];
 
-  cv::Mat img = cv::imread(inputImageFilename, CV_LOAD_IMAGE_GRAYSCALE);
+#if CV_MAJOR_VERSION < 4
+  const int grayFlag = CV_LOAD_IMAGE_GRAYSCALE;
+#else
+  const int grayFlag = cv::IMREAD_GRAYSCALE;
+#endif
+  cv::Mat img = cv::imread(inputImageFilename, grayFlag);
   if (img.empty()) {
     std::cerr << "ERROR: unable to read image file: " << inputImageFilename
               << "\n";
