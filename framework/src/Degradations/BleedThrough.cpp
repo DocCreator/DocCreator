@@ -143,7 +143,8 @@ namespace dc {
 	b += b_shift;
       }
 
-    } else {
+    }
+    else {
       std::cerr << "getGray(): unhandled format (depth=" << depth << ")\n";
       std::cerr << "  format=" << static_cast<int>(src.format()) << "\n";
       std::cerr << "  Format_Mono=" << static_cast<int>(QImage::Format_Mono)
@@ -421,70 +422,98 @@ namespace dc {
 	++y_dst;
       }
 
-    } else {
-      assert(src.format() == QImage::Format_Indexed8);
-      assert(dst.format() == QImage::Format_Indexed8);
+    }
+    else if (dst_depth == 8 && src_depth == 8) {
 
-      std::vector<uint> src2dst(src.colorCount(), 0);
-      for (size_t i = 0; i < src2dst.size(); ++i)
-	src2dst[i] = i;
+      if (src.format() == QImage::Format_Indexed8
+	  && dst.format() == QImage::Format_Indexed8) {
 
-      if (dst.colorCount() < 256) {
+	std::vector<uint> src2dst(src.colorCount(), 0);
+	for (size_t i = 0; i < src2dst.size(); ++i)
+	  src2dst[i] = i;
 
-	bool changed = false;
-	QVector<QRgb> src_colorTable = src.colorTable();
+	if (dst.colorCount() < 256) {
 
-	assert(src2dst.size() <= (size_t)src_colorTable.size());
+	  bool changed = false;
+	  QVector<QRgb> src_colorTable = src.colorTable();
 
-	QVector<QRgb> dst_colorTable = dst.colorTable();
-	for (int i = 0; i < src_colorTable.count(); ++i) {
-	  const QRgb c = src_colorTable[i];
-	  if (dst_colorTable.count() >= 256)
-	    break;
-	  bool found = false;
-	  uint ind = dst_colorTable.count();
-	  for (int j = 0; j < dst_colorTable.count(); ++j) {
-	    if (dst_colorTable[j] == c) {
-	      found = true;
-	      ind = j;
+	  assert(src2dst.size() <= (size_t)src_colorTable.size());
+
+	  QVector<QRgb> dst_colorTable = dst.colorTable();
+	  for (int i = 0; i < src_colorTable.count(); ++i) {
+	    const QRgb c = src_colorTable[i];
+	    if (dst_colorTable.count() >= 256)
 	      break;
+	    bool found = false;
+	    uint ind = dst_colorTable.count();
+	    for (int j = 0; j < dst_colorTable.count(); ++j) {
+	      if (dst_colorTable[j] == c) {
+		found = true;
+		ind = j;
+		break;
+	      }
 	    }
+	    if (found) {
+	      src2dst[i] = ind;
+	    }
+	    else {
+	      dst_colorTable.push_back(c);
+	      src2dst[i] = dst_colorTable.size() - 1;
+	      changed = true;
+	    }
+	    assert(src2dst[i] < (size_t)dst_colorTable.size());
 	  }
-	  if (found) {
-	    src2dst[i] = ind;
-	  } else {
-	    dst_colorTable.push_back(c);
-	    src2dst[i] = dst_colorTable.size() - 1;
-	    changed = true;
+	  if (changed)
+	    dst.setColorTable(dst_colorTable);
+	}
+
+	int y_src = y0_src;
+	int y_dst = y0_dst;
+	for (int y = 0; y < h; ++y) {
+
+	  assert(y_src >= 0 && y_src < src.height());
+	  assert(y_dst >= 0 && y_dst < dst.height());
+
+	  const uchar *s = (const uchar *)src.constScanLine(y_src) + x0_src;
+	  uchar *d = (uchar *)dst.scanLine(y_dst) + x0_dst;
+	  for (int x = 0; x < w; ++x) {
+
+	    const uint src_index = s[x];
+	    assert(src_index <= src2dst.size());
+	    const uint dst_index = src2dst[src_index];
+	    assert(dst_index <= (size_t)dst.colorCount());
+	    d[x] = dst_index;
 	  }
-	  assert(src2dst[i] < (size_t)dst_colorTable.size());
+	  ++y_src;
+	  ++y_dst;
 	}
-	if (changed)
-	  dst.setColorTable(dst_colorTable);
       }
+#if QT_VERSION >= 0x050500
+      else if (src.format() == QImage::Format_Grayscale8
+	       && dst.format() == QImage::Format_Grayscale8) {
 
-      int y_src = y0_src;
-      int y_dst = y0_dst;
-      for (int y = 0; y < h; ++y) {
+	int y_src = y0_src;
+	int y_dst = y0_dst;
+	for (int y = 0; y < h; ++y) {
 
-	assert(y_src >= 0 && y_src < src.height());
-	assert(y_dst >= 0 && y_dst < dst.height());
+	  assert(y_src >= 0 && y_src < src.height());
+	  assert(y_dst >= 0 && y_dst < dst.height());
 
-	const uchar *s = (const uchar *)src.constScanLine(y_src) + x0_src;
-	uchar *d = (uchar *)dst.scanLine(y_dst) + x0_dst;
-	for (int x = 0; x < w; ++x) {
-
-	  const uint src_index = s[x];
-	  assert(src_index <= src2dst.size());
-	  const uint dst_index = src2dst[src_index];
-	  assert(dst_index <= (size_t)dst.colorCount());
-	  d[x] = dst_index;
+	  const uchar *s = (const uchar *)src.constScanLine(y_src) + x0_src;
+	  uchar *d = (uchar *)dst.scanLine(y_dst) + x0_dst;
+	  for (int x = 0; x < w; ++x) {
+	    d[x] = s[x];
+	  }
+	  ++y_src;
+	  ++y_dst;
 	}
-	++y_src;
-	++y_dst;
+
       }
+#endif //QT_VERSION
+
     }
   }
+
 
   /*
     Get image corresponding of the overlapping of @a img at position (@a x, @a y) on an original image of size @a width x @a height,
