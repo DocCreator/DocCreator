@@ -1,0 +1,8 @@
+#ifndef PATHS_HPP
+#define PATHS_HPP
+
+const char *PATH_IMAGES="@IMAGE_DATA_DIRECTORY@";
+
+const char *PATH_MESHES="@MESH_DATA_DIRECTORY@";
+
+#endif //PATHS_HPP

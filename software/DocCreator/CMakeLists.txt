@@ -20,6 +20,23 @@ include_directories(${FRAMEWORK_INCLUDE_DIRS})
 #INCLUDE_DIRECTORIES(
 
 SET(
+  DocCreatorQ_headers
+  src/Degradations/BlurFilterQ.hpp
+  src/Degradations/ShadowBindingQ.hpp
+  src/Degradations/HoleDegradationQ.hpp
+  src/Degradations/PhantomCharacterQ.hpp
+)
+
+SET(
+  DocCreatorQ_sources
+  src/Degradations/BlurFilterQ.cpp
+  src/Degradations/ShadowBindingQ.cpp
+  src/Degradations/HoleDegradationQ.cpp
+  src/Degradations/PhantomCharacterQ.cpp
+)
+
+
+SET(
   DocCreator_headers
   src/DocCreator.hpp
   src/Document/DocumentPropertiesView.hpp
@@ -55,13 +72,9 @@ SET(
   src/Degradations/VersoImageChangerParameters.hpp
   src/Degradations/BleedThroughParametersDialog.hpp
   src/Degradations/BlurFilterDialog.hpp
-  src/Degradations/BlurFilterQ.hpp
   src/Degradations/ShadowBindingDialog.hpp
-  src/Degradations/ShadowBindingQ.hpp
   src/Degradations/HoleDegradationDialog.hpp
-  src/Degradations/HoleDegradationQ.hpp
   src/Degradations/PhantomCharacterDialog.hpp
-  src/Degradations/PhantomCharacterQ.hpp
   src/Degradations/VersoImageChanger.hpp
   src/RandomDocument/RandomDocumentParameters.hpp
   src/RandomDocument/RandomDocumentExporter.hpp
@@ -109,13 +122,9 @@ SET(
   src/Degradations/VersoImageChangerParameters.cpp
   src/Degradations/BleedThroughParametersDialog.cpp
   src/Degradations/BlurFilterDialog.cpp
-  src/Degradations/BlurFilterQ.cpp
   src/Degradations/ShadowBindingDialog.cpp
-  src/Degradations/ShadowBindingQ.cpp
   src/Degradations/HoleDegradationDialog.cpp
-  src/Degradations/HoleDegradationQ.cpp
   src/Degradations/PhantomCharacterDialog.cpp
-  src/Degradations/PhantomCharacterQ.cpp
   src/Degradations/ImageGenerationFromDirDialog.cpp
   src/RandomDocument/RandomDocumentCreator.cpp
   src/RandomDocument/RandomBackGroundChanger.cpp
@@ -214,6 +223,7 @@ SET(
   )
 
 
+SET( LIBNAME DocCreatorQ )
 SET( PROGNAME DocCreator )
 
 IF( APPLE )
@@ -249,6 +259,7 @@ IF(WIN32)
   set(WIN_RESOURCE_FILE adoc.rc) #for icon
 ENDIF()
 
+QTX_WRAP_CPP(MOC_LIB ${DocCreatorQ_headers})
 
 QTX_ADD_RESOURCES(RCS ${DocCreator_rcs} )
 QTX_WRAP_UI(UI ${DocCreator_ui})
@@ -286,13 +297,18 @@ SET(EXTRA_LIBS ${QT_LIBRARIES} ${Lipsum4Qt_LIBRARIES} ${DocCreator_LIBRARIES} ${
 #   endif(UNIX AND NOT APPLE)
 # ENDIF( APPLE )
 
+
+ADD_LIBRARY(${LIBNAME} STATIC ${DocCreatorQ_sources} ${DocCreatorQ_headers} ${MOC_LIB})
+TARGET_LINK_LIBRARIES(${LIBNAME} ${EXTRA_LIBS})
+
 ADD_EXECUTABLE(${PROGNAME} ${DocCreator_sources} ${DocCreator_headers} ${MOC} ${RCS} ${UI} ${WIN_RESOURCE_FILE})
+SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES INSTALL_RPATH "${PROG_RPATH}")
 
 
 # Cf http://www.kitware.com/blog/home/post/510
 #As CMAKE_MACOSX_RPATH is defined to 1,
 # Cmake  will automatically add an RPATH to this executable which is the absolute location of libDocCreator in the build tree.
-TARGET_LINK_LIBRARIES(${PROGNAME} ${EXTRA_LIBS})
+TARGET_LINK_LIBRARIES(${PROGNAME} ${EXTRA_LIBS} ${LIBNAME})
 #TARGET_LINK_LIBRARIES(${PROGNAME} ${ALL_LIBS})
 
 
@@ -359,7 +375,9 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 IF(BUILD_OTHER_PROGS)
 
+  ADD_SUBDIRECTORY(src/Degradator)
 
+  
   SET(SOURCES src/testBlurFilter.cpp src/Degradations/BlurFilterQ.cpp)
   #src/Degradations/BlurFilterDialog.cpp src/Degradations/BlurFilterDialog.hpp)
   #SET(MY_UI_FILES src/Degradations/BlurFilterDialog.ui) 
