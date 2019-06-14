@@ -803,7 +803,14 @@ namespace dc {
 	  int yPattern = minY;
 
 	  const int pattern = rand() % numPatterns; //choice of pattern
-	  patternMat = cv::imread(makePath(phantomPatternsPath, patterns.at(pattern)), CV_LOAD_IMAGE_GRAYSCALE);
+	  assert(pattern < patterns.size());
+	  const std::string patternFilename = makePath(phantomPatternsPath, patterns.at(pattern));
+#if CV_MAJOR_VERSION < 4
+	  const int grayFlag = CV_LOAD_IMAGE_GRAYSCALE;
+#else
+	  const int grayFlag = cv::IMREAD_GRAYSCALE;
+#endif
+	  patternMat = cv::imread(patternFilename, grayFlag);
 	  assert(!patternMat.empty());
      
 	  int widthPattern, maxWidth, minWidth;

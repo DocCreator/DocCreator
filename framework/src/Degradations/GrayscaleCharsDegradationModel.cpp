@@ -2579,6 +2579,7 @@ namespace dc {
     for (const Pixel &pixel : _listPixels) {
       listProbability.push_back(pixel.probability);
     }
+    assert(_listPixels.size() == listProbability.size());
 
     std::sort(listProbability.begin(), listProbability.end());
 
@@ -2588,7 +2589,7 @@ namespace dc {
     float flip_random = 0.0000000f;
     assert(sz == listProbability.size());
     assert(!listProbability.empty());
-    if (sz >= nbSps_Over)
+    if (nbSps_Over <= sz)
       flip_random = listProbability[sz - nbSps_Over];
     else
       flip_random = listProbability[0];
