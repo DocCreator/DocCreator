@@ -37,6 +37,8 @@ namespace dc {
       }
     }
 
+    closedir(dp);
+
     return entries;
   }
 
