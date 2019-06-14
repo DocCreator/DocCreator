@@ -386,18 +386,20 @@ namespace dc {
     if (_nb_connectedcomponants <= 0)
       return _mat_output;
 
+    /*
     qDebug() << "##### GrayscaleCharsDegradationModel::degradate(" << level
 	     << ", " << I << ", " << O << ", " << D << ")";
+    */
 
     const int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
 
     _nbSPs_User =
       NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
-    //
+    /*
     qDebug() << "getNumberOfConnectedComponants()="
 	     << getNumberOfConnectedComponants();
     qDebug() << "_nbSPs_User=" << _nbSPs_User;
-
+    */
 #ifdef TIMING
     auto t0 = std::chrono::steady_clock::now();
 #endif
