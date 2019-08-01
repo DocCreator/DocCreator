@@ -962,11 +962,13 @@ GLWidget::keyPressEvent(QKeyEvent *event)
         QGuiApplication::setOverrideCursor(Qt::CrossCursor);
         std::cerr << "MODE_SELECTION_VERTEX\n";
         m_selectedVertices.clear();
-      } else {
+      }
+      else {
         m_mode = MODE_MOVE_CAMERA;
         QGuiApplication::restoreOverrideCursor();
         std::cerr << "MODE_MOVE_CAMERA\n";
       }
+      break;
 
     default:
 #if QT_VERSION < 0x050400

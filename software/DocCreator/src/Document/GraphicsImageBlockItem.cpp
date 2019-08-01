@@ -62,8 +62,10 @@ GraphicsImageBlockItem::load()
 }
 
 void
-GraphicsImageBlockItem::draw(bool complete)
-{}
+GraphicsImageBlockItem::draw(bool /*complete*/)
+{
+  //B: do something ???
+}
 
 void
 GraphicsImageBlockItem::mousePressEvent(QGraphicsSceneMouseEvent *event)

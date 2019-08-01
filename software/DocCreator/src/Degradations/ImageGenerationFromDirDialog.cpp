@@ -62,8 +62,7 @@ ImageGenerationFromDirDialog::accepted()
 
 void
 ImageGenerationFromDirDialog::degrade(
-  QDir folder,
-  const QString &file) //B : what about 'file' ?
+  QDir folder)
 {
 
   QStringList filters;

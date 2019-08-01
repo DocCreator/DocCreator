@@ -60,7 +60,7 @@ private:
   Doc::Page *bindTextForAPage(Doc::Document *document, QStringList &TEXT_lines);
   QStringList readTextFile(const QString &filePath);
 
-  void degrade(QDir folder, const QString &file);
+  void degrade(QDir folder);
   void loadBackground();
   void loadFont();
   void setupPageParameters();

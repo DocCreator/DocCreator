@@ -9,6 +9,7 @@ mesh2surfaceMesh(const Mesh &m, surface_mesh::Surface_mesh &sm)
 {
   assert(m.isValid());
 
+  /*
   std::vector<surface_mesh::Texture_coordinate> all_tex_coords;
   std::vector<int> halfedge_tex_idx;
   surface_mesh::Surface_mesh::Halfedge_property<
@@ -16,6 +17,7 @@ mesh2surfaceMesh(const Mesh &m, surface_mesh::Surface_mesh &sm)
     tex_coords =
       sm.halfedge_property<surface_mesh::Texture_coordinate>("h:texcoord");
   bool with_tex_coord = false;
+  */
 
   surface_mesh::Surface_mesh::Vertex_property<surface_mesh::Normal> normals;
   surface_mesh::Surface_mesh::Vertex_property<surface_mesh::Texture_coordinate>

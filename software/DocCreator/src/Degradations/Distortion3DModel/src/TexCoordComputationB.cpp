@@ -611,7 +611,7 @@ struct Segment_Sorter
 void
 chainAndMergeIntersectionPts(const std::vector<X_Z_e> &intersectionPoints,
                              const std::vector<EdgeF> &edges,
-                             const Vertex2Tris &v2t,
+                             const Vertex2Tris &/*v2t*/, //B:useless ???
                              std::vector<Segment> &segments)
 {
   segments.clear();
@@ -1010,9 +1010,17 @@ fusePaths(std::vector<Path> &paths)
  */
 static void
 getPaths(const uint32_t *tris,
-         uint32_t numTris,
+         uint32_t
+#ifndef NDEBUG
+	 numTris
+#endif //NDEBUG
+	 ,
          const float *vertices,
-         uint32_t numVertices,
+         uint32_t
+#ifndef NDEBUG
+	 numVertices
+#endif //NDEBUG
+	 ,
          const uint32_t *verticesIndices,
          uint32_t numIndices,
          const std::vector<Segment> &segments,
@@ -2143,9 +2151,9 @@ computeTexCoords2(Mesh &mesh)
     //We do not have to compute intersection points with edges
     // with two extremities beyond this X coord.
     assert(yi < startYIndices.size());
+#ifndef NDEBUG
     const uint32_t end = startYIndices[yi + 1];
     assert(start < end);
-#ifdef NDEBUG
     const uint32_t indLast = verticesIndices[end - 1];
     //const float lastX = mesh.vertices[3*indLast+0];
     assert(mesh.vertices[3 * indLast + 1] == y);

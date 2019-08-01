@@ -152,7 +152,7 @@ GraphicsTextBlockItem::load()
 }
 
 void
-GraphicsTextBlockItem::draw(bool complete)
+GraphicsTextBlockItem::draw(bool /*complete*/)
 {
   //qDebug() << "GraphicsTextBlockItem::draw("<<complete<<") *************\n";
 

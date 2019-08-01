@@ -803,7 +803,7 @@ namespace dc {
 	  int yPattern = minY;
 
 	  const int pattern = rand() % numPatterns; //choice of pattern
-	  assert(pattern < patterns.size());
+	  assert((size_t)pattern < patterns.size());
 	  const std::string patternFilename = makePath(phantomPatternsPath, patterns.at(pattern));
 #if CV_MAJOR_VERSION < 4
 	  const int grayFlag = CV_LOAD_IMAGE_GRAYSCALE;

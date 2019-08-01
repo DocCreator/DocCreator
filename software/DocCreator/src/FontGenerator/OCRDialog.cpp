@@ -545,7 +545,7 @@ OCRDialog::updateView()
   //Set currentLetter as current cell in tableAlphabet
   if (! m_alphabet.empty()) {
     const int indexA = indexOfFontLetterInAlphabet(m_currentLetter);
-    assert(indexA < m_alphabet.size());
+    assert((size_t)indexA < m_alphabet.size());
     const int row = indexA/NUM_COLUMNS;
     const int col = indexA-row*NUM_COLUMNS;
     ui->tableAlphabet->setCurrentCell(row, col);

@@ -47,7 +47,7 @@ TxtDocumentSaver::buildContent()
 }
 
 void
-TxtDocumentSaver::buildStyle(Doc::DocStyle *s)
+TxtDocumentSaver::buildStyle(Doc::DocStyle *) //B:TODO: is the parameter useful?
 {}
 
 void
@@ -65,7 +65,7 @@ TxtDocumentSaver::buildPage(Doc::Page *p, int id)
 }
 
 void
-TxtDocumentSaver::buildImageBlock(Doc::DocImageBlock *ib, int id)
+TxtDocumentSaver::buildImageBlock(Doc::DocImageBlock */*ib*/, int /*id*/)
 //    void TxtDocumentSaver::buildImageBlock(Doc::DocImageBlock *ib)
 {}
 
@@ -103,7 +103,7 @@ TxtDocumentSaver::buildString(Doc::DocString *s, int id)
 }
 
 void
-TxtDocumentSaver::buildCharacter(Doc::DocCharacter *c, int id)
+TxtDocumentSaver::buildCharacter(Doc::DocCharacter *c, int /*id*/)
 //    void TxtDocumentSaver::buildCharacter(Doc::DocCharacter *c)
 {
   QString s = c->getDisplay();

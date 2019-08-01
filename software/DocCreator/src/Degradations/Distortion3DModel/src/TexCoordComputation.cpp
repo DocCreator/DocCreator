@@ -2170,10 +2170,18 @@ sortZAccordingToNeighbours(std::vector<X_Z_Idx> &xzidxs)
 void
 getIntersectionLine(const Mesh &mesh,
                     float y0,
-                    uint32_t y0_idx,
+                    uint32_t
+#ifndef NDEBUG
+		    y0_idx
+#endif //NDEBUG
+		    ,
                     std::vector<X_Z_Idx> &xzidxs,
                     std::vector<X_Z_Idx> &xzidxs_tmp,
-                    const SpacePartionnerY &spy)
+                    const SpacePartionnerY &
+#if 0
+		    spy
+#endif
+		    )
 {
   //REM:OPTIM: resize to zero but keep capacity (we want to avoid memory allocations).
   xzidxs.clear();
