@@ -2,20 +2,20 @@ PROJECT(lzhamcomp)
 cmake_minimum_required(VERSION 2.8)
 option(BUILD_X64 "build 64-bit" TRUE)
 
-message("Initial BUILD_X64=${BUILD_X64}")
-message("Initial CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+#message("Initial BUILD_X64=${BUILD_X64}")
+#message("Initial CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release )
 endif( NOT CMAKE_BUILD_TYPE )
 
-message( ${PROJECT_NAME} " build type: " ${CMAKE_BUILD_TYPE} )
+#message( ${PROJECT_NAME} " build type: " ${CMAKE_BUILD_TYPE} )
 
-if (BUILD_X64)
-	message("Building 64-bit")
-else()
-	message("Building 32-bit")
-endif(BUILD_X64)
+#if (BUILD_X64)
+#	message("Building 64-bit")
+#else()
+#	message("Building 32-bit")
+#endif(BUILD_X64)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${WARNING_FLAGS} ${DEBUG_FLAGS}")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${WARNING_FLAGS} ${DEBUG_FLAGS}")
