@@ -41,6 +41,9 @@ template <typename T> void read(FILE* in, T& t)
     size_t n_items(0);
     n_items = fread((char*)&t, 1, sizeof(t), in);
     assert(n_items > 0);
+
+    //B: to avid warning -Wunused-but-set-variable
+    (void)n_items;
 }
 
 
@@ -209,6 +212,8 @@ bool read_stl(Surface_mesh& mesh, const std::string& filename)
         }
     }
 
+    //B: to avoid warning -Wunused-but-set-variable
+    (void)n_items;
 
     fclose(in);
     return true;

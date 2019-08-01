@@ -84,6 +84,9 @@ bool read_poly(Surface_mesh& mesh, const std::string& filename)
     n_items = fread((char*)fconn.data(), sizeof(Surface_mesh::Face_connectivity),     nf, in);
     n_items = fread((char*)point.data(), sizeof(Point),                               nv, in);
 
+    //B: to avoid warning -Wunused-but-set-variable
+    (void)n_items;
+
     fclose(in);
     return true;
 }

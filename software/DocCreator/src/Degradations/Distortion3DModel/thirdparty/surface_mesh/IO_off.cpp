@@ -39,6 +39,9 @@ template <typename T> void read(FILE* in, T& t)
 {
     int err = 0;
     err = fread(&t, 1, sizeof(t), in);
+
+    //B: to avoid warning -Wunused-but-set-variable
+    (void)err;
 }
 
 
@@ -74,6 +77,8 @@ bool read_off_ascii(Surface_mesh& mesh,
     mesh.clear();
     mesh.reserve(nV, std::max(3*nV, nE), nF);
 
+    //B: to avoid warning -Wunused-but-set-variable
+    (void)items;
 
     // read vertices: pos [normal] [color] [texcoord]
     for (i=0; i<nV && !feof(in); ++i)
