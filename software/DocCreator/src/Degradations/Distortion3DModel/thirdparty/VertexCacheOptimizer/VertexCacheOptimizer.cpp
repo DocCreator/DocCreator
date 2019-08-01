@@ -170,7 +170,7 @@ void optimizeIndexOrder(uint32_t VertexCount, uint32_t IndexCount, uint32_t *Ind
         
         // find this triangles' entry
         int k = 0;
-        while(vert->TriList[k] != bestTriInd)
+        while(vert->TriList[k] != (uint32_t)bestTriInd)
         {
           assert(k < vert->TrisLeft);
           k++;
