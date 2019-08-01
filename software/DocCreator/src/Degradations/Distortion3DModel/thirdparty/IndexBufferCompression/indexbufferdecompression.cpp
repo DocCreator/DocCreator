@@ -306,6 +306,10 @@ void DecompressTriangleCodesPrefix( Ty* triangles, uint32_t triangleCount, ReadB
 
             break;
         }
+	default: //B: IB_EDGE_0_NEW, IB_EDGE_1_NEW
+	  {
+	    break;
+	  }
         }
 
         edgeFifo[ edgesRead & EDGE_FIFO_MASK ].set( triangle[ 1 ], triangle[ 2 ] );
