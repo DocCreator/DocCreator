@@ -338,7 +338,7 @@ namespace lzham
       bit_count += 8; \
       bit_buf |= (static_cast<symbol_codec::bit_buf_t>(r) << (symbol_codec::cBitBufSize - bit_count)); \
    } \
-   result = (num_bits) ? static_cast<uint>(bit_buf >> (symbol_codec::cBitBufSize - (num_bits))) : 0; \
+   result = ((num_bits) > 0) ? static_cast<uint>(bit_buf >> (symbol_codec::cBitBufSize - (num_bits))) : 0; \
    bit_buf <<= (num_bits); \
    bit_count -= (num_bits); \
 }

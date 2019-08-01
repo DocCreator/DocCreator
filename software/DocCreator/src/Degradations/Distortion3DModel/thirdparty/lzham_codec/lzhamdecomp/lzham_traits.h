@@ -118,7 +118,7 @@ namespace lzham
       {
          if (LZHAM_IS_SCALAR_TYPE(T))
          {
-            memset(p, 0, sizeof(T) * n);
+	     memset((void*)p, 0, sizeof(T) * n);
          }
          else
          {
