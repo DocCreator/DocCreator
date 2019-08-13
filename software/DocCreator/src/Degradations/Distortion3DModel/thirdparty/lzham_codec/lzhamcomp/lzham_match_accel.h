@@ -14,7 +14,7 @@ namespace lzham
       uint m_right;
    };
    
-   LZHAM_DEFINE_BITWISE_MOVABLE(node);
+   LZHAM_DEFINE_BITWISE_MOVABLE(node)
    
 #pragma pack(push, 1)      
    struct dict_match
@@ -28,7 +28,7 @@ namespace lzham
    };
 #pragma pack(pop)  
 
-   LZHAM_DEFINE_BITWISE_MOVABLE(dict_match);
+   LZHAM_DEFINE_BITWISE_MOVABLE(dict_match)
    
    class search_accelerator
    {

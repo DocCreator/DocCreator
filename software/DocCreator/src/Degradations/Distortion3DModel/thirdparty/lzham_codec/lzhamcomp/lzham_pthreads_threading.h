@@ -116,7 +116,7 @@ namespace lzham
 #else
    class semaphore
    {
-      LZHAM_NO_COPY_OR_ASSIGNMENT_OP(semaphore);
+      LZHAM_NO_COPY_OR_ASSIGNMENT_OP(semaphore)
 
    public:
       inline semaphore(long initialCount = 0, long maximumCount = 1, const char* pName = NULL)

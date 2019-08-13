@@ -55,7 +55,7 @@ void lzham_trace(const char* pFmt, va_list args)
 
       lzham_output_debug_string(buf);
    }
-};
+}
 
 void lzham_trace(const char* pFmt, ...)
 {
@@ -63,4 +63,4 @@ void lzham_trace(const char* pFmt, ...)
    va_start(args, pFmt);
    lzham_trace(pFmt, args);
    va_end(args);
-};
+}

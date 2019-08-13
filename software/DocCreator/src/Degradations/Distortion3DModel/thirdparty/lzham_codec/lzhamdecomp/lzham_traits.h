@@ -108,8 +108,8 @@ namespace lzham
       enum { value = true };
    };
 
-   LZHAM_DEFINE_BITWISE_COPYABLE(empty_type);
-   LZHAM_DEFINE_BITWISE_MOVABLE(empty_type);
+   LZHAM_DEFINE_BITWISE_COPYABLE(empty_type)
+   LZHAM_DEFINE_BITWISE_MOVABLE(empty_type)
 
    namespace helpers
    {
