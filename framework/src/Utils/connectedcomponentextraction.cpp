@@ -172,18 +172,18 @@ ConnectedComponentExtraction::oilSpreadFunction(const cv::Mat &src)
 
           cc.push_back(p);
 
-          int xmin = std::max(p.x - SCOPE, 0);
-          int xmax = std::min(p.x + SCOPE, src.cols - 1);
-          int ymin = std::max(p.y - SCOPE, 0);
-          int ymax = std::min(p.y + SCOPE, src.rows - 1);
+          const int xmin = std::max(p.x - SCOPE, 0);
+          const int xmax = std::min(p.x + SCOPE, src.cols - 1);
+          const int ymin = std::max(p.y - SCOPE, 0);
+          const int ymax = std::min(p.y + SCOPE, src.rows - 1);
 
           for (int yk = ymin; yk <= ymax; ++yk) {
-            const uchar *s = src.ptr<uchar>(yk);
-            uchar *v = visited.ptr<uchar>(yk);
+            const uchar *sr = src.ptr<uchar>(yk);
+            uchar *vi = visited.ptr<uchar>(yk);
             for (int xk = xmin; xk <= xmax; ++xk) {
-              if (s[xk] == 0 && v[xk] == 0) {
+              if (sr[xk] == 0 && vi[xk] == 0) {
                 stack.push(cv::Point(xk, yk));
-                v[xk] = 255;
+                vi[xk] = 255;
               }
             }
           }

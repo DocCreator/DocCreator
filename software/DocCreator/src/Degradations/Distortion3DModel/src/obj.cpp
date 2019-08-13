@@ -375,11 +375,11 @@ readOBJ(const std::string &filename, Mesh &mesh)
         v[i] = texCoords[i];
 
       for (size_t i = k; i < faces3; ++i) {
-        const size_t vi = mesh.triangles[i];
-        const size_t ti = texCoordsIndices[i];
-        assert(2 * ti + 1 < v.size());
-        mesh.texCoords[2 * vi + 0] = v[2 * ti + 0];
-        mesh.texCoords[2 * vi + 1] = v[2 * ti + 1];
+        const size_t v_i = mesh.triangles[i];
+        const size_t t_i = texCoordsIndices[i];
+        assert(2 * t_i + 1 < v.size());
+        mesh.texCoords[2 * v_i + 0] = v[2 * t_i + 0];
+        mesh.texCoords[2 * v_i + 1] = v[2 * t_i + 1];
       }
     }
   }
@@ -419,12 +419,12 @@ readOBJ(const std::string &filename, Mesh &mesh)
         v[i] = normals[i];
 
       for (size_t i = k; i < faces3; ++i) {
-        const size_t vi = mesh.triangles[i];
-        const size_t ni = normalsIndices[i];
-        assert(3 * ni + 2 < v.size());
-        mesh.normals[3 * vi + 0] = v[3 * ni + 0];
-        mesh.normals[3 * vi + 1] = v[3 * ni + 1];
-        mesh.normals[3 * vi + 2] = v[3 * ni + 2];
+        const size_t v_i = mesh.triangles[i];
+        const size_t n_i = normalsIndices[i];
+        assert(3 * n_i + 2 < v.size());
+        mesh.normals[3 * v_i + 0] = v[3 * n_i + 0];
+        mesh.normals[3 * v_i + 1] = v[3 * n_i + 1];
+        mesh.normals[3 * v_i + 2] = v[3 * n_i + 2];
       }
     }
   }

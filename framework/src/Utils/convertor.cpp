@@ -116,16 +116,16 @@ Convertor::getQImage(const cv::Mat &image)
   if (rgb.type() == CV_32FC3) {
 
     for (int i = 0; i < h; ++i) {
-      const float *image = rgb.ptr<float>(i);
+      const float *img = rgb.ptr<float>(i);
       QRgb *dst = (QRgb *)qimg.scanLine(i);
       for (int j = 0; j < w; ++j) {
         //suppose image in BGR format
-        uchar b = *image;
-        ++image;
-        uchar g = *image;
-        ++image;
-        uchar r = *image;
-        ++image;
+        uchar b = *img;
+        ++img;
+        uchar g = *img;
+        ++img;
+        uchar r = *img;
+        ++img;
         //Are values in image in [0.f; 225.f] or [0.f; 1.f] ???
 
         *dst = qRgb(r, g, b);
@@ -133,19 +133,20 @@ Convertor::getQImage(const cv::Mat &image)
       }
     }
 
-  } else if (rgb.type() == CV_8UC3) {
+  }
+  else if (rgb.type() == CV_8UC3) {
 
     for (int i = 0; i < h; ++i) {
-      const uchar *image = rgb.ptr<uchar>(i);
+      const uchar *img = rgb.ptr<uchar>(i);
       QRgb *dst = (QRgb *)qimg.scanLine(i);
       for (int j = 0; j < w; ++j) {
         //suppose image in BGR format
-        uchar b = *image;
-        ++image;
-        uchar g = *image;
-        ++image;
-        uchar r = *image;
-        ++image;
+        uchar b = *img;
+        ++img;
+        uchar g = *img;
+        ++img;
+        uchar r = *img;
+        ++img;
         //shoud we cv::saturate_cast() ???
 
         *dst = qRgb(r, g, b);
@@ -153,24 +154,25 @@ Convertor::getQImage(const cv::Mat &image)
       }
     }
 
-  } else if (rgb.type() == CV_8UC4) //For transparency
+  }
+  else if (rgb.type() == CV_8UC4) //For transparency
   {
 
     //QImage alphaImg = qimg.alphaChannel();
 
     for (int i = 0; i < h; ++i) {
-      const uchar *image = rgb.ptr<uchar>(i);
+      const uchar *img = rgb.ptr<uchar>(i);
       QRgb *dst = (QRgb *)qimg.scanLine(i);
       for (int j = 0; j < w; ++j) {
         //suppose image in BGR format
-        uchar b = *image;
-        ++image;
-        uchar g = *image;
-        ++image;
-        uchar r = *image;
-        ++image;
-        uchar a = *image;
-        ++image;
+        uchar b = *img;
+        ++img;
+        uchar g = *img;
+        ++img;
+        uchar r = *img;
+        ++img;
+        uchar a = *img;
+        ++img;
         //shoud we cv::saturate_cast() ???
 
         *dst = qRgba(r, g, b, a);
@@ -178,7 +180,8 @@ Convertor::getQImage(const cv::Mat &image)
       }
     }
 
-  } else {
+  }
+  else {
     std::cerr << "ERROR: Convertor::getQImage() : unknown type \n";
     assert(false);
   }

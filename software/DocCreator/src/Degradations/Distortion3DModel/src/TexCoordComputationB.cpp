@@ -1366,8 +1366,8 @@ getPaths(const uint32_t *tris,
     //vIdx listed in @a verticesIndices
     ///must all appear in one Path & only in one Path
 
-    uint32_t numUsedVertices = 0;
-    std::vector<bool> usedVertices(numIndices,
+    uint32_t numUsedVerticesF = 0;
+    std::vector<bool> usedVerticesV(numIndices,
                                    false); //OPTIM: use char ? alloc once ?
     for (uint32_t i = 0; i < numIndices; ++i) {
       const uint32_t vIdx = verticesIndices[i];
@@ -1378,12 +1378,12 @@ getPaths(const uint32_t *tris,
 
           if (paths[k].vIndices[j] == vIdx) {
 
-            assert(i < usedVertices.size());
-            if (usedVertices[i] == true) {
+            assert(i < usedVerticesV.size());
+            if (usedVerticesV[i] == true) {
 
-              const uint32_t vIdx = paths[k].vIndices[j];
+              const uint32_t vIdxj = paths[k].vIndices[j];
 
-              std::cerr << "vIdx=" << vIdx << " is used in path [" << k
+              std::cerr << "vIdx=" << vIdxj << " is used in path [" << k
                         << "]\n";
               std::cerr << "  paths[" << k << "]/" << paths.size()
                         << " startPt=(" << paths[k].startPt.x << ", "
@@ -1397,18 +1397,18 @@ getPaths(const uint32_t *tris,
                         << (paths[k].endIsTri ? "triIdx=" : "vIdx=")
                         << paths[k].endTriIdx << "\n";
               std::cerr << "    numVIdx=" << paths[k].lengths.size() << "\n";
-              for (size_t j = 0; j < paths[k].lengths.size(); ++j)
-                std::cerr << "      vidx=" << paths[k].vIndices[j] << " pt=("
-                          << vertices[3 * paths[k].vIndices[j] + 0] << ", "
-                          << vertices[3 * paths[k].vIndices[j] + 2]
-                          << ") length=" << paths[k].lengths[j] << "\n";
+              for (size_t jp = 0; jp < paths[k].lengths.size(); ++jp)
+                std::cerr << "      vidx=" << paths[k].vIndices[jp] << " pt=("
+                          << vertices[3 * paths[k].vIndices[jp] + 0] << ", "
+                          << vertices[3 * paths[k].vIndices[jp] + 2]
+                          << ") length=" << paths[k].lengths[jp] << "\n";
 
               {
                 size_t kk = k, jj = 0;
                 for (kk = 0; kk < k; ++kk) {
                   size_t maxj = (kk != k ? paths[kk].vIndices.size() : j);
                   for (jj = 0; jj < maxj; ++jj) {
-                    if (paths[kk].vIndices[jj] == vIdx) {
+                    if (paths[kk].vIndices[jj] == vIdxj) {
                       break;
                     }
                   }
@@ -1427,22 +1427,22 @@ getPaths(const uint32_t *tris,
                           << (paths[kk].endIsTri ? "triIdx=" : "vIdx=")
                           << paths[kk].endTriIdx << "\n";
                 std::cerr << "    numVIdx=" << paths[kk].lengths.size() << "\n";
-                for (size_t j = 0; j < paths[kk].lengths.size(); ++j)
-                  std::cerr << "      vidx=" << paths[kk].vIndices[j] << " pt=("
-                            << vertices[3 * paths[kk].vIndices[j] + 0] << ", "
-                            << vertices[3 * paths[kk].vIndices[j] + 2]
-                            << ") length=" << paths[kk].lengths[j] << "\n";
+                for (size_t jp = 0; jp < paths[kk].lengths.size(); ++jp)
+                  std::cerr << "      vidx=" << paths[kk].vIndices[jp] << " pt=("
+                            << vertices[3 * paths[kk].vIndices[jp] + 0] << ", "
+                            << vertices[3 * paths[kk].vIndices[jp] + 2]
+                            << ") length=" << paths[kk].lengths[jp] << "\n";
               }
             }
 
-            assert(usedVertices[i] == false);
-            usedVertices[i] = true;
-            ++numUsedVertices;
+            assert(usedVerticesV[i] == false);
+            usedVerticesV[i] = true;
+            ++numUsedVerticesF;
           }
         }
       }
     }
-    assert(numUsedVertices == numIndices);
+    assert(numUsedVerticesF == numIndices);
   }
 #endif //NDEBUG
 
@@ -2186,9 +2186,9 @@ computeTexCoords2(Mesh &mesh)
 
     for (uint32_t i = 0; i < numEdgesIndices; ++i) {
 
-      const uint32_t ind = edgesIndices[i];
-      const uint32_t e0 = edges[ind].vertexIndex[0];
-      const uint32_t e1 = edges[ind].vertexIndex[1];
+      const uint32_t eind = edgesIndices[i];
+      const uint32_t e0 = edges[eind].vertexIndex[0];
+      const uint32_t e1 = edges[eind].vertexIndex[1];
 
       assert(e0 < mesh.numVertices);
       assert(e1 < mesh.numVertices);
@@ -2228,7 +2228,7 @@ computeTexCoords2(Mesh &mesh)
           X_Z intersectionPt = line.getIntersectionPoint(y);
 
           //if (intersectionPt.x <= lastX) //B:NEW: 150504
-          intersectionPoints.push_back(X_Z_e(intersectionPt, ind));
+          intersectionPoints.push_back(X_Z_e(intersectionPt, eind));
         }
         /*
         else if (yInd_i0==yi && yi==yInd_i1) {

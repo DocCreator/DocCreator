@@ -315,7 +315,8 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
 
   if (_Char_Format < 7 && _Char_Format >= 1) {
     out = _bg.convertToFormat(_Char_Format);
-  } else {
+  }
+  else {
     out = _bg.convertToFormat(QImage::Format_ARGB32);
   }
 
@@ -324,7 +325,7 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
 
       if (!page->getTextBlocks().empty())
         for (Doc::DocTextBlock *tb : page->getTextBlocks()) {
-          int tb_posX = tb->x();
+          const int tb_posX = tb->x();
           int tb_posY = tb->y(); // adjust the text block position
 
           int counter_lines = 0;
@@ -541,7 +542,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   }
 
   const int nbLines = totalLineLong / columnsWidth + 1;
-  int heightOfAllLines = nbLines * (lineSpacing + meanCharHeight);
+  const int heightOfAllLines = nbLines * (lineSpacing + meanCharHeight);
   // check fitted column height with text input
   qDebug() << "max height of text = " << heightOfAllLines << " height "
            << columnsHeight;
@@ -554,7 +555,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
     columnsHeight = (height - pageMarginTop - pageMarginBottom);
   }
   //    qDebug() << " bg w h " << _bg.width() << " " << _bg.height();
-  int nbNeededPages = heightOfAllLines / (columnsHeight * nbColumns) + 1;
+  const int nbNeededPages = heightOfAllLines / (columnsHeight * nbColumns) + 1;
 
   qDebug() << "Create page nb of pages = " << nbNeededPages
            << " nb of lines = " << nbLines << " linespacing =" << lineSpacing
@@ -618,15 +619,16 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
               wordLong += charImage.width();
             }
           }
-          int nbLines = (tmp1->Long + wordLong) / columnsWidth + 1;
-          int checkerH = nbLines * (meanCharHeight + lineSpacing);
+          const int numLines = (tmp1->Long + wordLong) / columnsWidth + 1;
+          const int checkerH = numLines * (meanCharHeight + lineSpacing);
           if (checkerH < delta_height) {
             for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
               tmp1->charList << tmpP->charList.at(i);
             }
             tmp1->Long += wordLong;
             tmp1->Height = checkerH;
-          } else {
+          }
+	  else {
             for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
               tmp2->charList << tmpP->charList.at(i);
             }
@@ -686,8 +688,9 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
           pageMarginTop,
           columnsWidth,
           columnsHeight);
-        columnCounter++; //update column counter
-      } else {           // add new page + new column
+        ++columnCounter; //update column counter
+      }
+      else {           // add new page + new column
         Doc::Page *newPage = new Doc::Page(document);
         newPage->setBackgroundFileName(_bgName);
         document->add(newPage);
@@ -1097,7 +1100,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   // check if height of all paragraph > columns height
   assert(itemCounter > 0); //B
   meanCharHeight = meanCharHeight / itemCounter;
-  int lineSpacing = (maxCharHeight * 1.2);
+  const int lineSpacing = (maxCharHeight * 1.2);
 
   // check fitted column width with text input
   if (maxLineLong < _columnsWidth) { // re-form background and columns width
@@ -1108,8 +1111,8 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
     _width = _bg.width();
   }
 
-  int nbLines = totalLineLong / _columnsWidth + 1;
-  int heightOfAllLines = nbLines * (lineSpacing + meanCharHeight);
+  const int nbLines = totalLineLong / _columnsWidth + 1;
+  const int heightOfAllLines = nbLines * (lineSpacing + meanCharHeight);
   // check fitted column height with text input
   qDebug() << "max height of text = " << heightOfAllLines << " height "
            << _columnsHeight;
@@ -1122,7 +1125,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
     _columnsHeight = (_height - _pageMarginTop - _pageMarginBottom);
   }
 
-  int nbNeededPages = heightOfAllLines / (_columnsHeight * _nbColumns) + 1;
+  const int nbNeededPages = heightOfAllLines / (_columnsHeight * _nbColumns) + 1;
 
   qDebug() << "Create page nb of pages = " << nbNeededPages
            << " nb of lines = " << nbLines << " linespacing =" << lineSpacing
@@ -1162,12 +1165,12 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
     for (LineText *tmpLine : textLines) {
 
       // calculate paragraph height
-      int nbLinesOfParagraph = tmpLine->Long / _columnsWidth + 1;
+      const int nbLinesOfParagraph = tmpLine->Long / _columnsWidth + 1;
       tmpLine->Height =
         (nbLinesOfParagraph - 1) * (tmpLine->meanCharHeight + lineSpacing);
       tmpLine->Height = tmpLine->Height * 0.85;
 
-      int heightChecker = heightFilledTextBlock + tmpLine->Height - lineSpacing;
+      const int heightChecker = heightFilledTextBlock + tmpLine->Height - lineSpacing;
 
       // at the end of text block
       if (heightChecker > _columnsHeight) { // split this paragraph into 2
@@ -1180,7 +1183,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
         tmp2->Height = 0;
         tmp2->meanCharHeight = tmpLine->meanCharHeight;
 
-        int delta_height = _columnsHeight - heightFilledTextBlock;
+        const int delta_height = _columnsHeight - heightFilledTextBlock;
 
         //find the splitted position
         int spaceIndex = 0;
@@ -1188,7 +1191,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
         while (spaceIndexNext != -1) {
           // check word long
           int wordLong = 0;
-          for (int i = spaceIndex; i <= spaceIndexNext; i++) {
+          for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
             Models::Character *character =
               _font->getCharacter(tmpLine->charList.at(i));
             if (character != nullptr) {
@@ -1198,16 +1201,17 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
               wordLong += charImage.width();
             }
           }
-          int nbLines = (tmp1->Long + wordLong) / _columnsWidth + 1;
-          int checkerH = nbLines * (meanCharHeight + lineSpacing);
+          const int numLines = (tmp1->Long + wordLong) / _columnsWidth + 1;
+          const int checkerH = numLines * (meanCharHeight + lineSpacing);
           if (checkerH < delta_height) {
-            for (int i = spaceIndex; i <= spaceIndexNext; i++) {
+            for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
               tmp1->charList << tmpLine->charList.at(i);
             }
             tmp1->Long += wordLong;
             tmp1->Height = checkerH;
-          } else {
-            for (int i = spaceIndex; i <= spaceIndexNext; i++) {
+          }
+	  else {
+            for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
               tmp2->charList << tmpLine->charList.at(i);
             }
             tmp2->Long += wordLong;
@@ -1243,7 +1247,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   for (LineText *tmpLine : textLines) {
 
     // calculate paragraph height
-    int nbLinesOfParagraph = tmpLine->Long / _columnsWidth + 1;
+    const int nbLinesOfParagraph = tmpLine->Long / _columnsWidth + 1;
 
     if (nbLinesOfParagraph > 1)
       tmpLine->Height =
@@ -1254,7 +1258,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
 
     tmpLine->Height = tmpLine->Height * 0.85;
 
-    int heightChecker = heightFilledTextBlock + tmpLine->Height;
+    const int heightChecker = heightFilledTextBlock + tmpLine->Height;
 
     if (heightChecker > _columnsHeight) {
       heightFilledTextBlock = 0;        // Reset heightchecker
@@ -1272,10 +1276,11 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
         document->currentPage()->add(nextTextBlock);
         document->currentPage()->setCurrentBlock(nextTextBlock);
 
-        columnCounter++; //update column counter
+        ++columnCounter; //update column counter
         // reset dy, dh
         dy = 0;
-      } else {
+      }
+      else {
         // save previous page
         QString filePathSave = filePath;
         filePathSave.replace(QStringLiteral(".txt"),
@@ -1294,7 +1299,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
         dy = 0;
         dh = 0;
         // add new page + new column
-        pageCounter++;
+        ++pageCounter;
         Doc::Page *nextPage = new Doc::Page(document);
         nextPage->setBackgroundFileName(_bgName);
         document->add(nextPage);

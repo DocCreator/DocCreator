@@ -48,7 +48,7 @@ protected:
   QImage _img;
   QImage _img_highlighted;
 
-  int _id;
+  int _cId;
   int _index;
   bool _mustDeleteCharacter;
 };

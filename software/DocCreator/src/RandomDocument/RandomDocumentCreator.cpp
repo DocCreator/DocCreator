@@ -525,8 +525,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     Context::DocumentContext::instance()->setCurrentDocument(nullptr);
     _ctrl->setDocument(nullptr);
 
-    for (const QString &fontName : fontList) {
-      Context::FontContext::instance()->removeFont(fontName);
+    for (const QString &font : fontList) {
+      Context::FontContext::instance()->removeFont(font);
     }
 
     restoreFonts(prevCurrFontName, prevFonts);

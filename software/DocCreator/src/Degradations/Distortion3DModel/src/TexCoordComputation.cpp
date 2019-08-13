@@ -804,9 +804,9 @@ public:
     */
 
     //we sort indices according to edgesBins, to be able to have edgesIdx sorted according to edgesBins
-    const size_t s = edgesBins.size();
-    std::vector<uint32_t> indices(s);
-    for (uint32_t i = 0; i < s; ++i) {
+    const size_t sz = edgesBins.size();
+    std::vector<uint32_t> indices(sz);
+    for (uint32_t i = 0; i < sz; ++i) {
       indices[i] = i;
     }
     std::sort(indices.begin(), indices.end(), IndiceSorterE(edgesBins));
@@ -825,8 +825,8 @@ public:
     }//DEBUG
     */
 
-    m_indices.resize(s);
-    for (uint32_t i = 0; i < s; ++i) {
+    m_indices.resize(sz);
+    for (uint32_t i = 0; i < sz; ++i) {
       m_indices[i] = edgesIdx[indices[i]];
     }
 
@@ -834,7 +834,7 @@ public:
     m_binStarts[0] = 0;
     uint32_t currBin = 0;
     uint32_t binIdx = 1;
-    for (uint32_t i = 1; i < s; ++i) { //start from 1
+    for (uint32_t i = 1; i < sz; ++i) { //start from 1
       uint32_t bin = edgesBins[indices[i]];
       while (currBin < bin) {
         //std::cerr<<"m_binStarts["<<binIdx<<"]="<<i<<"\n";
@@ -844,10 +844,10 @@ public:
       }
     }
     for (; binIdx <= m_numBins; ++binIdx) {
-      m_binStarts[binIdx] = s;
-      std::cerr << "m_binStarts[" << binIdx << "]=" << s << " !\n";
+      m_binStarts[binIdx] = sz;
+      std::cerr << "m_binStarts[" << binIdx << "]=" << sz << " !\n";
     }
-    //m_binStarts[m_numBins] = s;
+    //m_binStarts[m_numBins] = sz;
 
     /*
     {//DEBUG
@@ -1117,8 +1117,8 @@ computeTexCoords1(Mesh &mesh)
   for (size_t yi = 0; yi < numYs; ++yi) {
 
     const uint32_t start = startYIndices[yi];
-    const uint32_t ind = verticesIndices[start];
-    const float y = mesh.vertices[3 * ind + 1];
+    const uint32_t indv = verticesIndices[start];
+    const float y = mesh.vertices[3 * indv + 1];
 
     //We get the X coord of the last original vertex on this y line.
     //We do not have to compute intersection points with edges
@@ -1621,9 +1621,9 @@ public:
     */
 
     //we sort indices according to trianglesBins, to be able to have trianglesIdx sorted according to trianglesBins
-    const size_t s = trianglesBins.size();
-    std::vector<uint32_t> indices(s);
-    for (uint32_t i = 0; i < s; ++i) {
+    const size_t sz = trianglesBins.size();
+    std::vector<uint32_t> indices(sz);
+    for (uint32_t i = 0; i < sz; ++i) {
       indices[i] = i;
     }
     std::sort(indices.begin(), indices.end(), IndiceSorter(trianglesBins));
@@ -1642,8 +1642,8 @@ public:
     }//DEBUG
     */
 
-    m_indices.resize(s);
-    for (uint32_t i = 0; i < s; ++i) {
+    m_indices.resize(sz);
+    for (uint32_t i = 0; i < sz; ++i) {
       m_indices[i] = trianglesIdx[indices[i]];
     }
 
@@ -1651,7 +1651,7 @@ public:
     m_binStarts[0] = 0;
     uint32_t currBin = 0;
     uint32_t binIdx = 1;
-    for (uint32_t i = 1; i < s; ++i) { //start from 1
+    for (uint32_t i = 1; i < sz; ++i) { //start from 1
       uint32_t bin = trianglesBins[indices[i]];
       while (currBin < bin) {
         //std::cerr<<"m_binStarts["<<binIdx<<"]="<<i<<"\n";
@@ -1661,10 +1661,10 @@ public:
       }
     }
     for (; binIdx <= m_numBins; ++binIdx) {
-      m_binStarts[binIdx] = s;
-      std::cerr << "m_binStarts[" << binIdx << "]=" << s << " !\n";
+      m_binStarts[binIdx] = sz;
+      std::cerr << "m_binStarts[" << binIdx << "]=" << sz << " !\n";
     }
-    //m_binStarts[m_numBins] = s;
+    //m_binStarts[m_numBins] = sz;
 
     /*
     {//DEBUG
@@ -1965,15 +1965,15 @@ public:
     //t0 = (double)cv::getTickCount();
 
     //we sort indices according to trianglesBins, to be able to have trianglesIdx sorted according to trianglesBins
-    const size_t s = trianglesBins.size();
-    std::vector<uint32_t> indices(s);
-    for (uint32_t i = 0; i < s; ++i) {
+    const size_t tsz = trianglesBins.size();
+    std::vector<uint32_t> indices(tsz);
+    for (uint32_t i = 0; i < tsz; ++i) {
       indices[i] = i;
     }
     std::sort(indices.begin(), indices.end(), IndiceSorter(trianglesBins));
 
-    m_indices.resize(s);
-    for (uint32_t i = 0; i < s; ++i) {
+    m_indices.resize(tsz);
+    for (uint32_t i = 0; i < tsz; ++i) {
       m_indices[i] = trianglesIdx[indices[i]];
     }
 
@@ -1981,7 +1981,7 @@ public:
     m_binStarts[0] = 0;
     uint32_t currBin = 0;
     uint32_t binIdx = 1;
-    for (uint32_t i = 1; i < s; ++i) { //start from 1
+    for (uint32_t i = 1; i < tsz; ++i) { //start from 1
       uint32_t bin = trianglesBins[indices[i]];
       while (currBin < bin) {
         //std::cerr<<"m_binStarts["<<binIdx<<"]="<<i<<"\n";
@@ -1991,8 +1991,8 @@ public:
       }
     }
     for (; binIdx <= numBins; ++binIdx) {
-      m_binStarts[binIdx] = s;
-      std::cerr << "m_binStarts[" << binIdx << "]=" << s << " !\n";
+      m_binStarts[binIdx] = tsz;
+      std::cerr << "m_binStarts[" << binIdx << "]=" << tsz << " !\n";
     }
 
     //t0 = ((double)cv::getTickCount() - t0)/cv::getTickFrequency();
@@ -3056,20 +3056,20 @@ computeTexCoords0(Mesh &mesh)
 
       float L = 0;
 
-      uint32_t v_idx = itX->idx;
+      uint32_t v_idx0 = itX->idx;
 
       //if (y < 162.008256) {
       //std::cerr<<"\n"<<xzidxs.size()<<" intersections with plane y="<<std::setprecision(9)<<y<<"\n";
       //}
 
-      if (v_idx != INVALID_INDEX) {
+      if (v_idx0 != INVALID_INDEX) {
 
-        t_idx = v_idx;
+        t_idx = v_idx0;
 
 #ifdef CHECK_TEXCOORDS
-        if (m.find(v_idx) != m.end()) {
-          std::cerr << "ERROR0: le v_idx=" << v_idx
-                    << " already in map with t_idx=" << m[v_idx]
+        if (m.find(v_idx0) != m.end()) {
+          std::cerr << "ERROR0: le v_idx0=" << v_idx0
+                    << " already in map with t_idx=" << m[v_idx0]
                     << " (current t_idx=" << t_idx << ") !!! y=" << y
                     << " (minY=" << ys.begin()->y << " prev_y=" << prev_y
                     << " dbg=" << dbg << ")\n";
@@ -3082,15 +3082,15 @@ computeTexCoords0(Mesh &mesh)
           exit(10);
         }
 
-        assert(m.find(v_idx) == m.end());
-        //m.insert(std::pair<uint32_t, uint32_t>(v_idx, t_idx));
-        m[v_idx] = t_idx;
+        assert(m.find(v_idx0) == m.end());
+        //m.insert(std::pair<uint32_t, uint32_t>(v_idx0, t_idx));
+        m[v_idx0] = t_idx;
         ++DBG_nCoords;
 #endif
 
         //if (y >267.5 && y < 268.5) {
-        //std::cerr<<"y="<<std::setprecision(9)<<y<<" v_idx="<<v_idx<<" x="<<std::setprecision(9)<<prev_x<<" z="<<std::setprecision(9)<<prev_z<<" dx=0 dz=0 dist="<<0<<" L="<<0<<"\n";
-        //std::cerr<<"texcoords idx="<<v_idx<<" L="<<std::setprecision(9)<<L<<" y="<<std::setprecision(9)<<y<<"\n";
+        //std::cerr<<"y="<<std::setprecision(9)<<y<<" v_idx0="<<v_idx0<<" x="<<std::setprecision(9)<<prev_x<<" z="<<std::setprecision(9)<<prev_z<<" dx=0 dz=0 dist="<<0<<" L="<<0<<"\n";
+        //std::cerr<<"texcoords idx="<<v_idx0<<" L="<<std::setprecision(9)<<L<<" y="<<std::setprecision(9)<<y<<"\n";
         //}
 
         //if (fabs(y-837.512) < 0.001)

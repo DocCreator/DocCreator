@@ -38,29 +38,29 @@ Baseline::computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines)
     cvtColor(dst, dst, cv::COLOR_BGR2GRAY);
 
   const std::pair<int, float> pair = getCharacterHeight(dst.clone());
-  const int character_height = pair.first;
-  const float character_density = pair.second;
+  const int characterHeight = pair.first;
+  const float characterDensity = pair.second;
 
   //B: What are these constants ????
-  const int density_threshold =
-    (int)(212.453255 * (character_density * character_density) -
-          306.0151077 * character_density + 244.3721012);
+  const int densityThreshold =
+    (int)(212.453255 * (characterDensity * characterDensity) -
+          306.0151077 * characterDensity + 244.3721012);
 
   // horizontal blur
-  cv::blur(dst, dst, cv::Size(6 * character_height, 0.5 * character_height));
+  cv::blur(dst, dst, cv::Size(6 * characterHeight, 0.5 * characterHeight));
 
   // binarization + median filtering
-  cv::threshold(dst, dst, density_threshold, 255, 1);
+  cv::threshold(dst, dst, densityThreshold, 255, 1);
   //cv::threshold(dst, dst, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
   cv::medianBlur(dst, dst, 9);
 
   // Mask peeling
-  peel(dst, dst, 2, (int)(0.8 * character_height));
+  peel(dst, dst, 2, (int)(0.8 * characterHeight));
 
   // Hough transform line detection
   cv::HoughLinesP(
-    dst, lines, 1, CV_PI / 180, 20, 4 * character_height, 5 * character_height);
+    dst, lines, 1, CV_PI / 180, 20, 4 * characterHeight, 5 * characterHeight);
 }
 
 static inline double

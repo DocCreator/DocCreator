@@ -29,7 +29,7 @@ private:
   void processKey();
 
 private:
-  int _id;
+  int _idK;
   KeyboardView *_parent;
   bool _pressed;
 };

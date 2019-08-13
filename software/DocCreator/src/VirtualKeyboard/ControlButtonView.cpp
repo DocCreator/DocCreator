@@ -5,7 +5,7 @@
 ControlButtonView::ControlButtonView(KeyboardView *parent, int id)
 {
   _parent = parent;
-  _id = id;
+  _idK = id;
   _pressed = false;
   connect(this, SIGNAL(clicked()), this, SLOT(buttonClicked()));
 }
@@ -47,13 +47,13 @@ ControlButtonView::getController()
 void
 ControlButtonView::buttonClicked()
 {
-  //QMessageBox::information(this, "Control clicked", QString::number(_id));
+  //QMessageBox::information(this, "Control clicked", QString::number(_idK));
   if (_pressed) {
     //QMessageBox::information(this, "Release", "Release");
-    _parent->processControlButtonRelease(_id);
+    _parent->processControlButtonRelease(_idK);
   } else {
     //QMessageBox::information(this, "Press", "Press");
-    _parent->processControlButton(_id);
+    _parent->processControlButton(_idK);
   }
 }
 

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011-2015 Van Cuong KIEU, Nicholas JOURNET, Boris Mansencal van-cuong.kieu@labri.fr
+  Copyright (C) 2011-2019 Van Cuong KIEU, Nicholas JOURNET, Boris Mansencal 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -1015,21 +1015,22 @@ namespace dc {
       float first_min = std::numeric_limits<float>::max();
       float second_min = std::numeric_limits<float>::max();
       float dis_max = localZone * sqrt(2);
+      {
+	for (const cv::Point pt : listEdgePoints) { //(copy of Point)
 
-      for (const cv::Point p : listEdgePoints) { //(copy of Point)
-
-	const float dis =
-	  sqrt((xo - p.x) * (xo - p.x) +
-	       (yo - p.y) * (yo - p.y)); //B:TODO:OPTIM: avoid sqrt
-	if (first_min > dis) {
-	  second_min = first_min;
-	  first_min = dis;
-	} else {
-	  if (second_min > dis)
-	    second_min = dis;
+	  const float dis =
+	    sqrt((xo - pt.x) * (xo - pt.x) +
+		 (yo - pt.y) * (yo - pt.y)); //B:TODO:OPTIM: avoid sqrt
+	  if (first_min > dis) {
+	    second_min = first_min;
+	    first_min = dis;
+	  }
+	  else {
+	    if (second_min > dis)
+	      second_min = dis;
+	  }
 	}
       }
-
       listEdgePoints.clear();
 
       if (!sp.pixel.isBackground) {
@@ -2293,21 +2294,21 @@ namespace dc {
 		-1);
 
     const int localZone2 = 2 * _local_zone;
-    const int x =
+    const int xr =
       (newCentre.x - localZone2) >= 0 ? (newCentre.x - localZone2) : (0);
-    const int y =
+    const int yr =
       (newCentre.y - localZone2) >= 0 ? (newCentre.y - localZone2) : (0);
 
     const int wo = (newCentre.x - localZone2) >= 0 ? (localZone2) : (newCentre.x);
     const int ho = (newCentre.y - localZone2) >= 0 ? (localZone2) : (newCentre.y);
-    const int w =
+    const int wr =
       wo + ((newCentre.x + localZone2) < box.cols ? (localZone2)
 	    : (box.cols - newCentre.x));
-    const int h =
+    const int hr =
       ho + ((newCentre.y + localZone2) < box.rows ? (localZone2)
 	    : (box.rows - newCentre.y));
 
-    cv::Rect r(x, y, w, h);
+    cv::Rect r(xr, yr, wr, hr);
 
     cv::Mat mask = box(r);
 

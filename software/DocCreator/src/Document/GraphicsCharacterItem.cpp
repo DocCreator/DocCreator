@@ -26,12 +26,12 @@ GraphicsCharacterItem::GraphicsCharacterItem(Models::Character *character,
   , _character(character)
   , _img()
   , _img_highlighted()
-  , _id(id)
+  , _cId(id)
   , _index(index)
   , _mustDeleteCharacter(mustDeleteCharacter)
 {
   assert(_character);
-  const Models::CharacterData *charData = _character->getCharacterData(_id);
+  const Models::CharacterData *charData = _character->getCharacterData(_cId);
   assert(charData);
   _img = charData->getImage();
   //buildHighlightedImage(); //we don't do it here. We do it on demand.

@@ -243,26 +243,26 @@ normalizeTexCoords(Mesh &mesh)
 
 #ifndef NDEBUG
   { //DEBUG
-    float tex_min_x = texcoords[2 * 0 + 0];
-    float tex_min_y = texcoords[2 * 0 + 1];
-    float tex_max_x = texcoords[2 * 0 + 0];
-    float tex_max_y = texcoords[2 * 0 + 1];
+    float texMin_x = texcoords[2 * 0 + 0];
+    float texMin_y = texcoords[2 * 0 + 1];
+    float texMax_x = texcoords[2 * 0 + 0];
+    float texMax_y = texcoords[2 * 0 + 1];
     for (uint32_t i = 1; i < numtexcoords; ++i) { //start from 1
       const float tx = texcoords[2 * i + 0];
-      if (tx < tex_min_x)
-        tex_min_x = tx;
-      else if (tx > tex_max_x)
-        tex_max_x = tx;
+      if (tx < texMin_x)
+        texMin_x = tx;
+      else if (tx > texMax_x)
+        texMax_x = tx;
 
       const float ty = texcoords[2 * i + 1];
-      if (ty < tex_min_y)
-        tex_min_y = ty;
-      else if (ty > tex_max_y)
-        tex_max_y = ty;
+      if (ty < texMin_y)
+        texMin_y = ty;
+      else if (ty > texMax_y)
+        texMax_y = ty;
     }
-    std::cerr << "#normalizeTexCoords: after: tex_min_x=" << tex_min_x
-              << " tex_min_y=" << tex_min_y << " tex_max_x=" << tex_max_x
-              << " tex_max_y=" << tex_max_y << "\n";
+    std::cerr << "#normalizeTexCoords: after: tex_min_x=" << texMin_x
+              << " tex_min_y=" << texMin_y << " tex_max_x=" << texMax_x
+              << " tex_max_y=" << texMax_y << "\n";
   }    //DEBUG end
 #endif //NDEBUG
 }
@@ -358,26 +358,26 @@ normalizeTexCoordsB(Mesh &mesh)
 
 #ifndef NDEBUG
   { //DEBUG
-    float tex_min_x = texcoords[2 * 0 + 0];
-    float tex_min_y = texcoords[2 * 0 + 1];
-    float tex_max_x = texcoords[2 * 0 + 0];
-    float tex_max_y = texcoords[2 * 0 + 1];
+    float texMin_x = texcoords[2 * 0 + 0];
+    float texMin_y = texcoords[2 * 0 + 1];
+    float texMax_x = texcoords[2 * 0 + 0];
+    float texMax_y = texcoords[2 * 0 + 1];
     for (uint32_t i = 1; i < numtexcoords; ++i) { //start from 1
       const float tx = texcoords[2 * i + 0];
-      if (tx < tex_min_x)
-        tex_min_x = tx;
-      else if (tx > tex_max_x)
-        tex_max_x = tx;
+      if (tx < texMin_x)
+        texMin_x = tx;
+      else if (tx > texMax_x)
+        texMax_x = tx;
 
       const float ty = texcoords[2 * i + 1];
-      if (ty < tex_min_y)
-        tex_min_y = ty;
-      else if (ty > tex_max_y)
-        tex_max_y = ty;
+      if (ty < texMin_y)
+        texMin_y = ty;
+      else if (ty > texMax_y)
+        texMax_y = ty;
     }
-    std::cerr << "#normalizeTexCoordsB: after: tex_min_x=" << tex_min_x
-              << " tex_min_y=" << tex_min_y << " tex_max_x=" << tex_max_x
-              << " tex_max_y=" << tex_max_y << "\n";
+    std::cerr << "#normalizeTexCoordsB: after: tex_min_x=" << texMin_x
+              << " tex_min_y=" << texMin_y << " tex_max_x=" << texMax_x
+              << " tex_max_y=" << texMax_y << "\n";
   }    //DEBUG end
 #endif //NDEBUG
 }

@@ -16,7 +16,6 @@
 
 #include "ADocumentView.hpp"
 #include "DocumentView.hpp"
-#include "GraphicsCharacterItem.hpp"
 #include "appconstants.h"
 
 #include "GridPageLayout.hpp"
@@ -979,8 +978,8 @@ DocumentController::update()
       if (style == nullptr)
         return;
       if (fontname != style->getFontName()) {
-        auto style = new Doc::DocStyle(fontname, fontname);
-        current->changeStyle(style);
+        auto st = new Doc::DocStyle(fontname, fontname);
+        current->changeStyle(st);
       }
     }
     if (Context::FontContext::instance()->fontCurrentModified()) {

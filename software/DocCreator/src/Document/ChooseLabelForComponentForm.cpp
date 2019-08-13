@@ -193,11 +193,11 @@ ChooseLabelForComponentForm::loadTable()
       components_images->constBegin();
     while (iter1 != components_images->constEnd()) {
       ++colIndex;
-      QTableWidgetItem *item = new QTableWidgetItem();
+      QTableWidgetItem *itm = new QTableWidgetItem();
       QIcon icon(QPixmap::fromImage(iter1.value()));
-      item->setIcon(icon);
+      itm->setIcon(icon);
 
-      _tableOfLabeledComponents->setItem(row, colIndex, item);
+      _tableOfLabeledComponents->setItem(row, colIndex, itm);
       ++iter1;
     }
 
