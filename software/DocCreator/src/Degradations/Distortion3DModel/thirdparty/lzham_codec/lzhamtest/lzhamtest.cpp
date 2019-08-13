@@ -1089,15 +1089,15 @@ static bool find_files(std::string pathname, const std::string &filename, string
       if (ep->d_name[0] == '.')
          continue;
 
-      std::string filename(ep->d_name);
+      std::string fileName(ep->d_name);
 
       if (is_directory)
       {
          if (recursive)
-            paths.push_back(filename);
+            paths.push_back(fileName);
       }
       else if (is_file)
-         files.push_back(pathname + filename);
+         files.push_back(pathname + fileName);
    }
 
    closedir(dp);
