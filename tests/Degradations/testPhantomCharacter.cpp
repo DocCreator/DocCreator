@@ -15,7 +15,7 @@ static
 void
 testSimple0(int imageType)
 {
-  //Apply PhantomCharacter of given distance
+  //Apply PhantomCharacter with given frequency
   //and check that the output type is the same than the input type.
 
   const int ROWS = 100;
