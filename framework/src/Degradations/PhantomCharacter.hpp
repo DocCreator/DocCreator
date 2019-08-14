@@ -7,12 +7,20 @@
 namespace dc {
   namespace PhantomCharacter {
 
-    enum class Frequency {RARE=0, FREQUENT, VERY_FREQUENT}; 
+    /**
+       Tells the probability of occurence of phantom characters.
+     */
+    enum class Frequency {RARE=0, /** Probability of occurence is 15% */
+			  FREQUENT, /** Probability of occurence is 40% */
+			  VERY_FREQUENT /** Probability of occurence is 70% */
+    }; 
 
     /*
-      RARE is 15% probability of occurrence of phantom character.
-      FREQUENT is 40%
-      VERY_FREQUENT is 70%
+      Insert "phantom characters" on border of characters.
+
+      @param imgOriginal input image to degrade.
+      @param frequency frequency of occurence of phantom characters.
+      @param phantomPatternsPath directory to load phantom patterns from.
 
       @return modified image.
     */
