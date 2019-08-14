@@ -1544,10 +1544,10 @@ Assistant::BleedThrough_LoadPrevImg()
         nbPic = P_bounded_rand(0, _inputImageList.size());
 
     _BleedThrough_indexRecto = nbPic;
-    QString chemin = _inputImageList[nbPic];
-    chemin = _PicDirectory + "/" + chemin;
-    _BleedThrough_rectoImg.load(chemin);
-    //std::cout << ".............  " << chemin.toStdString() << std::endl;
+    QString imagePath = _inputImageList[nbPic];
+    imagePath = _PicDirectory + "/" + imagePath;
+    _BleedThrough_rectoImg.load(imagePath);
+    //std::cout << ".............  " << imagePath.toStdString() << std::endl;
     if (!_BleedThrough_rectoImg.isNull()) {
 
       _BleedThrough_rectoImgSmall = toGray(_BleedThrough_rectoImg.scaled(
@@ -1584,9 +1584,9 @@ Assistant::BleedThrough_setVersoImage()
     while (nbPic == _BleedThrough_indexRecto)
       nbPic = P_bounded_rand(0, _inputImageList.size());
 
-    QString chemin = _inputImageList[nbPic];
-    chemin = _PicDirectory + "/" + chemin;
-    _BleedThrough_versoImg.load(chemin);
+    QString imagePath = _inputImageList[nbPic];
+    imagePath = _PicDirectory + "/" + imagePath;
+    _BleedThrough_versoImg.load(imagePath);
   }
 
   _BleedThrough_versoImgSmall = toGray(_BleedThrough_versoImg.scaled(
@@ -1830,10 +1830,10 @@ Assistant::CharDeg_LoadPrevImgChar()
 
     _CharDeg_indexRecto = nbPic;
     assert(nbPic < _inputImageList.size());
-    QString chemin = _inputImageList[nbPic];
-    chemin = _PicDirectory + "/" + chemin;
-    _CharDeg_rectoImgChar.load(chemin);
-    //std::cout << ".............  " << chemin.toStdString() << std::endl;
+    QString imagePath = _inputImageList[nbPic];
+    imagePath = _PicDirectory + "/" + imagePath;
+    _CharDeg_rectoImgChar.load(imagePath);
+    //std::cout << ".............  " << imagePath.toStdString() << std::endl;
 
     if (!_CharDeg_rectoImgChar.isNull()) {
 
@@ -2208,9 +2208,9 @@ Assistant::Phantom_LoadPrevImgPhant()
 
     _Phantom_indexRecto = nbPic;
 
-    QString chemin = _inputImageList[nbPic];
-    chemin = _PicDirectory + "/" + chemin;
-    _Phantom_rectoImgPhant.load(chemin);
+    QString imagePath = _inputImageList[nbPic];
+    imagePath = _PicDirectory + "/" + imagePath;
+    _Phantom_rectoImgPhant.load(imagePath);
 
     if (!_Phantom_rectoImgPhant.isNull()) {
 
@@ -2465,21 +2465,21 @@ static const int BLUR_PATTERN_HEIGHT = 121;
 void
 Assistant::Blur_LoadPattern()
 {
-  const QString chemin = Context::BackgroundContext::instance()->getPath() +
+  const QString blurPatternsPath = Context::BackgroundContext::instance()->getPath() +
                          "../Image/blurImages/blurPatterns/";
 
   QImage pattern1;
-  pattern1.load(chemin + "patternArea1.png");
+  pattern1.load(blurPatternsPath + "patternArea1.png");
   QImage pattern2;
-  pattern2.load(chemin + "patternArea2.png");
+  pattern2.load(blurPatternsPath + "patternArea2.png");
   QImage pattern3;
-  pattern3.load(chemin + "patternArea3.png");
+  pattern3.load(blurPatternsPath + "patternArea3.png");
   QImage pattern4;
-  pattern4.load(chemin + "patternArea4.png");
+  pattern4.load(blurPatternsPath + "patternArea4.png");
   QImage pattern5;
-  pattern5.load(chemin + "patternArea5.png");
+  pattern5.load(blurPatternsPath + "patternArea5.png");
   QImage pattern6;
-  pattern6.load(chemin + "patternArea6.png");
+  pattern6.load(blurPatternsPath + "patternArea6.png");
 
   QHBoxLayout *pat1 = ui->PrevPattern1;
   QHBoxLayout *pat2 = ui->PrevPattern2;
@@ -2647,10 +2647,10 @@ Assistant::Blur_LoadPrevImgBlur()
         nbPic = P_bounded_rand(0, _inputImageList.size());
     assert(nbPic < _inputImageList.size());
     _Blur_indexRecto = nbPic;
-    QString chemin = _inputImageList[nbPic];
-    chemin = _PicDirectory + "/" + chemin;
-    _Blur_rectoImgBlur.load(chemin);
-    //std::cout << ".............  " << chemin.toStdString() << std::endl;
+    QString imagePath = _inputImageList[nbPic];
+    imagePath = _PicDirectory + "/" + imagePath;
+    _Blur_rectoImgBlur.load(imagePath);
+    //std::cout << ".............  " << imagePath.toStdString() << std::endl;
     if (!_Blur_rectoImgBlur.isNull()) {
       _Blur_rectoImgBlurDeg = _Blur_rectoImgBlur;
 
@@ -3146,10 +3146,10 @@ Assistant::Hole_LoadPrevImgHole()
 
     _Hole_indexRecto = nbPic;
 
-    QString chemin = _inputImageList[nbPic];
-    chemin = _PicDirectory + "/" + chemin;
-    _Hole_rectoImgHole.load(chemin);
-    //std::cout << ".............  " << chemin.toStdString() << std::endl;
+    QString imagePath = _inputImageList[nbPic];
+    imagePath = _PicDirectory + "/" + imagePath;
+    _Hole_rectoImgHole.load(imagePath);
+    //std::cout << ".............  " << imagePath.toStdString() << std::endl;
     if (!_Hole_rectoImgHole.isNull()) {
       _Hole_ImgHoleOriginal = _Hole_rectoImgHole;
       _Hole_rectoImgHole = _Hole_rectoImgHole.scaled(HOLE_PREVIEW_WIDTH,
