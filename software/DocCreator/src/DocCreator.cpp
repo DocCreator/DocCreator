@@ -35,6 +35,7 @@
 #include "Degradations/Distortion3DModel/src/MeshWindow.hpp"
 #include "Degradations/GrayCharacterDegradationDialog.hpp"
 #include "Degradations/GrayCharacterDegradationParameter.hpp"
+#include "Degradations/GrayscaleCharsDegradationModel.hpp"
 #include "Degradations/HoleDegradationDialog.hpp"
 #include "Degradations/ImageGenerationFromDirDialog.hpp"
 #include "Degradations/PhantomCharacterDialog.hpp"
@@ -1019,11 +1020,13 @@ DocCreator::applyBlurFilter()
   //const QString filename = path+Context::BackgroundContext::instance()->getCurrentBackground();
   //QImage background(filename);
 
-  dialog.setOriginalImage(
-    _docController->toQImage(WithTextBlocks | WithImageBlocks));
+
+  QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
+
+  dialog.setOriginalImage(img);
 
   if (dialog.exec()) {
-    dc::BlurFilterQ deg(_docController->toQImage(WithTextBlocks | WithImageBlocks),
+    dc::BlurFilterQ deg(img,
                    dialog.getMethod(),
                    dialog.getIntensity(),
                    dialog.getMode(),
@@ -1056,13 +1059,14 @@ DocCreator::applyShadowBinding()
   //const QString filename = path+Context::BackgroundContext::instance()->getCurrentBackground();
   //QImage background(filename);
 
-  dialog.setOriginalImage(
-    _docController->toQImage(WithTextBlocks | WithImageBlocks));
+  const QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
+
+  dialog.setOriginalImage(img);
 
   if (dialog.exec()) {
 
     dc::ShadowBindingQ deg(
-      _docController->toQImage(WithTextBlocks | WithImageBlocks),
+      img,
       dialog.getBorder(),
       dialog.getDistance(),
       dialog.getIntensity(),
@@ -1308,28 +1312,23 @@ DocCreator::createActions()
           this,
           SLOT(applyPhantomCharacter()));
 
+
+  _applyCharacterDegradationModel =
+    new QAction(tr("&GrayScale Character Degradation..."), this);
+  _applyCharacterDegradationModel->setStatusTip(
+    tr("Apply GrayScale Character Degradation model to the document"));
+  connect(_applyCharacterDegradationModel,
+          SIGNAL(triggered()),
+          this,
+          SLOT(applyCharacterDegradationModel()));
+
+
   //DocCreator
   _chooseTypeDoc = new QAction(
     QIcon(":/images/generate.png"), tr("&Generate Documents..."), this);
   _chooseTypeDoc->setStatusTip(tr("Generate synthetic documents"));
   connect(_chooseTypeDoc, SIGNAL(triggered()), this, SLOT(generateDocuments()));
 
-  /** Adjust the parameter of grayscale degradation model.
-   * kvcuong
-   * 07/12/2012
-   */
-  _adjusteGrayScaleParameterDialog =
-    new QAction(tr("&GrayScale Character Degradation..."), this);
-  _adjusteGrayScaleParameterDialog->setStatusTip(
-    tr("Apply GrayScale Degradation model to the document"));
-  connect(_adjusteGrayScaleParameterDialog,
-          SIGNAL(triggered()),
-          this,
-          SLOT(adjustGrayscaleDegradationParameter()));
-  /** Image action
-   * kvcuong
-   * 09/08/2014
-   */
 
   //B
   //_viewXMLAct = new QAction(tr("View XML"), this);
@@ -1385,25 +1384,37 @@ DocCreator::createActions()
           this,
           SLOT(onFocusChanged(QWidget*,QWidget*)));
 }
-/** Degradation connected components function
- * kvcuong
- * 12/05/2012
- */
+
 void
-DocCreator::adjustGrayscaleDegradationParameter()
+DocCreator::applyCharacterDegradationModel()
 {
-  //    GrayCharacterDegradationDialog *dialog = new
-  //    GrayCharacterDegradationDialog(_docController, this);
-  //    if (dialog->exec()) {
-  //        dialog->degrade();
-  //        qDebug() << "OK";
-  //    }
-  GrayCharacterDegradationParameter dialog(_docController, this);
+  GrayCharacterDegradationParameter dialog(this);
+
+  QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
+
+  dialog.setOriginalImage(img);
+
   if (dialog.exec()) {
-    dialog.degrade();
-    qDebug() << "OK";
+    QGuiApplication::setOverrideCursor(Qt::BusyCursor);
+
+    dc::GrayscaleCharsDegradationModel cdg(img);
+
+    QImage dst = cdg.degradateByLevel(dialog.getLevel());
+
+    const bool writeOk = dst.save(dialog.getFilename());
+
+    QGuiApplication::restoreOverrideCursor();
+
+    if (! writeOk) {
+      QMessageBox::critical(
+			    this,
+			    "Grayscale Degradation Model",
+			    "The image was not correctly saved!");
+    }
+
   }
 }
+
 void
 DocCreator::apply3DDistortionModel()
 {
@@ -1757,7 +1768,7 @@ DocCreator::createMenus()
     _imageDegradationSubMenu->addMenu(tr("Color Degradation"));
 
   _grayScaleDegradationSubMenu->addAction(_applyBleedThrough);
-  _grayScaleDegradationSubMenu->addAction(_adjusteGrayScaleParameterDialog);
+  _grayScaleDegradationSubMenu->addAction(_applyCharacterDegradationModel);
 
   _colorDegradationSubMenu->addAction(_distortion3DModelAct);
   _colorDegradationSubMenu->addAction(_applyBlurFilter);

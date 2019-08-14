@@ -1,26 +1,21 @@
 #include "GrayCharacterDegradationParameter.hpp"
 
 #include "ui_GrayCharacterDegradationParameter.h"
-#include <Degradations/GrayscaleCharsDegradationModel.hpp>
+
 #include <QFileDialog>
 
-#include "Document/DocumentController.hpp"
 #include "Utils/ImageUtils.hpp" //getWriteImageFilter()
-#include "Utils/convertor.h"
+
 
 GrayCharacterDegradationParameter::GrayCharacterDegradationParameter(
-  DocumentController *docController,
-  QWidget *parent)
-  : QDialog(parent)
-  , ui(new Ui::GrayCharacterDegradationParameter)
+  QWidget *parent) :
+  QDialog(parent),
+  ui(new Ui::GrayCharacterDegradationParameter)
 {
   ui->setupUi(this);
 
-  //
-  _docController = docController;
-  // open browser to find a saving folder
-  connect(ui->btnSaveto, SIGNAL(clicked()), this, SLOT(chooseSaveDirectory()));
-  //
+  connect(ui->btnSaveto, SIGNAL(clicked()), this, SLOT(chooseSaveFilename()));
+  connect(ui->txtFilePath, SIGNAL(textChanged(QString)), this, SLOT(updateOkButton()));
 }
 
 GrayCharacterDegradationParameter::~GrayCharacterDegradationParameter()
@@ -29,7 +24,16 @@ GrayCharacterDegradationParameter::~GrayCharacterDegradationParameter()
 }
 
 void
-GrayCharacterDegradationParameter::chooseSaveDirectory()
+GrayCharacterDegradationParameter::setOriginalImage(const QImage &img)
+{
+  _originalImg = img;
+
+  updateOkButton();
+}
+
+
+void
+GrayCharacterDegradationParameter::chooseSaveFilename()
 {
   QString path =
     QFileDialog::getSaveFileName(this,
@@ -39,11 +43,46 @@ GrayCharacterDegradationParameter::chooseSaveDirectory()
   ui->txtFilePath->setText(path);
 }
 
+bool
+GrayCharacterDegradationParameter::isOutputFileValid() const
+{
+  const QString path = getFilename();
+  if (path.isEmpty())
+    return false;
+  return QFileInfo(path).dir().exists();
+}
+
+void
+GrayCharacterDegradationParameter::updateOkButton()
+{
+  const bool imageValid = (! _originalImg.isNull());
+  const bool fileValid = isOutputFileValid();
+
+  QPushButton *okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
+  assert(okButton);
+  if (imageValid && fileValid)
+    okButton->setEnabled(true);
+  else
+    okButton->setEnabled(false);
+}
+
+int
+GrayCharacterDegradationParameter::getLevel() const
+{
+  return ui->hsSlider->value(); // get degradation level
+}
+
+QString
+GrayCharacterDegradationParameter::getFilename() const
+{
+  return ui->txtFilePath->text();
+}
+
+/*
 void
 GrayCharacterDegradationParameter::degrade()
 {
 
-  const int level = ui->hsSlider->value(); // get degradation level
 
   //B: CODE DUPLICATION ? there is almost the same code in GrayCharacterDegradationDialog.cpp
 
@@ -58,8 +97,10 @@ GrayCharacterDegradationParameter::degrade()
 
   QImage dst = cdg.degradateByLevel(level);
 
-  QString path = ui->txtFilePath->text();
+  const QString path = ui->txtFilePath->text();
 
   if (!path.isEmpty())
     dst.save(path);
 }
+
+*/

@@ -110,7 +110,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Save image to</string>
+    <string>Save image as: </string>
    </property>
   </widget>
   <widget class="QLineEdit" name="txtFilePath">
@@ -133,7 +133,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Browser</string>
+    <string>...</string>
    </property>
   </widget>
  </widget>

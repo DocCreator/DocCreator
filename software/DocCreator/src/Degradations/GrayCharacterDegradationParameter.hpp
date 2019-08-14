@@ -13,16 +13,25 @@ class GrayCharacterDegradationParameter : public QDialog
   Q_OBJECT
 
 public:
-  explicit GrayCharacterDegradationParameter(DocumentController *docController,
-                                             QWidget *parent = 0);
+  explicit GrayCharacterDegradationParameter(QWidget *parent = 0);
   ~GrayCharacterDegradationParameter();
-  void degrade();
+
+  void setOriginalImage(const QImage &img);
+
+  int getLevel() const;
+  QString getFilename() const;
+
 public slots:
-  void chooseSaveDirectory();
+  void chooseSaveFilename();
+  void updateOkButton();
+
+protected:
+  bool isOutputFileValid() const;
 
 private:
   Ui::GrayCharacterDegradationParameter *ui;
-  DocumentController *_docController;
+
+  QImage _originalImg;
 };
 
 #endif // GRAYCHARACTERDEGRADATIONPARAMETER_HPP

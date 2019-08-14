@@ -68,7 +68,7 @@ private slots:
   // added by kvcuong 09/05/2012
   //void extractConnectedComponents();
   //void componentsLabeling();
-  void adjustGrayscaleDegradationParameter();
+  void applyCharacterDegradationModel();
   void apply3DDistortionModel();
   void changeFont(const QString &fontName);
   void changeBackground(const QString &background);
@@ -129,7 +129,7 @@ private:
   QAction *_importBackgroundAct, *_exportToImageAct, *_openDocumentAct;
   QAction *_saveDocumentAsAct;
   // added by kvcuong 09/05/2012
-  QAction *_extractBackground, *_adjusteGrayScaleParameterDialog;
+  QAction *_extractBackground, *_applyCharacterDegradationModel;
   // Image action
   QMenu *_imageToolsSubMenu, *_imageDegradationSubMenu,
     *_grayScaleDegradationSubMenu, *_colorDegradationSubMenu;
