@@ -64,6 +64,9 @@ protected:
   //Phantom Functions
   void Phantom_setupGUIImages();
 
+  //GDD
+  void GDD_setupGUIImages();
+  
   //Blur Functions
   void Blur_setupGUIImages();
   void Blur_LoadPattern();
@@ -77,6 +80,7 @@ protected:
   int nbTirageChar() const;
   bool charEnable() const;
   bool shadEnable() const;
+  bool gddEnable() const;
   bool phantEnable() const;
   bool pattern1() const;
   bool pattern2() const;
@@ -177,7 +181,7 @@ protected slots:
   void Shadow_EnableShadOption();
   void Shadow_selectionChanged();
   void Shadow_updatePreview();
-  void Shadow_TirageShadowChanged(int nbTirage);
+  void Shadow_tirageShadowChanged(int nbTirage);
   /*
     void Shadow_OptionChecked();
     void Shadow_RightSelected();
@@ -190,7 +194,7 @@ protected slots:
   void Phantom_OptionCheckedPhant();
   void Phantom_EnablePhantOption();
   void Phantom_LoadPrevImgPhant();
-  void Phantom_TiragePhantomChanged(int value);
+  void Phantom_tiragePhantomChanged(int value);
 
   //Blur slots
   void Blur_OptionCheckedBlur();
@@ -206,7 +210,7 @@ protected slots:
   void Blur_CheckedPattern5();
   void Blur_CheckedPattern6();
   void Blur_LoadPrevImgBlur();
-  void Blur_TirageBlurChanged(int value);
+  void Blur_tirageBlurChanged(int value);
 
   //Hole slots
   void Hole_EnableHoleOption();
@@ -218,7 +222,7 @@ protected slots:
   void Hole_changeMaxNbBorderHole(int value);
   void Hole_OptionCheckedHole();
   void Hole_chooseColor();
-  void Hole_TirageHoleChanged(int value);
+  void Hole_tirageHoleChanged(int value);
 
   void Hole_updatePreview();
 
@@ -229,8 +233,16 @@ protected slots:
   void Dist3D_chooseMeshesDirectory();
   void Dist3D_changeUseBackground();
   void Dist3D_chooseBackgroundsDirectory();
-  void Dist3D_TirageDist3DChanged(int nbTirage);
+  void Dist3D_tirageDist3DChanged(int nbTirage);
 
+  //Gradient Domain Degradation slots
+  //void GDD_OptionCheckedGDD();
+  void GDD_EnableGDDOption();
+  void GDD_tirageGDDChanged(int value);
+  void GDD_changeMinNbStains(int value);
+  void GDD_changeMaxNbStains(int value);
+  void GDD_chooseStainImagesDirectory();
+  
 protected:
   void enableAccordingToInputImages();
   bool askIfProceedDespiteImageInDir(const QString &path) const;
@@ -251,6 +263,8 @@ protected:
   void Phantom_updatePreview();
   void Phantom_updateTirageAndTotal();
 
+  void GDD_updateTirageAndTotal();
+  
   void BleedThrough_updateTirageAndTotal();
 
   void Blur_updateTirageAndTotal();
@@ -303,6 +317,10 @@ protected:
              const QImage &recto,
              const QString &outputImageDir) const;
 
+  void do_GDD(const QString &imageBasename,
+             const QImage &recto,
+             const QString &outputImageDir) const;
+
 private:
   Ui::Assistant *ui;
 
@@ -319,6 +337,7 @@ private:
     Page_ImageAndGtDirs,
     Page_Bleed,
     Page_CharDeg,
+    Page_GDD,
     Page_Shadow,
     Page_Phantom,
     Page_Blur,
@@ -357,6 +376,7 @@ private:
   int _Phantom_nbPhantSelected;
   int _Phantom_indexRecto = -1;
 
+  
   //Parameters of blur filter
   QImage _Blur_rectoImgBlur;
   QImage _Blur_rectoImgBlurDeg;
@@ -390,9 +410,12 @@ private:
 
   bool _Shadow_shadEnable;
 
+  
   bool _Phantom_phantEnable;
-  QString _PhantomPatternsPath = Context::BackgroundContext::instance()->getPath() +
-         "../Image/phantomPatterns/"; //B:TODO:UGLY !
+  QString _PhantomPatternsPath;
+
+  bool _GDD_gddEnable;
+  QString _GDD_stainImagesDirectory;
 
   bool _Blur_pattern1;
   bool _Blur_pattern2;

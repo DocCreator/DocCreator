@@ -25,6 +25,7 @@ SET(
   src/Degradations/ShadowBindingQ.hpp
   src/Degradations/HoleDegradationQ.hpp
   src/Degradations/PhantomCharacterQ.hpp
+  src/Degradations/GradientDomainDegradationQ.hpp
 )
 
 SET(
@@ -33,6 +34,7 @@ SET(
   src/Degradations/ShadowBindingQ.cpp
   src/Degradations/HoleDegradationQ.cpp
   src/Degradations/PhantomCharacterQ.cpp
+  src/Degradations/GradientDomainDegradationQ.cpp
 )
 
 
@@ -75,6 +77,7 @@ SET(
   src/Degradations/ShadowBindingDialog.hpp
   src/Degradations/HoleDegradationDialog.hpp
   src/Degradations/PhantomCharacterDialog.hpp
+  src/Degradations/GradientDomainDegradationDialog.hpp
   src/Degradations/VersoImageChanger.hpp
   src/RandomDocument/RandomDocumentParameters.hpp
   src/RandomDocument/RandomDocumentExporter.hpp
@@ -125,6 +128,7 @@ SET(
   src/Degradations/ShadowBindingDialog.cpp
   src/Degradations/HoleDegradationDialog.cpp
   src/Degradations/PhantomCharacterDialog.cpp
+  src/Degradations/GradientDomainDegradationDialog.cpp
   src/Degradations/ImageGenerationFromDirDialog.cpp
   src/RandomDocument/RandomDocumentCreator.cpp
   src/RandomDocument/RandomBackGroundChanger.cpp
@@ -185,6 +189,7 @@ SET(
   src/Degradations/ShadowBindingDialog.ui
   src/Degradations/HoleDegradationDialog.ui
   src/Degradations/PhantomCharacterDialog.ui
+  src/Degradations/GradientDomainDegradationDialog.ui
   src/RandomDocument/RandomDocumentParametersDialog.ui
   src/FontEditor/fonteditorview.ui
   src/Document/LabelingComponentDialog.ui

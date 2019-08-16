@@ -30,6 +30,8 @@ const QString AppConfigHolePatternsFolderKey =
 const QString AppConfigPhantomPatternsFolderKey =
   QStringLiteral("phantompatternsfolder");
 const QString AppConfigBlurImagesFolderKey = QStringLiteral("blurimagesfolder");
+const QString AppConfigStainImagesFolderKey =
+  QStringLiteral("stainimagesfolder");
 
 const QString AppConfigTessdataParentFolderKey =
   QStringLiteral("tessdataparentfolder");

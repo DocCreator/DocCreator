@@ -21,6 +21,7 @@
 #include "Degradations/HoleDegradationQ.hpp"
 #include "Degradations/PhantomCharacterQ.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
+#include "Degradations/GradientDomainDegradationQ.hpp"
 #include "Document/DocumentController.hpp"
 #include "Document/DocumentToXMLExporter.hpp"
 #include "RandomDocument/RandomDocumentCreator.hpp"
@@ -74,6 +75,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   CharDeg_setupGUIImages();
   Shadow_setupGUIImages();
   Phantom_setupGUIImages();
+  GDD_setupGUIImages();
   Blur_setupGUIImages();
   Hole_setupGUIImages();
   Dist3D_setupGUIImages();
@@ -82,6 +84,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   _CharDeg_charEnable = false;
   _Shadow_shadEnable = false;
   _Phantom_phantEnable = false;
+  _GDD_gddEnable = false;
   _Blur_blurEnable = false;
   _Blur_PageEnable = false;
   _Blur_ZoneEnable = false;
@@ -263,8 +266,10 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QObject::connect(ui->TirageShadow,
                    SIGNAL(valueChanged(int)),
                    this,
-                   SLOT(Shadow_TirageShadowChanged(int)));
+                   SLOT(Shadow_tirageShadowChanged(int)));
 
+
+  
   QObject::connect(ui->CheckPhant,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -287,8 +292,36 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QObject::connect(ui->TiragePhantom,
                    SIGNAL(valueChanged(int)),
                    this,
-                   SLOT(Phantom_TiragePhantomChanged(int)));
+                   SLOT(Phantom_tiragePhantomChanged(int)));
 
+
+
+  
+  QObject::connect(ui->CheckGDD,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(GDD_EnableGDDOption()));  
+  QObject::connect(ui->GDD_btnStainImagesFolder,
+                   SIGNAL(clicked()),
+                   this,
+                   SLOT(GDD_chooseStainImagesDirectory()));
+  QObject::connect(ui->TirageGDD,
+                   SIGNAL(valueChanged(int)),
+                   this,
+                   SLOT(GDD_tirageGDDChanged(int)));
+  QObject::connect(ui->GDD_numStainsMin,
+                   SIGNAL(valueChanged(int)),
+                   this,
+                   SLOT(GDD_changeMinNbStains(int)));
+  QObject::connect(ui->GDD_numStainsMax,
+                   SIGNAL(valueChanged(int)),
+                   this,
+                   SLOT(GDD_changeMaxNbStains(int)));
+  
+
+  
+  //-- Blur 
+  
   QObject::connect(
     ui->CheckPattern1, SIGNAL(clicked()), this, SLOT(Blur_OptionCheckedBlur()));
   QObject::connect(
@@ -316,7 +349,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QObject::connect(ui->TirageBlur,
                    SIGNAL(valueChanged(int)),
                    this,
-                   SLOT(Blur_TirageBlurChanged(int)));
+                   SLOT(Blur_tirageBlurChanged(int)));
   QObject::connect(ui->CheckBlur,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -336,6 +369,9 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QObject::connect(
     ui->SwitchBlur, SIGNAL(clicked()), this, SLOT(Blur_LoadPrevImgBlur()));
 
+
+  //- Hole 
+  
   QObject::connect(ui->CheckHole,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -403,8 +439,11 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QObject::connect(ui->TirageHole,
                    SIGNAL(valueChanged(int)),
                    this,
-                   SLOT(Hole_TirageHoleChanged(int)));
+                   SLOT(Hole_tirageHoleChanged(int)));
 
+
+  //- Distortion 3D
+  
   QObject::connect(ui->CheckDist3D,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -424,8 +463,10 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QObject::connect(ui->TirageDist3D,
                    SIGNAL(valueChanged(int)),
                    this,
-                   SLOT(Dist3D_TirageDist3DChanged(int)));
+                   SLOT(Dist3D_tirageDist3DChanged(int)));
 
+
+  
   QObject::connect(ui->btnChooseOutputDegrImageDir,
                    SIGNAL(clicked()),
                    this,
@@ -666,6 +707,9 @@ Assistant::nextId() const
       return Page_Phantom;
       break;
     case Page_Phantom:
+      return Page_GDD;
+      break;      
+    case Page_GDD:
       return Page_Bleed;
       break;
     case Page_Bleed:
@@ -1315,11 +1359,14 @@ Assistant::nbOfDegradedImages() const
   if (_Phantom_phantEnable)
     totalPic += _Phantom_nbPhantSelected * ui->TiragePhantom->value() * nbPic;
 
+  if (_GDD_gddEnable)
+    totalPic += 1 * ui->TirageGDD->value() * nbPic;
+  
   if (_Shadow_shadEnable)
     totalPic += _Shadow_nbShadSelected * ui->TirageShadow->value() * nbPic;
 
-  totalPic += Blur_nbDegradations() * ui->TirageBlur->value() *
-              nbPic; //_Blur_nbTirageBlur * nbPic;
+  if (_Blur_blurEnable)
+    totalPic += Blur_nbDegradations() * ui->TirageBlur->value() * nbPic;
 
   if (_Hole_holeEnable)
     totalPic += 1 * ui->TirageHole->value() * nbPic;
@@ -1818,6 +1865,10 @@ Assistant::BleedThrough_tirageBleedChanged(int /*value*/)
   updateTotalPic();
 }
 
+
+
+
+
 void
 Assistant::CharDeg_LoadPrevImgChar()
 {
@@ -2171,7 +2222,7 @@ Assistant::Shadow_EnableShadOption()
     ui->TotalShadow->setEnabled(enabled);
 
     ui->TirageShadow->setValue(
-      0); //signal/slot will call Shadow_TirageShadowChanged(0)
+      0); //signal/slot will call Shadow_tirageShadowChanged(0)
   }
 
   ui->OptionShad->setEnabled(enabled);
@@ -2187,7 +2238,7 @@ Assistant::Shadow_EnableShadOption()
 }
 
 void
-Assistant::Shadow_TirageShadowChanged(int /*value*/)
+Assistant::Shadow_tirageShadowChanged(int /*value*/)
 {
   const int nbDegs = _Shadow_nbShadSelected;
   ui->NbDegShadow->setText(QString::number(nbDegs));
@@ -2242,6 +2293,10 @@ Assistant::Phantom_LoadPrevImgPhant()
 void
 Assistant::Phantom_setupGUIImages()
 {
+  _PhantomPatternsPath = Core::ConfigurationManager::get(AppConfigMainGroup,
+                                         AppConfigPhantomPatternsFolderKey)
+    .toString();
+  
   ui->PhantomPreviewLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
   ui->PhantomPreviewLabel->setText(QStringLiteral("result"));
   ui->PhantomPreviewLabel->setMinimumSize(PHANTOM_PREVIEW_WIDTH,
@@ -2292,7 +2347,7 @@ Assistant::Phantom_EnablePhantOption()
     ui->TotalPhantom->setEnabled(enabled);
 
     ui->TiragePhantom->setValue(
-      0); //signal/slot will call Phantom_TiragePhantomChanged(0)
+      0); //signal/slot will call Phantom_tiragePhantomChanged(0)
   }
 
   ui->OptionPhant->setEnabled(enabled);
@@ -2303,7 +2358,7 @@ Assistant::Phantom_EnablePhantOption()
 }
 
 void
-Assistant::Phantom_TiragePhantomChanged(int /*value*/)
+Assistant::Phantom_tiragePhantomChanged(int /*value*/)
 {
   const int nbDegs = _Phantom_nbPhantSelected;
   ui->NbDegPhantom->setText(QString::number(nbDegs));
@@ -2311,7 +2366,7 @@ Assistant::Phantom_TiragePhantomChanged(int /*value*/)
     nbDegs * _inputImageList.size() * ui->TiragePhantom->value();
   ui->TotalPhantom->setText(QString::number(total));
 
-  //std::cerr<<"Phantom_TiragePhantomChanged(v) nbDegs="<<nbDegs<<" total="<<total<<"\n";
+  //std::cerr<<"Phantom_tiragePhantomChanged(v) nbDegs="<<nbDegs<<" total="<<total<<"\n";
 
   updateTotalPic();
 }
@@ -2437,7 +2492,7 @@ Assistant::Blur_updateTirageAndTotal()
 
   if (nbDegs > 0 && ui->TirageBlur->value() == 0) {
     ui->TirageBlur->setValue(
-      1); //will call Blur_TirageBlurChanged via signal/slot
+      1); //will call Blur_tirageBlurChanged via signal/slot
   } else {
     const int total = nbDegs * _inputImageList.size() *
                       ui->TirageBlur->value(); //_Blur_nbTirageBlur;
@@ -2447,7 +2502,7 @@ Assistant::Blur_updateTirageAndTotal()
 }
 
 void
-Assistant::Blur_TirageBlurChanged(int /*value*/)
+Assistant::Blur_tirageBlurChanged(int /*value*/)
 {
   //_Blur_nbTirageBlur = value;
 
@@ -2564,7 +2619,7 @@ Assistant::Blur_EnableBlurOption()
     ui->TotalBlur->setEnabled(enabled);
 
     ui->TirageBlur->setValue(
-      0); //signal/slot will call Blur_TirageBlurChanged(0)
+      0); //signal/slot will call Blur_tirageBlurChanged(0)
   }
 
   ui->BlurZone->setEnabled(enabled);
@@ -2870,7 +2925,7 @@ Assistant::Hole_EnableHoleOption()
     ui->TotalHole->setEnabled(enabled);
 
     ui->TirageHole->setValue(
-      0); //signal/slot will call Hole_TirageHoleChanged(0);
+      0); //signal/slot will call Hole_tirageHoleChanged(0);
   }
 
   ui->SmallBorder->setEnabled(enabled);
@@ -3035,7 +3090,7 @@ Assistant::Hole_updateTirageAndTotal()
 
   if (nbDegs > 0 && ui->TirageHole->value() == 0) {
     ui->TirageHole->setValue(
-      1); //will call Hole_TirageHoleChanged via signal/slot
+      1); //will call Hole_tirageHoleChanged via signal/slot
   } else {
     const int total = nbDegs * _inputImageList.size() * ui->TirageHole->value();
     ui->TotalHole->setText(QString::number(total));
@@ -3080,7 +3135,7 @@ Assistant::Hole_chooseColor()
 }
 
 void
-Assistant::Hole_TirageHoleChanged(int /*value*/)
+Assistant::Hole_tirageHoleChanged(int /*value*/)
 {
   const int nbDegs = (_Hole_nbHoleSelected ? 1 : 0);
   ui->NbDegHole->setText(QString::number(nbDegs));
@@ -3105,7 +3160,7 @@ Assistant::Hole_TirageHoleChanged(int /*value*/)
 }
 
 /*
-void Assistant::Hole_TirageCornerChanged(int value)
+void Assistant::Hole_tirageCornerChanged(int value)
 {
   _Hole_nbHoleCorner = value;
   int majBilanHole = 0;
@@ -3119,7 +3174,7 @@ void Assistant::Hole_TirageCornerChanged(int value)
   updateTotalPic();
 }
 
-void Assistant::Hole_TirageCenterChanged(int value)
+void Assistant::Hole_tirageCenterChanged(int value)
 {
   _Hole_nbHoleCenter = value;
   int majBilanHole = 0;
@@ -3765,6 +3820,10 @@ Assistant::Hole_updatePreview()
   ui->HolePreviewLabel->setMinimumSize(imgDeg.size());
 }
 
+
+
+
+
 void
 Assistant::Dist3D_updateTirageAndTotal()
 {
@@ -3806,7 +3865,7 @@ Assistant::Dist3D_EnableDist3DOption()
     ui->TotalDist3D->setEnabled(enabled);
 
     ui->TirageDist3D->setValue(
-      0); //signal/slot will call Dist3D_TirageDist3DChanged(0)
+      0); //signal/slot will call Dist3D_tirageDist3DChanged(0)
   }
 
   ui->Dist3D_btnMeshesFolder->setEnabled(enabled);
@@ -3821,7 +3880,7 @@ Assistant::Dist3D_EnableDist3DOption()
 }
 
 void
-Assistant::Dist3D_TirageDist3DChanged(int /*value*/)
+Assistant::Dist3D_tirageDist3DChanged(int /*value*/)
 {
   const int nbDegs = _Dist3D_meshesList.size();
   ui->NbDegDist3D->setText(QString::number(nbDegs));
@@ -3970,6 +4029,141 @@ Assistant::Dist3D_loadMeshBackgrounds()
   }
 }
 
+
+
+
+
+
+void
+Assistant::GDD_updateTirageAndTotal()
+{
+  const int nbDegs = (_GDD_gddEnable ? 1 : 0);
+  ui->NbDegGDD->setText(QString::number(nbDegs));
+
+  //TODO:here??? : check that stainImagesDir is valid and contains images
+  
+  const bool enabled = (nbDegs > 0);
+  ui->NbDegGDD->setEnabled(enabled);
+  ui->TirageGDD->setEnabled(enabled);
+  ui->TotalGDD->setEnabled(enabled);
+  if (nbDegs == 0)
+    ui->TirageGDD->setValue(0);
+
+  if (
+    nbDegs > 0 &&
+    ui->TirageGDD->value() ==
+      0) { //set TirageGDD value to 1 once we have some degradations selected
+    ui->TirageGDD->setValue(1);
+  }
+
+  const int total = nbDegs * _inputImageList.size() * ui->TirageGDD->value();
+  ui->TotalGDD->setText(QString::number(total));
+
+  updateTotalPic();
+}
+
+void
+Assistant::GDD_EnableGDDOption()
+{
+  bool enabled = false;
+  if (ui->CheckGDD->isChecked()) {
+    enabled = true;
+    _GDD_gddEnable = enabled;
+    GDD_updateTirageAndTotal();
+  } else {
+    _GDD_gddEnable = enabled;
+    ui->NbDegGDD->setEnabled(enabled);
+    ui->TirageGDD->setEnabled(enabled);
+    ui->TotalGDD->setEnabled(enabled);
+
+    ui->TirageGDD->setValue(
+      0); //signal/slot will call GDD_tirageGDDChanged(0)
+  }
+
+  ui->GDD_btnStainImagesFolder->setEnabled(enabled);
+  ui->GDD_stainImagesFolderLabel->setEnabled(enabled);
+  ui->GDD_stainImagesPath->setEnabled(enabled);
+  ui->GDD_numStainsLabel->setEnabled(enabled);
+  ui->GDD_numStainsMinLabel->setEnabled(enabled);
+  ui->GDD_numStainsMin->setEnabled(enabled);
+  ui->GDD_numStainsMaxLabel->setEnabled(enabled);
+  ui->GDD_numStainsMax->setEnabled(enabled);  
+  ui->GDD_insertTypeLabel->setEnabled(enabled);
+  ui->GDD_insertTypeCB->setEnabled(enabled);
+  ui->GDD_doRotations->setEnabled(enabled);
+}
+
+void
+Assistant::GDD_tirageGDDChanged(int /*value*/)
+{
+  const int nbDegs = (_GDD_gddEnable ? 1 : 0);
+  ui->NbDegGDD->setText(QString::number(nbDegs));
+  const int total = nbDegs * _inputImageList.size() * ui->TirageGDD->value();
+  ui->TotalGDD->setText(QString::number(total));
+  updateTotalPic();
+}
+
+
+void
+Assistant::GDD_setupGUIImages()
+{
+  const QString stainImagesPath =
+    Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigStainImagesFolderKey)
+      .toString();
+
+  ui->GDD_stainImagesPath->setText(stainImagesPath);
+  _GDD_stainImagesDirectory = stainImagesPath;
+
+  GDD_EnableGDDOption();
+
+  if (ui->GDD_insertTypeCB->count() == 0) {
+    ui->GDD_insertTypeCB->addItem(tr("None"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_IS)));
+    ui->GDD_insertTypeCB->addItem(tr("To gray"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY)));
+    ui->GDD_insertTypeCB->addItem(tr("To gray if destination image is gray"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY)));
+  }
+  assert(ui->GDD_insertTypeCB->count() == 3);
+  ui->GDD_insertTypeCB->setCurrentIndex(2);
+  
+  ui->GDD_doRotations->setChecked(true);
+}
+
+void
+Assistant::GDD_chooseStainImagesDirectory()
+{
+  const QString path =
+    QFileDialog::getExistingDirectory(this,
+                                      tr("Choose stain images directory"),
+                                      ui->GDD_stainImagesPath->text(),
+                                      QFileDialog::ShowDirsOnly);
+
+  ui->GDD_stainImagesPath->setText(path);
+  _GDD_stainImagesDirectory = path;
+
+  if (path.isEmpty()) {
+    //TODO: also check that there are images !?
+    
+    const QString szStr = QString::number(0);
+    ui->NbDegGDD->setText(szStr);
+    ui->TotalGDD->setText(szStr);
+  }
+}
+
+void
+Assistant::GDD_changeMinNbStains(int value)
+{
+  if (ui->GDD_numStainsMax->value() > value)
+    ui->GDD_numStainsMax->setValue(value);
+}
+
+void
+Assistant::GDD_changeMaxNbStains(int value)
+{
+  if (ui->GDD_numStainsMin->value() > value)
+    ui->GDD_numStainsMin->setValue(value);
+}
+
+
+
 void
 Assistant::setDocController(DocumentController *DocController)
 {
@@ -4060,11 +4254,23 @@ Assistant::shadEnable() const
   return _Shadow_shadEnable;
 }
 
+
+
 bool
 Assistant::phantEnable() const
 {
   return _Phantom_phantEnable; //ui->Phantom_Rare->isChecked();
 }
+
+
+
+bool
+Assistant::gddEnable() const
+{
+  return _GDD_gddEnable;
+}
+
+
 
 int
 Assistant::blurMax() const
@@ -4571,6 +4777,8 @@ Hole_saveImage(const QImage &img,
   return Hole_saveImage(img, path, prefixStr, ext, xml);
 }
 
+
+
 void
 Assistant::do_bleed(const QString &imageBasename,
                     const QImage &recto,
@@ -4626,6 +4834,7 @@ Assistant::do_bleed(const QString &imageBasename,
   }
 }
 
+
 void
 Assistant::do_charDeg(const QString &imageBasename,
                       const QImage &recto,
@@ -4667,6 +4876,58 @@ Assistant::do_charDeg(const QString &imageBasename,
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 }
+
+void
+Assistant::do_GDD(const QString &imageBasename,
+		  const QImage &recto,
+		  const QString &outputImageDir) const
+{
+  const QString stainImagesPath = ui->GDD_stainImagesPath->text();
+  const int minNumStains = ui->GDD_numStainsMin->value();
+  const int maxNumStains = std::max(ui->GDD_numStainsMin->value(), minNumStains + 1);
+  const dc::GradientDomainDegradation::InsertType insertType = (dc::GradientDomainDegradation::InsertType)(ui->GDD_insertTypeCB->currentData().toInt());
+  const bool doRotations = ui->GDD_doRotations->isChecked();
+  
+  const int numDraws = ui->TirageGDD->value();
+  for (int i = 0; i < numDraws; ++i) {
+
+    const int numStains = P_bounded_rand(minNumStains, maxNumStains);
+
+    //TODO:OPTIM: for each image, we re-list the stain images directory
+        
+    QImage imgOut = dc::GradientDomainDegradation::degradation(recto,
+							       stainImagesPath,
+							       numStains,
+							       insertType,
+							       doRotations);
+
+    const QString prefixFilename =
+      imageBasename + "GDDeg_" + QString::number(i);
+    const QString filename = prefixFilename + ".png";
+    imgOut.save(outputImageDir + filename);
+    
+    QString saveXml = QStringLiteral("<Degradation>\n");
+    saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
+    saveXml += "\t<DegradationName>Gradient Domain Degradation</DegradationName>\n";
+    saveXml += QLatin1String("\t<Parameters>\n");
+    saveXml += "\t\t<StainImagesPath>" + stainImagesPath + "</StainImagePath>\n";
+    saveXml += "\t\t<NumStains>" + QString::number(numStains) + "</NumStains>\n";
+    saveXml += "\t\t<InsertType>" + QString::number((int)insertType) + "</InsertType>\n";
+    saveXml += "\t\t<DoRotations>" + QString::number((int)doRotations) + "</DoRotations>\n";
+    saveXml += QLatin1String("\t</Parameters>\n");
+    saveXml += QLatin1String("</Degradation>");
+
+    QFile file(outputImageDir + prefixFilename + ".xml");
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << saveXml;
+    file.close();    
+    
+    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+  }
+
+}
+
 
 void
 Assistant::do_shadow(const QString &imageBasename,
@@ -5319,6 +5580,12 @@ Assistant::generateDegradedImages() const
       if (this->dist3DEnable()) {
         do_3D(imageBasename, recto, savePath);
       }
+
+      //Apply Gradient Domain Degradation if enabled
+      if (this->gddEnable()) {
+        do_GDD(imageBasename, recto, savePath);
+      }
+      
     }
   }
 

@@ -41,6 +41,8 @@
 #include "Degradations/PhantomCharacterDialog.hpp"
 #include "Degradations/ShadowBindingDialog.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
+#include "Degradations/GradientDomainDegradationDialog.hpp"
+#include "Degradations/GradientDomainDegradationQ.hpp"
 #include "Degradations/VersoImageChanger.hpp"
 #include "Document/BackGroundChanger.hpp"
 #include "Document/ChooseLabelForComponentForm.hpp"
@@ -301,6 +303,10 @@ initializeFolders()
     AppConfigMainGroup,
     AppConfigBlurImagesFolderKey,
     dir.absoluteFilePath(QStringLiteral("Image/blurImages")));
+  Core::ConfigurationManager::set(
+    AppConfigMainGroup,
+    AppConfigStainImagesFolderKey,
+    dir.absoluteFilePath(QStringLiteral("Image/stainImages/images")));
 }
 
 void
@@ -1138,6 +1144,90 @@ DocCreator::applyPhantomCharacter()
 }
 
 void
+DocCreator::applyCharacterDegradationModel()
+{
+  GrayCharacterDegradationParameter dialog(this);
+
+  QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
+
+  dialog.setOriginalImage(img);
+
+  if (dialog.exec()) {
+    QGuiApplication::setOverrideCursor(Qt::BusyCursor);
+
+    dc::GrayscaleCharsDegradationModel cdg(img);
+
+    QImage dst = cdg.degradateByLevel(dialog.getLevel());
+
+    const bool writeOk = dst.save(dialog.getOutputFilename());
+
+    QGuiApplication::restoreOverrideCursor();
+
+    if (! writeOk) {
+      QMessageBox::critical(
+			    this,
+			    "Grayscale Degradation Model",
+			    "The image was not correctly saved!");
+    }
+
+  }
+}
+
+void
+DocCreator::applyGradientDomainDegradation()
+{
+  GradientDomainDegradationDialog dialog(this);
+
+  QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
+
+  dialog.setOriginalImage(img);
+
+  if (dialog.exec()) {
+    QGuiApplication::setOverrideCursor(Qt::BusyCursor);
+
+    dc::GrayscaleCharsDegradationModel cdg(img);
+
+    QImage dst = dc::GradientDomainDegradation::degradation(img,
+							    dialog.getStainImagesPath(),
+							    dialog.getNumStains(),
+							    dialog.getInsertType(),
+							    dialog.getDoRotations());
+
+    const bool writeOk = dst.save(dialog.getOutputFilename());
+
+    QGuiApplication::restoreOverrideCursor();
+
+    if (! writeOk) {
+      QMessageBox::critical(
+			    this,
+			    "Gradient Domain Degradation",
+			    "The image was not correctly saved!");
+    }
+
+  }
+}
+
+void
+DocCreator::apply3DDistortionModel()
+{
+  auto w = new MeshWindow(); //has WA_DeleteOnClose flag.
+  QImage docImage =
+    _docController->toQImage(Color | WithTextBlocks | WithImageBlocks);
+  w->show();
+  const QString meshPath =
+    Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigMeshFolderKey)
+      .toString();
+  const QString meshFilename = QDir(meshPath).absoluteFilePath(QStringLiteral(
+    "PlaneRegular.brs")); //B:TODO:UGLY: have a constant defined at compile time
+
+  w->loadMeshFile(meshFilename);
+  w->setImage(
+    docImage); //must be called after show() [to have an initialized GL context] !
+}
+
+
+
+void
 DocCreator::createControllers()
 {
   qDebug() << "\t create controller : start";
@@ -1312,7 +1402,6 @@ DocCreator::createActions()
           this,
           SLOT(applyPhantomCharacter()));
 
-
   _applyCharacterDegradationModel =
     new QAction(tr("&GrayScale Character Degradation..."), this);
   _applyCharacterDegradationModel->setStatusTip(
@@ -1322,6 +1411,12 @@ DocCreator::createActions()
           this,
           SLOT(applyCharacterDegradationModel()));
 
+  _applyGradientDomainDegradation = new QAction(tr("&GradientDomainDegradation..."), this);
+  _applyGradientDomainDegradation->setStatusTip(
+    tr("Apply a luminosity defect to the document caused by the binding"));
+  connect(
+    _applyGradientDomainDegradation, SIGNAL(triggered()), this, SLOT(applyGradientDomainDegradation()));
+  
 
   //DocCreator
   _chooseTypeDoc = new QAction(
@@ -1385,53 +1480,6 @@ DocCreator::createActions()
           SLOT(onFocusChanged(QWidget*,QWidget*)));
 }
 
-void
-DocCreator::applyCharacterDegradationModel()
-{
-  GrayCharacterDegradationParameter dialog(this);
-
-  QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
-
-  dialog.setOriginalImage(img);
-
-  if (dialog.exec()) {
-    QGuiApplication::setOverrideCursor(Qt::BusyCursor);
-
-    dc::GrayscaleCharsDegradationModel cdg(img);
-
-    QImage dst = cdg.degradateByLevel(dialog.getLevel());
-
-    const bool writeOk = dst.save(dialog.getFilename());
-
-    QGuiApplication::restoreOverrideCursor();
-
-    if (! writeOk) {
-      QMessageBox::critical(
-			    this,
-			    "Grayscale Degradation Model",
-			    "The image was not correctly saved!");
-    }
-
-  }
-}
-
-void
-DocCreator::apply3DDistortionModel()
-{
-  auto w = new MeshWindow(); //has WA_DeleteOnClose flag.
-  QImage docImage =
-    _docController->toQImage(Color | WithTextBlocks | WithImageBlocks);
-  w->show();
-  const QString meshPath =
-    Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigMeshFolderKey)
-      .toString();
-  const QString meshFilename = QDir(meshPath).absoluteFilePath(QStringLiteral(
-    "PlaneRegular.brs")); //B:TODO:UGLY: have a constant defined at compile time
-
-  w->loadMeshFile(meshFilename);
-  w->setImage(
-    docImage); //must be called after show() [to have an initialized GL context] !
-}
 
 /*
 void DocCreator::componentsLabeling()
@@ -1775,6 +1823,7 @@ DocCreator::createMenus()
   _colorDegradationSubMenu->addAction(_applyShadowBinding);
   _colorDegradationSubMenu->addAction(_applyHoleDegradation);
   _colorDegradationSubMenu->addAction(_applyPhantomCharacter);
+  _colorDegradationSubMenu->addAction(_applyGradientDomainDegradation);
 
   //B
   //_imageMenu->addAction(_viewXMLAct);

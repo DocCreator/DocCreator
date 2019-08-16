@@ -65,11 +65,11 @@ private slots:
   void applyShadowBinding();
   void applyHoleDegradation();
   void applyPhantomCharacter();
-  // added by kvcuong 09/05/2012
+  void applyCharacterDegradationModel();
+  void applyGradientDomainDegradation();
+  void apply3DDistortionModel();
   //void extractConnectedComponents();
   //void componentsLabeling();
-  void applyCharacterDegradationModel();
-  void apply3DDistortionModel();
   void changeFont(const QString &fontName);
   void changeBackground(const QString &background);
   void binarization();
@@ -128,13 +128,13 @@ private:
     *_removeBlockAct;
   QAction *_importBackgroundAct, *_exportToImageAct, *_openDocumentAct;
   QAction *_saveDocumentAsAct;
-  // added by kvcuong 09/05/2012
-  QAction *_extractBackground, *_applyCharacterDegradationModel;
+
+  QAction *_extractBackground;
   // Image action
   QMenu *_imageToolsSubMenu, *_imageDegradationSubMenu,
     *_grayScaleDegradationSubMenu, *_colorDegradationSubMenu;
   //QAction *_viewXMLAct, *_viewStructureAct, *_attributeAct;
-  QAction *_distortion3DModelAct;
+
   // Tools menu
   QMenu *_toolsMenu, *_segmentationMenu, *_classificationMenu, *_labelingMenu,
     *_OCRMenu, *_fontMenu, *_generationMenu;
@@ -155,7 +155,10 @@ private:
   QAction *_applyShadowBinding;
   QAction *_applyHoleDegradation;
   QAction *_applyPhantomCharacter;
-
+  QAction *_applyCharacterDegradationModel;
+  QAction *_applyGradientDomainDegradation;
+  QAction *_distortion3DModelAct;
+  
   //DocCreator Action
   QAction *_chooseTypeDoc;
 

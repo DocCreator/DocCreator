@@ -14,6 +14,7 @@
 #include "Degradations/HoleDegradationQ.hpp"
 #include "Degradations/PhantomCharacterQ.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
+#include "Degradations/GradientDomainDegradationQ.hpp"
 
 #include "Utils/ImageUtils.hpp" //toGray
 
@@ -30,6 +31,10 @@ const int charDeg_maxLevel= 10;
 
 const bool do_phantom = true;
 const QString phantom_patternsPath = QDir(PATH_IMAGES).absoluteFilePath("phantomPatterns");
+
+const bool do_gradientDomain = true;
+const QString gradientDomain_stainImagesPath = QDir(PATH_IMAGES).absoluteFilePath("stainImages/images");
+
 
 const bool do_blur = true;
 const int blur_minIntensity = 1;
@@ -182,6 +187,21 @@ main(int argc, char *argv[])
       }	
     }
 
+    if (do_gradientDomain) {
+      const dc::GradientDomainDegradation::InsertType insertType = dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY;
+      const bool doRotations = true;
+      size_t numStains = (size_t)random_in_range(10, 20);
+      QImage imgGDD = dc::GradientDomainDegradation::degradation(currImg, gradientDomain_stainImagesPath, numStains, insertType, doRotations);
+      if (cumulate) {
+	currImg = imgGDD;
+	suffixe += "_gdd";
+      }
+      else {
+	saveImage(currImg, outputImageDirectory, imageList[i], "_gdd");	
+      }
+    }
+
+    
     if (do_blur) {
       const dc::BlurFilter::Method m = (dc::BlurFilter::Method)random_in_range(0, 2);
       const int intensity = 1+2*random_in_range(blur_minIntensity, blur_maxIntensity);

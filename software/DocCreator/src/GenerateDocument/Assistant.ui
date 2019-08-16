@@ -2071,6 +2071,177 @@
     </property>
    </widget>
   </widget>
+
+
+  <widget class="QWizardPage" name="GDD">
+   <property name="subTitle">
+    <string>DocCreator: Gradient Domain Degradation</string>
+   </property>
+   <widget class="QWidget" name="OptionGradientDomainDeg" native="true">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>601</width>
+      <height>381</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="layoutWidget_13gd">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>531</width>
+       <height>153</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_15gd">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_34gd">
+        <item>
+         <widget class="QLabel" name="GDD_stainImagesFolderLabel">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Stain images folder: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="GDD_stainImagesPath"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="GDD_btnStainImagesFolder">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+	<layout class="QHBoxLayout" name="horizontalLayout_25gd">
+         <item>
+          <widget class="QLabel" name="GDD_numStainsLabel">
+           <property name="text">
+            <string>Number of stain images to copy: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="GDD_numStainsMinLabel">
+           <property name="text">
+            <string>min # </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="GDD_numStainsMin">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>10000</number>
+           </property>
+           <property name="value">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="GDD_numStainsMaxLabel">
+           <property name="text">
+            <string>max # </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="GDD_numStainsMax">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>10000</number>
+           </property>
+           <property name="value">
+            <number>20</number>
+           </property>
+          </widget>
+         </item>
+        <item>
+         <spacer name="horizontalSpacer_5gd">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>	 
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_35gd">
+        <item>
+         <widget class="QLabel" name="GDD_insertTypeLabel">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Grayscale transformation of inserted images: </string>
+          </property>
+         </widget>
+        </item>
+	<item>
+	  <widget class="QComboBox" name="GDD_insertTypeCB"/>
+	</item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_16gd">
+        <item>
+         <widget class="QCheckBox" name="GDD_doRotations">
+          <property name="text">
+           <string>Apply random rotations to stain images</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QCheckBox" name="CheckGDD">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>0</y>
+      <width>281</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation</string>
+    </property>
+   </widget>
+  </widget>
+
   <widget class="QWizardPage" name="Blur">
    <property name="subTitle">
     <string>DocCreator: Blur</string>
@@ -2964,7 +3135,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>Meshes folder</string>
+           <string>Meshes folder: </string>
           </property>
          </widget>
         </item>
@@ -3247,31 +3418,37 @@
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="label_11gd">
          <property name="text">
-          <string>Bleed-Through</string>
+          <string>Gradient Domain Degradation</string>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="NbDegBleed">
+        <widget class="QLineEdit" name="NbDegGDD">
          <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
           <bool>false</bool>
          </property>
          <property name="text">
           <string>0</string>
          </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item row="4" column="2">
-        <widget class="QSpinBox" name="TirageBleed">
+        <widget class="QSpinBox" name="TirageGDD">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="4" column="3">
-        <widget class="QLineEdit" name="TotalBleed">
+        <widget class="QLineEdit" name="TotalGDD">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3287,37 +3464,31 @@
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="label_8">
          <property name="text">
-          <string>Blur</string>
+          <string>Bleed-Through</string>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLineEdit" name="NbDegBlur">
+        <widget class="QLineEdit" name="NbDegBleed">
          <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="acceptDrops">
           <bool>false</bool>
          </property>
          <property name="text">
           <string>0</string>
          </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
         </widget>
        </item>
        <item row="5" column="2">
-        <widget class="QSpinBox" name="TirageBlur">
+        <widget class="QSpinBox" name="TirageBleed">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="5" column="3">
-        <widget class="QLineEdit" name="TotalBlur">
+        <widget class="QLineEdit" name="TotalBleed">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3333,14 +3504,14 @@
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_14">
+        <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>Shadow Binding</string>
+          <string>Blur</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLineEdit" name="NbDegShadow">
+        <widget class="QLineEdit" name="NbDegBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3356,17 +3527,14 @@
         </widget>
        </item>
        <item row="6" column="2">
-        <widget class="QSpinBox" name="TirageShadow">
+        <widget class="QSpinBox" name="TirageBlur">
          <property name="enabled">
           <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <number>1</number>
          </property>
         </widget>
        </item>
        <item row="6" column="3">
-        <widget class="QLineEdit" name="TotalShadow">
+        <widget class="QLineEdit" name="TotalBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3382,14 +3550,14 @@
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>Hole</string>
+          <string>Shadow Binding</string>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QLineEdit" name="NbDegHole">
+        <widget class="QLineEdit" name="NbDegShadow">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3405,13 +3573,62 @@
         </widget>
        </item>
        <item row="7" column="2">
+        <widget class="QSpinBox" name="TirageShadow">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="3">
+        <widget class="QLineEdit" name="TotalShadow">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Hole</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLineEdit" name="NbDegHole">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="2">
         <widget class="QSpinBox" name="TirageHole">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item row="7" column="3">
+       <item row="8" column="3">
         <widget class="QLineEdit" name="TotalHole">
          <property name="enabled">
           <bool>false</bool>
@@ -3427,14 +3644,14 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="0">
+       <item row="9" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>3D distortion</string>
          </property>
         </widget>
        </item>
-       <item row="10" column="1">
+       <item row="9" column="1">
         <widget class="QLineEdit" name="NbDegDist3D">
          <property name="enabled">
           <bool>false</bool>
@@ -3450,7 +3667,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="2">
+       <item row="9" column="2">
         <widget class="QSpinBox" name="TirageDist3D">
          <property name="enabled">
           <bool>false</bool>
@@ -3460,7 +3677,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="3">
+       <item row="9" column="3">
         <widget class="QLineEdit" name="TotalDist3D">
          <property name="enabled">
           <bool>false</bool>
@@ -3476,7 +3693,7 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="2">
+       <item row="10" column="2">
         <widget class="QLabel" name="label_19">
          <property name="text">
           <string>Total number of images that will be generated</string>
@@ -3486,7 +3703,7 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="3">
+       <item row="10" column="3">
         <widget class="QLineEdit" name="TotalPic">
          <property name="enabled">
           <bool>true</bool>
