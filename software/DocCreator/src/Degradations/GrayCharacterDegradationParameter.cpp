@@ -46,7 +46,7 @@ GrayCharacterDegradationParameter::chooseSaveFilename()
 bool
 GrayCharacterDegradationParameter::isOutputFileValid() const
 {
-  const QString path = getFilename();
+  const QString path = getOutputFilename();
   if (path.isEmpty())
     return false;
   return QFileInfo(path).dir().exists();
@@ -56,11 +56,11 @@ void
 GrayCharacterDegradationParameter::updateOkButton()
 {
   const bool imageValid = (! _originalImg.isNull());
-  const bool fileValid = isOutputFileValid();
+  const bool outputFileValid = isOutputFileValid();
 
   QPushButton *okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
   assert(okButton);
-  if (imageValid && fileValid)
+  if (imageValid && outputFileValid)
     okButton->setEnabled(true);
   else
     okButton->setEnabled(false);
@@ -73,7 +73,7 @@ GrayCharacterDegradationParameter::getLevel() const
 }
 
 QString
-GrayCharacterDegradationParameter::getFilename() const
+GrayCharacterDegradationParameter::getOutputFilename() const
 {
   return ui->txtFilePath->text();
 }

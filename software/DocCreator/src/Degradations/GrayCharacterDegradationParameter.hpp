@@ -19,7 +19,7 @@ public:
   void setOriginalImage(const QImage &img);
 
   int getLevel() const;
-  QString getFilename() const;
+  QString getOutputFilename() const;
 
 public slots:
   void chooseSaveFilename();
