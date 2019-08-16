@@ -7,6 +7,10 @@
 
 #include "Utils/ImageUtils.hpp"
 
+#include "appconstants.h"
+#include "core/configurationmanager.h"
+
+
 static const int IMG_WIDTH = 200;
 static const int IMG_HEIGHT = 320;
 
@@ -25,8 +29,7 @@ PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
   _frequency = (dc::PhantomCharacter::Frequency)ui->frequencyComboBox->currentIndex();
   _zoomX = ZOOM_X_INIT;
   _zoomY = ZOOM_Y_INIT;
-  _phantomPatternsPath = Context::BackgroundContext::instance()->getPath() +
-         "../Image/phantomPatterns/"; //B:TODO:UGLY !
+  _phantomPatternsPath = getPhantomPatternPath();
 
   ui->xSlider->setValue(_zoomX);
   ui->ySlider->setValue(_zoomY);
@@ -44,6 +47,14 @@ PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
 PhantomCharacterDialog::~PhantomCharacterDialog()
 {
   delete ui;
+}
+
+QString
+PhantomCharacterDialog::getPhantomPatternPath()
+{
+  return Core::ConfigurationManager::get(AppConfigMainGroup,
+                                         AppConfigPhantomPatternsFolderKey)
+    .toString();
 }
 
 void

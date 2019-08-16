@@ -24,6 +24,8 @@ public:
   PhantomCharacterDialog(const PhantomCharacterDialog &) = delete;
   PhantomCharacterDialog &operator=(const PhantomCharacterDialog &) = delete;
 
+  static QString getPhantomPatternPath();
+
   const QImage &getResultImg() const { return _resultImg; }
 
   dc::PhantomCharacter::Frequency getFrequency() const { return _frequency; }
