@@ -56,7 +56,6 @@ static const float DEFAULT_COEFF_HYPERBOLA = 0.f;
 QString
 BlurFilterDialog::getBlurImagesPath()
 {
-  //return QString(Context::BackgroundContext::instance()->getPath() + "../Image/blurImages/");
   return Core::ConfigurationManager::get(AppConfigMainGroup,
                                          AppConfigBlurImagesFolderKey)
     .toString();
