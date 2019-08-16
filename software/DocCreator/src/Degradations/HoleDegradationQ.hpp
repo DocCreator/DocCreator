@@ -1,6 +1,7 @@
 #ifndef HOLEDEGRADATIONQ_HPP
 #define HOLEDEGRADATIONQ_HPP
 
+#include <QColor>
 #include <QImage>
 #include "Degradations/DocumentDegradation.hpp"
 #include "Degradations/HoleDegradation.hpp"
