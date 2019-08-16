@@ -37,7 +37,6 @@ static const int MARGIN =
 QString
 HoleDegradationDialog::getHolePatternsPath()
 {
-  //return QString(Context::BackgroundContext::instance()->getPath() + "../Image/holePatterns/");
   return Core::ConfigurationManager::get(AppConfigMainGroup,
                                          AppConfigHolePatternsFolderKey)
     .toString();
