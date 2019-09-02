@@ -1,5 +1,7 @@
 #include "GrayCharacterDegradationParameter.hpp"
 
+#include <cassert>
+
 #include "ui_GrayCharacterDegradationParameter.h"
 
 #include <QFileDialog>
