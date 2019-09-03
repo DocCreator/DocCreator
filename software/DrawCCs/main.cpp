@@ -245,13 +245,15 @@ main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  cv::Mat outImg = drawCCs(img);
+  {
+    cv::Mat outImg = drawCCs(img);
 
-  const bool writeOk = cv::imwrite(outputImageFilename, outImg);
-  if (!writeOk) {
-    std::cerr << "ERROR: unable to write image file: " << outputImageFilename
-              << "\n";
-    exit(EXIT_FAILURE);
+    const bool writeOk = cv::imwrite(outputImageFilename, outImg);
+    if (!writeOk) {
+      std::cerr << "ERROR: unable to write image file: " << outputImageFilename
+		<< "\n";
+      exit(EXIT_FAILURE);
+    }
   }
 
   if (argc == 4) {
