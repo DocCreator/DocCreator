@@ -35,7 +35,7 @@
 #include "Degradations/Distortion3DModel/src/MeshWindow.hpp"
 #include "Degradations/GrayCharacterDegradationDialog.hpp"
 #include "Degradations/GrayCharacterDegradationParameter.hpp"
-#include "Degradations/GrayscaleCharsDegradationModel.hpp"
+#include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationDialog.hpp"
 #include "Degradations/ImageGenerationFromDirDialog.hpp"
 #include "Degradations/PhantomCharacterDialog.hpp"
@@ -972,7 +972,7 @@ DocCreator::applyBleedThrough()
 {
   BleedThroughParametersDialog dialog(this);
 
-  //B:TODO: we need a function 'QImage getBackground()" somewehre !
+  //B:TODO: we need a function 'QImage getBackground()" somewhere !
   const QString path = Context::BackgroundContext::instance()->getPath();
   const QString filename =
     path + Context::BackgroundContext::instance()->getCurrentBackground();
@@ -1025,7 +1025,6 @@ DocCreator::applyBlurFilter()
   //const QString path = Context::BackgroundContext::instance()->getPath();
   //const QString filename = path+Context::BackgroundContext::instance()->getCurrentBackground();
   //QImage background(filename);
-
 
   QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
 
@@ -1155,7 +1154,7 @@ DocCreator::applyCharacterDegradationModel()
   if (dialog.exec()) {
     QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
-    dc::GrayscaleCharsDegradationModel cdg(img);
+    dc::GrayscaleCharsDegradationModelQ cdg(img);
 
     QImage dst = cdg.degradateByLevel(dialog.getLevel());
 
@@ -1184,8 +1183,6 @@ DocCreator::applyGradientDomainDegradation()
 
   if (dialog.exec()) {
     QGuiApplication::setOverrideCursor(Qt::BusyCursor);
-
-    dc::GrayscaleCharsDegradationModel cdg(img);
 
     QImage dst = dc::GradientDomainDegradation::degradation(img,
 							    dialog.getStainImagesPath(),

@@ -1,10 +1,11 @@
+#ifndef GRAYSCALECHARSDEGRADATIONMODEL_HPP
+#define GRAYSCALECHARSDEGRADATIONMODEL_HPP
+
 
 #include <vector>
 
 #include <opencv2/core/core.hpp>
 
-#include <QImage>
-#include <QObject>
 
 #include <framework_global.h>
 
@@ -12,9 +13,13 @@ namespace dc {
 
 
   /**
-   * \mainpage
+   * Implements ink degradation model detailled in [1]
    *
-   * \author kvcuong https://bitbucket.org/kvcuong
+   * [1]
+   * Semi-synthetic Document Image Generation Using Texture Mapping on Scanned 3D Document Shapes
+   * KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel, MULLOT, Rémy, DOMENGER, Jean-Philippe
+   * In : 2013 12th International Conference on Document Analysis and Recognition (ICDAR). IEEE, 2013. p. 489-493. 
+   * 
    *
    * - We propose a local noise model for GRAYSCALE images. Its main principle is to locally degrade the image in the
    * neighbourhoods of “seed-points” selected close to the character boundary. These points define the center of
@@ -81,13 +86,8 @@ namespace dc {
   class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
   {
   public:
-    explicit GrayscaleCharsDegradationModel(const QImage &img);
     explicit GrayscaleCharsDegradationModel(const cv::Mat &img);
     ~GrayscaleCharsDegradationModel();
-
-    QImage degradate(int level = 1, float I = 33, float O = 33, float D = 34);
-    QImage degradateByLevel(int level);
-  
 
     cv::Mat degradate_cv(int level = 1, float I = 33, float O = 33, float D = 34);
     cv::Mat degradateByLevel_cv(int level);
@@ -101,7 +101,6 @@ namespace dc {
     float getAvgStrokeWidth() const;
 
     int getNumberOfConnectedComponants() const;
-    void initialize(const QImage &input);
     void initialize(const cv::Mat &imgInput);
 
     void calculateNoiseRegionType(float b0);
@@ -174,4 +173,8 @@ namespace dc {
   };
 
 
+
 } //namespace dc
+
+
+#endif /* ! GRAYSCALECHARSDEGRADATIONMODEL_HPP */

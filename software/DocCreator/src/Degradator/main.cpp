@@ -10,7 +10,7 @@
 #include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
-#include "Degradations/GrayscaleCharsDegradationModel.hpp"
+#include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationQ.hpp"
 #include "Degradations/PhantomCharacterQ.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
     if (do_charDeg) {
       const int level = random_in_range(charDeg_minLevel, charDeg_maxLevel);
       QImage currImgGray = toGray(currImg);
-      dc::GrayscaleCharsDegradationModel deg(currImgGray);
+      dc::GrayscaleCharsDegradationModelQ deg(currImgGray);
       const QImage imgCharDeg = deg.degradateByLevel(level);
       if (cumulate) {
 	currImg = imgCharDeg;

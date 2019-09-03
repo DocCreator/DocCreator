@@ -1,7 +1,7 @@
 #include "GrayCharacterDegradationDialog.hpp"
 
 #include "ui_GrayCharacterDegradationDialog.h"
-#include <Degradations/GrayscaleCharsDegradationModel.hpp>
+#include <Degradations/GrayCharacterDegradationModelQ.hpp>
 #include <QFileDialog>
 
 #include "Document/DocumentController.hpp"
@@ -122,7 +122,7 @@ GrayCharacterDegradationDialog::degrade()
   if (img.isNull())
     return;
 
-  dc::GrayscaleCharsDegradationModel cdg(img);
+  dc::GrayscaleCharsDegradationModelQ cdg(img);
 
   QImage dst = cdg.degradate(levelOfNoise, I, O, D);
 

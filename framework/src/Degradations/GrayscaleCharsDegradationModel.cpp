@@ -1,19 +1,3 @@
-/*
-  Copyright (C) 2011-2019 Van Cuong KIEU, Nicholas JOURNET, Boris Mansencal 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 #include "GrayscaleCharsDegradationModel.hpp"
 
 #include <algorithm>
@@ -24,7 +8,6 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <QDebug>
 
 #include "ConnectedComponent.hpp"
 #include <Utils/convertor.h>
@@ -123,37 +106,6 @@ namespace dc {
 #include <chrono>
 #endif
 
-  GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
-								 const QImage &img)
-    : _isTest(false)
-    , _width(0)
-    , _height(0)
-    , _avgBackground(0)
-    , _avgForeground(0)
-    , _nb_connectedcomponants(0)
-    , _MAX_a0(0)
-    , _alpha(0.0)
-    , _beta(0.0)
-    , _alpha0(0.0)
-    , _beta0(0.0)
-    , _nf(0.0)
-    , _nb(0.0)
-    , _a0(0.0f)
-    , _g(0.0f)
-    , _MAX_Gradient(0.0f)
-    , _AVG_Gradient(0.0f)
-    , _sigma_gausien(0.0f)
-    , _is4connected(false)
-    , _Mean_CC_Distance(0.0f)
-    , _Max_CC_Distance(0.0f)
-    , _Mean_CC_Stroke(0.0f)
-    , _Max_CC_Stroke(0.0f)
-    , _Total_Degradation(0.0f)
-    , _nbSPs_User(0)
-    , _local_zone(0)
-  {
-    initialize(img);
-  }
 
   GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
 								 const cv::Mat &img)
@@ -199,13 +151,6 @@ namespace dc {
   }
 
   void
-  GrayscaleCharsDegradationModel::initialize(const QImage &input)
-  {
-    cv::Mat imgInput = Convertor::getCvMat(input);
-    initialize(imgInput);
-  }
-
-  void
   GrayscaleCharsDegradationModel::initialize(const cv::Mat &imgInput)
   {
 
@@ -230,7 +175,7 @@ namespace dc {
 
     _local_zone = 20;
 
-    Q_ASSERT(imgInput.data != nullptr);
+    assert(imgInput.data != nullptr);
 
     if (imgInput.channels() == 3)
       cvtColor(imgInput, _mat_gray, cv::COLOR_BGR2GRAY);
@@ -306,13 +251,6 @@ namespace dc {
     return _mat_gray;
   }
 
-  QImage
-  GrayscaleCharsDegradationModel::degradateByLevel(int level)
-  {
-    const cv::Mat img = degradateByLevel_cv(level);
-    return Convertor::getQImage(img);
-  }
-
   cv::Mat
   GrayscaleCharsDegradationModel::degradateByLevel_cv(int level)
   {
@@ -370,12 +308,6 @@ namespace dc {
 
   */
 
-  QImage
-  GrayscaleCharsDegradationModel::degradate(int level, float I, float O, float D)
-  {
-    const cv::Mat img = degradate_cv(level, I, O, D);
-    return Convertor::getQImage(img);
-  }
 
   cv::Mat
   GrayscaleCharsDegradationModel::degradate_cv(int level,
@@ -460,22 +392,22 @@ namespace dc {
       auto time4 = t4 - t3;
       auto time5 = t5 - t4;
       auto time6 = t6 - t5;
-      qDebug() << "time calculatePixelsProbability="
+      std::cerr << "time calculatePixelsProbability="
 	       << std::chrono::duration<double, std::milli>(time1).count()
 	       << "ms\n";
-      qDebug() << "time flipPixelsByProbability="
+      std::cerr << "time flipPixelsByProbability="
 	       << std::chrono::duration<double, std::milli>(time2).count()
 	       << "ms\n";
-      qDebug() << "time calculateNoiseRegionType="
+      std::cerr << "time calculateNoiseRegionType="
 	       << std::chrono::duration<double, std::milli>(time3).count()
 	       << "ms\n";
-      qDebug() << "time separateSeedPointsByTypes="
+      std::cerr << "time separateSeedPointsByTypes="
 	       << std::chrono::duration<double, std::milli>(time4).count()
 	       << "ms\n";
-      qDebug() << "time assignmentSizeOfNoiseRegion="
+      std::cerr << "time assignmentSizeOfNoiseRegion="
 	       << std::chrono::duration<double, std::milli>(time5).count()
 	       << "ms\n";
-      qDebug() << "time grayscaleDegradationByTypes="
+      std::cerr << "time grayscaleDegradationByTypes="
 	       << std::chrono::duration<double, std::milli>(time6).count()
 	       << "ms\n";
     }

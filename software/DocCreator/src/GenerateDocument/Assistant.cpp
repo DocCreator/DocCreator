@@ -17,11 +17,11 @@
 #include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
-#include "Degradations/GrayscaleCharsDegradationModel.hpp"
+#include "Degradations/GradientDomainDegradationQ.hpp"
+#include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationQ.hpp"
 #include "Degradations/PhantomCharacterQ.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
-#include "Degradations/GradientDomainDegradationQ.hpp"
 #include "Document/DocumentController.hpp"
 #include "Document/DocumentToXMLExporter.hpp"
 #include "RandomDocument/RandomDocumentCreator.hpp"
@@ -1999,7 +1999,7 @@ Assistant::CharDeg_changeMaxChar()
 void
 Assistant::CharDeg_updateCharImageMin(int level)
 {
-  dc::GrayscaleCharsDegradationModel cdgMin(_CharDeg_rectoImgPartChar);
+  dc::GrayscaleCharsDegradationModelQ cdgMin(_CharDeg_rectoImgPartChar);
   QImage Deg = cdgMin.degradateByLevel(level);
 
   ui->CharMinPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
@@ -2020,7 +2020,7 @@ Assistant::CharDeg_nbIterationsMinChangedChar()
 void
 Assistant::CharDeg_updateCharImageMax(int level)
 {
-  dc::GrayscaleCharsDegradationModel cdgMax(_CharDeg_rectoImgPartChar);
+  dc::GrayscaleCharsDegradationModelQ cdgMax(_CharDeg_rectoImgPartChar);
   QImage Deg = cdgMax.degradateByLevel(level);
 
   ui->CharMaxPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
@@ -4850,7 +4850,7 @@ Assistant::do_charDeg(const QString &imageBasename,
 
     QImage imgCharTmp;
     imgCharTmp = toGray(recto);
-    dc::GrayscaleCharsDegradationModel deg(imgCharTmp);
+    dc::GrayscaleCharsDegradationModelQ deg(imgCharTmp);
     imgCharTmp = deg.degradateByLevel(level);
 
     const QString prefixFilename =

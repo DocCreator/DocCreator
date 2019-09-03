@@ -13,7 +13,7 @@
 #include <QDir>
 #include <QFileDialog>
 
-#include "Degradations/GrayscaleCharsDegradationModel.hpp"
+#include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Document/DocumentController.hpp"
 #include "context/backgroundcontext.h"
 #include "context/documentcontext.h"
@@ -78,7 +78,7 @@ ImageGenerationFromDirDialog::degrade(
     QString filePath = folder.absoluteFilePath(f);
     QImage input(filePath);
 
-    dc::GrayscaleCharsDegradationModel cdg(input);
+    dc::GrayscaleCharsDegradationModelQ cdg(input);
     QImage out = cdg.degradateByLevel(level);
 
     QString fileImageOut = filePath;
