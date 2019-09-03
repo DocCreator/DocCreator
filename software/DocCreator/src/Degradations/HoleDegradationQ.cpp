@@ -27,7 +27,7 @@ namespace dc {
 	assert(matOriginal.type() == matBelow.type());
       }
 
-      cv::Mat matPattern = Convertor::getCvMat(pattern); //TODO:OPTIM: getCvMat() procudes a CV_8UC3 that we convert again. We should produce a grayscale image directly.
+      cv::Mat matPattern = Convertor::getCvMat(pattern); //TODO:OPTIM: getCvMat() produces a CV_8UC3 that we convert again. We should produce a grayscale image directly.
       if (matPattern.type() != CV_8UC1) {
 	if (matPattern.type() == CV_8UC3) {
 	  cv::cvtColor(matPattern, matPattern, cv::COLOR_BGR2GRAY);
