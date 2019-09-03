@@ -133,14 +133,14 @@ testSimple2(int imageType)
 TEST_CASE( "Testing BlurFilter" )
 { 
 
-  SECTION("Testing blur on whole image produces same type output")
+  SECTION("Testing blur on whole image produces output image of same type")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
     testSimple0(CV_8UC4);
   }
 
-  SECTION("Testing blur on part of image produces same type output")
+  SECTION("Testing blur on part of image produces output image of same type")
   {
     testSimple1(CV_8UC1);
     testSimple1(CV_8UC3);

@@ -8,8 +8,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp> //DEBUG
 
+#include "paths.hpp"
 
-static const char *PATTERN_PATH = "../data/Image/phantomPatterns/";
 
 static
 void
@@ -34,7 +34,7 @@ testSimple0(int imageType)
     
     const dc::PhantomCharacter::Frequency frequency = (dc::PhantomCharacter::Frequency)(i);
 
-    const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img2, frequency, PATTERN_PATH);
+    const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img2, frequency, PHANTOM_PATTERNS_PATH);
 
     REQUIRE( out.type() == imageType );
   }
@@ -43,7 +43,7 @@ testSimple0(int imageType)
 TEST_CASE( "Testing PhantomCharacter" )
 { 
 
-  SECTION("Testing PhantomCharacter produces same type output")
+  SECTION("Testing PhantomCharacter produces output image of same type")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

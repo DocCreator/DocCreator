@@ -6,7 +6,7 @@
 #include "Degradations/ShadowBinding.hpp"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp> //DEBUG
+//#include <opencv2/highgui/highgui.hpp> //DEBUG
 
 
 static
@@ -66,14 +66,14 @@ testSimple1(int imageType)
 TEST_CASE( "Testing ShadowBinding" )
 { 
 
-  SECTION("Testing ShadowBinding with given shadow width produces same type output")
+  SECTION("Testing ShadowBinding with given shadow width produces output image of same type")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
     testSimple0(CV_8UC4);
   }
 
-  SECTION("Testing ShadowBinding with dynamic shadow width produces same type output")
+  SECTION("Testing ShadowBinding with dynamic shadow width produces output image of same type")
   {
     testSimple1(CV_8UC1);
     testSimple1(CV_8UC3);

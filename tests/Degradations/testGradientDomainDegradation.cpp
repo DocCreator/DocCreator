@@ -8,8 +8,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp> //DEBUG
 
+#include "paths.hpp" //PATH_STAIN_IMAGES
 
-static const char *IMAGES_PATH = "../data/Image/stainImages/images";
 
 static
 void
@@ -37,7 +37,7 @@ testSimple0(int imageType)
     
     const dc::GradientDomainDegradation::InsertType insertType = (dc::GradientDomainDegradation::InsertType)(i);
 
-    const cv::Mat out =  dc::GradientDomainDegradation::degradation(img2, IMAGES_PATH, numStainsToInsert, insertType, doRotations);
+    const cv::Mat out = dc::GradientDomainDegradation::degradation(img2, STAIN_IMAGES_PATH, numStainsToInsert, insertType, doRotations);
 
     REQUIRE( out.type() == imageType );
   }
@@ -46,7 +46,7 @@ testSimple0(int imageType)
 TEST_CASE( "Testing GradientDomainDegradation" )
 { 
 
-  SECTION("Testing GradientDomainDegradation produces same type output")
+  SECTION("Testing GradientDomainDegradation produces output image of same type")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

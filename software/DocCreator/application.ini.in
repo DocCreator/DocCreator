@@ -7,6 +7,7 @@ meshfolder=${MESH_DATA_DIRECTORY}
 holepatternsfolder=${HOLEPATTERNS_DATA_DIRECTORY}
 phantompatternsfolder=${PHANTOMPATTERNS_DATA_DIRECTORY}
 blurimagesfolder=${BLURIMAGES_DATA_DIRECTORY}
+stainimagesfolder=${STAINIMAGES_DATA_DIRECTORY}
 tessdataparentfolder=${Tesseract_TESSDATA_PARENT_DIR}
 xmlcheckerfolder=${XMLCHECKER_DIRECTORY}
 documentxsdchecker=document.xsd
