@@ -18,18 +18,28 @@ namespace dc {
     /*
       Apply blur to whole image
 
-      @param intensity is kernel size.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
 
+      @param img image to apply effect onto.
+      @param method applied blur method.
+      @param intensity is kernel size.
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &originalImg, Method method, int intensity);
+    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int intensity);
 
     /*
       Apply blur to specific image area
 
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+
+      @param img image to apply effect onto.
+      @param method applied blur method.
+      @param intensity is kernel size.
+      @param function
+      @param area
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &originalImg, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0); 
+    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0);
 
     /*
       return a CV_8UC1 mat the same size than @a originalMat.

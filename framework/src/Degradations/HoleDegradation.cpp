@@ -329,7 +329,7 @@ namespace dc {
     }
 
     cv::Mat
-    holeDegradation(const cv::Mat &matOriginal,
+    holeDegradation(const cv::Mat &img,
 		    const cv::Mat &holePattern,
 		    int xOrigin,
 		    int yOrigin,
@@ -341,10 +341,10 @@ namespace dc {
 		    int shadowBorderWidth,
 		    float shadowBorderIntensity)
     {
-      assert(matBelow.empty() || matBelow.type() == matOriginal.type());
+      assert(matBelow.empty() || matBelow.type() == img.type());
       assert(holePattern.type() == CV_8UC1);
 
-      cv::Mat matOut = matOriginal; //makeFourChanImage(matOriginal);
+      cv::Mat matOut = img; //makeFourChanImage(img);
 
       cv::Mat matPattern = holePattern;
       if (type == HoleType::BORDER && side > 0) {
@@ -382,7 +382,7 @@ namespace dc {
 			  x0, y0, x1, y1, xOrigin, yOrigin);
       }
 
-      assert(matOut.type() == matOriginal.type());
+      assert(matOut.type() == img.type());
 
       return matOut;
     }
@@ -500,7 +500,7 @@ namespace dc {
     
 
     cv::Mat
-    holeDegradation(const cv::Mat &matOriginal,
+    holeDegradation(const cv::Mat &img,
 		    const cv::Mat &holePattern,
 		    int size,
 		    HoleType type,
@@ -511,13 +511,13 @@ namespace dc {
 		    int shadowBorderWidth,
 		    float shadowBorderIntensity)
     {
-      const cv::Point pos = getRandomPosition(matOriginal.size(),
+      const cv::Point pos = getRandomPosition(img.size(),
 					      holePattern.size(),
 					      type,
 					      ratioOutside,
 					      side);
       
-      return holeDegradation(matOriginal,
+      return holeDegradation(img,
 			     holePattern,
 			     pos.x,
 			     pos.y,

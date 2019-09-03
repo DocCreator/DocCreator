@@ -519,7 +519,7 @@ namespace dc {
 
     //Apply blur filter to whole image
     cv::Mat
-    blur(const cv::Mat &originalImg, Method method, int intensity)
+    blur(const cv::Mat &img, Method method, int intensity)
     {
       //B: (tested with OpenCV 2.4.12)
       //If intensity(=kSize) == 1 : the three functions do nothing
@@ -529,26 +529,26 @@ namespace dc {
 
       switch (method) {
       case Method::GAUSSIAN:
-	cv::GaussianBlur(originalImg, matOut,
+	cv::GaussianBlur(img, matOut,
 			 cv::Size(intensity, intensity), 0, 0);
 	break;
 
       case Method::MEDIAN:
-	cv::medianBlur(originalImg, matOut, intensity);
+	cv::medianBlur(img, matOut, intensity);
 	break;
 
       case Method::NORMAL:
-	cv::blur(originalImg, matOut, cv::Size(intensity, intensity));
+	cv::blur(img, matOut, cv::Size(intensity, intensity));
 	break;
       }
 
-      assert(matOut.type() == originalImg.type());
+      assert(matOut.type() == img.type());
       
       return matOut;
     }
 
     cv::Mat
-    blur(const cv::Mat &originalImg,
+    blur(const cv::Mat &img,
 	 Method method,
 	 int intensity,
 	 Function function,
@@ -558,7 +558,7 @@ namespace dc {
 	 int horizontal,
 	 int radius)
     {
-      assert(originalImg.type() == CV_8UC3 || originalImg.type() == CV_8UC4 || originalImg.type() == CV_8UC1);
+      assert(img.type() == CV_8UC3 || img.type() == CV_8UC4 || img.type() == CV_8UC1);
       
       //B:TODO:OPTIM:
       // we apply the blur on the whole image
@@ -566,9 +566,9 @@ namespace dc {
       // We should have a function to get the bounding box of the pattern
       // and apply the blur only in this bounding box...
 
-      cv::Mat matOut = blur(originalImg, method, intensity);
-      assert(matOut.type() == originalImg.type());
-      return degradateArea(originalImg, matOut,
+      cv::Mat matOut = blur(img, method, intensity);
+      assert(matOut.type() == img.type());
+      return degradateArea(img, matOut,
 			   function, area, coeff, vertical, horizontal, radius);
     }
 

@@ -18,13 +18,15 @@ namespace dc {
     /*
       Insert "phantom characters" on border of characters.
 
-      @param imgOriginal input image to degrade.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+
+      @param img input image to degrade.
       @param frequency frequency of occurence of phantom characters.
       @param phantomPatternsPath directory to load phantom patterns from.
 
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &imgOriginal,
+    extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &img,
 						     Frequency frequency,
 						     const std::string &phantomPatternsPath);
 

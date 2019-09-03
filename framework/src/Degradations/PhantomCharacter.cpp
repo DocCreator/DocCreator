@@ -1004,13 +1004,13 @@ namespace dc {
     }
 
     cv::Mat
-    phantomCharacter(const cv::Mat &imgOriginal, Frequency frequency, const std::string &phantomPatternsPath)
+    phantomCharacter(const cv::Mat &img, Frequency frequency, const std::string &phantomPatternsPath)
     {
-      cv::Mat output = imgOriginal.clone();
+      cv::Mat output = img.clone();
 
       CCs ccs;
-      cv::Mat imgOriginalBin = binarize(imgOriginal);
-      ConnectedComponent::extractAllConnectedComponents(imgOriginalBin, ccs, 4);
+      cv::Mat imgBin = binarize(img);
+      ConnectedComponent::extractAllConnectedComponents(imgBin, ccs, 4);
 
       if (ccs.empty())
 	return output;
@@ -1062,9 +1062,9 @@ namespace dc {
 	probOccurence = 70;
 
 #ifdef SAVE_DEGRADATIONS_IMAGE
-      cv::Mat degrads(imgOriginal.rows,
-		      imgOriginal.cols,
-		      imgOriginal.type(),
+      cv::Mat degrads(img.rows,
+		      img.cols,
+		      img.type(),
 		      cv::Scalar(255, 255, 255));
 #endif //SAVE_DEGRADATIONS_IMAGE
 
