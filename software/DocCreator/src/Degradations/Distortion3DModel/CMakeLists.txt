@@ -83,9 +83,6 @@ ENDIF()
 
 
 
-#include(doqubook_functions)
-#dqb_plugin_auto_conf()
-
 ## Qt4 or Qt5
 FIND_PACKAGE(QtX)
 
@@ -99,8 +96,25 @@ ENDIF(NOT OPENGL_FOUND)
 SET(EIGEN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen-3.3.7)
 
 
+# Generate GLWidget.hpp from GLWidget.hpp.in according to Qt version.
+# (Hack: see GLWidget.hpp.in for details)
+if (Qt5Widgets_FOUND)
+  if (Qt5Widgets_VERSION VERSION_LESS 5.4.0)
+    set(QGL_CLASS QGLWidget)
+    message(STATUS "Use QGLWidget as OpenGL widget.")
+  else()
+    set(QGL_CLASS QOpenGLWidget)
+    message(STATUS "Use QOpenGLWidget as OpenGL widget.")
+  endif()
+else()
+    set(QGL_CLASS QGLWidget)
+    message(STATUS "Use QGLWidget as OpenGL widget.")
+endif(Qt5Widgets_FOUND)
+configure_file(src/GLWidget.hpp.in src/GLWidget.hpp @ONLY)
+
+
 SET(DOC3D_HEADERS
-  ./src/GLWidget.hpp
+  ${CMAKE_CURRENT_BINARY_DIR}/src/GLWidget.hpp #./src/GLWidget.hpp
   ./src/MeshWindow.hpp
   ./src/GLMesh.hpp
   ./src/GLCamera.hpp
@@ -147,7 +161,9 @@ SET(SRCS ${DOC3D_HEADERS}  ${DOC3D_SOURCES} ${DOC3D_MOC_SOURCES} )
 #INCLUDE_DIRECTORIES(${EIGEN_INCLUDE_DIR})
 
 
-SET(DOC3D_INCLUDE_DIRS_LOCAL "${QT_QTCORE_INCLUDE_DIR};${QT_QTGUI_INCLUDE_DIR};${QT_QTOPENGL_INCLUDE_DIR};${OPENGL_INCLUDE_DIR};${GLAD_INCLUDE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/thirdparty;${CMAKE_CURRENT_SOURCE_DIR};${LZHAM_INCLUDE_DIR};${EIGEN_INCLUDE_DIR}")
+SET(DOC3D_INCLUDE_DIRS_LOCAL "${QT_QTCORE_INCLUDE_DIR};${QT_QTGUI_INCLUDE_DIR};${QT_QTOPENGL_INCLUDE_DIR};${OPENGL_INCLUDE_DIR};${GLAD_INCLUDE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/thirdparty;${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_BINARY_DIR}/src;;${CMAKE_CURRENT_BINARY_DIR}/../..;${LZHAM_INCLUDE_DIR};${EIGEN_INCLUDE_DIR}")
+#Added "${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_BINARY_DIR}/src" for generated GLWidget.hpp compilation
+# and ";${CMAKE_CURRENT_BINARY_DIR}/../.." to be able to still do : #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
 
 SET(DOC3D_INCLUDE_DIRS "${DOC3D_INCLUDE_DIRS_LOCAL}" PARENT_SCOPE)
 

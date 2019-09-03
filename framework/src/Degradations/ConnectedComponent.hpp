@@ -13,27 +13,25 @@ namespace dc {
   typedef std::vector<CC> CCs;
 
 
-  class FRAMEWORK_EXPORT ConnectedComponent
+  namespace ConnectedComponent
   {
-  public:
 
     /**
        @brief extract all connected componenents from image @a input 
        and fill @a ccs.
 
+       @a is considered binarized. All non-white pixels may serve as a 
+       region growing algorithm seed.
+
+       @a input must be of type CV_8UC1.
        @a connectivity must be 4 or 8.
     */
-    static void extractAllConnectedComponents(const cv::Mat &input,
+    extern FRAMEWORK_EXPORT void extractAllConnectedComponents(
+					      const cv::Mat &input,
 					      CCs &ccs,
 					      int connectivity = 8);
 
-  private:
-
-    static void extractConnectedComponent(cv::Mat &input,
-					  const cv::Point &seed,
-					  CC &cc,
-					  int connectivity);
-  };
+  } //namespace ConnectedComponent
 
 } //namespace dc
   

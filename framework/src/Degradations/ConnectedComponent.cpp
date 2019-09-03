@@ -8,26 +8,29 @@
 
 namespace dc {
 
+  namespace ConnectedComponent {
+
   static const uchar BACKGROUND = 255;
 
   /*
     Region growing from @a seed, according to @a connectivity.
-    @a input is considered binarized.
+    @a input is considered binarized, and of type CV_8UC1.
     Will modify @a input and fill @a cc.
 
     Black pixels (0) are considered foreground, 
     white pixels (255) are considered background.
   */
   void
-  ConnectedComponent::extractConnectedComponent(cv::Mat &input,
-						const cv::Point &seed,
-						CC &cc,
-						int connectivity)
+  extractConnectedComponent(cv::Mat &input,
+			    const cv::Point &seed,
+			    CC &cc,
+			    int connectivity)
   {
     assert(input.type() == CV_8U);
     assert(seed.x < input.cols && seed.y < input.rows && seed.x >= 0 &&
 	   seed.y >= 0);
     //  assert(input.at<unsigned char>(seed.y, seed.x));
+    assert(connectivity == 4 || connectivity==8);
 
     cc.clear();
 
@@ -116,12 +119,12 @@ namespace dc {
   }
 
   void
-  ConnectedComponent::extractAllConnectedComponents(
-						    const cv::Mat &input,
-						    CCs &ccs,
-						    int connectivity)
+  extractAllConnectedComponents(const cv::Mat &input,
+				CCs &ccs,
+				int connectivity)
   {
     assert(input.type() == CV_8U);
+    assert(connectivity == 4 || connectivity==8);
 
     ccs.clear();
     ccs.reserve(input.rows); //arbitrary
@@ -143,5 +146,6 @@ namespace dc {
     }
   }
 
+  } //namespace ConnectedComponent
 
 } //namespace dc

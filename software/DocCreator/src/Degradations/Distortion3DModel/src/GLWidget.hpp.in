@@ -18,13 +18,30 @@
 
 class Mesh;
 
-class FRAMEWORK_EXPORT GLWidget
-  :
-#if QT_VERSION < 0x050400
-  public QGLWidget
+/*
+ On Fedora 29 (CMake 3.14.5/Qt 5.11.3/gcc 8.3.1) and Fedora 30 
+the following code does not compile 
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
+class FRAMEWORK_EXPORT GLWidget : public QGLWidget
 #else
-  public QOpenGLWidget
+class FRAMEWORK_EXPORT GLWidget : public QOpenGLWidget
 #endif
+{
+
+The moc file moc_GLWidget.cpp is generated with references to QGLWidget and not QOpenGLWidget.
+(And thus I get "QGLWidget::qt_metacall(..." has not been declared kinds of errors)
+I tried lots of things : change statements order, change version check, passing the QT_VERSION to moc... but I am not able to make it work.
+What's strange is that it compiles correctly on Ubuntu 19.04 (CMake 3.13.4/ ) ...
+
+A workaround find here: 
+https://stackoverflow.com/questions/35969392/dynamically-use-qglwidget-or-qopenglwidget-depending-on-qt-version
+is to have CMake generate the correct GLWidget.hpp file from a GLWidget.hpp.in file.
+
+
+*/
+
+class GLWidget : public @QGL_CLASS@
 {
   Q_OBJECT
 
