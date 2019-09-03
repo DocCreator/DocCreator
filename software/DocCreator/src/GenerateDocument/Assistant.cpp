@@ -14,7 +14,7 @@
 #include <QMessageBox>
 #include <QTextStream>
 
-#include "Degradations/BleedThrough.hpp"
+#include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
@@ -1779,10 +1779,10 @@ Assistant::BleedThrough_updateBleedImageMin(int nbIter, bool fromZero)
   }
   assert(currRectoImg.size() == _BleedThrough_rectoImgPart.size());
 
-  _BleedThrough_bleedImgPart = dc::bleedThrough(_BleedThrough_rectoImgPart,
-                                            currRectoImg,
-                                            _BleedThrough_versoImgPart,
-                                            lNbIter);
+  _BleedThrough_bleedImgPart = dc::BleedThrough::bleedThrough(_BleedThrough_rectoImgPart,
+							      currRectoImg,
+							      _BleedThrough_versoImgPart,
+							      lNbIter);
 
   ui->BleedMinPreviewLabel->setPixmap(
     QPixmap::fromImage(_BleedThrough_bleedImgPart));
@@ -1831,10 +1831,10 @@ Assistant::BleedThrough_updateBleedImageMax(int nbIter, bool fromZero)
   }
   assert(currRectoImg.size() == _BleedThrough_rectoImgPart.size());
 
-  _BleedThrough_bleedImgPart = dc::bleedThrough(_BleedThrough_rectoImgPart,
-                                            currRectoImg,
-                                            _BleedThrough_versoImgPart,
-                                            lNbIter);
+  _BleedThrough_bleedImgPart = dc::BleedThrough::bleedThrough(_BleedThrough_rectoImgPart,
+							      currRectoImg,
+							      _BleedThrough_versoImgPart,
+							      lNbIter);
 
   ui->BleedMaxPreviewLabel->setPixmap(
     QPixmap::fromImage(_BleedThrough_bleedImgPart));
@@ -4807,7 +4807,7 @@ Assistant::do_bleed(const QString &imageBasename,
   for (int i = 0; i < nbTirage; ++i) {
     const int nbOcc = P_bounded_rand(bleedMin, bleedMax + 1);
 
-    const QImage imageBleed = dc::bleedThrough(recto, verso, nbOcc);
+    const QImage imageBleed = dc::BleedThrough::bleedThrough(recto, verso, nbOcc);
     const QString prefixFilename =
       imageBasename + "Bleed_" + QString::number(i);
     const QString filename = prefixFilename + ".png";

@@ -21,20 +21,23 @@ include_directories(${FRAMEWORK_INCLUDE_DIRS})
 
 SET(
   DocCreatorQ_headers
+  src/Degradations/BleedThroughQ.hpp
   src/Degradations/BlurFilterQ.hpp
-  src/Degradations/ShadowBindingQ.hpp
+  src/Degradations/DocumentDegradation.hpp
+  src/Degradations/GradientDomainDegradationQ.hpp
   src/Degradations/HoleDegradationQ.hpp
   src/Degradations/PhantomCharacterQ.hpp
-  src/Degradations/GradientDomainDegradationQ.hpp
+  src/Degradations/ShadowBindingQ.hpp
 )
 
 SET(
   DocCreatorQ_sources
+  src/Degradations/BleedThroughQ.cpp
   src/Degradations/BlurFilterQ.cpp
-  src/Degradations/ShadowBindingQ.cpp
+  src/Degradations/GradientDomainDegradationQ.cpp
   src/Degradations/HoleDegradationQ.cpp
   src/Degradations/PhantomCharacterQ.cpp
-  src/Degradations/GradientDomainDegradationQ.cpp
+  src/Degradations/ShadowBindingQ.cpp
 )
 
 
@@ -214,6 +217,7 @@ SET(MESH_DATA_DIRECTORY ${DATA_DIR}/Mesh/)
 SET(HOLEPATTERNS_DATA_DIRECTORY ${DATA_DIR}/Image/holePatterns/)
 SET(PHANTOMPATTERNS_DATA_DIRECTORY ${DATA_DIR}/Image/phantomPatterns/)
 SET(BLURIMAGES_DATA_DIRECTORY ${DATA_DIR}/Image/blurImages/)
+SET(STAINIMAGES_DATA_DIRECTORY ${DATA_DIR}/Image/stainImages/images/)
 SET(XMLCHECKER_DIRECTORY ${SHARE_DIR}/xmlchecker/)
 SET(KEYBOARD_DATA_DIRECTORY ${DATA_DIR}/keyboard/)
 CONFIGURE_FILE(application.ini.in ${CMAKE_BINARY_DIR}/software/DocCreator/application.ini)

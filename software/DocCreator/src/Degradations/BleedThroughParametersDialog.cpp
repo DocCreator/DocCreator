@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <cassert>
 
-#include "Degradations/BleedThrough.hpp"
+#include "Degradations/BleedThroughQ.hpp"
 #include "Utils/ImageUtils.hpp"
 
 BleedThroughParametersDialog::BleedThroughParametersDialog(QWidget *parent)
@@ -28,13 +28,13 @@ BleedThroughParametersDialog::BleedThroughParametersDialog(QWidget *parent)
           SLOT(nbIterationsChanged(int)));
 }
 
-const int IMG_WIDTH = 240;
-const int IMG_HEIGHT = 360;
+static const int IMG_WIDTH = 240;
+static const int IMG_HEIGHT = 360;
 
-const int BLEED_WIDTH = 220;
-const int BLEED_HEIGHT = 220;
-const int BLEED_X = 280;
-const int BLEED_Y = 320;
+static const int BLEED_WIDTH = 220;
+static const int BLEED_HEIGHT = 220;
+static const int BLEED_X = 280;
+static const int BLEED_Y = 320;
 
 BleedThroughParametersDialog::~BleedThroughParametersDialog()
 {
@@ -175,7 +175,7 @@ BleedThroughParametersDialog::updateBleedImage(int nbIter, bool fromZero)
   assert(currRectoImg.size() == _rectoImgPart.size());
 
   _bleedImgPart =
-    dc::bleedThrough(_rectoImgPart, currRectoImg, _versoImgPart, lNbIter);
+    dc::BleedThrough::bleedThrough(_rectoImgPart, currRectoImg, _versoImgPart, lNbIter);
 
   _bleedLabel->setPixmap(QPixmap::fromImage(_bleedImgPart));
 }

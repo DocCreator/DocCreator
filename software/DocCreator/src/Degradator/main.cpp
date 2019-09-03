@@ -7,7 +7,7 @@
 #include <QDir>
 
 
-#include "Degradations/BleedThrough.hpp"
+#include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
@@ -149,7 +149,7 @@ main(int argc, char *argv[])
       }
       else {
 	const int nbIter = random_in_range(bleedThrough_minIter, bleedThrough_maxIter);
-	const QImage imgBleed = dc::bleedThrough(currImg, versoImg, nbIter);
+	const QImage imgBleed = dc::BleedThrough::bleedThrough(currImg, versoImg, nbIter);
 	if (cumulate) {
 	  currImg = imgBleed;
 	  suffixe += "_bt";

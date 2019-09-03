@@ -28,7 +28,7 @@
 
 #include "models/font.h"
 
-#include "Degradations/BleedThrough.hpp"
+#include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BleedThroughParametersDialog.hpp"
 #include "Degradations/BlurFilterDialog.hpp"
 #include "Degradations/BlurFilterQ.hpp"
@@ -995,7 +995,7 @@ DocCreator::applyBleedThrough()
     //        backGround = backGround.scaled(width,height);
     //        verso = verso.scaled(width,height);
 
-    dc::BleedThrough deg(params.getNbIterations(), this);
+    dc::BleedThroughQ deg(params.getNbIterations(), this);
 
     deg.setVerso(params.getPathToVersoImage());
 
@@ -1815,10 +1815,10 @@ DocCreator::createMenus()
   _colorDegradationSubMenu =
     _imageDegradationSubMenu->addMenu(tr("Color Degradation"));
 
-  _grayScaleDegradationSubMenu->addAction(_applyBleedThrough);
   _grayScaleDegradationSubMenu->addAction(_applyCharacterDegradationModel);
 
   _colorDegradationSubMenu->addAction(_distortion3DModelAct);
+  _colorDegradationSubMenu->addAction(_applyBleedThrough);
   _colorDegradationSubMenu->addAction(_applyBlurFilter);
   _colorDegradationSubMenu->addAction(_applyShadowBinding);
   _colorDegradationSubMenu->addAction(_applyHoleDegradation);
