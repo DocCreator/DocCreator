@@ -81,7 +81,7 @@ distance_to_line(cv::Point begin, cv::Point end, cv::Point x)
 }
 
 int
-Baseline::getBaseline(cv::Rect r, std::vector<cv::Vec4i> &lines)
+Baseline::getBaseline(cv::Rect r, const std::vector<cv::Vec4i> &lines)
 {
   cv::Point p = r.br();
   // We create a point in the bottom-middle of the bounding box of the letter
@@ -104,7 +104,7 @@ Baseline::getBaseline(cv::Rect r, std::vector<cv::Vec4i> &lines)
     }
   }
 
-  // We compute the projection of p (charcater center point) on the baseline
+  // We compute the projection of p (character center point) on the baseline
   // equation
   assert(closest_line[0] != closest_line[2]);
   const double slope = (double)(closest_line[1] - closest_line[3]) /

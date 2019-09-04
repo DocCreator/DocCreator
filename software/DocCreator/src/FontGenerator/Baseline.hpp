@@ -1,5 +1,5 @@
-#ifndef BASELINE_H
-#define BASELINE_H
+#ifndef BASELINE_HPP
+#define BASELINE_HPP
 
 #include "opencv2/core/core.hpp"
 
@@ -14,10 +14,10 @@ public:
   static void computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines);
 
   // Get closest baseline from the bounding box of the character in the image
-  static int getBaseline(cv::Rect r, std::vector<cv::Vec4i> &lines);
+  static int getBaseline(cv::Rect r, const std::vector<cv::Vec4i> &lines);
 
 protected:
   static int character_height;
 };
 
-#endif // BASELINE_H
+#endif // BASELINE_HPP
