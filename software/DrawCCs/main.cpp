@@ -179,7 +179,7 @@ drawCCsRandom(const cv::Mat &img)
 
   cv::Mat outImg(img.rows, img.cols, CV_8UC3);
 
-  const float golden_ratio_conjugate = 0.618033988749895;
+  const float golden_ratio_conjugate = 0.618033988749895f;
 
   //compute color in HSV and convert to RGB.
   //H is computed according to component indice.
