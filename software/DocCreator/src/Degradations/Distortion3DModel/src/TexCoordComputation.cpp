@@ -659,7 +659,7 @@ struct IndSorter
 {
   const std::vector<uint32_t> &m_inds;
 
-  IndSorter(const std::vector<uint32_t> &inds)
+  explicit IndSorter(const std::vector<uint32_t> &inds)
     : m_inds(inds)
   {}
 
@@ -673,7 +673,7 @@ struct IndiceSorterE
 {
   const std::vector<uint32_t> &m_bins;
 
-  IndiceSorterE(const std::vector<uint32_t> &bins)
+  explicit IndiceSorterE(const std::vector<uint32_t> &bins)
     : m_bins(bins)
   {}
 
@@ -1432,7 +1432,7 @@ struct X_Z_Idx_SmallX
 {
   float m_maxX;
 
-  X_Z_Idx_SmallX(float maxX)
+  explicit X_Z_Idx_SmallX(float maxX)
     : m_maxX(maxX)
   {}
 
@@ -1447,7 +1447,7 @@ struct IndiceSorter
 {
   const std::vector<uint32_t> &m_trianglesBins;
 
-  IndiceSorter(const std::vector<uint32_t> &trianglesBins)
+  explicit IndiceSorter(const std::vector<uint32_t> &trianglesBins)
     : m_trianglesBins(trianglesBins)
   {}
 
@@ -1770,7 +1770,7 @@ struct SorterY
 {
   const std::vector<float> &m_ys;
 
-  SorterY(const std::vector<float> &ys)
+  explicit SorterY(const std::vector<float> &ys)
     : m_ys(ys)
   {}
 
@@ -1785,7 +1785,7 @@ struct CompareY
 {
   const std::vector<float> &m_ys;
 
-  CompareY(const std::vector<float> &ys)
+  explicit CompareY(const std::vector<float> &ys)
     : m_ys(ys)
   {}
 
@@ -1801,7 +1801,7 @@ class SpacePartionnerYb
 public:
   SpacePartionnerYb() {}
 
-  SpacePartionnerYb(const Mesh &mesh) { init(mesh); }
+  explicit SpacePartionnerYb(const Mesh &mesh) { init(mesh); }
 
   void init(const Mesh &mesh)
   {
