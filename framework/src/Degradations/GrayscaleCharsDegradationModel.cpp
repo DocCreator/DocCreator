@@ -2341,7 +2341,7 @@ namespace dc {
 	if (min_B > gray)
 	  min_B = gray;
 
-	const int n = 2 * pointInLine.size() + 3;
+	const int n = 2 * (int)(pointInLine.size()) + 3;
 	float *line = (float *)malloc(sizeof(float) * n);
 	if (line != nullptr) {
 	  int id = 0;
