@@ -644,6 +644,7 @@ namespace dc {
       // (float between values 0
       // and 1).
       cv::threshold(magI, magI, 127, 255, cv::THRESH_BINARY);
+      /*
       const int erosion_size = 1;
       cv::Mat element = cv::getStructuringElement(
 						  cv::MORPH_RECT,
@@ -651,6 +652,7 @@ namespace dc {
 						  cv::Point(
 							    erosion_size,
 							    erosion_size)); //http://docs.opencv.org/doc/tutorials/imgproc/erosion_dilatation/erosion_dilatation.html
+      */
 
       // to compute the radius
 #if 0
