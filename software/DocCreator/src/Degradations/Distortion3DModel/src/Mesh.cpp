@@ -2415,5 +2415,7 @@ keepOnlyLargestCC(Mesh &mesh)
     assert(idx == largestSize);
 
     mesh2.removeNonReferencedVertices();
+
+    std::swap(mesh, mesh2);
   }
 }

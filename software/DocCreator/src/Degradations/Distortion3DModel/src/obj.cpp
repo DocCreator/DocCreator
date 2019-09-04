@@ -110,11 +110,10 @@ readOBJ(const std::string &filename, Mesh &mesh)
   float *normals = nullptr;
   if (numNormals != 0) {
     parseNormals = true;
-    if (numNormals != numVertices)
+    if (numNormals != numVertices) {
       std::cerr << "OBJ: warning: numNormals=" << numNormals
                 << " != numVertices=" << numVertices << "\n";
 
-    if (numNormals != numVertices) {
       tmpNormals.resize(3 * numNormals);
       normals = &tmpNormals[0];
     } else {
@@ -129,10 +128,10 @@ readOBJ(const std::string &filename, Mesh &mesh)
   float *texCoords = nullptr;
   if (numTexCoords != 0) {
     parseTexCoords = true;
-    if (numTexCoords != numVertices)
+    if (numTexCoords != numVertices) {
       std::cerr << "OBJ: warning: numTexCoords=" << numTexCoords
                 << " != numVertices=" << numVertices << "\n";
-    if (numTexCoords != numVertices) {
+
       tmpTexCoords.resize(2 * numTexCoords);
       texCoords = &tmpTexCoords[0];
     } else {

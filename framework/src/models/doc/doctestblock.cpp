@@ -2,15 +2,17 @@
 
 namespace Doc
 {
-DocTestBlock::DocTestBlock(const QString &filePath)
+DocTestBlock::DocTestBlock(const QString &filePath) :
+  _filePath(filePath)
 {
-      _filePath = filePath;
+
 }
 
 DocTestBlock::DocTestBlock(const QString &filePath, int w, int h, int x, int y) : 
-  Block(w, h, x, y)
+  Block(w, h, x, y),
+  _filePath(filePath)
 {
-    _filePath = filePath;
+
 }
 
 QString DocTestBlock::content() const

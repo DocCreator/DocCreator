@@ -22,6 +22,8 @@ namespace IOManager
   public:
     TxtDocumentSaver(Doc::Document *doc, const QString& filename);
     ~TxtDocumentSaver();
+    TxtDocumentSaver(const TxtDocumentSaver &o) = delete;
+    TxtDocumentSaver &operator=(const TxtDocumentSaver &o) = delete;
 
     virtual void createNewDocumentOutput() override;
 	  

@@ -457,6 +457,7 @@ namespace dc {
 
       cv::threshold(mat_gray, mat_gray, threshold, 255, cv::THRESH_BINARY);
 
+      /*
       //try to erode :
       int erosion_size = 1;
       cv::Mat element = cv::getStructuringElement(
@@ -468,6 +469,7 @@ namespace dc {
       //cv::erode(mat_gray, mat_gray, element);
       //cv::dilate(mat_gray, mat_gray, element);
       //cv::dilate(mat_gray, mat_gray, element);
+      */
 
       return mat_gray;
     }

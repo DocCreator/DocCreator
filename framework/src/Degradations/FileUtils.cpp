@@ -27,7 +27,6 @@ namespace dc {
       std::cerr<<"ERROR: unable to open directory: "<<dirname<<"\n";
       return entries;
     }
-    assert(dp != nullptr);
 
     while ((entry = readdir(dp))) {
 

@@ -13,14 +13,14 @@ namespace Context {
 
 class FRAMEWORK_EXPORT AppContext : public Patterns::Singleton<AppContext>
 {
-private:
-  Mvc::IController *_activeController;
-  static AppContext *_instance;
-
 public:
   void setActiveController(Mvc::IController *activeController);
   Mvc::IController *getActiveController();
   static AppContext *instance();
+
+ private:
+  Mvc::IController *_activeController;
+  static AppContext *_instance;
 };
 }
 

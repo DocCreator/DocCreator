@@ -97,7 +97,6 @@ namespace Doc
       Page* current = this->currentPage();
       if (current == nullptr)
 	return nullptr;
-      assert(current != nullptr);
       return current->currentBlock();
     }
 

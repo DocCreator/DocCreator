@@ -113,7 +113,7 @@ void Page::removeTextBlocks()
 {
   DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
   if (current != nullptr)
-    current = nullptr;
+    current = nullptr; //B:TODO:USELESS/BUG ?
   
   _textBlocks.clear();
 }
