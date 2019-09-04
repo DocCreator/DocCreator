@@ -438,7 +438,7 @@ ConnectedComponentExtraction::getScanlinesB(const CC &cc)
     assert(scc.size() == sz);
 
     int prev_y = scc[0].y - 1; //inferior to all ys of cc.
-    int start_x = 0;
+    int start_x;
     int end_x = 0;
     std::vector<int> lines;
     for (size_t i = 0; i < sz; ++i) {
