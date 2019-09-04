@@ -1,3 +1,14 @@
+/*
+  This code is an example of degradation effects application.
+  It will apply several degradation effects to images of an input directory and write the result images in an output directory.
+
+  For each degradation effect <E>, we have a boolean variable do_<E> that indicates if the effect is applied. You will have to set the variable to true (resp. false) to enable (resp. disable) the corresponding degradation effect.
+  If there exists a parameter <P> for the effect <E> that takes values in a range, the variables <E>_min<P> and <E>_max<P> indicate the range from which a random value will be drawn for <P> when the degradation effect <E> is applied. You may change the values of <E>_min<P> and <E>_max<P> to change the range and obtain different result images.
+ Some other parameters of the effect <E> may have default values further in the code. You may change the as well if necessary.
+
+ If N degradation effects are enabled, it is possible to decide if they are combined/cumulated for a given input image, producing one outut image, or if they are applied individually, producing N output images. Set the boolean variable "cumulate" to true (resp. false) to produce one (resp. N) output image(s).
+
+ */
 
 #include <cassert>
 #include <iostream>
@@ -5,7 +16,6 @@
 
 #include <QDebug>
 #include <QDir>
-
 
 #include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
