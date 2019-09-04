@@ -442,7 +442,7 @@ KeyboardView::drawKeyboard(Models::Font *font)
   if (font == nullptr)
     return;
 
-  assert(font != nullptr);
+  //assert(font != nullptr);
   if (_currentFontName != font->getName()) {
     //change font
     mapKeyboardCodeValuesToFontCodes(font);
