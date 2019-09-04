@@ -217,7 +217,7 @@ main(int argc, char *argv[])
 
     if (do_shadow) {
       const dc::ShadowBinding::Border border = (dc::ShadowBinding::Border)random_in_range(0, 3);
-      const int distance = random_in_range(0, int(0.25*std::min(currImg.width(), currImg.height())));
+      const int distance = random_in_range(0, int(0.25*std::min<int>(currImg.width(), currImg.height())));
       const float intensity = random_in_range(0, 255)/255.f;
       const float angle = random_in_range(0, 90);
       QImage imgShad = dc::ShadowBinding::shadowBinding(currImg, border, distance, intensity, angle);
