@@ -522,7 +522,7 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
     std::cerr << "time scale(): "
               << std::chrono::duration<double, std::milli>(time2).count()
               << "ms\n";
-    auto t4 = std::chrono::steady_clock::now();
+    //auto t4 = std::chrono::steady_clock::now();
 #endif //TIMING
 
     bg = bg.convertToFormat(QImage::Format_ARGB32);
