@@ -60,6 +60,8 @@ namespace dc {
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <strsafe.h> //StringCchLength
+#include <tchar.h> //_tprintf
 
 namespace dc {
 
@@ -68,17 +70,20 @@ namespace dc {
   {
     std::vector<std::string> entries;
 
+	std::string dirname2 = dirname + "\\*";
+    _tprintf(TEXT("\nDEBUG dirname2=%s\n"), dirname2.c_str());
+
     size_t length_of_arg;
-    StringCchLength(dirname.c_path(), MAX_PATH, &length_of_arg);
+    StringCchLength(dirname2.c_str(), MAX_PATH, &length_of_arg);
     if (length_of_arg > (MAX_PATH - 1)) {
       _tprintf(TEXT("\nDirectory path is too long.\n"));
       return entries;
     }
   
     WIN32_FIND_DATA FindFileData;
-    HANDLE hFind = FindFirstFile(dirname.c_path(), &FindFileData);
+    HANDLE hFind = FindFirstFile(dirname2.c_str(), &FindFileData);
     if (hFind == INVALID_HANDLE_VALUE) {
-      printf ("FindFirstFile failed (%d)\n", GetLastError());
+      _tprintf(TEXT("FindFirstFile failed (%d)\n"), GetLastError());
       return entries;
     }
 
@@ -89,10 +94,11 @@ namespace dc {
 	else
 	_tprintf(TEXT("  %s \n"), FindFileData.cFileName);
       */
-      if (strncmp(entry->d_name, ".", 1) != 0
-	  && strncmp(entry->d_name, "..", 2) != 0) {
-	std::cerr<<entry->d_name<<"\n";
-	entries.push_back(entry->d_name);
+      const char *entry = FindFileData.cFileName;
+      if (strncmp(entry, ".", 1) != 0
+	  && strncmp(entry, "..", 2) != 0) {
+		//std::cerr<<entry<<"\n";
+		entries.push_back(entry);
       }
     
     }
