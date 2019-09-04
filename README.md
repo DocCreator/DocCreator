@@ -28,42 +28,42 @@ However, you will need to have network access during the configuration step to d
 On linux, your distribution may provide the binary packages for all required dependencies.
 
 On Ubuntu (14.04 and above), you can install the required binary packages with the following command:  
-`sudo apt-get install libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev cmake`
+`sudo apt-get install libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev cmake`  
 You may also have to set Qt5 as default with:  
-`sudo apt-get install qt5-default`
+`sudo apt-get install qt5-default`  
 You can install tesseract with the following command:  
 `sudo apt-get install tesseract-ocr tesseract-ocr-fra libtesseract-dev libleptonica-dev`
 
 On Fedora (21 or 22), you can install the required binary packages with the following command as root:  
 `yum install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake` 
 On Fedora (23 and above), you can install the required binary packages with the following command as root:  
-`dnf install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake gcc-c++`
+`dnf install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake gcc-c++`  
 You can install tesseract with the following command as root:  
-`dnf install tesseract tesseract-devel tesseract-langpack-fra leptonica leptonica-devel libpng-devel`
+`dnf install tesseract tesseract-devel tesseract-langpack-fra leptonica leptonica-devel libpng-devel`  
 
 
 To compile with clang on linux:
 - you need to have libc++  
   On Ubuntu, you can install libc++ with the following command:  
-  `sudo apt-get install libc++-dev libc++abi-dev`
+  `sudo apt-get install libc++-dev libc++abi-dev`  
   Warning: on Ubuntu 16.04, you may have to edit /usr/include/c++/v1/string
   cf https://stackoverflow.com/questions/37096062/get-a-basic-c-program-to-compile-using-clang-on-ubuntu-16/38385967#38385967
   On Fedora, you can use the following command:  
-  `dnf install libcxx`
+  `dnf install libcxx`  
 - you need to have OpenCV 3.1 or above.
   See below how to build OpenCV from sources.
 
 ### CMake
 
-On linux, CMake is often provided by the distribution.
-Binary packages of CMake last versions are available from https://cmake.org/download/
-cmake must be in your PATH. You should be able to print cmake version with the following commande: `cmake --version`
+On linux, CMake is often provided by the distribution.  
+Binary packages of CMake last versions are available from https://cmake.org/download/  
+**cmake must be in your PATH**. You should be able to print cmake version with the following commande: `cmake --version`
 
 ### Ninja
 
 [Optionnal]
 Binary packages of Ninja are available from https://github.com/ninja-build/ninja/releases
-ninja must be in your PATH. You should be able to print ninja version with the following commande: `ninja --version`
+**ninja must be in your PATH**. You should be able to print ninja version with the following commande: `ninja --version`
 
 
 ### Mac
@@ -78,9 +78,9 @@ On OSX (10.9, 10.10 or 10.11) with Homebrew, you can install the required depend
 
 ### Qt
 
-On linux, it is recommanded to use packages provided by the distribution. See above for instructions.
+On linux, it is recommanded to use packages provided by the distribution. See above for instructions.  
 On Mac and Windows, the open source version of Qt may be installed with the Qt Download Installer, downloaded from
-https://www.qt.io/download
+https://www.qt.io/download  
 On Windows, you will have to choose the version to install according to the compiler that you use and the target architecture. 
 For example, "MSVC 2017 64-bit" if you use Microsoft Visual Studio 2017 on a 64-bit processor.
 
@@ -90,7 +90,7 @@ For example, "MSVC 2017 64-bit" if you use Microsoft Visual Studio 2017 on a 64-
 You can also install OpenCV from sources (if it is not provided by your distribution or if you want a newer version for example).
 
 OpenCV is also built with CMake.
-You can use the following command to configure a minimal OpenCV version compatible with Document Creator:
+You can use the following command to configure a minimal OpenCV version compatible with DocCreator:
 ```
 cmake <PATH_TO_CMakeLists.txt> -DCMAKE_INSTALL_PREFIX=<INSTALL_PREFIX> -DBUILD_opencv_highgui=ON -DENABLE_FAST_MATH=ON -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CUDA=OFF -DWITH_CUFFT=OFF -DWITH_FFMPEG=OFF -DWITH_GIGEAPI=OFF -DWITH_JASPER=OFF -DWITH_LIBV4L=OFF  -DWITH_MATLAB=OFF -DWITH_OPENCL=OFF -DWITH_OPENCLAMDBLAS=OFF -DWITH_OPENCLAMDFFT=OFF -DWITH_OPENEXR=OFF -DWITH_PVAPI=OFF -DWITH_V4L=OFF -DWITH_VTK=OFF -DWITH_WEBP=OFF -DWITH_1394=OFF -DBUILD_opencv_apps=OFF -DBUILD_opencv_calib3d=OFF -DBUILD_opencv_dnn=OFF -DBUILD_opencv_features2d=OFF -DBUILD_opencv_flann=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_shape=OFF -DBUILD_opencv_stitching=OFF -DBUILD_opencv_superres=OFF  -DBUILD_opencv_ts=OFF -DBUILD_opencv_video=OFF -DBUILD_opencv_videoio=ON -DBUILD_opencv_videostab=OFF -DBUILD_opencv_world=OFF -DBUILD_opencv_highgui=ON -DPYTHON2_EXECUTABLE="" -DPYTHON3_EXECUTABLE="" -DBUILD_opencv_python2=OFF -DBUILD_opencv_python3=OFF -DWITH_QUICKTIME=OFF -DHAVE_QTKIT=FALSE
 ```
@@ -113,7 +113,7 @@ cmake <PATH_TO_CMakeLists.txt> -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_
 ```
 Then open the .sln file with Visual Studio,
 check that you have "Release" and "x64" for the "Solution configurations" and "Solution platforms" (comboboxes in the toolbar),
-then go to the menu "Build" and do "Build solution".
+then go to the menu "Build" and do "Build solution".  
 To install OpenCV in the target directory (<INSTALL_PREFIX>), in the "Solution explorer" (on the right), right click on "INSTALL" in CMakeTargets and choose "Build".
 It will install OpenCV in <INSTALL_PREFIX>, and in particular .lib files and OpenCVConfig.cmake should be in <INSTALL_PREFIX>/x64/vc15/lib and .dll files should be in <INSTALL_PREFIX>/x64/vc15/bin.
 
