@@ -213,8 +213,8 @@ namespace dc {
       if (distance > 1)
 	return newPixel;
 
-      const float alpha = 0.3;
-      const float oneMinusAlpha = 1 - alpha;
+      const float alpha = 0.3f;
+      const float oneMinusAlpha = 1.f - alpha;
 
       V resPixel = oldPixel; //import for V=cv::Vec4
       resPixel[0] =
@@ -234,8 +234,8 @@ namespace dc {
       if (distance > 1)
 	return newPixel;
 
-      const float alpha = 0.3;
-      const float oneMinusAlpha = 1 - alpha;
+      const float alpha = 0.3f;
+      const float oneMinusAlpha = 1.f - alpha;
 
       const uchar resPixel = 
 	cv::saturate_cast<uchar>(alpha * oldPixel + oneMinusAlpha * newPixel);
@@ -793,7 +793,7 @@ namespace dc {
       const std::vector<std::string> patterns = dc::listDirectory(phantomPatternsPath);
       if (patterns.empty())
 	return false;
-      const int numPatterns = patterns.size();
+      const int numPatterns = (int)(patterns.size());
 
       for (int side = firstSide; side <= lastSide; ++side) { //0 = left, 1 = right
 
