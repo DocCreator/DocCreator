@@ -227,7 +227,7 @@ namespace Doc
         else if (value > (l - _endOfParagraph->length()))
             value = l - _endOfParagraph->length();
 
-        int previousOffset = offset();
+        const int previousOffset = offset();
         NodeOfNodes<DocString>::setOffset(value);
 
         if (!_isSelecting && !_isRemovingSelection)
