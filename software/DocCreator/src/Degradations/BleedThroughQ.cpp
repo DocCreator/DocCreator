@@ -100,7 +100,7 @@ namespace dc {
     cv::Mat originalRectoMat = Convertor::getCvMat(originalRecto);
     cv::Mat imgRectoMat = Convertor::getCvMat(imgRecto);
     cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
-    cv::Mat outMat = originalRectoMat.clone();
+    cv::Mat outMat; // = originalRectoMat.clone();
     
     const int lNbIter = _nbIter;
     for (int p = 0; p < lNbIter; ++p) {
