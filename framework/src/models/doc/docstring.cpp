@@ -4,9 +4,8 @@
 
 namespace Doc
 {
-    DocString::DocString(DocStyle* style, Document* document) : NodeOfLeafs< DocCharacter >(document)
+  DocString::DocString(DocStyle* style, Document* document) : NodeOfLeafs< DocCharacter >(document), _style()
     {
-        _style = QString();
         if (document != nullptr)
             _style = document->addStyle(style);
     }

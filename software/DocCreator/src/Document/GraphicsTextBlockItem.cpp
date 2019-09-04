@@ -12,15 +12,16 @@
 #include "GraphicsPageItem.hpp"
 
 GraphicsTextBlockItem::GraphicsTextBlockItem(Mvc::IController *controller,
-                                             QGraphicsItem *parent)
-  : GraphicsBlockItem(parent)
-  , ADocumentView<Doc::DocTextBlock>(controller)
+                                             QGraphicsItem *parent) :
+  GraphicsBlockItem(parent),
+  ADocumentView<Doc::DocTextBlock>(controller),
+  _cursorBaseLine(0.0),
+  _cursorRightLine(0.0),
+  _charItems(),
+  _cursorItem(nullptr),
+  _mousePressed(false),
+  _startSelectionOffset(0)
 {
-  _mousePressed = false;
-  _startSelectionOffset = 0;
-  _cursorBaseLine = 0.0;
-  _cursorRightLine = 0.0;
-
   _cursorItem = new GraphicsCursorItem();
   _cursorItem->setParentItem(this);
   _cursorItem->setPos(_cursorRightLine, _cursorBaseLine);
@@ -350,7 +351,7 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
     return;
   const QImage characterImage = data->getImage();
 
-  assert(character != nullptr);
+  //assert(character != nullptr);
   assert(!characterImage.isNull());
 
   //Warning: CODE DUPLICATION with DocumentController::addCharacters() !!!
