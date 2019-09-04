@@ -17,7 +17,7 @@ namespace dc {
   int
   bleedThrough_kernel(int u, int current, int ixp, int ixn, int iyp, int iyn)
   {
-    const float dt = 0.05;  //B: ?????  //Why isn't it a parameter of the algo ?
+    const float dt = 0.05f;  //B: ?????  //Why isn't it a parameter of the algo ?
 
     //B: remove useless: / 100.0f * 100.0f
     const float c = (1.0f / (1.0f + (ixn - u) * (ixn - u) )) /* (1.0 / ((1.0 + ixn*ixn)/(0.2*0.2)) )*/;
