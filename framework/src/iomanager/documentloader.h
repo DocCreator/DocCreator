@@ -15,13 +15,22 @@ public:
   DocumentLoader(const DocumentLoader &) = delete;
   DocumentLoader &operator=(const DocumentLoader &) = delete;
 
-  virtual ~DocumentLoader() {}
+  virtual ~DocumentLoader() {
+    delete _output;
+  }
 
-  Doc::Document *getDocument() { return _output; }
+  //gives ownership
+  //B:TODO: use a shared_ptr ?
+  Doc::Document *getDocument() {
+    Doc::Document *output = _output;
+    _output = nullptr;
+    return output;
+  }
+
   virtual void createNewDocument()
   {
     _output = new Doc::Document();
-  } //B:TODO:CODE: leak !
+  }
 
   virtual void buildStyles() = 0;
   virtual void buildContent() = 0;

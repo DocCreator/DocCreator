@@ -916,6 +916,9 @@ DocumentController::paste()
       else
         currentTextBlock->add(s);
     }
+
+    delete docToPaste;//B
+
   }
 
   _view->drawElement(_document, false);
