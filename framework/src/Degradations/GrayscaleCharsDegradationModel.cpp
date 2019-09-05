@@ -2442,8 +2442,8 @@ namespace dc {
 	}
       }
     }
-    assert(nbPixelBackground <= size_t(rows * cols));
-    size_t nbPixelForeground = size_t(rows * cols) - nbPixelBackground;
+    assert( nbPixelBackground <= (size_t(rows)*size_t(cols)) );
+    const size_t nbPixelForeground = (size_t(rows)*size_t(cols)) - nbPixelBackground;
 
     if (nbPixelForeground > 0 && nbPixelBackground > 0) {
       _avgBackground =
