@@ -2,26 +2,27 @@
 
  DocCreator is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
 
- Citation: if you use DocCreator in Reaserch work for publication, please cite:
+ Citation: if you use DocCreator in Reaserch work for publication, please cite:  
  **Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.  
  DocCreator: A New Software for Creating Synthetic Ground-Truthed Document Images.  
  J. Imaging 2017, 3, 62.  **
  http://www.mdpi.com/2313-433X/3/4/62
 
 
-This program should compile under linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
-It has been tested on Fedora (19->30), Ubuntu (14.04->19.04), Mac OS (10.9->10.14), Windows 10.
 
 
 ## Dependencies
 
-The program uses the following libraries:
+The program has the following dependencies :
 * **OpenCV** (3.x or 4.x)  
 * **Qt 5**  
-* *Tesseract* If Tesseract is not found on the system, it will be compiled from (provided) sources. 
+* **Tesseract** [optional] If Tesseract is not found on the system, it will be compiled from (provided) sources. 
 However, you will need to have network access during the configuration step to download tessdata, tesseract languages data.
 * **CMake** is used for compilation configuration.
-* *Ninja* [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
+* **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
+* *C++ compiler* This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
+It has been tested on Fedora (19->30), Ubuntu (14.04->19.04), Mac OS (10.9->10.14), Windows 10.
+
 
 ### Linux
 
@@ -61,14 +62,14 @@ Binary packages of CMake last versions are available from https://cmake.org/down
 
 ### Ninja
 
-[Optionnal]
-Binary packages of Ninja are available from https://github.com/ninja-build/ninja/releases
+[Optionnal]  
+Binary packages of Ninja are available from https://github.com/ninja-build/ninja/releases  
 **ninja must be in your PATH**. You should be able to print ninja version with the following commande: `ninja --version`
 
 
 ### Mac
 
-On OSX (10.9, 10.10 or 10.11) with Homebrew, you can install the required dependencies with the following commands:
+On OSX (10.9, 10.10 or 10.11) with [Homebrew](https://brew.sh/), you can install the required dependencies with the following commands:
 `brew install qt5`  
 `brew linkapps qt5`  
 `brew link --force qt5`  
@@ -133,7 +134,7 @@ then build with:
 and install with:  
 `ninja install`  
 
-You then have to set the OPENCV_DIR environment variable for OpenCV to be found by CMake.   
+You then have to set the **OPENCV_DIR** environment variable for OpenCV to be found by CMake.   
 You can open a cmd prompt "CMD.exe" with Administrator privileges (right click), and do:  
 `setx -m OPENCV_DIR <INSTALL_PREFIX>`  
 
