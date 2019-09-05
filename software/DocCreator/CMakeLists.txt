@@ -387,39 +387,18 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 IF(BUILD_OTHER_PROGS)
 
   ADD_SUBDIRECTORY(src/Degradator)
-
   
-  SET(SOURCES src/testBlurFilter.cpp src/Degradations/BlurFilterQ.cpp)
-  #src/Degradations/BlurFilterDialog.cpp src/Degradations/BlurFilterDialog.hpp)
-  #SET(MY_UI_FILES src/Degradations/BlurFilterDialog.ui)
-  #QTX_WRAP_UI(MY_UI ${MY_UI_FILES})
-  SET(MY_MOC_FILES src/Degradations/BlurFilterQ.hpp src/Degradations/DocumentDegradation.hpp )
-  QTX_WRAP_CPP(MY_MOC ${MY_MOC_FILES})
-  ADD_EXECUTABLE(testBlurFilter ${SOURCES} ${MY_MOC} ${MY_UI})
-  TARGET_LINK_LIBRARIES(testBlurFilter ${EXTRA_LIBS})
-  IF(BUILD_TESSERACT)
-    add_dependencies(testBlurFilter tesseractLib)  #B: to be able to compile with "make -j 9"
-  ENDIF(BUILD_TESSERACT)
-
-
-  SET(SHADOW_SOURCES src/testShadowBinding.cpp src/Degradations/ShadowBindingQ.cpp)
-  SET(SHADOW_MOC_FILES  src/Degradations/ShadowBindingQ.hpp src/Degradations/DocumentDegradation.hpp )
-  QTX_WRAP_CPP(SHADOW_MOC ${SHADOW_MOC_FILES})
-  ADD_EXECUTABLE(testShadow ${SHADOW_SOURCES} ${SHADOW_MOC})
-  TARGET_LINK_LIBRARIES(testShadow ${EXTRA_LIBS})
-  IF(BUILD_TESSERACT)
-    add_dependencies(testShadow tesseractLib)  #B: to be able to compile with "make -j 9"
-  ENDIF(BUILD_TESSERACT)
-
-
-  SET(HOLE_SOURCES src/testHoleDegradation.cpp src/Degradations/HoleDegradationQ.cpp)
-  SET(HOLE_MOC_FILES src/Degradations/HoleDegradationQ.hpp src/Degradations/DocumentDegradation.hpp )
-  QTX_WRAP_CPP(HOLE_MOC ${HOLE_MOC_FILES})
-  ADD_EXECUTABLE(testHole ${HOLE_SOURCES} ${HOLE_MOC})
-  TARGET_LINK_LIBRARIES(testHole ${EXTRA_LIBS})
-  IF(BUILD_TESSERACT)
-    add_dependencies(testHole tesseractLib)  #B: to be able to compile with "make -j 9"
-  ENDIF(BUILD_TESSERACT)
+  # SET(SOURCES src/testBlurFilter.cpp src/Degradations/BlurFilterQ.cpp)
+  # #src/Degradations/BlurFilterDialog.cpp src/Degradations/BlurFilterDialog.hpp)
+  # #SET(MY_UI_FILES src/Degradations/BlurFilterDialog.ui)
+  # #QTX_WRAP_UI(MY_UI ${MY_UI_FILES})
+  # SET(MY_MOC_FILES src/Degradations/BlurFilterQ.hpp src/Degradations/DocumentDegradation.hpp )
+  # QTX_WRAP_CPP(MY_MOC ${MY_MOC_FILES})
+  # ADD_EXECUTABLE(testBlurFilter ${SOURCES} ${MY_MOC} ${MY_UI})
+  # TARGET_LINK_LIBRARIES(testBlurFilter ${EXTRA_LIBS})
+  # IF(BUILD_TESSERACT)
+  #   add_dependencies(testBlurFilter tesseractLib)  #B: to be able to compile with "make -j 9"
+  # ENDIF(BUILD_TESSERACT)
 
 
 ENDIF(BUILD_OTHER_PROGS)
