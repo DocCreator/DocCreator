@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+# FindOpenGL prefers GLVND by default when available. [Policy introduced in cmake 3.11]
+IF(POLICY CMP0072)
+  CMAKE_POLICY(SET CMP0072 NEW)
+ENDIF(POLICY CMP0072)
+
+# Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
+IF(POLICY CMP0063)
+  CMAKE_POLICY(SET CMP0063 NEW)
+ENDIF(POLICY CMP0063)
+
 
 FIND_PROGRAM(CCACHE_PROGRAM ccache)
 IF(CCACHE_PROGRAM)

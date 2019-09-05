@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+
+# Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
+IF(POLICY CMP0063)
+  CMAKE_POLICY(SET CMP0063 NEW)
+ENDIF(POLICY CMP0063)
+
+
 SET(CMAKE_MODULE_PATH  "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}" )
 
 SET(TARGET Doc3D)
