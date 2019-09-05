@@ -1,14 +1,20 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-# FindOpenGL prefers GLVND by default when available. [Policy introduced in cmake 3.11]
-IF(POLICY CMP0072)
-  CMAKE_POLICY(SET CMP0072 NEW)
-ENDIF(POLICY CMP0072)
+# Only interpret if() arguments as variables or keywords when unquoted. [Policy introduced in cmake 3.1]
+IF(POLICY CMP0054)
+  CMAKE_POLICY(SET CMP0054 NEW)
+ENDIF(POLICY CMP0054)
 
 # Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
 IF(POLICY CMP0063)
   CMAKE_POLICY(SET CMP0063 NEW)
 ENDIF(POLICY CMP0063)
+
+# FindOpenGL prefers GLVND by default when available. [Policy introduced in cmake 3.11]
+IF(POLICY CMP0072)
+  CMAKE_POLICY(SET CMP0072 NEW)
+ENDIF(POLICY CMP0072)
+
 
 
 FIND_PROGRAM(CCACHE_PROGRAM ccache)
@@ -98,7 +104,7 @@ ENDIF(NOT BUILD_TESSERACT)
 
 IF(BUILD_TESSERACT)
   
-  message(STATUS "will build leptonica and tesseract from sources")
+  message(STATUS "Will build leptonica and tesseract from sources")
 
   IF(NOT MSVC AND NOT MINGW)
     SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}leptonica${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -120,7 +126,8 @@ IF(BUILD_TESSERACT)
     set(DEBUG_EXT "")
     IF(NOT CMAKE_CONFIGURATION_TYPES)
       #mono-config, e.g., ninja
-      IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebugInfo")
+      IF("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR
+         "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebugInfo")
 	set(DEBUG_EXT "d")
       ENDIF()
     ENDIF()

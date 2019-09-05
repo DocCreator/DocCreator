@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+# Only interpret if() arguments as variables or keywords when unquoted. [Policy introduced in cmake 3.1]
+IF(POLICY CMP0054)
+  CMAKE_POLICY(SET CMP0054 NEW)
+ENDIF(POLICY CMP0054)
+
 # Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
 IF(POLICY CMP0063)
   CMAKE_POLICY(SET CMP0063 NEW)
