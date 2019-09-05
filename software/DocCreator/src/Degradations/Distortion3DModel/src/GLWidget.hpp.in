@@ -4,11 +4,8 @@
 #include "framework_global.h"
 
 #include "OpenGL.hpp"
-#if QT_VERSION < 0x050400
-#include <QGLWidget>
-#else
-#include <QOpenGLWidget>
-#endif
+#include <@QGL_CLASS@>
+
 #include <QPoint>
 
 #include "GLCamera.hpp"
