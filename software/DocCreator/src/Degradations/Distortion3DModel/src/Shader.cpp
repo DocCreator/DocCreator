@@ -142,7 +142,7 @@ Shader::loadFromStrings(const std::string &vertexString,
     if (!shader)
       return false;
     glAttachShader(program, shader);
-    std::cerr << "attach vertex shader " << shader << "\n";
+    //std::cerr << "attach vertex shader " << shader << "\n";
   }
 
   if (fragmentString != "") {
@@ -151,7 +151,7 @@ Shader::loadFromStrings(const std::string &vertexString,
     if (!shader)
       return false;
     glAttachShader(program, shader);
-    std::cerr << "attach fragment shader " << shader << "\n";
+    //std::cerr << "attach fragment shader " << shader << "\n";
   }
 
   glLinkProgram(program);
