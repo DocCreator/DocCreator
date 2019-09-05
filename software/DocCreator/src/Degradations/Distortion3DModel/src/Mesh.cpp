@@ -80,6 +80,9 @@ Mesh::allocateVertices(uint32_t numVerts)
     if (numVertices > 0) {
       const size_t s = numVertices * 3 * sizeof(float);
       vertices = (float *)malloc(s);
+      if (vertices == nullptr) {
+	numVertices = 0;
+      }
     }
   }
 }
@@ -730,6 +733,8 @@ Mesh::alignB()
   //float *vrt = v;
   //DEBUG
   float *vrtp = (float *)malloc(3 * numV * sizeof(float));
+  if (vrtp == nullptr)
+    return;
   float *vrt = vrtp;
   memcpy(vrt, v, 3 * numV * sizeof(float));
 

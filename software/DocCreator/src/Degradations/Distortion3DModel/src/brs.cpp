@@ -144,7 +144,8 @@ writeLZHAM(std::ostream &out, const char *data, size_t szb)
       free(dst);
       dstSize = worstCaseSize;
       dst = malloc(dstSize);
-      assert(dst != nullptr);
+      if (dst == nullptr)
+	return false;
     }
 
     size_t out_num_bytes = worstCaseSize;
@@ -245,7 +246,8 @@ readLZHAM(std::istream &in, char *data, size_t szb)
       src = nullptr;
       srcSize = comp_size;
       src = malloc(srcSize);
-      assert(src != nullptr);
+      if (src == nullptr)
+	return false;
     }
 
     in.read((char *)src, comp_size);
@@ -357,6 +359,8 @@ readBRS(const std::string &filename, Mesh &mesh)
       in.read((char *)&size, sizeof(size));
       size_t size8 = (size + 7) & (~7); //must be a multiple of 8 bytes.
       uint8_t *data = (uint8_t *)malloc(size8);
+      if (data == nullptr)
+	return false;
       in.read((char *)data, size);
       if (in.bad()) {
         mesh.clear();
@@ -494,6 +498,8 @@ readBRS(const std::string &filename, Mesh &mesh)
 #endif //NDEBUG
 
   unsigned char *BUFCOMP = (unsigned char *)malloc(cmp_len);
+  if (BUFCOMP == nullptr)
+    return false;
 
   in.read((char *)BUFCOMP, cmp_len);
   if (in.bad()) {
@@ -504,6 +510,10 @@ readBRS(const std::string &filename, Mesh &mesh)
   const size_t totalSizeComp = cmp_len;
 
   unsigned char *BUF = (unsigned char *)malloc(totalSize);
+  if (BUF == nullptr) {
+    free(BUFCOMP);
+    return false;
+  }
 
   uLong uncomp_len = totalSize;
   const int cmp_status = uncompress(BUF, &uncomp_len, BUFCOMP, cmp_len);
@@ -518,6 +528,9 @@ readBRS(const std::string &filename, Mesh &mesh)
   // (it seems we are able to write more compressed data, see writeBRS()).
 
   unsigned char *BUF = (unsigned char *)malloc(totalSize);
+  if (BUF == nullptr) {
+    return false;
+  }
 
   const bool readOk = readLZHAM(in, (char *)BUF, totalSize);
   if (!readOk) {
@@ -556,6 +569,8 @@ readBRS(const std::string &filename, Mesh &mesh)
     if (size8 > totalSizeComp) {
       free(BUFCOMP);
       BUFCOMP = (unsigned char *)malloc(size8);
+      if (BUFCOMP == nullptr)
+	return false;
     }
 
     assert(BUFCOMP);
@@ -696,6 +711,9 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         IBCF_PER_TRIANGLE_PREFIX_ENTROPY; //IBCF_PER_TRIANGLE_1; //IBCF_AUTO;
       uint32_t *vertexRemap =
         (uint32_t *)malloc(mesh.numVertices * sizeof(uint32_t));
+      if (vertexRemap == nullptr) {
+	return false;
+      }
       CompressIndexBuffer(mesh.triangles,
                           mesh.numTriangles,
                           vertexRemap,
@@ -929,6 +947,8 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 
     totalSize += s;
     BUF = (unsigned char *)malloc(totalSize);
+    if (BUF == nullptr)
+      return false;
     cBUF = BUF;
 
     memcpy(cBUF, mesh.triangles, s);
@@ -971,6 +991,9 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         IBCF_PER_TRIANGLE_PREFIX_ENTROPY; //IBCF_PER_TRIANGLE_1; //IBCF_AUTO;
       uint32_t *vertexRemap =
         (uint32_t *)malloc(mesh.numVertices * sizeof(uint32_t));
+      if (vertexRemap == nullptr) {
+	return false;
+      }
       CompressIndexBuffer(mesh.triangles,
                           mesh.numTriangles,
                           vertexRemap,
@@ -1012,7 +1035,9 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 #endif //NDEBUG
 
       BUF = (unsigned char *)malloc(totalSize);
-      assert(BUF != nullptr);
+      if (BUF == nullptr) {
+	return false;
+      }
       cBUF = BUF;
 
       memcpy(cBUF, &size, s1);
@@ -1168,6 +1193,9 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 
   totalSizeComp = lzham_z_compressBound(totalSize);
   BUFCOMP = (unsigned char *)malloc(totalSizeComp);
+  if (BUFCOMP == nullptr) {
+    return false;
+  }
 
   const int level = Z_BEST_COMPRESSION;
 
