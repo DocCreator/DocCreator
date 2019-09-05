@@ -120,6 +120,9 @@ copyOnto(const cv::Mat &stainImg,
 {
   bool inserted = false;
 
+#if CV_MAJOR_VERSION >= 3
+  //cv::seamlessClone() was introduced in OpenCV 3.0
+
   cv::Rect roi;
   cv::Point newPosCenter;
   const bool intersection = testCrop(stainImg,
@@ -146,6 +149,19 @@ copyOnto(const cv::Mat &stainImg,
     
     inserted = true;
   }
+
+#else
+
+#ifdef _MSC_VER
+#pragma message ( "Warning: GradientDomainDegradation not supported on OpenCV < 3.0" )
+#else
+#pragma message "Warning: GradientDomainDegradation not supported on OpenCV < 3.0"
+#endif
+  (void)stainImg;
+  (void)dstImg;
+  (void)posCenter;
+#endif //CV_MAJOR_VERSION >= 3
+
   
   return inserted;
 }
@@ -214,6 +230,19 @@ degradation(const cv::Mat &in,
     std::cerr<<"Warning: no stain inserted. Input image is not a 8-bit image.\n";
     return out;
   }
+
+#if CV_MAJOR_VERSION < 3
+
+#ifdef _MSC_VER
+#pragma message ( "Warning: GradientDomainDegradation not supported on OpenCV < 3.0" )
+#else
+#pragma message "Warning: GradientDomainDegradation not supported on OpenCV < 3.0"
+#endif
+  std::cerr<<"Warning: GradientDomainDegradation not supported on OpenCV < 3.0\n";
+  return out;
+#endif //CV_MAJOR_VERSION >= 3
+
+
   
   std::vector<std::string> stainFiles = dc::listDirectory(stainDirName);
   if (stainFiles.empty()) {

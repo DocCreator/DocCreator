@@ -249,8 +249,12 @@ namespace dc {
       }
       else {
 	const std::string error_msg = "holeDegradation: unhandled type";
-
-	CV_Error(cv::Error::StsUnsupportedFormat, error_msg);
+#if CV_MAJOR_VERSION < 3
+	const int code = CV_StsUnsupportedFormat;
+#else
+	const int code = cv::Error::StsUnsupportedFormat;
+#endif
+	CV_Error(code, error_msg);
       }
     }
 
@@ -324,7 +328,12 @@ namespace dc {
       else {
 	const std::string error_msg = "holeDegradation: unhandled type";
 
-	CV_Error(cv::Error::StsUnsupportedFormat, error_msg);
+#if CV_MAJOR_VERSION < 3
+	const int code = CV_StsUnsupportedFormat;
+#else
+	const int code = cv::Error::StsUnsupportedFormat;
+#endif
+	CV_Error(code, error_msg);
       }
     }
 

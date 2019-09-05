@@ -33,7 +33,12 @@ namespace dc {
 	  cv::cvtColor(matPattern, matPattern, cv::COLOR_BGR2GRAY);
 	}
 	else {
-	  CV_Error(cv::Error::StsUnsupportedFormat, "HoleDegradation: unhandled format");
+#if CV_MAJOR_VERSION < 3
+	  const int code = CV_StsUnsupportedFormat;
+#else
+	  const int code = cv::Error::StsUnsupportedFormat;
+#endif
+	  CV_Error(code, "HoleDegradation: unhandled format");
 	}
       }
 
@@ -71,7 +76,12 @@ namespace dc {
 	  cv::cvtColor(matPattern, matPattern, cv::COLOR_BGR2GRAY);
 	}
 	else {
-	  CV_Error(cv::Error::StsUnsupportedFormat, "HoleDegradation: unhandled format");
+#if CV_MAJOR_VERSION < 3
+	const int code = CV_StsUnsupportedFormat;
+#else
+	const int code = cv::Error::StsUnsupportedFormat;
+#endif
+	CV_Error(code, "HoleDegradation: unhandled format");
 	}
       }
 
