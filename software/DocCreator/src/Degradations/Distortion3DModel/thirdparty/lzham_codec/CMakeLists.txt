@@ -16,7 +16,7 @@ endif()
 add_subdirectory(lzhamdecomp)
 add_subdirectory(lzhamcomp)
 add_subdirectory(lzhamdll)
-add_subdirectory(lzhamtest)
+#add_subdirectory(lzhamtest)
 
 install(FILES include/lzham_dynamic_lib.h
               include/lzham_exports.inc
