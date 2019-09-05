@@ -36,8 +36,8 @@ You can install tesseract with the following command:
 `sudo apt-get install tesseract-ocr tesseract-ocr-fra libtesseract-dev libleptonica-dev`
 
 On Fedora (21 or 22), you can install the required binary packages with the following command as root:  
-`yum install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake` 
-On Fedora (23 and above), you can install the required binary packages with the following command as root:  
+`yum install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake`  
+On Fedora (23 and above), you can install the required binary packages with the following command as root:   
 `dnf install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake gcc-c++`  
 You can install tesseract with the following command as root:  
 `dnf install tesseract tesseract-devel tesseract-langpack-fra leptonica leptonica-devel libpng-devel`  
