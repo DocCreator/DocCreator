@@ -89,8 +89,6 @@ ENDIF(APPLE)
 
 SET(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-OPTION(BUILD_OTHER_PROGS "Build other programs than DocCreator" OFF)
-
 OPTION(BUILD_TESSERACT "Build tesseract from sources" OFF)
 
 IF(NOT BUILD_TESSERACT)
@@ -257,6 +255,13 @@ IF(BUILD_TESSERACT)
 
 ENDIF()
 
+OPTION(BUILD_OTHER_PROGS "Build other programs than DocCreator" OFF)
+
+if (NOT BUILD_OTHER_PROGS)
+  message(STATUS "Build other programs DISABLED (you can activate other programs build with '-DBUILD_OTHER_PROGS=ON' cmake option)")
+endif (NOT BUILD_OTHER_PROGS)
+
+
 OPTION(BUILD_TESTING "Build tests" OFF)
 
 if (BUILD_TESTING)
@@ -269,7 +274,7 @@ if (BUILD_TESTING)
   if (CMAKE_COMPILER_IS_GNUCC)
     SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -Wall -Wextra -W -Wno-long-long -pedantic -fprofile-arcs -ftest-coverage")
   endif (CMAKE_COMPILER_IS_GNUCC)
-ELSE (BUILD_TESTING)
+else (BUILD_TESTING)
   message(STATUS "Build test files DISABLED (you can activate unit tests with '-DBUILD_TESTING=ON' cmake option)")
 endif (BUILD_TESTING)
 
