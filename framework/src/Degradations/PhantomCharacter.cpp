@@ -918,7 +918,7 @@ namespace dc {
 
 	    // TO REMOVE : Test resize
 	    QImage tmp = Convertor::getQImage(patternMat);
-	    tmp.save("/home/doctorant/testPattern.png");*/
+	    tmp.save("testPattern.png");*/
 
 	  if (origin !=
 	      INVALID_POINT) { //If we found a place where copy, we can apply
