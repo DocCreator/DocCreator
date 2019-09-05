@@ -33,8 +33,9 @@ TextInpainting::getBackground(const cv::Mat &img,
 #endif
     ;
   
-  for (size_t i = 0; i < contours.size(); ++i) {
-    cv::Rect r = cv::boundingRect(contours[i]);
+  const size_t sz = contours.size();
+  for (size_t i=0; i<sz; ++i) {
+    const cv::Rect r = cv::boundingRect(contours[i]);
     if (r.width > img_bin.cols * max_text_width ||
         r.height > img_bin.rows * max_text_height ||
         r.area() > (img_bin.cols * img_bin.rows) * max_text_area) {
