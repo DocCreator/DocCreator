@@ -200,7 +200,7 @@ namespace Doc
 
         while (value > 0)
         {
-            if (0 <= counter && counter < _elements.count())
+            if (counter < _elements.count())
             {
                 T* e = _elements.at(counter);
                 if (value < e->length())
