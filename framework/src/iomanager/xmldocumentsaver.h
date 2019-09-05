@@ -19,7 +19,6 @@ public:
   virtual void buildStyles() override;
   virtual void buildContent() override;
 
-  bool _isDIGIDOC; //B:UGLY: why public ???
 
 protected:
   virtual void buildStyle(Doc::DocStyle *s) override;
@@ -48,6 +47,7 @@ protected:
 
 protected:
   QXmlStreamWriter *_writer;
+  bool _isDIGIDOC;
 };
 }
 
