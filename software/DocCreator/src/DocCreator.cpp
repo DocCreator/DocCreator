@@ -778,10 +778,10 @@ DocCreator::about()
        "<p>J. Imaging 2017, 3, 62.</p>"
        "</span>"
        "<p><span style=\"text-decoration: underline; color:#0000ff;\">"
-       "http://www.mdpi.com/2313-433X/3/4/62</p></br>"
-       "Authors: Nicholas Journet, Boris Mansencal, "
+       "http://www.mdpi.com/2313-433X/3/4/62</span></p></br>"
+       "<p>Authors: Nicholas Journet, Boris Mansencal, "
        "Antoine Billy, Kieu Van-Cuong, Vincent Rabeux, Nicolas "
-       "Vidal, Jérémy Albouys, ..."));
+       "Vidal, Jérémy Albouys, ...</p></body></html>"));
 }
 
 void
