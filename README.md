@@ -3,9 +3,9 @@
  DocCreator is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
 
  Citation: if you use DocCreator in Reaserch work for publication, please cite:  
- **Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.  
- DocCreator: A New Software for Creating Synthetic Ground-Truthed Document Images.  
- J. Imaging 2017, 3, 62.  **
+ **Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.**  
+ **DocCreator: A New Software for Creating Synthetic Ground-Truthed Document Images.**  
+ **J. Imaging 2017, 3, 62.**   
  http://www.mdpi.com/2313-433X/3/4/62
 
 
@@ -20,7 +20,7 @@ The program has the following dependencies :
 However, you will need to have network access during the configuration step to download tessdata, tesseract languages data.
 * **CMake** is used for compilation configuration.
 * **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
-* *C++ compiler* This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
+* ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
 It has been tested on Fedora (19->30), Ubuntu (14.04->19.04), Mac OS (10.9->10.14), Windows 10.
 
 
@@ -153,6 +153,7 @@ On Linux and Mac, type the following commands from a terminal:
 `cmake .. -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>`  
 `make`  
 `make install`  
+You can also pass other options to cmake. See below.  
 
 You can then launch the executable:  
 `<MyInstallationPrefix>/bin/DocCreator`  
@@ -180,6 +181,7 @@ or for Visual Studio 2019 (with CMake 3.14.6 or above, in "Developer Command Pro
 cmake .. -G "Visual Studio 16 2019" -A "x64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
 ```
 <QT_PATH> is the path to installed Qt configuration for this compiler. <QT_PATH> is for example C:/Qt/5.12.4/msvc2017_64
+You can also pass other options to cmake. See below.  
 
 Then you can open the generated .sln file with Visual Studio.
 Check that you have "Release" and "x64" for the "Solution configurations" and "Solution platforms" (comboboxes in the toolbar),
@@ -192,27 +194,30 @@ CMake can generate a ninja build. The whole compilation is done from the command
 ```
 cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
 ```
+You can also pass other options to cmake. See below.  
+
 then build with:  
 `ninja`  
 then install with:  
 `ninja install`  
 
-
-You then may have to copy some files to <MyInstallationPrefix>/programs directory [if they are not present]:
-- from OpenCV <INSTALL_PREFIX>/x64/vc15/bin :  
-  opencv_coreXXX.dll, opencv_highguiXXX.dll, opencv_imgcodecsXXX.dll, opencv_imgprocXXX.dll, opencv_photoXXX.dll, opencv_videoioXXX.dll (XXX has to be replaced by 330 for OpenCV 3.3)
-- from Qt:  
-  - from <QT_PATH>/bin :  
-     Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5OpenGL.dll, qt5PrintSupport.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll,
-	 libEGL.dll, libGLESv2.dll, d3dcompiler_47.dll
-  - from <QT_PATH>/plugins :  
-     *imageformats* directory
-     *platforms* directory
-
-
 You can then launch the executable:  
 `<MyInstallationPrefix>/programs/DocCreator.exe`  
 
+### CMake options 
+
+#### -DBUILD_OTHER_PROGS=ON
+
+When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PROGS=ON to cmake. It will be build other example programs using DocCreator framework.  
+In particular, it will build **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*
+
+#### -DBUILD_OTHER_PROGS_3D=ON
+
+When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PROGS_3D=ON to cmake. It will be build other example programs using DocCreator 3D code.
+
+#### -DBUILD_TESTING=ON
+
+When configuring DocCreator with cmake, you can pass the option -DBUILD_TESTING=ON to cmake. It will be build degradations unit tests.
 
 
 
@@ -256,3 +261,17 @@ You can then launch the executable:
 
 * On Windows, with Visual Studio, if you encounter a link problem with tesseract, it may be that you compiled in Debug mode instead of Release mode.
   Indeed, DocCreator tries to link with tesseract305.lib, but tesseract305d.lib is generated in Debug mode. 
+
+* On Windows, if you encounter a problem when the program is launched, it may be that the various required libraries (dll) are not correctly found.  
+You then may have to copy some files to <MyInstallationPrefix>/programs directory [if they are not present]:
+- from OpenCV <INSTALL_PREFIX>/x64/vc15/bin :  
+  opencv_coreXXX.dll, opencv_highguiXXX.dll, opencv_imgcodecsXXX.dll, opencv_imgprocXXX.dll, opencv_photoXXX.dll, opencv_videoioXXX.dll (XXX has to be replaced by 330 for OpenCV 3.3)
+- from Qt:  
+  - from <QT_PATH>/bin :  
+     Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5OpenGL.dll, qt5PrintSupport.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll,
+	 libEGL.dll, libGLESv2.dll, d3dcompiler_47.dll
+  - from <QT_PATH>/plugins :  
+     *imageformats* directory
+     *platforms* directory
+
+
