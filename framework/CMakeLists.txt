@@ -143,12 +143,12 @@ INSTALL(FILES ${headers_patterns} DESTINATION include/DocCreatorFramework/patter
 INSTALL(FILES ${Degradations_headers} DESTINATION include/DocCreatorFramework/Degradations)
 INSTALL(FILES ${Utils_headers} DESTINATION include/DocCreatorFramework/Utils)
 
-#INSTALL(TARGETS DocCreatorFramework
-#        #FRAMEWORK DESTINATION /Library/Frameworks
-#        RUNTIME DESTINATION bin
-#        LIBRARY DESTINATION lib
-#        ARCHIVE DESTINATION lib
-#)
+INSTALL(TARGETS DocCreatorFramework
+        #FRAMEWORK DESTINATION /Library/Frameworks
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+)
 
 #B: useless ???
 #INSTALL(FILES DocCreatorFramework.pc DESTINATION lib/pkgconfig)
