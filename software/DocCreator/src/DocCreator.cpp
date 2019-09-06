@@ -764,9 +764,23 @@ DocCreator::about()
   QMessageBox::about(
     this,
     tr("DocCreator"),
-    tr("This application let you create synthetic document and apply "
-       "degradation models<br/><br/>Authors: Nicholas Journet, Boris "
-       "Mansencal, Antoine Billy, Kieu Van-Cuong, Vincent Rabeux, Nicolas "
+    tr("<html><head/><body>"
+       "<p>DocCreator lets you create synthetic document images "
+       "and apply various degradation models to document images</p>"
+       "<p><span style=\"text-decoration: underline; color:#0000ff;\">"
+       "https://doc-creator.labri.fr/</span></p>"
+       "<p>If you use DocCreator in Reaserch work for publication, please "
+       "cite:</p>"
+       "<span style=\"color:#40a7bf;\">"
+       "<p>Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.</p>"
+       "<p>DocCreator: A New Software for Creating Synthetic Ground-Truthed "
+       "Document Images.</p>"
+       "<p>J. Imaging 2017, 3, 62.</p>"
+       "</span>"
+       "<p><span style=\"text-decoration: underline; color:#0000ff;\">"
+       "http://www.mdpi.com/2313-433X/3/4/62</p></br>"
+       "Authors: Nicholas Journet, Boris Mansencal, "
+       "Antoine Billy, Kieu Van-Cuong, Vincent Rabeux, Nicolas "
        "Vidal, Jérémy Albouys, ..."));
 }
 
