@@ -70,7 +70,7 @@ namespace dc {
     std::vector<std::string> entries;
 
 	std::string dirname2 = dirname + "\\*";
-    _tprintf(TEXT("\nDEBUG dirname2=%s\n"), dirname2.c_str());
+   // _tprintf(TEXT("\nDEBUG dirname2=%s\n"), dirname2.c_str());
 
     size_t length_of_arg;
     StringCchLength(dirname2.c_str(), MAX_PATH, &length_of_arg);
