@@ -8,9 +8,7 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
-
 #include "ConnectedComponent.hpp"
-#include <Utils/convertor.h>
 
 
 namespace dc {
