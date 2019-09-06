@@ -9,20 +9,42 @@ ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
 ENDIF()
 
 
+#C++11 support
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
+  IF (GCC_VERSION VERSION_LESS 4.7)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  ELSE()
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  ENDIF()
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+ENDIF()
+#VS2013 supports c++11 without any additional flags
+
+
+
+
+
+FILE(
+  GLOB
+  Degradations_headers
+  src/Degradations/*.hpp
+  )
+
+FILE(
+  GLOB
+  Degradations_sources
+  src/Degradations/*.cpp
+  )
+
+ADD_LIBRARY(DocCreatorDegradations STATIC ${Degradations_sources} ${Degradations_headers})
+TARGET_LINK_LIBRARIES(DocCreatorDegradations ${ThirdParty_LIBS})
+
+
+
 INCLUDE_DIRECTORIES(src)
 
-
-FILE(
-  GLOB_RECURSE
-  DocCreatorFramework_sources
-  src/*
-  )
-
-FILE(
-  GLOB_RECURSE
-  DocCreatorFramework_headers
-  src/*.hpp
-  )
 FILE(
   GLOB
   headers_context
@@ -68,31 +90,46 @@ FILE(
 
 FILE(
   GLOB
-  Degradations_headers
-  src/Degradations/*.h*
-  )
-
-FILE(
-  GLOB
   Utils_headers
   src/Utils/*.h*
   )
 
+FILE(
+  GLOB
+  DocCreatorFramework_sources
+  src/context/*.cpp
+  src/core/*.cpp
+  src/iomanager/*.cpp
+  src/models/*.cpp
+  src/models/doc/*.cpp
+  src/mvc/*.cpp
+  src/patterns/*.cpp
+  src/Utils/*.cpp
+  )
+
+# FILE(
+#   GLOB_RECURSE
+#   DocCreatorFramework_sources
+#   src/*
+#   )
+
+# FILE(
+#   GLOB_RECURSE
+#   DocCreatorFramework_headers
+#   src/*.hpp
+#   )
 
 
-# Variable to store output files
-SET(outFiles)
-
-# Find all the input files
-
-FOREACH(infileName ${DocCreatorFramework_headers})
-  SET(outFiles ${outFiles} "${infileName}")
-ENDFOREACH(infileName)
 
 
-##qt4_automoc(${DocCreatorFramework_sources})
+## Variable to store output files
+#SET(outFiles)
+## Find all the input files
+#FOREACH(infileName ${DocCreatorFramework_headers})
+#  SET(outFiles ${outFiles} "${infileName}")
+#ENDFOREACH(infileName)
 
-QTX_WRAP_CPP(MOC ${DocCreatorFramework_headers})
+#QTX_WRAP_CPP(MOC ${DocCreatorFramework_headers})
 
 
 #ADD_LIBRARY(DocCreatorFramework SHARED ${DocCreatorFramework_sources} ${MOC})
@@ -113,21 +150,7 @@ ADD_LIBRARY(DocCreatorFramework STATIC ${DocCreatorFramework_sources} ${MOC})
 #      MACOSX_FRAMEWORK_IDENTIFIER "identifier"
 # )
 
-TARGET_LINK_LIBRARIES(DocCreatorFramework ${QT_LIBRARIES} ${ThirdParty_LIBS})
-
-#C++11 support
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
-  IF (GCC_VERSION VERSION_LESS 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  ELSE()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  ENDIF()
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-ENDIF()
-#VS2013 supports c++11 without any additional flags
-
+TARGET_LINK_LIBRARIES(DocCreatorFramework ${QT_LIBRARIES} ${ThirdParty_LIBS} DocCreatorDegradations)
 
 
 
@@ -143,7 +166,7 @@ INSTALL(FILES ${headers_patterns} DESTINATION include/DocCreatorFramework/patter
 INSTALL(FILES ${Degradations_headers} DESTINATION include/DocCreatorFramework/Degradations)
 INSTALL(FILES ${Utils_headers} DESTINATION include/DocCreatorFramework/Utils)
 
-INSTALL(TARGETS DocCreatorFramework
+INSTALL(TARGETS DocCreatorDegradations DocCreatorFramework
         #FRAMEWORK DESTINATION /Library/Frameworks
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
