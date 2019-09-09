@@ -353,7 +353,7 @@ namespace dc {
       assert(matBelow.empty() || matBelow.type() == img.type());
       assert(holePattern.type() == CV_8UC1);
 
-      cv::Mat matOut = img; //makeFourChanImage(img);
+      cv::Mat matOut = img.clone(); //img must not be modified.
 
       cv::Mat matPattern = holePattern;
       if (type == HoleType::BORDER && side > 0) {
