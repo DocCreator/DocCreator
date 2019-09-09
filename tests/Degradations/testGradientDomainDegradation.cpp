@@ -9,7 +9,7 @@
 #include <opencv2/highgui/highgui.hpp> //DEBUG
 
 #include "paths.hpp" //PATH_STAIN_IMAGES
-
+#include "testCommon.hpp" //checkEqual
 
 static
 void
@@ -17,7 +17,8 @@ testSimple0(int imageType)
 {
   //Apply gradient-domain degradation with given insertType
   //and check that the output type is the same than the input type.
-
+  //Check that the input image is not modified.
+  
   const int ROWS = 498; //bigger than all stain images to be sure they will be inserted.
   const int COLS = 498;    
     
@@ -26,11 +27,13 @@ testSimple0(int imageType)
   //add gaussian noise
   cv::randn(img, 128, 30);
 
+  REQUIRE( imageType == img.type() );  
+
+  cv::Mat imgClone = img.clone();
+  
   const size_t numStainsToInsert = 2; //low to not take too long...
   const bool doRotations = true;
   
-  REQUIRE( imageType == img.type() );  
-
   for (int i=0; i<3; ++i) {
     cv::Mat img2 = img.clone();
     assert(img2.type() == imageType);
@@ -40,6 +43,7 @@ testSimple0(int imageType)
     const cv::Mat out = dc::GradientDomainDegradation::degradation(img2, STAIN_IMAGES_PATH, numStainsToInsert, insertType, doRotations);
 
     REQUIRE( out.type() == imageType );
+    REQUIRE( checkEqual(img, imgClone) );
   }
 }
 

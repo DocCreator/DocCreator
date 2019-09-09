@@ -5,15 +5,16 @@
 
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
 
-//#include <opencv2/imgproc/imgproc.hpp>
+#include "testCommon.hpp" //checkEqual
 
 static
 void
 testSimple(int imageType)
 {
   //Apply GrayscaleCharsDegradationModel on random image
-  //and check that the output type is the same than the input type.
-
+  //Check that the output type is the same than the input type.
+  //Check that the input image is not modified.
+  
   const int ROWS = 100;
   const int COLS = 100;    
     
@@ -24,6 +25,8 @@ testSimple(int imageType)
 
   REQUIRE( imageType == img.type() );  
 
+  cv::Mat imgClone = img.clone();
+  
   const int level = 5;
 
   dc::GrayscaleCharsDegradationModel dcm(img);
@@ -31,6 +34,7 @@ testSimple(int imageType)
   cv::Mat out = dcm.degradateByLevel_cv(level);
 
  REQUIRE( out.type() == imageType );
+ REQUIRE( checkEqual(img, imgClone) );
 }
 
 TEST_CASE( "Testing CharactersDegradation" )

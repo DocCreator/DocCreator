@@ -6,7 +6,8 @@
 #include "Degradations/ShadowBinding.hpp"
 
 #include <opencv2/imgproc/imgproc.hpp>
-//#include <opencv2/highgui/highgui.hpp> //DEBUG
+
+#include "testCommon.hpp" //checkEqual
 
 
 static
@@ -14,8 +15,9 @@ void
 testSimple0(int imageType)
 {
   //Apply ShadowBinding of given distance
-  //and check that the output type is the same than the input type.
-
+  //Check that the output type is the same than the input type.
+  //Check that the input image is not modified.
+  
   const int ROWS = 100;
   const int COLS = 100;    
     
@@ -26,6 +28,8 @@ testSimple0(int imageType)
 
   REQUIRE( imageType == img.type() );  
 
+  cv::Mat imgClone = img.clone();
+  
   const dc::ShadowBinding::Border border = dc::ShadowBinding::Border::LEFT;
   const int distance = ROWS/5;
   const float intensity = 0.5;
@@ -34,6 +38,7 @@ testSimple0(int imageType)
   const cv::Mat out = dc::ShadowBinding::shadowBinding(img, border, distance, intensity, angle);
 
   REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(img, imgClone) );
 }
 
 static
@@ -41,7 +46,8 @@ void
 testSimple1(int imageType)
 {
   //Apply ShadowBinding of given distance
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
+  //Check that the input image is not modified.
 
   const int ROWS = 101;
   const int COLS = 99;    
@@ -53,6 +59,8 @@ testSimple1(int imageType)
 
   REQUIRE( imageType == img.type() );  
 
+  cv::Mat imgClone = img.clone();
+  
   const dc::ShadowBinding::Border border = dc::ShadowBinding::Border::RIGHT;
   const int distanceRatio = 1.f/5.f;
   const float intensity = 0.5;
@@ -61,6 +69,7 @@ testSimple1(int imageType)
   const cv::Mat out = dc::ShadowBinding::shadowBinding(img, distanceRatio, border, intensity, angle);
 
   REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(img, imgClone) );
 }
 
 TEST_CASE( "Testing ShadowBinding" )

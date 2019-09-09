@@ -7,6 +7,8 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "testCommon.hpp" //checkEqual
+
 
 template <typename T>
 static inline
@@ -49,32 +51,6 @@ countPixelsOfColor(const cv::Mat &m,
   }
   return 0;
 }
-		   
-static inline
-bool
-equal(const cv::Mat &m1, const cv::Mat &m2)
-{
-  if (m1.type() != m2.type()) {
-    return false;
-  }
-
-  if (m1.size() != m2.size()) {
-    return false;
-  }
-
-  assert(m1.step1() == m2.step1());
-  
-  for (int i=0; i<m1.rows; ++i) {
-    const uchar *d1 = m1.ptr<uchar>(i);
-    const uchar *d2 = m2.ptr<uchar>(i);
-    for (size_t j=0; j<m1.step1(); ++j) {
-      if (d1[j] != d2[j]) {
-	return false;
-      }
-    }
-  }
-  return true;
-}
 
 static
 void
@@ -82,12 +58,16 @@ testSimple0(int imageType)
 {
   //Insert one hole that takes the whole image.
   //So output image will be the hole.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;    
     
   cv::Mat img(ROWS, COLS, imageType);
-    
+
+  cv::Mat imgClone = img.clone();
+  
+  
   const cv::Scalar COLOR(255, 110, 8);
 
   cv::Mat hole = cv::Mat::zeros(ROWS, COLS, CV_8UC1);
@@ -110,6 +90,8 @@ testSimple0(int imageType)
   const unsigned int pixelsOfColor = countPixelsOfColor(out, COLOR);
 
   REQUIRE( pixelsOfColor == area );
+
+  REQUIRE( checkEqual(img, imgClone) );
 }
 
 static
@@ -120,6 +102,7 @@ testSimple1(int imageType)
   //It is not at (0, 0) but it will be completely visible.
   //So output image will be the input image with the hole in
   // the specified color.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -128,7 +111,9 @@ testSimple1(int imageType)
   const int HOLE_COLS = COLS/10;
     
   cv::Mat img = cv::Mat::ones(ROWS, COLS, imageType) * 255;
-    
+
+  cv::Mat imgClone = img.clone();
+  
   const cv::Scalar COLOR(238, 10, 218);
 
   cv::Mat hole = cv::Mat::zeros(HOLE_ROWS, HOLE_COLS, CV_8UC1);
@@ -152,6 +137,8 @@ testSimple1(int imageType)
   const unsigned int hole_area = hole.rows*hole.cols;
 
   REQUIRE( pixelsOfColor == hole_area );
+
+  REQUIRE( checkEqual(img, imgClone) );
 }
 
 static
@@ -161,12 +148,15 @@ testSimple2(int imageType)
   //Insert one hole that takes the whole image and
   // put the same image below.
   //So output image will be the input image.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;    
 
   cv::Mat img = cv::Mat::ones(ROWS, COLS, imageType);
-    
+
+  cv::Mat imgClone = img.clone();
+  
   const cv::Scalar COLOR(208, 10, 28);
 
   cv::Mat hole = cv::Mat::zeros(ROWS, COLS, CV_8UC1);
@@ -188,7 +178,9 @@ testSimple2(int imageType)
   const unsigned int pixelsOfColor = countPixelsOfColor(out, COLOR);
 
   REQUIRE( pixelsOfColor == 0 );
-  REQUIRE( equal(img, out) );
+  REQUIRE( checkEqual(img, out) );
+
+  REQUIRE( checkEqual(img, imgClone) );
 }
 
 TEST_CASE( "Testing HoleDegradation" )

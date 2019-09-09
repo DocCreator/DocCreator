@@ -10,15 +10,16 @@
 #include <opencv2/highgui/highgui.hpp> //DEBUG
 
 #include "paths.hpp"
-
+#include "testCommon.hpp" //checkEqual
 
 static
 void
 testSimple0(int imageType)
 {
   //Apply BleedThrough (on random images) (at position (0,0) with 1 thread)
-  //and check that the output type is the same than the input type.
-
+  //Check that the output type is the same than the input type.
+  //Check that the input images are not modified.
+  
   const int ROWS = 64;
   const int COLS = 64;
     
@@ -34,6 +35,9 @@ testSimple0(int imageType)
   
   REQUIRE( imgVerso.type() == imgRecto.type() );
 
+  cv::Mat imgRectoClone = imgRecto.clone();
+  cv::Mat imgVersoClone = imgVerso.clone();
+  
   const int nbIters = 3;
   const int x = 0;
   const int y = 0;
@@ -42,6 +46,8 @@ testSimple0(int imageType)
   const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads); 
 
   REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(imgRecto, imgRectoClone) );
+  REQUIRE( checkEqual(imgVerso, imgVersoClone) );
 }
 
 static
@@ -49,7 +55,8 @@ void
 testSimple0b(int imageType)
 {
   //Apply BleedThrough (on random images) (at position (ROWS/2, COLS/2) with 1 thread)
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
+  //Check that the input images are not modified.
 
   const int ROWS = 64;
   const int COLS = 64;
@@ -65,6 +72,9 @@ testSimple0b(int imageType)
   cv::flip(imgRecto, imgVerso, 1);
   
   REQUIRE( imgVerso.type() == imgRecto.type() );
+
+  cv::Mat imgRectoClone = imgRecto.clone();
+  cv::Mat imgVersoClone = imgVerso.clone();
 
   const int nbIters = 3;
   const int x = ROWS/2;
@@ -74,6 +84,8 @@ testSimple0b(int imageType)
   const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads); 
 
   REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(imgRecto, imgRectoClone) );
+  REQUIRE( checkEqual(imgVerso, imgVersoClone) );
 }
 
 static
@@ -81,7 +93,8 @@ void
 testSimple0c(int imageType)
 {
   //Apply BleedThrough (on random images) (at position (ROWS/3, COLS/2) with 2 threads)
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
+  //Check that the input images are not modified.
 
   const int ROWS = 64;
   const int COLS = 64;
@@ -98,6 +111,9 @@ testSimple0c(int imageType)
   
   REQUIRE( imgVerso.type() == imgRecto.type() );
 
+  cv::Mat imgRectoClone = imgRecto.clone();
+  cv::Mat imgVersoClone = imgVerso.clone();  
+
   const int nbIters = 3;
   const int x = ROWS/3;
   const int y = COLS/2;
@@ -106,43 +122,10 @@ testSimple0c(int imageType)
   const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads); 
 
   REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(imgRecto, imgRectoClone) );
+  REQUIRE( checkEqual(imgVerso, imgVersoClone) );
 }
 
-
-template <typename T>
-bool
-checkEquality(const cv::Mat &res1, const cv::Mat &res2)
-{
-  if (res1.size() != res2.size()) {
-    std::cerr<<"ERROR: images have different sizes\n";
-    return false;
-  }
-
-  if (res1.type() != res2.type()) {
-    std::cerr<<"ERROR: images have different types\n";
-    return false;
-  }
-  
-  const int w = res1.cols;
-  const int h = res1.rows;
-  assert(w == res2.cols && h == res2.rows);
-  for (int i=0; i<h; ++i) {
-
-    const T *r1 = res1.ptr<T>(i);
-    const T *r2 = res2.ptr<T>(i);
-    
-    for (int j=0; j<w; ++j) {
-
-      if (r1[j] != r2[j]) {
-	std::cerr<<"ERROR: different at y="<<i<<"/"<<h<<"  x="<<j<<"/"<<w<<"\n";
-	std::cerr<<"v1="<<r1[j]<<" v2="<<r2[j]<<"\n";
-	return false;
-      }
-    }
-  }
-  
-  return true;
-}
 
 
 static
@@ -180,7 +163,7 @@ testEqualToGT1_aux(const std::string &imgFilename,
   
   cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, 0, 0, nbThreads);
 
-  REQUIRE( checkEquality<uchar>(out, imgGT) );
+  REQUIRE( checkEqual(out, imgGT) );
 }
 
 static
@@ -231,7 +214,7 @@ testEqualToGT3_aux(const std::string &imgFilename,
   
   cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, 0, 0, nbThreads);
 
-  REQUIRE( checkEquality<cv::Vec3b>(out, imgGT) );
+  REQUIRE( checkEqual(out, imgGT) );
 }
 
 static
@@ -295,7 +278,7 @@ testEqualToGT4_aux(const std::string &imgFilename,
   
   cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, 0, 0, nbThreads);
 
-  REQUIRE( checkEquality<cv::Vec4b>(out, imgGT) );
+  REQUIRE( checkEqual(out, imgGT) );
 }
 
 static

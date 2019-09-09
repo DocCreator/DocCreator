@@ -9,7 +9,7 @@
 #include <opencv2/highgui/highgui.hpp> //DEBUG
 
 #include "paths.hpp"
-
+#include "testCommon.hpp" //checkEqual
 
 static
 void
@@ -17,6 +17,7 @@ testSimple0(int imageType)
 {
   //Apply PhantomCharacter with given frequency
   //and check that the output type is the same than the input type.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -28,6 +29,8 @@ testSimple0(int imageType)
 
   REQUIRE( imageType == img.type() );  
 
+  cv::Mat imgClone = img.clone();
+  
   for (int i=0; i<3; ++i) {
     cv::Mat img2 = img.clone();
     assert(img2.type() == imageType);
@@ -37,6 +40,8 @@ testSimple0(int imageType)
     const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img2, frequency, PHANTOM_PATTERNS_PATH);
 
     REQUIRE( out.type() == imageType );
+
+    REQUIRE( checkEqual(img, imgClone) );
   }
 }
 

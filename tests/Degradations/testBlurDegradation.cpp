@@ -8,6 +8,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp> //DEBUG
 
+#include "testCommon.hpp" //checkEqual
 
 static
 void
@@ -15,6 +16,7 @@ testSimple0(int imageType)
 {
   //Apply blur to whole image
   //and check that the output type is the same than the input type.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -26,6 +28,8 @@ testSimple0(int imageType)
 
   REQUIRE( imageType == img.type() );  
 
+  cv::Mat imgClone = img.clone();
+  
   const int intensity = 3;
   
   for (int i=0; i<3; ++i) {
@@ -38,6 +42,7 @@ testSimple0(int imageType)
     const cv::Mat out = dc::BlurFilter::blur(img2, method, intensity);
 
     REQUIRE( out.type() == imageType );
+    REQUIRE( checkEqual(img, imgClone) );
   }
 }
 
@@ -47,6 +52,7 @@ testSimple1(int imageType)
 {
   //Apply blur to part of the image
   //and check that the output type is the same than the input type.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -58,6 +64,8 @@ testSimple1(int imageType)
 
   REQUIRE( imageType == img.type() );  
 
+  cv::Mat imgClone = img.clone();
+  
   const int intensity = 3;
 
   const dc::BlurFilter::Function function = dc::BlurFilter::Function::LINEAR;
@@ -80,6 +88,7 @@ testSimple1(int imageType)
       const cv::Mat out = dc::BlurFilter::blur(img2, method, intensity, function, area, coeff, vertical, horizontal, radius);
 
       REQUIRE( out.type() == imageType );
+      REQUIRE( checkEqual(img, imgClone) );
     }
   }
 }
@@ -91,6 +100,7 @@ testSimple2(int imageType)
 {
   //Test makePattern/applyPattern functions
   //and check that the output type is the same than the input type.
+  //Check that the input image is not modified.
 
   const int ROWS = 100;
   const int COLS = 100;
@@ -102,6 +112,9 @@ testSimple2(int imageType)
 
   REQUIRE( imageType == img.type() );
 
+  cv::Mat imgClone = img.clone();
+
+  
   {
     cv::Mat img2 = img.clone();
     REQUIRE( imageType == img2.type() );
@@ -125,6 +138,7 @@ testSimple2(int imageType)
     cv::Mat out = dc::BlurFilter::applyPattern(img2, pattern, method, intensity);
 
     REQUIRE( imageType == out.type() );
+    REQUIRE( checkEqual(img, imgClone) );
   }
 
 }
