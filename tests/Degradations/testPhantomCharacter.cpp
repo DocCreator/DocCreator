@@ -16,8 +16,9 @@ void
 testSimple0(int imageType)
 {
   //Apply PhantomCharacter with given frequency
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -42,13 +43,14 @@ testSimple0(int imageType)
     REQUIRE( out.type() == imageType );
 
     REQUIRE( checkEqual(img, imgClone) );
+    REQUIRE( out.size() == img.size() );
   }
 }
 
 TEST_CASE( "Testing PhantomCharacter" )
 { 
 
-  SECTION("Testing PhantomCharacter produces output image of same type")
+  SECTION("Testing PhantomCharacter produces output image of same type and size")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

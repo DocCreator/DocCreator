@@ -17,6 +17,7 @@ testSimple0(int imageType)
   //Apply ShadowBinding of given distance
   //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
   const int COLS = 100;    
@@ -39,6 +40,7 @@ testSimple0(int imageType)
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.size() == img.size() );
 }
 
 static
@@ -48,6 +50,7 @@ testSimple1(int imageType)
   //Apply ShadowBinding of given distance
   //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 101;
   const int COLS = 99;    
@@ -70,19 +73,20 @@ testSimple1(int imageType)
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.size() == img.size() );
 }
 
 TEST_CASE( "Testing ShadowBinding" )
 { 
 
-  SECTION("Testing ShadowBinding with given shadow width produces output image of same type")
+  SECTION("Testing ShadowBinding with given shadow width produces output image of same type and size")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
     testSimple0(CV_8UC4);
   }
 
-  SECTION("Testing ShadowBinding with dynamic shadow width produces output image of same type")
+  SECTION("Testing ShadowBinding with dynamic shadow width produces output image of same type and size")
   {
     testSimple1(CV_8UC1);
     testSimple1(CV_8UC3);

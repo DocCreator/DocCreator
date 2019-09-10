@@ -15,8 +15,9 @@ void
 testSimple0(int imageType)
 {
   //Apply blur to whole image
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -43,6 +44,7 @@ testSimple0(int imageType)
 
     REQUIRE( out.type() == imageType );
     REQUIRE( checkEqual(img, imgClone) );
+    REQUIRE( out.size() == img.size() );
   }
 }
 
@@ -51,8 +53,9 @@ void
 testSimple1(int imageType)
 {
   //Apply blur to part of the image
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -89,6 +92,7 @@ testSimple1(int imageType)
 
       REQUIRE( out.type() == imageType );
       REQUIRE( checkEqual(img, imgClone) );
+      REQUIRE( out.size() == img.size() );
     }
   }
 }
@@ -99,8 +103,9 @@ void
 testSimple2(int imageType)
 {
   //Test makePattern/applyPattern functions
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;
@@ -139,6 +144,7 @@ testSimple2(int imageType)
 
     REQUIRE( imageType == out.type() );
     REQUIRE( checkEqual(img, imgClone) );
+    REQUIRE( out.size() == img.size() );
   }
 
 }
@@ -147,14 +153,14 @@ testSimple2(int imageType)
 TEST_CASE( "Testing BlurFilter" )
 { 
 
-  SECTION("Testing blur on whole image produces output image of same type")
+  SECTION("Testing blur on whole image produces output image of same type and size")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
     testSimple0(CV_8UC4);
   }
 
-  SECTION("Testing blur on part of image produces output image of same type")
+  SECTION("Testing blur on part of image produces output image of same type and size")
   {
     testSimple1(CV_8UC1);
     testSimple1(CV_8UC3);
