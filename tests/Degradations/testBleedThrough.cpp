@@ -12,6 +12,7 @@
 #include "paths.hpp"
 #include "testCommon.hpp" //checkEqual
 
+
 static
 void
 testSimple0(int imageType)
@@ -19,7 +20,8 @@ testSimple0(int imageType)
   //Apply BleedThrough (on random images) (at position (0,0) with 1 thread)
   //Check that the output type is the same than the input type.
   //Check that the input images are not modified.
-  
+  //Check that the output size is the same than the input recto size.
+
   const int ROWS = 64;
   const int COLS = 64;
     
@@ -48,6 +50,7 @@ testSimple0(int imageType)
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
   REQUIRE( checkEqual(imgVerso, imgVersoClone) );
+  REQUIRE( out.size() == imgRecto.size() );
 }
 
 static
@@ -57,6 +60,7 @@ testSimple0b(int imageType)
   //Apply BleedThrough (on random images) (at position (ROWS/2, COLS/2) with 1 thread)
   //Check that the output type is the same than the input type.
   //Check that the input images are not modified.
+  //Check that the output size is the same than the input recto size.
 
   const int ROWS = 64;
   const int COLS = 64;
@@ -86,6 +90,7 @@ testSimple0b(int imageType)
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
   REQUIRE( checkEqual(imgVerso, imgVersoClone) );
+  REQUIRE( out.size() == imgRecto.size() );
 }
 
 static
@@ -95,6 +100,7 @@ testSimple0c(int imageType)
   //Apply BleedThrough (on random images) (at position (ROWS/3, COLS/2) with 2 threads)
   //Check that the output type is the same than the input type.
   //Check that the input images are not modified.
+  //Check that the output size is the same than the input recto size.
 
   const int ROWS = 64;
   const int COLS = 64;
@@ -124,7 +130,93 @@ testSimple0c(int imageType)
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
   REQUIRE( checkEqual(imgVerso, imgVersoClone) );
+  REQUIRE( out.size() == imgRecto.size() );
 }
+
+
+static
+void
+testSimple1(int imageType)
+{
+  //Apply BleedThrough (on random images) at specific positions
+  //Pixels outside intersection should not be modified.
+
+  cv::Mat imgRecto(3, 4, imageType);
+  cv::randn(imgRecto, 128, 30);
+
+  cv::Mat imgVerso(4, 5, imageType);
+  cv::randn(imgVerso, 128, 30);
+
+  cv::Mat imgRectoClone = imgRecto.clone();
+  cv::Mat imgVersoClone = imgVerso.clone();
+
+  const int nbIters = 1;
+  const int x = -3;
+  const int y = 2;
+  const int nbThreads = 1;
+
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads);
+
+  REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(imgRecto, imgRectoClone) );
+  REQUIRE( checkEqual(imgVerso, imgVersoClone) );
+  REQUIRE( out.size() == imgRecto.size() );
+
+  //With this configuration, intersection is [x=0, y=2, w=2, h=1] for imgRecto
+  //Pixels outside this area should not be modified.
+  //We check with two ROIs
+  const cv::Rect rect1(0, 0, 4, 2);
+  const cv::Mat imgRectoPart1 = imgRecto(rect1);
+  const cv::Mat outPart1 = out(rect1);
+  REQUIRE( checkEqual(imgRectoPart1, outPart1) );
+  const cv::Rect rect2(2, 2, 2, 1);
+  const cv::Mat imgRectoPart2 = imgRecto(rect2);
+  const cv::Mat outPart2 = out(rect2);
+  REQUIRE( checkEqual(imgRectoPart2, outPart2) );
+}
+
+static
+void
+testSimple1b(int imageType)
+{
+  //Apply BleedThrough (on random images) at specific positions
+  //Pixels outside intersection should not be modified.
+
+  cv::Mat imgRecto(3, 4, imageType);
+  cv::randn(imgRecto, 128, 30);
+
+  cv::Mat imgVerso(7, 4, imageType);
+  cv::randn(imgVerso, 128, 30);
+
+  cv::Mat imgRectoClone = imgRecto.clone();
+  cv::Mat imgVersoClone = imgVerso.clone();
+
+  const int nbIters = 1;
+  const int x = 2;
+  const int y = -5;
+  const int nbThreads = 1;
+
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads);
+
+  REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(imgRecto, imgRectoClone) );
+  REQUIRE( checkEqual(imgVerso, imgVersoClone) );
+  REQUIRE( out.size() == imgRecto.size() );
+
+  //With this configuration, intersection is [x=2, y=0, w=2, h=2] for imgRecto
+  //Pixels outside this area should not be modified.
+  //We check with two ROIs
+  const cv::Rect rect1(0, 0, 2, 2);
+  const cv::Mat imgRectoPart1 = imgRecto(rect1);
+  const cv::Mat outPart1 = out(rect1);
+  REQUIRE( checkEqual(imgRectoPart1, outPart1) );
+  const cv::Rect rect2(0, 2, 4, 1);
+  const cv::Mat imgRectoPart2 = imgRecto(rect2);
+  const cv::Mat outPart2 = out(rect2);
+  REQUIRE( checkEqual(imgRectoPart2, outPart2) );
+}
+
+
 
 
 
@@ -302,7 +394,7 @@ testEqualToGT4(int nbThreads)
 TEST_CASE( "Testing BleedThrough" )
 { 
 
-  SECTION("Testing BleedThrough produces output of same type")
+  SECTION("Testing BleedThrough produces output of same type and size")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
@@ -315,6 +407,17 @@ TEST_CASE( "Testing BleedThrough" )
     testSimple0c(CV_8UC1);
     testSimple0c(CV_8UC3);
     testSimple0c(CV_8UC4);
+  }
+
+  SECTION("Testing BleedThrough modifies only overlapping part")
+  {
+    testSimple1(CV_8UC1);
+    testSimple1(CV_8UC3);
+    testSimple1(CV_8UC4);
+
+    testSimple1b(CV_8UC1);
+    testSimple1b(CV_8UC3);
+    testSimple1b(CV_8UC4);
   }
 
   SECTION("Testing BleedThrough non regression with 1 thread")
