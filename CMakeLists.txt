@@ -284,11 +284,8 @@ else (BUILD_TESTING)
 endif (BUILD_TESTING)
 
 
-
 SET(Tesseract_LIBRARIES "${Tesseract_LIBRARIES};${Lept_LIBRARIES}")
 
-include_directories(${Lept_INCLUDE_DIRS})
-include_directories(${Tesseract_INCLUDE_DIRS})
 
 
 

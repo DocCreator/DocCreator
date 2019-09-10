@@ -17,7 +17,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testShadowBinding
   )
 
-SET(LIBS  ${QT_LIBRARIES} ${DocCreator_LIBRARIES} ${OpenCV_LIBS})
+SET(LIBS DocCreatorDegradations)
 
 FOREACH(FILE ${TESTS_DEGRADATIONS_SRC})
   add_executable(${FILE} ${FILE})
