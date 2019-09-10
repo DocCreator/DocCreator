@@ -19,15 +19,9 @@ SET(TESTS_DEGRADATIONS_SRC
 
 SET(LIBS  ${QT_LIBRARIES} ${DocCreator_LIBRARIES} ${OpenCV_LIBS})
 
-include_directories(${FRAMEWORK_INCLUDE_DIRS})
-include_directories(${CATCH_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-#MESSAGE(CATCH_INCLUDE_DIRS=${CATCH_INCLUDE_DIRS})
-
-
 FOREACH(FILE ${TESTS_DEGRADATIONS_SRC})
   add_executable(${FILE} ${FILE})
+  target_include_directories(${FILE} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${CATCH_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
   target_link_libraries (${FILE} ${LIBS})
   add_test(${FILE} ${FILE})
 ENDFOREACH(FILE)
