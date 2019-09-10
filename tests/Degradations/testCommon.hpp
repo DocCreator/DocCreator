@@ -1,5 +1,5 @@
 #ifndef TEST_COMMON_HPP
-#define TEST_COOMON_HPP
+#define TEST_COMMON_HPP
 
 #include <opencv2/core/core.hpp>
 
