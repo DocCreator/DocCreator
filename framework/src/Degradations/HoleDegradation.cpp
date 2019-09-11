@@ -205,6 +205,8 @@ namespace dc {
     }
     */
 
+    //B:TODO: why don't we also pass "shadowBorderWidth & shadowBorderIntensity" to fillHoleWithColor ?
+
     template <typename T>
     void
     fillHoleWithColor(cv::Mat &out,
