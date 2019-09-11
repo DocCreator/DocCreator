@@ -58,7 +58,9 @@ testSimple0(int imageType)
 {
   //Insert one hole that takes the whole image.
   //So output image will be the hole.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -92,6 +94,7 @@ testSimple0(int imageType)
   REQUIRE( pixelsOfColor == area );
 
   REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.size() == img.size() );
 }
 
 static
@@ -102,7 +105,9 @@ testSimple1(int imageType)
   //It is not at (0, 0) but it will be completely visible.
   //So output image will be the input image with the hole in
   // the specified color.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -139,6 +144,7 @@ testSimple1(int imageType)
   REQUIRE( pixelsOfColor == hole_area );
 
   REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.size() == img.size() );
 }
 
 static
@@ -148,7 +154,9 @@ testSimple2(int imageType)
   //Insert one hole that takes the whole image and
   // put the same image below.
   //So output image will be the input image.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
   const int COLS = 100;    
@@ -181,6 +189,7 @@ testSimple2(int imageType)
   REQUIRE( checkEqual(img, out) );
 
   REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.size() == img.size() );
 }
 
 TEST_CASE( "Testing HoleDegradation" )

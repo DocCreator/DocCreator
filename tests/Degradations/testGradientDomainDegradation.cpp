@@ -16,11 +16,12 @@ void
 testSimple0(int imageType)
 {
   //Apply gradient-domain degradation with given insertType
-  //and check that the output type is the same than the input type.
+  //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
   
   const int ROWS = 498; //bigger than all stain images to be sure they will be inserted.
-  const int COLS = 498;    
+  const int COLS = 499;
     
   cv::Mat img(ROWS, COLS, imageType);
 
@@ -44,13 +45,14 @@ testSimple0(int imageType)
 
     REQUIRE( out.type() == imageType );
     REQUIRE( checkEqual(img, imgClone) );
+    REQUIRE( out.size() == img.size() );
   }
 }
 
 TEST_CASE( "Testing GradientDomainDegradation" )
 { 
 
-  SECTION("Testing GradientDomainDegradation produces output image of same type")
+  SECTION("Testing GradientDomainDegradation produces output image of same type and size")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

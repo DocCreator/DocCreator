@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+
 /*
   Code inspired from original Cuong's code.
   
@@ -247,7 +248,7 @@ namespace dc {
     }
 
     out = currRecto;
-  
+
     return out;
   }
 
@@ -296,8 +297,8 @@ namespace dc {
     @param[in] dstImg destination image to copy onto. It must be of type 8UC3.
     @param[in] posCenter position of center of @a stainImg on destination image @a dstImg.
 
-    @param[out] roi  produced region-of-interest of @a stainImg if intersection.
-    @param[out] newPos  produced new center position of @a stainImg in @a dstImg if intersection.
+    @param[out] roi  produced region-of-interest of @a img if intersection.
+    @param[out] newPos  produced new center position of @a img in destination image if intersection.
     @return true if intersection, false otherwise
   */
   //Some CODE DUPLICATION with GradientDomainDegradation.cpp:testCrop()
@@ -329,43 +330,49 @@ namespace dc {
   cv::Mat
   bleedThrough(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int x, int y, int nbThreads)
   {
-    cv::Rect roi;
-    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), x, y, roi);
-    if (intersection) {
-      cv::Mat imgVersoROI = imgVerso(roi);
+    cv::Mat res = imgRecto.clone();
 
-      cv::Rect roi2(0, 0, roi.width, roi.height);
-      cv::Mat imgRectoROI = imgRecto(roi2);
+    cv::Rect versoROI;
+    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), x, y, versoROI);
+    if (intersection) {
+      const cv::Mat imgVersoROI = imgVerso(versoROI);
+
+      const cv::Rect rectoROI(x+versoROI.x, y+versoROI.y, versoROI.width, versoROI.height);
+      const cv::Mat imgRectoROI = imgRecto(rectoROI);
       assert(imgVersoROI.size() == imgRectoROI.size());
 
-      return bleedThroughMT0(imgRectoROI.clone(), imgRectoROI, imgVersoROI, nbIter, nbThreads);
+      const cv::Mat outROI = bleedThroughMT0(imgRectoROI.clone(), imgRectoROI, imgVersoROI, nbIter, nbThreads);
+
+      cv::Mat dst_roi = res(rectoROI);
+      outROI.copyTo(dst_roi);
     }
-    else {
-      return imgRecto.clone();
-    }
+    return res;
   }
 
   cv::Mat
   bleedThrough(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int x, int y, int nbThreads)
   {
     assert(originalRecto.size() == imgRecto.size());
-    
-    cv::Rect roi;
-    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), x, y, roi);
-    if (intersection) {
-      cv::Mat imgVersoROI = imgVerso(roi);
 
-      cv::Rect roi2(0, 0, roi.width, roi.height);
-      cv::Mat imgRectoROI = imgRecto(roi2);
-      cv::Mat originalRectoROI = originalRecto(roi2);
+    cv::Mat res = imgRecto.clone();
+
+    cv::Rect versoROI;
+    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), x, y, versoROI);
+    if (intersection) {
+      cv::Mat imgVersoROI = imgVerso(versoROI);
+
+      cv::Rect rectoROI(x+versoROI.x, y+versoROI.y, versoROI.width, versoROI.height);
+      cv::Mat imgRectoROI = imgRecto(rectoROI);
+      cv::Mat originalRectoROI = originalRecto(rectoROI);
       assert(imgVersoROI.size() == imgRectoROI.size());
       assert(originalRectoROI.size() == imgRectoROI.size());
 
-      return bleedThroughMT0(originalRectoROI, imgRectoROI, imgVersoROI, nbIter, nbThreads);
+      const cv::Mat outROI = bleedThroughMT0(originalRectoROI, imgRectoROI, imgVersoROI, nbIter, nbThreads);
+
+      cv::Mat dst_roi = res(rectoROI);
+      outROI.copyTo(dst_roi);
     }
-    else {
-      return imgRecto.clone();
-    }
+    return res;
   }
 
 

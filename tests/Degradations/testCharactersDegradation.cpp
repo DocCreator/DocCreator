@@ -14,6 +14,7 @@ testSimple(int imageType)
   //Apply GrayscaleCharsDegradationModel on random image
   //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
+  //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
   const int COLS = 100;    
@@ -33,14 +34,15 @@ testSimple(int imageType)
 
   cv::Mat out = dcm.degradateByLevel_cv(level);
 
- REQUIRE( out.type() == imageType );
- REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( out.size() == img.size() );
 }
 
 TEST_CASE( "Testing CharactersDegradation" )
 { 
 
-  SECTION("Testing Characters Degradation produces output image of same type")
+  SECTION("Testing Characters Degradation produces output image of same type and size")
   {
     testSimple(CV_8UC1);
     //testSimple(CV_8UC3);
