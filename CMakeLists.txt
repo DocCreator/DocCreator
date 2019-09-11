@@ -284,11 +284,8 @@ else (BUILD_TESTING)
 endif (BUILD_TESTING)
 
 
-
 SET(Tesseract_LIBRARIES "${Tesseract_LIBRARIES};${Lept_LIBRARIES}")
 
-include_directories(${Lept_INCLUDE_DIRS})
-include_directories(${Tesseract_INCLUDE_DIRS})
 
 
 
@@ -303,9 +300,8 @@ SET(DocCreator_LIBRARIES DocCreatorFramework)
 
 SET(CATCH_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty/catch)
 
-#MESSAGE(CATCH_INCLUDE_DIRS=${CATCH_INCLUDE_DIRS})
-
 SET(SOFTWARE_PATH ${PROJECT_SOURCE_DIR}/software)
+
 
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ADD_SUBDIRECTORY(${LIPSUM4QT_PATH})

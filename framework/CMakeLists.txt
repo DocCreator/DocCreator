@@ -39,11 +39,12 @@ FILE(
   )
 
 ADD_LIBRARY(DocCreatorDegradations STATIC ${Degradations_sources} ${Degradations_headers})
+TARGET_INCLUDE_DIRECTORIES(DocCreatorDegradations PUBLIC src) #just for framework_global.h
 TARGET_LINK_LIBRARIES(DocCreatorDegradations ${ThirdParty_LIBS})
+SET_TARGET_PROPERTIES(DocCreatorDegradations PROPERTIES POSITION_INDEPENDENT_CODE ON) #ugly #for wrapper
 
 
 
-INCLUDE_DIRECTORIES(src)
 
 FILE(
   GLOB
@@ -136,7 +137,7 @@ FILE(
 #SET_TARGET_PROPERTIES(DocCreatorFramework PROPERTIES COMPILE_FLAGS "-DFRAMEWORK_LIB")
 
 ADD_LIBRARY(DocCreatorFramework STATIC ${DocCreatorFramework_sources} ${MOC})
-
+TARGET_INCLUDE_DIRECTORIES(DocCreatorFramework PUBLIC src)
 
 
 #SET_TARGET_PROPERTIES( DocCreatorFramework
