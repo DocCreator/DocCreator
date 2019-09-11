@@ -45,8 +45,8 @@ TEST_CASE( "Testing CharactersDegradation" )
   SECTION("Testing Characters Degradation produces output image of same type and size")
   {
     testSimple(CV_8UC1);
-    //testSimple(CV_8UC3);
-    //testSimple(CV_8UC4);
+    testSimple(CV_8UC3);
+    testSimple(CV_8UC4);
   }
 
 }

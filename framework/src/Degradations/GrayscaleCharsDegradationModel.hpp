@@ -137,20 +137,18 @@ namespace dc {
 
   private:
 
-    bool _isTest;
-
     //global parameters
     cv::Mat _mat_output;
-    cv::Mat _mat_input;
+    //cv::Mat _mat_input;
     cv::Mat _mat_gray;
     cv::Mat _mat_binary;
-
-    //=========DEBUG================
-    //cv::Mat _mat_color;
 
     cv::Mat _mat_reduce_pixels;
     cv::Mat _mat_CCs;
     cv::Mat _mat_contour;
+
+    int _inputType;
+
     int _width, _height;
     int _avgBackground, _avgForeground, _nb_connectedcomponants, _MAX_a0;
     // Kanungo parameters

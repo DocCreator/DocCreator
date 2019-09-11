@@ -28,6 +28,7 @@ namespace dc {
    */
 
   static const int NO_CC = -1;
+  //B:TODO: Do we really need this constant ???
 
 #if 0
 
@@ -107,8 +108,7 @@ namespace dc {
 
   GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
 								 const cv::Mat &img)
-    : _isTest(false)
-    , _width(0)
+    : _width(0)
     , _height(0)
     , _avgBackground(0)
     , _avgForeground(0)
@@ -142,7 +142,6 @@ namespace dc {
     _listSeedPoints.clear();
 
     _mat_output.release();
-    _mat_input.release();
     _mat_gray.release();
     _mat_binary.release();
     _mat_CCs.release();
@@ -160,7 +159,7 @@ namespace dc {
     _Max_CC_Stroke = INT_MIN;
 
     _Total_Degradation = 0.0;
-    _isTest = true;
+
     _is4connected = true;
     _sigma_gausien = 20;
     _a0 = 4;
@@ -175,21 +174,29 @@ namespace dc {
 
     assert(imgInput.data != nullptr);
 
-    if (imgInput.channels() == 3)
+    //TODO:Apply degradation on color images
+    _inputType = imgInput.type();
+    if (imgInput.channels() == 4) {
+      cvtColor(imgInput, _mat_gray, cv::COLOR_BGRA2GRAY);
+    }
+    else if (imgInput.channels() == 3) {
       cvtColor(imgInput, _mat_gray, cv::COLOR_BGR2GRAY);
-    else
+    }
+    else if (imgInput.channels() == 1) {
       _mat_gray = imgInput.clone();
+    }
+    else {
+      _nb_connectedcomponants = 0;
+      return;
+    }
+    assert(_mat_gray.type() == CV_8UC1);
 
-    //=========DEBUG================
-    //    imwrite("image_gray.png",_mat_gray);
-    //if (imgInput.channels() != 3) cvtColor(imgInput, _mat_color, CV_GRAY2BGR);
-    //else _mat_color = imgInput.clone();
 
     _width = _mat_gray.cols;
     _height = _mat_gray.rows;
 
-    _mat_binary =
-      binarize(); //set _nb_connectedcomponants to NO_CC if no CC found.
+    _mat_binary = binarize();
+    //set _nb_connectedcomponants to NO_CC if no CC found.
 
     _mat_output = _mat_gray.clone();
 
@@ -243,6 +250,7 @@ namespace dc {
     return _mat_output;
   }
 
+  //B: is this method useful ?
   cv::Mat
   GrayscaleCharsDegradationModel::getImageGray_cv()
   {
@@ -313,8 +321,9 @@ namespace dc {
 					       float O,
 					       float D)
   {
-    if (_nb_connectedcomponants <= 0)
+    if (_nb_connectedcomponants <= 0) {
       return _mat_output;
+    }
 
     /*
     qDebug() << "##### GrayscaleCharsDegradationModel::degradate(" << level
@@ -370,17 +379,12 @@ namespace dc {
     auto t5 = std::chrono::steady_clock::now();
 #endif
 
-    //qDebug() << "degradation";
-
     grayscaleDegradationByTypes();
 
 #ifdef TIMING
     auto t6 = std::chrono::steady_clock::now();
 #endif
 
-    //imwrite("test_ok.png",_mat_output);
-
-    //qDebug() << "finish";
 
 #ifdef TIMING
     {
@@ -410,6 +414,24 @@ namespace dc {
 	       << "ms\n";
     }
 #endif
+
+    //TODO: not needed if degradation worked on color image
+    assert(_inputType == CV_8UC1 ||
+	   _inputType == CV_8UC3 ||
+	   _inputType == CV_8UC4);
+    if (_mat_output.type() != _inputType) {
+      if (_inputType == CV_8UC4) {
+	cv::Mat out;
+	cvtColor(_mat_output, out, cv::COLOR_GRAY2BGRA);
+	_mat_output = out;
+      }
+      else if (_inputType == CV_8UC3) {
+	cv::Mat out;
+	cvtColor(_mat_output, out, cv::COLOR_GRAY2BGR);
+	_mat_output = out;
+      }
+    }
+    assert(_mat_output.type() == _inputType);
 
     return _mat_output;
   }
@@ -2448,7 +2470,8 @@ namespace dc {
 	totalBackgroundGrayValue / static_cast<float>(nbPixelBackground);
       _avgForeground =
 	totalForegroundGrayValue / static_cast<float>(nbPixelForeground);
-    } else {
+    }
+    else {
       _nb_connectedcomponants = NO_CC;
       _avgBackground = 255;
       _avgForeground = 0;
