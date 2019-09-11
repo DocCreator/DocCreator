@@ -310,6 +310,7 @@ ADD_SUBDIRECTORY(${SOFTWARE_PATH})
 
 ADD_SUBDIRECTORY(bundlers)
 
+ADD_SUBDIRECTORY(wrapper/python)
 
 if (BUILD_TESTING)
   add_subdirectory (${PROJECT_SOURCE_DIR}/tests)
