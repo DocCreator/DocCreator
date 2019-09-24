@@ -21,8 +21,8 @@ namespace Doc
   class DocZone;
   class Document;
   
-  typedef QMap<QString, QString> MapDegradationModelParameters;
-  typedef QMap<QString, MapDegradationModelParameters> MapDegradationModels;
+  using MapDegradationModelParameters = QMap<QString, QString>;
+  using MapDegradationModels = QMap<QString, MapDegradationModelParameters>;
 
   class FRAMEWORK_EXPORT Page
   {

@@ -48,7 +48,7 @@ namespace Doc
     QList<Doc::DocStyle*> getStyles();
     
   private:
-    typedef QHash<QString, styleReferenceCounter*> HashType;
+    using HashType = QHash<QString, styleReferenceCounter*>;
     HashType _styles;
   };
 

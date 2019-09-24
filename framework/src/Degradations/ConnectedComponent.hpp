@@ -9,8 +9,8 @@
 
 namespace dc {
 
-  typedef std::vector<cv::Point> CC;
-  typedef std::vector<CC> CCs;
+  using CC = std::vector<cv::Point>;
+  using CCs = std::vector<CC>;
 
 
   namespace ConnectedComponent

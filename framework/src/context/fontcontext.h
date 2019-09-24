@@ -13,7 +13,7 @@ class Font;
 
 namespace Context {
 
-typedef QMap<QString, Models::Font *> FontMap;
+using FontMap = QMap<QString, Models::Font *>;
 class FontContext;
 
 class FRAMEWORK_EXPORT FontContext

@@ -9,7 +9,7 @@
 
 namespace Context {
 
-typedef QList<QString> BackgroundList;
+using BackgroundList = QList<QString>;
 
 class FRAMEWORK_EXPORT BackgroundContext
   : public Patterns::Observable

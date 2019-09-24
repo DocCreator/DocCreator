@@ -4,13 +4,13 @@
 #include <QDialog>
 #include <QDir>
 
-typedef struct
+struct LineText
 {
   QList<QString> charList;
   int Long;
   int Height;
   float meanCharHeight;
-} LineText;
+};
 
 namespace Doc {
 class DocTextBlock;

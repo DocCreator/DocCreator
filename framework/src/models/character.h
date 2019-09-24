@@ -8,7 +8,7 @@
 namespace Models {
 class CharacterData;
 
-typedef QList<CharacterData *> CharacterDataList;
+ using CharacterDataList = QList<CharacterData *>;
 
 class FRAMEWORK_EXPORT Character
 {

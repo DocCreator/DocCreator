@@ -47,7 +47,7 @@ static const size_t LZHAM_maxSize = UINT32_MAX;
 
 #endif //USE_LZHAM
 
-typedef enum { VERTICES = 1, TEXCOORDS = 2, NORMALS = 4 } BRSType;
+enum BRSType { VERTICES = 1, TEXCOORDS = 2, NORMALS = 4 };
 
 const int HEADER = ('B' << 24 | 'R' << 16 | 'S' << 8);
 const int HEADER_MASK = 0xFFFFFF00;
@@ -65,8 +65,10 @@ readHeader(std::ifstream &in, BRSType &type)
     return false;
   type = (BRSType)(t & TYPE_MASK);
 
-  if (type != VERTICES && type != (VERTICES | TEXCOORDS) &&
-      type != (VERTICES | NORMALS) && type != (VERTICES | TEXCOORDS | NORMALS))
+  if (type != VERTICES
+      && type != (VERTICES | TEXCOORDS)
+      && type != (VERTICES | NORMALS)
+      && type != (VERTICES | TEXCOORDS | NORMALS))
     return false;
 
   return true;

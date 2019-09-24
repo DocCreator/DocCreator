@@ -34,7 +34,7 @@
   */
 namespace Doc
 {
-typedef QMap<int, std::vector<int> > Scanlines; // map of scanline in one component.
+  using Scanlines = QMap<int, std::vector<int> >; // map of scanline in one component.
 
 class FRAMEWORK_EXPORT DocComponent : public Leaf
 {

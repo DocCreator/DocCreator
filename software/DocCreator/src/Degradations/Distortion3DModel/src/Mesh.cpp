@@ -1729,7 +1729,7 @@ DEBUG_checkEdges(const Mesh &mesh)
 //B: it can probably be faster if we consider that we have closed contours
 // and no loops (no "8")
 
-typedef uint32_t label; //we can probably use something smaller than uint32_t...
+using label = uint32_t; //we can probably use something smaller than uint32_t...
 
 //@param[in, out] labels
 size_t

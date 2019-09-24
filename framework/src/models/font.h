@@ -8,7 +8,7 @@
 namespace Models {
 class Character;
 
-typedef QMap<QString, Character *> CharacterMap;
+using CharacterMap = QMap<QString, Character *>;
 
 class FRAMEWORK_EXPORT Font
 {
