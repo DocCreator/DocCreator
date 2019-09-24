@@ -5,7 +5,7 @@ LabelingComponentDialog::LabelingComponentDialog(QWidget *parent)
   : QDialog(parent)
   , ui(new Ui::LabelingComponentDialog)
 {
-  _blockType = TextBlock;
+  _blockType = BlockType::TextBlock;
 
   ui->setupUi(this);
 
@@ -22,13 +22,13 @@ void
 LabelingComponentDialog::setChecked()
 {
   if (ui->chkTextBlockType->isChecked())
-    _blockType = TextBlock;
+    _blockType = BlockType::TextBlock;
   if (ui->chkImageBlockType->isChecked())
-    _blockType = ImageBlock;
+    _blockType = BlockType::ImageBlock;
   if (ui->chkBackGround->isChecked())
-    _blockType = BackGround;
+    _blockType = BlockType::BackGround;
   if (ui->chkOtherType->isChecked())
-    _blockType = Other;
+    _blockType = BlockType::Other;
 }
 
 LabelingComponentDialog::~LabelingComponentDialog()

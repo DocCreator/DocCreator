@@ -7,7 +7,7 @@ namespace Ui {
 class LabelingComponentDialog;
 }
 
-enum BlockType
+enum class BlockType
 {
   TextBlock,
   ImageBlock,

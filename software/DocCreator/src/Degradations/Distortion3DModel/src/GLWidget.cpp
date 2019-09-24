@@ -69,7 +69,7 @@ GLWidget::GLWidget(QWidget *parent)
 #else
   QOpenGLWidget(parent)
 #endif
-  , m_mode(MODE_MOVE_CAMERA)
+  , m_mode(Mode::MOVE_CAMERA)
   , m_lastMousePos()
   , m_camera()
   , m_camPhy(DEFAULT_CAMERA_PHY)
@@ -957,16 +957,16 @@ GLWidget::keyPressEvent(QKeyEvent *event)
 
   switch (event->key()) {
     case Qt::Key_S:
-      if (m_mode != MODE_SELECTION_VERTEX) {
-        m_mode = MODE_SELECTION_VERTEX;
+      if (m_mode != Mode::SELECTION_VERTEX) {
+        m_mode = Mode::SELECTION_VERTEX;
         QGuiApplication::setOverrideCursor(Qt::CrossCursor);
-        std::cerr << "MODE_SELECTION_VERTEX\n";
+        std::cerr << "Mode::SELECTION_VERTEX\n";
         m_selectedVertices.clear();
       }
       else {
-        m_mode = MODE_MOVE_CAMERA;
+        m_mode = Mode::MOVE_CAMERA;
         QGuiApplication::restoreOverrideCursor();
-        std::cerr << "MODE_MOVE_CAMERA\n";
+        std::cerr << "Mode::MOVE_CAMERA\n";
       }
       break;
 
@@ -1087,9 +1087,9 @@ getVertexWithRay(const Mesh &mesh,
 void
 GLWidget::mousePressEvent(QMouseEvent *e)
 {
-  if (m_mode == MODE_MOVE_CAMERA) {
+  if (m_mode == Mode::MOVE_CAMERA) {
     m_lastMousePos = e->pos();
-  } else if (m_mode == MODE_SELECTION_VERTEX) {
+  } else if (m_mode == Mode::SELECTION_VERTEX) {
     Eigen::Vector3f rayOrigin, rayDirection;
 
     getRayInWorld(e->pos(), rayOrigin, rayDirection);
@@ -1112,9 +1112,9 @@ GLWidget::mousePressEvent(QMouseEvent *e)
 void
 GLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-  if (m_mode == MODE_MOVE_CAMERA) {
+  if (m_mode == Mode::MOVE_CAMERA) {
     m_lastMousePos = e->pos();
-  } else if (m_mode == MODE_SELECTION_VERTEX) {
+  } else if (m_mode == Mode::SELECTION_VERTEX) {
   }
 
   e->accept();
@@ -1123,7 +1123,7 @@ GLWidget::mouseReleaseEvent(QMouseEvent *e)
 void
 GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
-  if (m_mode == MODE_MOVE_CAMERA) {
+  if (m_mode == Mode::MOVE_CAMERA) {
     if (e->buttons() & Qt::LeftButton) {
       m_camPhy += -float(e->x() - m_lastMousePos.x()) / 256.f;
       m_camTheta += float(e->y() - m_lastMousePos.y()) / 256.f;
