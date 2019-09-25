@@ -1195,8 +1195,8 @@ namespace dc {
       }
       auto itMed = ccsSize.begin()+sz/2;
       std::nth_element(ccsSize.begin(), itMed, ccsSize.end());
-      const auto itMax = std::max_element(ccsSize.begin(), ccsSize.end());
-      const auto itMin = std::min_element(ccsSize.begin(), ccsSize.end());
+      //const auto itMax = std::max_element(ccsSize.begin(), ccsSize.end());
+      //const auto itMin = std::min_element(ccsSize.begin(), ccsSize.end());
       auto mean = std::accumulate(std::begin(ccsSize), std::end(ccsSize), 0.0) / ccsSize.size();
       //std::cerr<<"min="<<*itMin<<" median="<<*itMed<<" max="<<*itMax<<"  mean="<<mean<<"\n";
 
