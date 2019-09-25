@@ -11,7 +11,6 @@
 
 #include "ConnectedComponent.hpp"
 
-
 namespace dc {
 
   //#include <iostream>//DEBUG
@@ -151,7 +150,6 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::initialize(const cv::Mat &imgInput)
   {
-
     _MAX_Gradient = INT_MIN;
     _AVG_Gradient = 0;
 
@@ -187,7 +185,9 @@ namespace dc {
       _mat_gray = imgInput.clone();
     }
     else {
-      _nb_connectedcomponants = 0;
+      _nb_connectedcomponants = NO_CC;
+      _mat_output = imgInput.clone(); //need same type as input
+      assert(_mat_output.type() == _inputType);
       return;
     }
     assert(_mat_gray.type() == CV_8UC1);
@@ -196,12 +196,13 @@ namespace dc {
     _width = _mat_gray.cols;
     _height = _mat_gray.rows;
 
-    _mat_binary = binarize();
-    //set _nb_connectedcomponants to NO_CC if no CC found.
-
-    _mat_output = _mat_gray.clone();
+    _mat_binary = binarize(); //binarize _mat_gray
+    //set _nb_connectedcomponants to NO_CC if color-uniform image,
+    // but CCs are not yet computed.
 
     if (_nb_connectedcomponants != NO_CC) {
+
+      _mat_output = _mat_gray.clone();
 
 #ifdef TIMING
       auto t0 = std::chrono::steady_clock::now();
@@ -230,6 +231,9 @@ namespace dc {
 		<< "ms\n";
       std::cerr << "_listPixels.size()=" << _listPixels.size() << "\n";
 #endif
+    }
+    else {
+      _mat_output = imgInput.clone(); //to have same type as input
     }
   }
 
@@ -322,99 +326,99 @@ namespace dc {
 					       float O,
 					       float D)
   {
-    if (_nb_connectedcomponants <= 0) {
-      return _mat_output;
+    if (_nb_connectedcomponants > 0) {
+
+      /*
+	qDebug() << "##### GrayscaleCharsDegradationModel::degradate(" << level
+	<< ", " << I << ", " << O << ", " << D << ")";
+      */
+
+      const int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
+
+      _nbSPs_User =
+	NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
+      /*
+	qDebug() << "getNumberOfConnectedComponants()="
+	<< getNumberOfConnectedComponants();
+	qDebug() << "_nbSPs_User=" << _nbSPs_User;
+      */
+#ifdef TIMING
+      auto t0 = std::chrono::steady_clock::now();
+#endif
+
+      calculatePixelsProbability();
+
+#ifdef TIMING
+      auto t1 = std::chrono::steady_clock::now();
+#endif
+
+      flipPixelsByProbability(I);
+
+#ifdef TIMING
+      auto t2 = std::chrono::steady_clock::now();
+#endif
+
+      //qDebug() << "seed point classification: get type "<< _MAX_Gradient << " " << _listSeedPoints.size() ;
+
+      calculateNoiseRegionType();
+
+#ifdef TIMING
+      auto t3 = std::chrono::steady_clock::now();
+#endif
+
+      //qDebug() << "seed point classification: separate by type " ;
+
+      separateSeedPointsByTypes(O, D);
+
+#ifdef TIMING
+      auto t4 = std::chrono::steady_clock::now();
+#endif
+
+      //qDebug() << "seed point classification: asigne size of ellipses";
+
+      assignmentSizeOfNoiseRegion();
+
+#ifdef TIMING
+      auto t5 = std::chrono::steady_clock::now();
+#endif
+
+      grayscaleDegradationByTypes();
+
+#ifdef TIMING
+      auto t6 = std::chrono::steady_clock::now();
+#endif
+
+
+#ifdef TIMING
+      {
+	auto time1 = t1 - t0;
+	auto time2 = t2 - t1;
+	auto time3 = t3 - t2;
+	auto time4 = t4 - t3;
+	auto time5 = t5 - t4;
+	auto time6 = t6 - t5;
+	std::cerr << "time calculatePixelsProbability="
+		  << std::chrono::duration<double, std::milli>(time1).count()
+		  << "ms\n";
+	std::cerr << "time flipPixelsByProbability="
+		  << std::chrono::duration<double, std::milli>(time2).count()
+		  << "ms\n";
+	std::cerr << "time calculateNoiseRegionType="
+		  << std::chrono::duration<double, std::milli>(time3).count()
+		  << "ms\n";
+	std::cerr << "time separateSeedPointsByTypes="
+		  << std::chrono::duration<double, std::milli>(time4).count()
+		  << "ms\n";
+	std::cerr << "time assignmentSizeOfNoiseRegion="
+		  << std::chrono::duration<double, std::milli>(time5).count()
+		  << "ms\n";
+	std::cerr << "time grayscaleDegradationByTypes="
+		  << std::chrono::duration<double, std::milli>(time6).count()
+		  << "ms\n";
+      }
+#endif
+
     }
-
-    /*
-    qDebug() << "##### GrayscaleCharsDegradationModel::degradate(" << level
-	     << ", " << I << ", " << O << ", " << D << ")";
-    */
-
-    const int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
-
-    _nbSPs_User =
-      NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
-    /*
-    qDebug() << "getNumberOfConnectedComponants()="
-	     << getNumberOfConnectedComponants();
-    qDebug() << "_nbSPs_User=" << _nbSPs_User;
-    */
-#ifdef TIMING
-    auto t0 = std::chrono::steady_clock::now();
-#endif
-
-    calculatePixelsProbability();
-
-#ifdef TIMING
-    auto t1 = std::chrono::steady_clock::now();
-#endif
-
-    flipPixelsByProbability(I);
-
-#ifdef TIMING
-    auto t2 = std::chrono::steady_clock::now();
-#endif
-
-    //qDebug() << "seed point classification: get type "<< _MAX_Gradient << " " << _listSeedPoints.size() ;
-
-    calculateNoiseRegionType();
-
-#ifdef TIMING
-    auto t3 = std::chrono::steady_clock::now();
-#endif
-
-    //qDebug() << "seed point classification: separate by type " ;
-
-    separateSeedPointsByTypes(O, D);
-
-#ifdef TIMING
-    auto t4 = std::chrono::steady_clock::now();
-#endif
-
-    //qDebug() << "seed point classification: asigne size of ellipses";
-
-    assignmentSizeOfNoiseRegion();
-
-#ifdef TIMING
-    auto t5 = std::chrono::steady_clock::now();
-#endif
-
-    grayscaleDegradationByTypes();
-
-#ifdef TIMING
-    auto t6 = std::chrono::steady_clock::now();
-#endif
-
-
-#ifdef TIMING
-    {
-      auto time1 = t1 - t0;
-      auto time2 = t2 - t1;
-      auto time3 = t3 - t2;
-      auto time4 = t4 - t3;
-      auto time5 = t5 - t4;
-      auto time6 = t6 - t5;
-      std::cerr << "time calculatePixelsProbability="
-	       << std::chrono::duration<double, std::milli>(time1).count()
-	       << "ms\n";
-      std::cerr << "time flipPixelsByProbability="
-	       << std::chrono::duration<double, std::milli>(time2).count()
-	       << "ms\n";
-      std::cerr << "time calculateNoiseRegionType="
-	       << std::chrono::duration<double, std::milli>(time3).count()
-	       << "ms\n";
-      std::cerr << "time separateSeedPointsByTypes="
-	       << std::chrono::duration<double, std::milli>(time4).count()
-	       << "ms\n";
-      std::cerr << "time assignmentSizeOfNoiseRegion="
-	       << std::chrono::duration<double, std::milli>(time5).count()
-	       << "ms\n";
-      std::cerr << "time grayscaleDegradationByTypes="
-	       << std::chrono::duration<double, std::milli>(time6).count()
-	       << "ms\n";
-    }
-#endif
 
     //TODO: not needed if degradation worked on color image
     assert(_inputType == CV_8UC1 ||
