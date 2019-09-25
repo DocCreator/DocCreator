@@ -11,10 +11,12 @@ DocumentToXMLExporter::toXML()
   QString filepath(_path);
   filepath.append("/");
   filepath.append("truth_");
-  if (_numberWidth <= 0)
+  if (_numberWidth <= 0) {
     filepath.append(QString::number(_nb));
-  else
+  }
+  else {
     filepath.append(QString("%1").arg(_nb, _numberWidth, 10, QChar('0')));
+  }
   filepath.append(".od");
 
   IOManager::DocumentFileManager::documentToXml(

@@ -12,8 +12,9 @@ DocumentView::DocumentView(Mvc::IController *controller)
   , _keyboardController(nullptr)
 {
   DocumentController *c = static_cast<DocumentController *>(getController());
-  if (c != nullptr)
+  if (c != nullptr) {
     c->setView(this);
+  }
 }
 
 void
@@ -36,25 +37,29 @@ DocumentView::setKeyboardController(KeyboardController *keyboardController)
 void
 DocumentView::clear()
 {
-  if (_graphicView != nullptr)
+  if (_graphicView != nullptr) {
     _graphicView->clear();
+  }
 
-  if (_textView != nullptr)
+  if (_textView != nullptr) {
     _textView->clear();
+  }
 }
 
 void
 DocumentView::print(QPrinter *printer)
 {
-  if (_graphicView != nullptr)
+  if (_graphicView != nullptr) {
     _graphicView->print(printer);
+  }
 }
 
 void
 DocumentView::saveToImage(const QString &path)
 {
-  if (_graphicView != nullptr)
+  if (_graphicView != nullptr) {
     _graphicView->saveToImage(path);
+  }
 }
 
 QImage
@@ -68,30 +73,35 @@ DocumentView::toQImage(DocRenderFlags flags)
 QSize
 DocumentView::getImageSize()
 {
-  if (_graphicView != nullptr)
+  if (_graphicView != nullptr) {
     return _graphicView->getImageSize();
+  }
   return QSize();
 }
 
 void
 DocumentView::setOffset(int value)
 {
-  if (_graphicView != nullptr)
+  if (_graphicView != nullptr) {
     _graphicView->setOffset(value);
-  if (_textView != nullptr)
+  }
+  if (_textView != nullptr) {
     _textView->setOffset(value);
+  }
 }
 void
 DocumentView::keyPressEvent(QKeyEvent *e)
 {
-  if (_keyboardController != nullptr)
+  if (_keyboardController != nullptr) {
     _keyboardController->keyPressEvent(e);
+  }
 }
 void
 DocumentView::keyReleaseEvent(QKeyEvent *e)
 {
-  if (_keyboardController != nullptr)
+  if (_keyboardController != nullptr) {
     _keyboardController->keyReleaseEvent(e);
+  }
 }
 
 /* protected methods */
@@ -99,8 +109,9 @@ void
 DocumentView::load()
 {
   Doc::Document *document = getElement();
-  if (document == nullptr)
+  if (document == nullptr) {
     return;
+  }
   /*
     if(_textView!=nullptr)
         _textView->drawElement(dynamic_cast<DocTextBlock*>(document->currentBlock()));
@@ -112,8 +123,9 @@ void
 DocumentView::draw(bool complete)
 {
   Doc::Document *document = getElement();
-  if (document == nullptr)
+  if (document == nullptr) {
     return;
+  }
 
   if (_textView != nullptr) {
     Doc::Block *b = document->currentBlock();

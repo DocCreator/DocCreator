@@ -6,8 +6,11 @@
 
 namespace IOManager {
 
-TxtDocumentSaver::TxtDocumentSaver(Doc::Document *doc, const QString &filename)
-  : DocumentSaver(doc)
+TxtDocumentSaver::TxtDocumentSaver(Doc::Document *doc,
+				   const QString &filename)
+  : DocumentSaver(doc),
+    _writer(nullptr),
+    _file(nullptr)
 {
   _file = new QFile(filename);
   if (_file->open(QFile::WriteOnly | QFile::Truncate)) {

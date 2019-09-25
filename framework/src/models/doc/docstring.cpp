@@ -6,15 +6,17 @@ namespace Doc
 {
   DocString::DocString(DocStyle* style, Document* document) : NodeOfLeafs< DocCharacter >(document), _style()
     {
-        if (document != nullptr)
-            _style = document->addStyle(style);
+      if (document != nullptr) {
+	_style = document->addStyle(style);
+      }
     }
 
     DocString::~DocString()
     {
       Document* doc = this->getDocument();
-      if (doc != nullptr)
+      if (doc != nullptr) {
 	doc->changeStyle(_style, nullptr);
+      }
     }
 
     DocString* DocString::clone()
@@ -34,23 +36,26 @@ namespace Doc
     DocString* DocString::getSelection()
     {
         const int offset = this->offset();
-        if (this->isEmpty() || _endOfSelection == offset)
+        if (this->isEmpty() || _endOfSelection == offset) {
             return nullptr;
+	}
 
         auto result = new DocString(getStyle(), getDocument());
 
         const int min = (_endOfSelection < offset) ? _endOfSelection : offset;
         int max = (_endOfSelection > offset) ? _endOfSelection : offset;
-        if (max > _elements.count())
+        if (max > _elements.count()) {
             max = _elements.count();
+	}
 
         QList<DocCharacter*> list;
 	list.reserve(max-min);
         for (int i = min ; i < max ; i++)
         {
             DocCharacter* c = _elements.at(i);
-            if (c != nullptr)
+            if (c != nullptr) {
                 list.append(c->clone());
+	    }
         }
 
         result->add(list);
@@ -71,8 +76,9 @@ namespace Doc
     void DocString::changeStyle(DocStyle* style)
     {
         Document* document = this->getDocument();
-        if (document == nullptr)
+        if (document == nullptr) {
             return;
+	}
 
         _style = document->changeStyle(_style, style);
     }
@@ -80,16 +86,18 @@ namespace Doc
     DocStyle* DocString::getStyle()
     {
         Document* document = this->getDocument();
-        if (document == nullptr)
+        if (document == nullptr) {
             return nullptr;
+	}
         return document->getStyle(_style);
     }
 
     QList< DocString* > DocString::splitAtPosition(int position)
     {
         QList< DocString* > list;
-        if (isEmpty())
+        if (isEmpty()) {
             return list;
+	}
 
         DocString* firstPart = this->clone();
         DocString* secondPart = this->clone();

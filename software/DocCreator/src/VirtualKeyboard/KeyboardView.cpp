@@ -179,22 +179,27 @@ KeyboardView::processControlButton(int key)
     _ctrlPressed = true;
     _controlButtons.value(Qt::Key_Control)->pressKey();
     redrawKeyboard();
-  } else if (controlKey == Qt::Key_Alt) {
+  }
+  else if (controlKey == Qt::Key_Alt) {
     _altPressed = true;
     _controlButtons.value(Qt::Key_Alt)->pressKey();
     redrawKeyboard();
-  } else if (controlKey == Qt::Key_Shift)
+  }
+  else if (controlKey == Qt::Key_Shift) {
     _shiftPressed = true;
-  else if (controlKey == Qt::Key_AltGr)
+  }
+  else if (controlKey == Qt::Key_AltGr) {
     _altGrPressed = true;
+  }
 
   if (controlKey != Qt::Key_Shift && _ctrlPressed && _altPressed) {
     controlKey = Qt::Key_AltGr;
     _altGrPressed = true;
   }
 
-  if (!_controlButtons.contains(key))
+  if (!_controlButtons.contains(key)) {
     return;
+  }
 
   //const int SIZE_TAB=5; //B:WARNING: SIZE_TAB also defined in documentcontroller.cpp
 
@@ -257,19 +262,23 @@ KeyboardView::processControlButtonRelease(int key)
       break;
     case Qt::Key_AltGr:
       _altGrPressed = false;
-      if (_shiftPressed)
+      if (_shiftPressed) {
         _currentMode = UpperCase;
-      else
+      }
+      else {
         _currentMode = LowerCase;
+      }
       _controlButtons.value(Qt::Key_AltGr)->releaseKey();
       redrawKeyboard();
       break;
     case Qt::Key_Shift:
       _shiftPressed = false;
-      if (_altGrPressed)
+      if (_altGrPressed) {
         _currentMode = Alternate;
-      else
+      }
+      else {
         _currentMode = LowerCase;
+      }
       _controlButtons.value(Qt::Key_Shift)->releaseKey();
       redrawKeyboard();
       break;
@@ -439,8 +448,9 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
 void
 KeyboardView::drawKeyboard(Models::Font *font)
 {
-  if (font == nullptr)
+  if (font == nullptr) {
     return;
+  }
 
   //assert(font != nullptr);
   if (_currentFontName != font->getName()) {

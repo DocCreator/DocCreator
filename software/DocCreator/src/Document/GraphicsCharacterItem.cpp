@@ -44,8 +44,9 @@ GraphicsCharacterItem::GraphicsCharacterItem(Models::Character *character,
 
 GraphicsCharacterItem::~GraphicsCharacterItem()
 {
-  if (_mustDeleteCharacter)
+  if (_mustDeleteCharacter) {
     delete _character;
+  }
 }
 
 void
@@ -58,8 +59,9 @@ GraphicsCharacterItem::buildHighlightedImage()
 QImage
 GraphicsCharacterItem::getHighlightedImage()
 {
-  if (_img_highlighted.isNull())
+  if (_img_highlighted.isNull()) {
     buildHighlightedImage();
+  }
   return _img_highlighted;
 }
 

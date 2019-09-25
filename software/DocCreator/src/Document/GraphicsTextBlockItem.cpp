@@ -162,8 +162,9 @@ GraphicsTextBlockItem::draw(bool /*complete*/)
   //B: delete and recreate each item at each re-draw ????!
 
   Doc::DocTextBlock *docTextBlock = getElement();
-  if (docTextBlock == nullptr)
+  if (docTextBlock == nullptr) {
     return;
+  }
 
   QList<Doc::DocParagraph *> paragraphs = docTextBlock->getParagraphs();
 
@@ -173,8 +174,9 @@ GraphicsTextBlockItem::draw(bool /*complete*/)
     return;
 
   Doc::DocParagraph *firstParagraph = paragraphs.first();
-  if (firstParagraph == nullptr) //B: does it happen ?
+  if (firstParagraph == nullptr) { //B: does it happen ?
     return;
+  }
 
   _cursorBaseLine = firstParagraph->lineSpacing() + docTextBlock->marginTop();
   _cursorRightLine = docTextBlock->marginLeft();
@@ -254,13 +256,15 @@ GraphicsTextBlockItem::goNextLine(Doc::DocParagraph *p)
     }*/
 
   Doc::DocTextBlock *docTextBlock = getElement();
-  if (docTextBlock == nullptr)
+  if (docTextBlock == nullptr) {
     return;
+  }
   this->_cursorRightLine = docTextBlock->marginLeft();
   Doc::DocParagraph *docParagraph =
     (p != nullptr) ? p : docTextBlock->currentParagraph();
-  if (docParagraph == nullptr)
+  if (docParagraph == nullptr) {
     return;
+  }
   this->_cursorBaseLine += docParagraph->lineSpacing();
 }
 
@@ -296,8 +300,9 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
                                      Doc::DocParagraph *p)
 {
   Doc::DocTextBlock *docTextBlock = getElement();
-  if (docTextBlock == nullptr) //B: does it happen ?
+  if (docTextBlock == nullptr) { //B: does it happen ?
     return;
+  }
 
   assert(c);
   const QString cDisplay = c->getDisplay();
@@ -307,8 +312,9 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
 
     Doc::DocParagraph *docParagraph =
       (p != nullptr) ? p : docTextBlock->currentParagraph();
-    if (docParagraph == nullptr)
+    if (docParagraph == nullptr) {
       return;
+    }
 
     const int width = rect().width() - _cursorRightLine;
     const int height = docParagraph->lineSpacing();
@@ -337,18 +343,22 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
   }
 
   Models::Font *font = nullptr;
-  if (style != nullptr)
+  if (style != nullptr) {
     font = Context::FontContext::instance()->getFont(style->getFontName());
-  if (font == nullptr)
+  }
+  if (font == nullptr) {
     font = Context::FontContext::instance()->getCurrentFont();
+  }
   assert(font != nullptr);
 
   Models::Character *character = font->getCharacter(cDisplay);
-  if (character == nullptr) //B: does it happen ?
+  if (character == nullptr) { //B: does it happen ?
     return;
+  }
   const Models::CharacterData *data = character->getCharacterData(c->getId());
-  if (data == nullptr)
+  if (data == nullptr) {
     return;
+  }
   const QImage characterImage = data->getImage();
 
   //assert(character != nullptr);
@@ -397,12 +407,14 @@ void
 GraphicsTextBlockItem::hightlightSelection(int startOffset, int endOffset)
 {
   for (int i = startOffset; i < endOffset; i++) {
-    if (i >= _charItems.count() || i < 0)
+    if (i >= _charItems.count() || i < 0) {
       continue;
+    }
     GraphicsCharacterItem *charItem =
       static_cast<GraphicsCharacterItem *>(_charItems.at(i)); //B:dynamic_cast?
-    if (charItem != nullptr)
+    if (charItem != nullptr) {
       charItem->setHighlighted(true);
+    }
   }
 }
 
@@ -423,8 +435,9 @@ GraphicsTextBlockItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     charItem->setHighlighted(false);
 
   Doc::DocTextBlock *docTextBlock = getElement();
-  if (docTextBlock == nullptr)
+  if (docTextBlock == nullptr) {
     return;
+  }
   setCursorFromPosition(mousePos);
   _startSelectionOffset = docTextBlock->offset();
 
@@ -436,8 +449,9 @@ GraphicsTextBlockItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
 
   GraphicsBlockItem::mouseMoveEvent(event);
-  if (!_mousePressed)
+  if (!_mousePressed) {
     return;
+  }
 
   QPointF mousePos = event->pos();
 
@@ -447,8 +461,9 @@ GraphicsTextBlockItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
   int startOffset = _startSelectionOffset;
   setCursorFromPosition(mousePos);
   Doc::DocTextBlock *docTextBlock = getElement();
-  if (docTextBlock == nullptr)
+  if (docTextBlock == nullptr) {
     return;
+  }
   int endOffset = docTextBlock->offset();
 
   if (startOffset > endOffset) {
@@ -464,34 +479,36 @@ void
 GraphicsTextBlockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
   GraphicsBlockItem::mouseReleaseEvent(event);
-  if (!_mousePressed)
+  if (!_mousePressed) {
     return;
+  }
 
   QPointF mousePos = event->pos();
   setCursorFromPosition(mousePos);
 
   Doc::DocTextBlock *docTextBlock = getElement();
-  if (docTextBlock == nullptr)
+  if (docTextBlock == nullptr) {
     return;
+  }
 
   Doc::DocStyle *style = docTextBlock->getStyle();
-  if (style == nullptr)
+  if (style == nullptr) {
     return;
+  }
   if (style->getFontName() !=
       Context::FontContext::instance()->getCurrentFont()->getName()) {
     Models::Font *font =
       Context::FontContext::instance()->getFont(style->getFontName());
-    if (font != nullptr)
+    if (font != nullptr) {
       Context::FontContext::instance()->setCurrentFont(font->getName());
+    }
   }
 
   int startOffset = _startSelectionOffset;
   int endOffset = docTextBlock->offset();
 
   if (startOffset > endOffset) {
-    int tmp = startOffset;
-    startOffset = endOffset;
-    endOffset = tmp;
+    std::swap(startOffset, endOffset);
   }
 
   hightlightSelection(startOffset, endOffset);

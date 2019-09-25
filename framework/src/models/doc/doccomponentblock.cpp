@@ -89,18 +89,20 @@ void DocComponentBlock::add(DocZone* e)
     else
     {
         DocZone* current = next;
-        if (current == nullptr)
+        if (current == nullptr) {
             current = previous;
-        if (current == nullptr)
+	}
+        if (current == nullptr) {
             return;
+	}
 
         int oldOffset = this->offset();
         QList<DocZone*> splitted = current->splitAtPosition(current->offset());
         DocZone* toRemove = _elements.at(_index);
         _elements.removeAt(_index);
-        for (DocZone* p : splitted)
+        for (DocZone* p : splitted) {
             NodeOfNodes<DocZone>::add(p);
-
+	}
         this->setLength(this->length()-toRemove->length());
         this->setOffset(oldOffset+e->length());
     }

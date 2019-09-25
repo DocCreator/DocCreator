@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include <cassert>
+
 #include "docparagraph.h"
 #include "docstylemanager.h"
 #include "doctextblock.h"
@@ -41,12 +42,14 @@ namespace Doc
   Document* Document::getSelection() //B:rename in "copySelection" ?
     {
         Page* p = currentPage();
-        if (p == nullptr)
+        if (p == nullptr) {
             return nullptr;
+	}
 
         Page* selection = p->getSelection();
-        if (selection == nullptr)
+        if (selection == nullptr) {
             return nullptr;
+	}
 
         auto result = new Document();
         result->add(selection);
@@ -56,8 +59,9 @@ namespace Doc
 
     void Document::add(Page* e)
     {
-      if (_pages.contains(e))
+      if (_pages.contains(e)) {
 	return;
+      }
       _currentPage = e;
       _pages.append(_currentPage);
 
@@ -66,13 +70,14 @@ namespace Doc
 
     void Document::remove(Page* e)
     {
-      if (_currentPage == e)
+      if (_currentPage == e) {
 	_currentPage = nullptr;
+      }
 
       const int ind = _pages.indexOf(e);
-      if (ind != -1)
+      if (ind != -1) {
 	_pages.removeAt(ind);
-
+      }
       assert(! _pages.contains(e));
     }
 
@@ -95,35 +100,36 @@ namespace Doc
     Block* Document::currentBlock()
     {
       Page* current = this->currentPage();
-      if (current == nullptr)
+      if (current == nullptr) {
 	return nullptr;
+      }
       return current->currentBlock();
     }
 
     DocParagraph* Document::currentParagraph()
     {
         DocTextBlock* current = dynamic_cast<DocTextBlock*>(this->currentBlock());
-        if (current == nullptr)
+        if (current == nullptr) {
             return nullptr;
-
+	}
         return current->currentParagraph();
     }
 
     DocString* Document::currentString()
     {
         DocParagraph* current = this->currentParagraph();
-        if (current == nullptr)
+        if (current == nullptr) {
             return nullptr;
-
+	}
         return current->currentString();
     }
 
     DocCharacter* Document::currentCharacter()
     {
         DocString* current = this->currentString();
-        if (current == nullptr)
+        if (current == nullptr) {
             return nullptr;
-
+	}
         return current->currentCharacter();
     }
 
@@ -166,121 +172,121 @@ namespace Doc
 
     void Document::add(Block* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocImageBlock* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocTestBlock* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocTextBlock* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocComponentBlock* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocParagraph* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(const QList<DocParagraph*> &e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-	
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocString* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(const QList<DocString*> &e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocCharacter* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(const QList<DocCharacter*> &e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocComponent* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(const QList<DocComponent*> &e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(DocZone* e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 
     void Document::add(const QList<DocZone*> &e)
     {
-      if (_currentPage == nullptr)
+      if (_currentPage == nullptr) {
 	add(new Page(this)); //B return;
-      
+      }
       _currentPage->add(e);
     }
 

@@ -124,7 +124,7 @@ bool read_stl(Surface_mesh& mesh, const std::string& filename)
         read(in, nT);
 
         // read triangles
-        while (nT)
+        while (nT != 0u)
         {
             // skip triangle normal
             n_items = fread(line, 1, 12, in);

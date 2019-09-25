@@ -185,7 +185,7 @@ LineDetectionDialog::process()
 
   QImage blurred = Convertor::getQImage(dst);
 
-  peel(dst, dst, 2, (int)(0.8 * _character_height));
+  peel(dst, dst, 2, static_cast<int>(0.8 * _character_height));
 
   _originalLabel = ui->originalLabel;
   _originalLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);

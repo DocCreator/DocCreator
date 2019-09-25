@@ -19,18 +19,18 @@ KeyboardController::setView(KeyboardView *view)
 void
 KeyboardController::keyPressEvent(QKeyEvent *e)
 {
-  if (_view == nullptr)
+  if (_view == nullptr) {
     return;
-
+  }
   _view->keyPressEvent(e);
 }
 
 void
 KeyboardController::keyReleaseEvent(QKeyEvent *e)
 {
-  if (_view == nullptr)
+  if (_view == nullptr) {
     return;
-
+  }
   _view->keyReleaseEvent(e);
 }
 

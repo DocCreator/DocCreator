@@ -36,24 +36,28 @@ GraphicsPageItem::setOffset(int value)
   GraphicsBlockItem *current = currentBlockItem();
   GraphicsTextBlockItem *graphicTextBlock =
     dynamic_cast<GraphicsTextBlockItem *>(current);
-  if (graphicTextBlock != nullptr)
+  if (graphicTextBlock != nullptr) {
     graphicTextBlock->setOffset(value);
+  }
 
   GraphicsImageBlockItem *graphicImageBlock =
     dynamic_cast<GraphicsImageBlockItem *>(current);
-  if (graphicImageBlock != nullptr)
+  if (graphicImageBlock != nullptr) {
     graphicImageBlock->setOffset(value);
+  }
 
   GraphicsTestBlockItem *graphicTestBlock =
     dynamic_cast<GraphicsTestBlockItem *>(current);
-  if (graphicTestBlock != nullptr)
+  if (graphicTestBlock != nullptr) {
     graphicTestBlock->setOffset(value);
+  }
 
   //added by kvcuong 09/05/2012
   GraphicsComponentBlockItem *graphicComponentBlock =
     dynamic_cast<GraphicsComponentBlockItem *>(current);
-  if (graphicComponentBlock != nullptr)
+  if (graphicComponentBlock != nullptr) {
     graphicComponentBlock->setOffset(value);
+  }
 }
 
 void
@@ -104,8 +108,9 @@ GraphicsPageItem::load()
   clear();
 
   Doc::Page *page = getElement();
-  if (page == nullptr)
+  if (page == nullptr) {
     return;
+  }
 
   Doc::Block *previousBlock = page->currentBlock();
 
@@ -138,8 +143,9 @@ GraphicsPageItem::draw(bool complete)
   //qDebug() <<  " draw page";
 
   Doc::Page *page = getElement();
-  if (page == nullptr)
+  if (page == nullptr) {
     return;
+  }
 
   if (Context::BackgroundContext::instance()->changed() || complete) {
     DocumentController *controller =
@@ -265,8 +271,9 @@ GraphicsBlockItem *
 GraphicsPageItem::currentBlockItem()
 {
   Doc::Page *p = getElement();
-  if (p == nullptr)
+  if (p == nullptr) {
     return nullptr;
+  }
 
   return _map.value(p->currentBlock());
 }
@@ -275,8 +282,9 @@ void
 GraphicsPageItem::synchroniseWithElement()
 {
   Doc::Page *page = getElement();
-  if (page == nullptr)
+  if (page == nullptr) {
     return;
+  }
 
   Doc::Block *previousBlock = page->currentBlock();
 

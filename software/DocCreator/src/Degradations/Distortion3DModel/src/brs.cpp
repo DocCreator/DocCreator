@@ -63,7 +63,7 @@ readHeader(std::ifstream &in, BRSType &type)
 
   if ((t & HEADER_MASK) != HEADER)
     return false;
-  type = (BRSType)(t & TYPE_MASK);
+  type = static_cast<BRSType>(t & TYPE_MASK);
 
   if (type != VERTICES
       && type != (VERTICES | TEXCOORDS)
@@ -153,12 +153,12 @@ writeLZHAM(std::ostream &out, const char *data, size_t szb)
     size_t out_num_bytes = worstCaseSize;
     lzham_compress_status_t status =
       lzham_compress_memory(&params,
-                            (lzham_uint8 *)dst,
+                            static_cast<lzham_uint8 *>(dst),
                             &out_num_bytes,
                             (const lzham_uint8 *)(data + shift),
                             szw,
                             nullptr);
-    if (status != LZHAM_COMP_STATUS_SUCCESS || !out_num_bytes) {
+    if (status != LZHAM_COMP_STATUS_SUCCESS || out_num_bytes == 0u) {
       std::cerr << "Error: unable to compress buffer in LZHAM format\n";
       std::cerr << "status=" << status << " =?= LZHAM_COMP_STATUS_SUCCESS="
                 << LZHAM_COMP_STATUS_SUCCESS << "\n";
@@ -263,7 +263,7 @@ readLZHAM(std::istream &in, char *data, size_t szb)
       lzham_decompress_memory(&params,
                               (lzham_uint8 *)(data + shift),
                               &uncomp_size,
-                              (const lzham_uint8 *)src,
+                              static_cast<const lzham_uint8 *>(src),
                               comp_size,
                               nullptr);
     if (status != LZHAM_DECOMP_STATUS_SUCCESS) {
@@ -529,7 +529,7 @@ readBRS(const std::string &filename, Mesh &mesh)
   //Use low level functions of LZHAM
   // (it seems we are able to write more compressed data, see writeBRS()).
 
-  unsigned char *BUF = (unsigned char *)malloc(totalSize);
+  unsigned char *BUF = static_cast<unsigned char *>( malloc(totalSize) );
   if (BUF == nullptr) {
     return false;
   }
@@ -570,7 +570,7 @@ readBRS(const std::string &filename, Mesh &mesh)
     //use BUFCOMP as temporary buffer
     if (size8 > totalSizeComp) {
       free(BUFCOMP);
-      BUFCOMP = (unsigned char *)malloc(size8);
+      BUFCOMP = static_cast<unsigned char *>( malloc(size8) );
       if (BUFCOMP == nullptr)
 	return false;
     }
@@ -608,7 +608,7 @@ readBRS(const std::string &filename, Mesh &mesh)
   }
   assert(mesh.numVertices == numVertices);
 
-  if (type & TEXCOORDS) {
+  if ((type & TEXCOORDS) != 0) {
     mesh.allocateTexCoords();
 
     memcpy(mesh.texCoords, cBUF, sv2);
@@ -617,7 +617,7 @@ readBRS(const std::string &filename, Mesh &mesh)
     assert(mesh.hasTexCoords());
   }
 
-  if (type & NORMALS) {
+  if ((type & NORMALS) != 0) {
     mesh.allocateNormals();
 
     memcpy(mesh.normals, cBUF, sv3);
@@ -915,8 +915,9 @@ writeBRS(const std::string &filename, const Mesh &mesh)
   }
 
   const BRSType type =
-    (BRSType)(VERTICES | (mesh.hasTexCoords() ? TEXCOORDS : VERTICES) |
-              (mesh.hasNormals() ? NORMALS : VERTICES));
+    static_cast<BRSType>(VERTICES |
+			 (mesh.hasTexCoords() ? TEXCOORDS : VERTICES) |
+			 (mesh.hasNormals() ? NORMALS : VERTICES));
 
   const uint32_t header = HEADER | type;
 
@@ -1036,7 +1037,7 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       std::cerr << "totalSize=" << totalSize << "\n";
 #endif //NDEBUG
 
-      BUF = (unsigned char *)malloc(totalSize);
+      BUF = static_cast<unsigned char *>( malloc(totalSize) );
       if (BUF == nullptr) {
 	return false;
       }

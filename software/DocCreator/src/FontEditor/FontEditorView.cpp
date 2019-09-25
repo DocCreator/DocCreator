@@ -89,8 +89,9 @@ FontEditorView::addCharacter(Models::Character *ch)
 void
 FontEditorView::keyPressEvent(QKeyEvent *e)
 {
-  if (_keyboardController == nullptr)
+  if (_keyboardController == nullptr) {
     return;
+  }
 
   _keyboardController->keyPressEvent(e);
 }
@@ -98,8 +99,9 @@ FontEditorView::keyPressEvent(QKeyEvent *e)
 void
 FontEditorView::keyReleaseEvent(QKeyEvent *e)
 {
-  if (_keyboardController == nullptr)
+  if (_keyboardController == nullptr) {
     return;
+  }
 
   _keyboardController->keyReleaseEvent(e);
 }

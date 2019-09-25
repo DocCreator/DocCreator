@@ -529,7 +529,7 @@ GLWidget::resizeGL(int w, int h)
   glViewport(0, 0, w, h);
 
   assert(h > 0);
-  m_camera.setPerspective(m_camFov, w / (float)h, .01f, 10.f, 2.f);
+  m_camera.setPerspective(m_camFov, w / static_cast<float>(h), .01f, 10.f, 2.f);
 
   GL_CHECK_ERROR_ALWAYS();
 }
@@ -573,7 +573,8 @@ GLWidget::paintGL()
 
     m_backgroundProgram.activate();
 
-    if (m_backgroundTextureId && m_useBackgroundTexture) {
+    if (m_backgroundTextureId != 0u
+	&& m_useBackgroundTexture) {
       GL_CHECK_ERROR_ALWAYS();
 
       //std::cerr<<"paintGL m_backgroundTextureId="<<m_backgroundTextureId<<"  m_useBackgroundTexture="<<m_useBackgroundTexture<<"\n";
@@ -605,7 +606,7 @@ GLWidget::paintGL()
 
     int useTextureLoc = m_backgroundProgram.getUniformLocation("use_texture");
     if (useTextureLoc >= 0)
-      glUniform1i(useTextureLoc, m_useBackgroundTexture);
+      glUniform1i(useTextureLoc, static_cast<GLint>(m_useBackgroundTexture));
 
     if (m_useTexture) {
       int texMatLoc = m_backgroundProgram.getUniformLocation("tex_matrix");
@@ -621,7 +622,7 @@ GLWidget::paintGL()
     m_backgroundObject->draw(m_camera);
   }
 
-  if (m_object) {
+  if (m_object != nullptr) {
 
     m_program.activate();
 
@@ -685,7 +686,7 @@ GLWidget::paintGL()
 
       int useTextureLoc = m_program.getUniformLocation("use_texture");
       if (useTextureLoc >= 0)
-        glUniform1i(useTextureLoc, m_useTexture);
+        glUniform1i(useTextureLoc, static_cast<GLint>(m_useTexture));
 
       if (m_useTexture) {
         int texMatLoc = m_program.getUniformLocation("tex_matrix");
@@ -999,8 +1000,8 @@ GLWidget::getRayInWorld(QPoint pos,
   assert(y >= 0 && y < height);
   assert(width > 0 && height > 0);
   //3D Normalized Device Coordinates [-1;1]x[-1;1]x[-1;1]
-  x = 2.f * x / (float)width - 1.0f;
-  y = 2.f * y / (float)height - 1.0f;
+  x = 2.f * x / static_cast<float>(width) - 1.0f;
+  y = 2.f * y / static_cast<float>(height) - 1.0f;
   //z = 1.0f;
   //Eigen::Vector3f ray_nds(x, y, z);
 

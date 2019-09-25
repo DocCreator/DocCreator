@@ -153,7 +153,7 @@ GLMesh::draw(GLuint progId) const
 
   if (vertex_loc >= 0) {
     glVertexAttribPointer(
-      vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)nullptr);
+			  vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(vertex_loc);
   }
 
@@ -193,7 +193,7 @@ GLMesh::draw(GLuint progId) const
   GL_CHECK_ERROR_ALWAYS();
 
   // draw the geometry
-  glDrawElements(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, (void *)nullptr);
+  glDrawElements(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, static_cast<void *>(nullptr));
 
   GL_CHECK_ERROR_ALWAYS();
 

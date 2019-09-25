@@ -27,15 +27,18 @@ GraphicsTestBlockItem::load()
 {
   Doc::DocTestBlock *docTestBlock =
     dynamic_cast<Doc::DocTestBlock *>(getElement());
-  if (docTestBlock == nullptr)
+  if (docTestBlock == nullptr) {
     return;
+  }
 
   const int width = docTestBlock->width();
-  if (width == 0)
+  if (width == 0) {
     docTestBlock->setWidth(100);
+  }
   const int height = docTestBlock->height();
-  if (height == 0)
+  if (height == 0) {
     docTestBlock->setHeight(100);
+  }
 
   setRect(QRectF(0, 0, docTestBlock->width(), docTestBlock->height()));
 
@@ -71,8 +74,10 @@ GraphicsTestBlockItem::updatePosition()
 
   GraphicsBlockItem::updatePosition();
   Doc::DocTestBlock *docTestBlock = getElement();
-  if (docTestBlock == nullptr)
+  if (docTestBlock == nullptr) {
     return;
-  if (docController != nullptr)
+  }
+  if (docController != nullptr) {
     docController->setBlockGeometry(x(), y(), rect().width(), rect().height());
+  }
 }

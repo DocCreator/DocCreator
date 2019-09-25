@@ -14,8 +14,9 @@ GraphicsImageBlockItem::GraphicsImageBlockItem(Mvc::IController *controller,
 void
 GraphicsImageBlockItem::clear()
 {
-  if (_pixmapItem != nullptr)
+  if (_pixmapItem != nullptr) {
     _pixmapItem->setPixmap(QPixmap());
+  }
 }
 
 void
@@ -42,18 +43,21 @@ GraphicsImageBlockItem::load()
 {
   Doc::DocImageBlock *docImageBlock =
     dynamic_cast<Doc::DocImageBlock *>(getElement());
-  if (docImageBlock == nullptr)
+  if (docImageBlock == nullptr) {
     return;
+  }
   _originalPixmap = QPixmap(docImageBlock->filePath());
   _pixmapItem = new QGraphicsPixmapItem();
   _pixmapItem->setParentItem(this);
 
-  int width = docImageBlock->width();
-  if (width == 0)
+  const int width = docImageBlock->width();
+  if (width == 0) {
     docImageBlock->setWidth(_originalPixmap.width());
-  int height = docImageBlock->height();
-  if (height == 0)
+  }
+  const int height = docImageBlock->height();
+  if (height == 0) {
     docImageBlock->setHeight(_originalPixmap.height());
+  }
 
   setRect(QRectF(0, 0, docImageBlock->width(), docImageBlock->height()));
 
@@ -91,8 +95,10 @@ GraphicsImageBlockItem::updatePosition()
 
   GraphicsBlockItem::updatePosition();
   Doc::DocImageBlock *docImageBlock = getElement();
-  if (docImageBlock == nullptr)
+  if (docImageBlock == nullptr) {
     return;
-  if (docController != nullptr)
+  }
+  if (docController != nullptr) {
     docController->setBlockGeometry(x(), y(), rect().width(), rect().height());
+  }
 }

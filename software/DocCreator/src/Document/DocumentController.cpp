@@ -73,12 +73,14 @@ DocumentController::setDocument(Doc::Document *document)
 int
 DocumentController::getOffset() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return -1;
+  }
 
   return currentTextBlock->offset();
 }
@@ -86,16 +88,18 @@ DocumentController::getOffset() const
 int
 DocumentController::getPageWidth() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   return _document->pageWidth();
 }
 
 int
 DocumentController::getPageHeight() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   return _document->pageHeight();
 }
 
@@ -118,11 +122,13 @@ DocumentController::getParagraphLineSpacing() const
 int
 DocumentController::getBlockMarginTop() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return -1;
+  }
 
   return block->marginTop();
 }
@@ -130,11 +136,13 @@ DocumentController::getBlockMarginTop() const
 int
 DocumentController::getBlockMarginBottom() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return -1;
+  }
 
   return block->marginBottom();
 }
@@ -142,11 +150,13 @@ DocumentController::getBlockMarginBottom() const
 int
 DocumentController::getBlockMarginLeft() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return -1;
+  }
 
   return block->marginLeft();
 }
@@ -154,11 +164,13 @@ DocumentController::getBlockMarginLeft() const
 int
 DocumentController::getBlockMarginRight() const
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return -1;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return -1;
+  }
 
   return block->marginRight();
 }
@@ -167,8 +179,9 @@ DocumentController::getBlockMarginRight() const
 void
 DocumentController::setPageWidth(int pageWidth)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
 
   _document->setPageWidth(pageWidth);
 
@@ -181,8 +194,9 @@ DocumentController::setPageWidth(int pageWidth)
 void
 DocumentController::setPageHeight(int pageHeight)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
 
   _document->setPageHeight(pageHeight);
 
@@ -195,11 +209,13 @@ DocumentController::setPageHeight(int pageHeight)
 void
 DocumentController::setParagraphLineSpacing(int lineSpacing)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::DocParagraph *currentParagraph = _document->currentParagraph();
-  if (currentParagraph == nullptr)
+  if (currentParagraph == nullptr) {
     return;
+  }
 
   currentParagraph->setLineSpacing(lineSpacing);
 
@@ -212,11 +228,13 @@ DocumentController::setParagraphLineSpacing(int lineSpacing)
 void
 DocumentController::setBlockMarginTop(int marginTop)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return;
+  }
 
   block->setMarginTop(marginTop);
 
@@ -229,11 +247,13 @@ DocumentController::setBlockMarginTop(int marginTop)
 void
 DocumentController::setBlockMarginBottom(int marginBottom)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return;
+  }
 
   block->setMarginBottom(marginBottom);
 
@@ -246,11 +266,13 @@ DocumentController::setBlockMarginBottom(int marginBottom)
 void
 DocumentController::setBlockMarginLeft(int marginLeft)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return;
+  }
 
   block->setMarginLeft(marginLeft);
 
@@ -263,11 +285,13 @@ DocumentController::setBlockMarginLeft(int marginLeft)
 void
 DocumentController::setBlockMarginRight(int marginRight)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Block *block = _document->currentBlock();
-  if (block == nullptr)
+  if (block == nullptr) {
     return;
+  }
 
   block->setMarginRight(marginRight);
 
@@ -279,8 +303,9 @@ DocumentController::setBlockMarginRight(int marginRight)
 void
 DocumentController::setBlockGeometry(int x, int y, int width, int height)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Block *block = _document->currentBlock();
   if (block == nullptr) {
     qDebug() << "Block Null";
@@ -317,12 +342,14 @@ DocumentController::setView(DocumentView *view)
 void
 DocumentController::setOffset(int value)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   currentTextBlock->setOffset(value);
   assert(_view);
@@ -331,9 +358,10 @@ DocumentController::setOffset(int value)
   Doc::DocStyle *currentStyle = currentTextBlock->getStyle();
   if (currentStyle != nullptr &&
       (Context::FontContext::instance()->getCurrentFont()->getName() !=
-       currentStyle->getFontName()))
+       currentStyle->getFontName())) {
     Context::FontContext::instance()->setCurrentFont(
       currentStyle->getFontName());
+  }
 
   _view->drawElement(_document, false);
 }
@@ -342,8 +370,9 @@ void
 DocumentController::setCurrentBlock(Doc::Block *block)
 {
   Doc::Page *page = _document->currentPage();
-  if (page == nullptr)
+  if (page == nullptr) {
     return;
+  }
   page->setCurrentBlock(block);
 
   assert(_view);
@@ -355,19 +384,22 @@ DocumentController::setCurrentBlock(Doc::Block *block)
 void
 DocumentController::addCharacter(const QString &s, int id)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   QString fontName;
   Doc::DocStyle *style = currentTextBlock->getStyle();
   if (style == nullptr) {
     Models::Font *f = Context::FontContext::instance()->getCurrentFont();
-    if (f == nullptr)
+    if (f == nullptr) {
       return;
+    }
     style = new Doc::DocStyle(f->getName(), f->getName());
     assert(_document);
     _document->addStyle(style);
@@ -376,14 +408,17 @@ DocumentController::addCharacter(const QString &s, int id)
   fontName = style->getName();
 
   Models::Font *font = Context::FontContext::instance()->getFont(fontName);
-  if (_view == nullptr || font == nullptr)
+  if (_view == nullptr || font == nullptr) {
     return;
+  }
 
   Models::Character *character = font->getCharacter(s);
-  if (character == nullptr)
+  if (character == nullptr) {
     return;
-  if (id == -1)
+  }
+  if (id == -1) {
     id = character->getRandomCharacterData()->getId();
+  }
 
   assert(_document);
   _document->add(new Doc::DocCharacter(s, id, _document));
@@ -397,15 +432,17 @@ DocumentController::addCharacters(const QList<QString> &charList)
 {
   //std::cerr<<"DocumentController::addCharacters _document="<<_document<<" currentBlock="<<(_document ? _document->currentBlock() : nullptr)<<"\n";
 
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
 
   //B:TODO:DESIGN: wrong ! It can fail without notice !!!
 
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   //std::cerr<<"DC::addCharacters currentTextBlock x="<<currentTextBlock->x()<<" y="<<currentTextBlock->y()<<" w="<<currentTextBlock->width()<<" h="<<currentTextBlock->height()<<"\n";
 
@@ -427,8 +464,9 @@ DocumentController::addCharacters(const QList<QString> &charList)
   assert(style);
   fontName = style->getName();
   Models::Font *font = Context::FontContext::instance()->getFont(fontName);
-  if (_view == nullptr || font == nullptr)
+  if (_view == nullptr || font == nullptr) {
     return;
+  }
 
   const QString returnStr = QStringLiteral("\n");
 
@@ -497,7 +535,8 @@ DocumentController::addCharacters(const QList<QString> &charList)
         new Doc::DocCharacter(s, charData->getId(), _document);
       _document->add(docChar);
       _cursorRightLine = right;
-    } else {
+    }
+    else {
       //character not found in font
       //(it is the case for new line or tab in particular)
 
@@ -562,12 +601,14 @@ DocumentController::addString(const QString &s)
 void
 DocumentController::addParagraph()
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   auto p = new Doc::DocParagraph(_document);
   currentTextBlock->add(p);
@@ -581,12 +622,14 @@ DocumentController::addParagraph()
 void
 DocumentController::addTextBlock(int x, int y, int w, int h)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
 
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
 
   auto textBlock = new Doc::DocTextBlock(_document);
   textBlock->setMarginTop(0); //B: why are these values hard-coded ???
@@ -630,11 +673,13 @@ DocumentController::addTextBlock()
 void
 DocumentController::addImageBlock(const QString &imagePath)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
 
   auto imageBlock = new Doc::DocImageBlock(imagePath);
   currentPage->add(imageBlock);
@@ -652,11 +697,13 @@ DocumentController::addTestBlock(const QString &imagePath,
                                  int w,
                                  int h)
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
 
   auto testBlock = new Doc::DocTestBlock(imagePath, w, h, x, y);
   currentPage->add(testBlock);
@@ -677,15 +724,17 @@ DocumentController::addComponentBlock(const QString &imagePath)
 void
 DocumentController::addComponentBlock(const QImage &image)
 {
-  if (image.isNull())
+  if (image.isNull()) {
     return; //B
-
-  if (_document == nullptr)
+  }
+  if (_document == nullptr) {
     return;
+  }
 
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
 
   QList<Doc::DocComponent *> listComponents =
     ConnectedComponentExtraction::getListComponents(image, _document);
@@ -710,12 +759,14 @@ DocumentController::addComponentBlock(const QImage &image)
 void
 DocumentController::removeAfterCursor()
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   //if(currentTextBlock->getSelection() == nullptr)
   currentTextBlock->removeAfterCursor();
@@ -734,12 +785,14 @@ DocumentController::removeAfterCursor()
 void
 DocumentController::removeBeforeCursor()
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   //if(currentTextBlock->getSelection() == nullptr)
   currentTextBlock->removeBeforeCursor();
@@ -758,15 +811,18 @@ DocumentController::removeBeforeCursor()
 void
 DocumentController::removeSelection()
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(currentPage->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   currentTextBlock->removeSelection();
 
@@ -779,14 +835,17 @@ DocumentController::removeSelection()
 void
 DocumentController::removeCurrentBlock()
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
   Doc::Block *currentBlock = _document->currentBlock();
-  if (currentBlock == nullptr)
+  if (currentBlock == nullptr) {
     return;
+  }
 
   currentPage->remove(currentBlock);
 
@@ -799,19 +858,23 @@ DocumentController::removeCurrentBlock()
 void
 DocumentController::copy()
 {
-  if (_document == nullptr)
+  if (_document == nullptr) {
     return;
+  }
   Doc::Page *currentPage = _document->currentPage();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return;
+  }
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(currentPage->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
 
   Doc::DocTextBlock *selectionBlock = currentTextBlock->getSelection();
-  if (selectionBlock == nullptr)
+  if (selectionBlock == nullptr) {
     return;
+  }
 
   auto selectionDoc = new Doc::Document();
   for (Doc::DocStyle *s : _document->getStyles())
@@ -876,22 +939,27 @@ DocumentController::paste()
         addCharacters(charList);
         charList.clear();
         //                }
-      } else {
+      }
+      else {
         charList << QString((*its).unicode());
       }
     }
     addCharacters(charList);
-  } else {
+  }
+  else {
     //Xml
-    if (_document == nullptr)
+    if (_document == nullptr) {
       return;
+    }
     Doc::Page *currentPage = _document->currentPage();
-    if (currentPage == nullptr)
+    if (currentPage == nullptr) {
       return;
+    }
     Doc::DocTextBlock *currentTextBlock =
       dynamic_cast<Doc::DocTextBlock *>(currentPage->currentBlock());
-    if (currentTextBlock == nullptr)
+    if (currentTextBlock == nullptr) {
       return;
+    }
     //Doc::DocParagraph* currentParagraph = currentTextBlock->currentParagraph();
 
     IOManager::XMLDocumentLoader docLoader(toPaste);
@@ -911,10 +979,12 @@ DocumentController::paste()
     stringsToPaste.pop_back();
     for (Doc::DocString *s : stringsToPaste) {
       QList<Doc::DocCharacter *> c = s->getCharacters();
-      if (c.count() == 1 && c.at(0)->getDisplay() == QLatin1String("\n"))
+      if (c.count() == 1 && c.at(0)->getDisplay() == QLatin1String("\n")) {
         currentTextBlock->add(new Doc::DocParagraph(s->getDocument()));
-      else
+      }
+      else {
         currentTextBlock->add(s);
+      }
     }
 
     delete docToPaste;//B
@@ -968,18 +1038,21 @@ DocumentController::update()
 {
   if (Context::FontContext::instance()->fontHasChanged()) {
     Models::Font *font = Context::FontContext::instance()->getCurrentFont();
-    if (font == nullptr)
+    if (font == nullptr) {
       return;
+    }
     assert(font);
-    QString fontname = font->getName();
-    if (_document == nullptr)
+    const QString fontname = font->getName();
+    if (_document == nullptr) {
       return;
+    }
     Doc::DocTextBlock *current =
       dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
     if (current != nullptr) {
       Doc::DocStyle *style = current->getStyle();
-      if (style == nullptr)
+      if (style == nullptr) {
         return;
+      }
       if (fontname != style->getFontName()) {
         auto st = new Doc::DocStyle(fontname, fontname);
         current->changeStyle(st);
@@ -1010,8 +1083,9 @@ DocumentController::resetCurrentTextBlockCursor()
 {
   Doc::DocTextBlock *currentTextBlock =
     dynamic_cast<Doc::DocTextBlock *>(_document->currentBlock());
-  if (currentTextBlock == nullptr)
+  if (currentTextBlock == nullptr) {
     return;
+  }
   _cursorBaseLine = currentTextBlock->marginTop();
   _cursorRightLine = currentTextBlock->marginLeft();
 }

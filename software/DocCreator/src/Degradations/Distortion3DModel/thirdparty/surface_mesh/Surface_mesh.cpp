@@ -495,7 +495,7 @@ add_face(const std::vector<Vertex>& vertices)
         if (is_new[i])  id |= 1;
         if (is_new[ii]) id |= 2;
 
-        if (id)
+        if (id != 0u)
         {
             outer_prev = opposite_halfedge(inner_next);
             outer_next = opposite_halfedge(inner_prev);
@@ -1592,7 +1592,7 @@ garbage_collection()
     {
         i0=0;  i1=nV-1;
 
-        while (1)
+        while (true)
         {
             // find first deleted and last un-deleted
             while (!vdeleted_[Vertex(i0)] && i0 < i1)  ++i0;
@@ -1613,7 +1613,7 @@ garbage_collection()
     {
         i0=0;  i1=nE-1;
 
-        while (1)
+        while (true)
         {
             // find first deleted and last un-deleted
             while (!edeleted_[Edge(i0)] && i0 < i1)  ++i0;
@@ -1637,7 +1637,7 @@ garbage_collection()
     {
         i0=0;  i1=nF-1;
 
-        while (1)
+        while (true)
         {
             // find 1st deleted and last un-deleted
             while (!fdeleted_[Face(i0)] && i0 < i1)  ++i0;

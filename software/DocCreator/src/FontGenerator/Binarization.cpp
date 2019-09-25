@@ -49,24 +49,29 @@ Binarization::shrinkFilter(const cv::Mat &src, cv::Mat &dst, double v, int win)
    * foreground pixel
    * if this number is to high, the center pixel is considered as noise
    * and thus removed */
-  const int ksh = (int)(v * win * win);
+  const int ksh = static_cast<int>(v * win * win);
   src.copyTo(dst);
-  for (int i = 0; i < src.rows; ++i)
+  for (int i = 0; i < src.rows; ++i) {
     for (int j = 0; j < src.cols; ++j) {
       if (dst.at<uchar>(i, j) == 0) { // if foreground
         int curr_k = 0;
-        for (int ii = -win / 2; ii < win / 2; ++ii)
+        for (int ii = -win / 2; ii < win / 2; ++ii) {
           for (int jj = -win / 2; jj < win / 2; ++jj) {
             if (i + ii < 0 || i + ii >= src.rows || j + jj < 0 ||
-                j + jj >= src.cols) // deal with borders
+                j + jj >= src.cols) { // deal with borders
               continue;
-            if (dst.at<uchar>(i + ii, j + jj) == 255)
+	    }
+            if (dst.at<uchar>(i + ii, j + jj) == 255) {
               ++curr_k;
+	    }
           }
-        if (curr_k > ksh)
+	}
+        if (curr_k > ksh) {
           dst.at<uchar>(i, j) = 255;
+	}
       }
     }
+  }
 }
 
 void
@@ -76,7 +81,7 @@ Binarization::connectivityFilter(const cv::Mat &src, cv::Mat &dst)
    * if they belong to the same class,
    * one of them is set to foreground, the other to background */
   src.copyTo(dst);
-  for (int i = 1; i < src.rows - 1; ++i)
+  for (int i = 1; i < src.rows - 1; ++i) {
     for (int j = 1; j < src.cols - 1; ++j) {
       if (dst.at<uchar>(i, j) == 0) { // if foreground
         if (dst.at<uchar>(i - 1, j) == dst.at<uchar>(i + 1, j)) {
@@ -90,6 +95,7 @@ Binarization::connectivityFilter(const cv::Mat &src, cv::Mat &dst)
         }
       }
     }
+  }
 }
 
 void
@@ -100,25 +106,30 @@ Binarization::swellFilter(const cv::Mat &src, cv::Mat &dst, int win)
    *  on a background pixel if this number is to high, the center pixel is
    * considered as noise
    * and thus set as foreground */
-  const int ksh = (int)(0.35 * win * win);
+  const int ksh = static_cast<int>(0.35 * win * win);
 
   src.copyTo(dst);
-  for (int i = 0; i < src.rows; ++i)
+  for (int i = 0; i < src.rows; ++i) {
     for (int j = 0; j < src.cols; ++j) {
       if (dst.at<uchar>(i, j) == 255) { // if background
         int curr_k = 0;
-        for (int ii = -win; ii < win; ++ii)
+        for (int ii = -win; ii < win; ++ii) {
           for (int jj = -win; jj < win; ++jj) {
             if (i + ii < 0 || i + ii >= src.rows || j + jj < 0 ||
-                j + jj >= src.cols) // deal with borders
+                j + jj >= src.cols) { // deal with borders
               continue;
-            if (dst.at<uchar>(i + ii, j + jj) == 0)
+	    }
+            if (dst.at<uchar>(i + ii, j + jj) == 0) {
               ++curr_k;
+	    }
           }
-        if (curr_k > ksh)
+	}
+        if (curr_k > ksh) {
           dst.at<uchar>(i, j) = 255;
+	}
       }
     }
+  }
 }
 
 double
@@ -215,9 +226,9 @@ Binarization::calcLocalStats(const cv::Mat &im,
 
     const double m = sum / win_area;
     const double s = sqrt((sum_sq - m * sum) / win_area);
-    if (s > max_s)
+    if (s > max_s) {
       max_s = s;
-
+    }
     map_m.fset(x_firstth, j, static_cast<float>(m));
     map_s.fset(x_firstth, j, static_cast<float>(s));
 
@@ -245,9 +256,9 @@ Binarization::calcLocalStats(const cv::Mat &im,
 
       const double me = sum / win_area;
       const double sq = sqrt((sum_sq - me * sum) / win_area);
-      if (sq > max_s)
+      if (sq > max_s) {
         max_s = sq;
-
+      }
       map_m.fset(i + wxh, j, static_cast<float>(me));
       map_s.fset(i + wxh, j, static_cast<float>(sq));
     }

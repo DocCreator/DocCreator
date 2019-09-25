@@ -32,17 +32,19 @@ Convertor::getCvMat(const QImage &image)
 }
 
 cv::Mat
-Convertor::binarizeOTSU(const cv::Mat &img)
+Convertor::binarizeOTSU(const cv::Mat &image)
 {
-  assert(img.type() == CV_8UC1 || img.type() == CV_8UC3);
+  assert(image.type() == CV_8UC1 || image.type() == CV_8UC3);
 
   cv::Mat binary_img;
 
   cv::Mat gray_img;
-  if (img.channels() == 3)
-    cv::cvtColor(img, gray_img, cv::COLOR_BGR2GRAY);
-  else
-    gray_img = img;
+  if (image.channels() == 3) {
+    cv::cvtColor(image, gray_img, cv::COLOR_BGR2GRAY);
+  }
+  else {
+    gray_img = image;
+  }
 
   cv::threshold(gray_img, binary_img, 0, 255, cv::THRESH_OTSU);
 
@@ -102,10 +104,12 @@ Convertor::getQImage(const cv::Mat &image)
 {
 
   cv::Mat rgb;
-  if (image.channels() == 1)
+  if (image.channels() == 1) {
     cv::cvtColor(image, rgb, cv::COLOR_GRAY2RGB);
-  else
+  }
+  else {
     rgb = image;
+  }
   assert(rgb.channels() == 3 || rgb.channels() == 4);
 
   const int h = rgb.rows;

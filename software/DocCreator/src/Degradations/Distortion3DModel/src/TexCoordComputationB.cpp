@@ -166,7 +166,7 @@ public:
     const int numEdgesPerBin = 1024; //approximate/wished for
 
     m_numBins = std::max((size_t)1, numEdges / numEdgesPerBin);
-    m_step = numYs / (float)m_numBins;
+    m_step = numYs / static_cast<float>(m_numBins);
 
     const float reserve_size_factor = 2.65f; //arbitrary
 

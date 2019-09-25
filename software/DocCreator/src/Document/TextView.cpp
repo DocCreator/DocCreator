@@ -52,15 +52,17 @@ TextView::keyPressEvent(QKeyEvent *e)
     default:;
   }
 
-  if (_parent != nullptr)
+  if (_parent != nullptr) {
     _parent->keyPressEvent(e);
+  }
 }
 
 void
 TextView::keyReleaseEvent(QKeyEvent *e)
 {
-  if (_parent != nullptr)
+  if (_parent != nullptr) {
     _parent->keyReleaseEvent(e);
+  }
 }
 
 /* public slots */

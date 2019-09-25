@@ -222,7 +222,7 @@ StructureDialog::getBlocks()
 void
 StructureDialog::on_horizontalSlider_valueChanged(int value)
 {
-  _dilation = (float)value / 10;
+  _dilation = value / 10.f;
   process();
 }
 

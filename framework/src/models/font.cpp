@@ -29,8 +29,9 @@ Font::contains(Character *c) const
 bool
 Font::addCharacter(Character *c)
 {
-  if (contains(c))
+  if (contains(c)) {
     return false;
+  }
 
   _characterMap.insert(c->getCharacterValue(), c);
 

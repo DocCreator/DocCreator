@@ -49,8 +49,9 @@ bool
 GrayCharacterDegradationParameter::isOutputFileValid() const
 {
   const QString path = getOutputFilename();
-  if (path.isEmpty())
+  if (path.isEmpty()) {
     return false;
+  }
   return QFileInfo(path).dir().exists();
 }
 

@@ -103,9 +103,9 @@ BlurFilterDialog::BlurFilterDialog(QWidget *parent)
   _vertical = ui->verticalSlider->value();
   _horizontal = ui->horizontalSlider->value();
   _radius = ui->radiusSlider->value();
-  _method = (dc::BlurFilter::Method)ui->methodComboBox->currentIndex();
-  _mode = (dc::BlurFilter::Mode)ui->modeComboBox->currentIndex();
-  _area = (dc::BlurFilter::Area)ui->areaComboBox->currentIndex();
+  _method = static_cast<dc::BlurFilter::Method>( ui->methodComboBox->currentIndex() );
+  _mode = static_cast<dc::BlurFilter::Mode>( ui->modeComboBox->currentIndex() );
+  _area = static_cast<dc::BlurFilter::Area>( ui->areaComboBox->currentIndex() );
   _function = dc::BlurFilter::Function::ELLIPSE;
   _currentExample = 1;
   _currentPattern = 4;
@@ -254,8 +254,9 @@ BlurFilterDialog::fileExists(const QString &path, const QString &name)
 {
   QString filename = name;
   if (!name.contains(QStringLiteral(".png")) &&
-      !name.contains(QStringLiteral(".jpg")))
+      !name.contains(QStringLiteral(".jpg"))) {
     filename = name + ".png";
+  }
 
 #if 0
   //B:TODO:OPTIM: we could use an iterator instead...
@@ -304,8 +305,9 @@ BlurFilterDialog::savePattern()
   if (ok && !name.isEmpty()) {
     QString savePath = QDir(path).absoluteFilePath(name);
     if (!name.contains(QStringLiteral(".png")) &&
-        !name.contains(QStringLiteral(".jpg")))
+        !name.contains(QStringLiteral(".jpg"))) {
       savePath = savePath + ".png";
+    }
 
     if (fileExists(path, name)) {
       if (QMessageBox::question(
@@ -313,13 +315,18 @@ BlurFilterDialog::savePattern()
             tr("Are you sure ?"),
             tr("The file %1 already exists, do you want to overwrite it ?")
               .arg(name),
-            QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
+            QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
         _patternImg.save(savePath);
-      else
+      }
+      else {
         savePattern();
-    } else
+      }
+    }
+    else {
       _patternImg.save(savePath);
-  } else {
+    }
+  }
+  else {
     QMessageBox::critical(
       this, tr("Warning"), tr("No specified name, saving cancelled"));
   }
@@ -330,8 +337,9 @@ BlurFilterDialog::previousPatternClicked()
 {
   --_currentPattern;
 
-  if (_currentPattern < 0)
+  if (_currentPattern < 0) {
     _currentPattern = _patterns.size() - 1;
+  }
 
   changePatterns();
 }
@@ -587,10 +595,12 @@ BlurFilterDialog::showAdvancedOptions()
 void
 BlurFilterDialog::intensityChanged(int intensity)
 {
-  if (intensity % 2 == 1)
+  if (intensity % 2 == 1) {
     _intensity = intensity;
-  else
+  }
+  else {
     _intensity = intensity - 1;
+  }
 
   ui->intensitySlider->setValue(_intensity);
 
@@ -605,14 +615,17 @@ BlurFilterDialog::intensityChanged(int intensity)
     const int radiusExample = dc::BlurFilter::getRadiusFourier(exampleImg);
 
     if (radiusFourier > radiusExample - dc::BlurFilter::INTERVAL_FOURIER &&
-        radiusFourier < radiusExample + dc::BlurFilter::INTERVAL_FOURIER)
+        radiusFourier < radiusExample + dc::BlurFilter::INTERVAL_FOURIER) {
       ui->fitLabel->setVisible(true);
-    else
+    }
+    else {
       ui->fitLabel->setVisible(false);
+    }
   }
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateBlurredImage();
+  }
 }
 
 void
@@ -620,9 +633,10 @@ BlurFilterDialog::coeffChanged(int coeff)
 {
   _coeff = coeff;
 
-  if (_function == dc::BlurFilter::Function::PARABOLA)
+  if (_function == dc::BlurFilter::Function::PARABOLA) {
     _coeff = coeff * 0.001f;
-  ; //to get a three decimal float
+    //to get a three-decimal float
+  }
 
   if (!_originalImgSmall.isNull()) {
     updatePatterns();
@@ -704,8 +718,9 @@ BlurFilterDialog::modeChanged(int mode)
     _blurredLabel->setPixmap(QPixmap::fromImage(_blurredImgSmall));
   }
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateBlurredImage();
+  }
 }
 
 void
@@ -718,8 +733,9 @@ BlurFilterDialog::functionChanged(int function)
 
   updateSliders();
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateBlurredImage();
+  }
 }
 
 void

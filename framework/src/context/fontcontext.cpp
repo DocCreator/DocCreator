@@ -13,8 +13,9 @@ FontContext *FontContext::_instance;
 FontContext *
 FontContext::instance()
 {
-  if (_instance == nullptr)
+  if (_instance == nullptr) {
     _instance = new FontContext();
+  }
   return _instance;
 }
 

@@ -47,8 +47,9 @@ struct MeanCharacterHeightComputer
 
   float getMean() const
   {
-    if (m_m0 != 0u)
-      return m_m1 / (float)m_m0;
+    if (m_m0 != 0u) {
+      return m_m1 / static_cast<float>(m_m0);
+    }
     return 0;
   }
 };

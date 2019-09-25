@@ -102,9 +102,10 @@ void
 RandomDocumentParametersDialog::updateNbBlocksPerColMin()
 {
   if (_ui->nbBlocksPerColSpinBoxMin->value() >
-      _ui->nbBlocksPerColSpinBoxMax->value())
+      _ui->nbBlocksPerColSpinBoxMax->value()) {
     _ui->nbBlocksPerColSpinBoxMax->setValue(
       _ui->nbBlocksPerColSpinBoxMin->value());
+  }
 
   _params.setNbBlocksPerColMinMax(_ui->nbBlocksPerColSpinBoxMin->value(),
                                   _ui->nbBlocksPerColSpinBoxMax->value());
@@ -113,9 +114,10 @@ void
 RandomDocumentParametersDialog::updateNbBlocksPerColMax()
 {
   if (_ui->nbBlocksPerColSpinBoxMax->value() <
-      _ui->nbBlocksPerColSpinBoxMin->value())
+      _ui->nbBlocksPerColSpinBoxMin->value()) {
     _ui->nbBlocksPerColSpinBoxMin->setValue(
       _ui->nbBlocksPerColSpinBoxMax->value());
+  }
 
   _params.setNbBlocksPerColMinMax(_ui->nbBlocksPerColSpinBoxMin->value(),
                                   _ui->nbBlocksPerColSpinBoxMax->value());
@@ -125,9 +127,10 @@ void
 RandomDocumentParametersDialog::updateNbBlocksPerRowMin()
 {
   if (_ui->nbBlocksPerRowSpinBoxMin->value() >
-      _ui->nbBlocksPerRowSpinBoxMax->value())
+      _ui->nbBlocksPerRowSpinBoxMax->value()) {
     _ui->nbBlocksPerRowSpinBoxMax->setValue(
       _ui->nbBlocksPerRowSpinBoxMin->value());
+  }
 
   _params.setNbBlocksPerRowMinMax(_ui->nbBlocksPerRowSpinBoxMin->value(),
                                   _ui->nbBlocksPerRowSpinBoxMax->value());
@@ -136,9 +139,10 @@ void
 RandomDocumentParametersDialog::updateNbBlocksPerRowMax()
 {
   if (_ui->nbBlocksPerRowSpinBoxMax->value() <
-      _ui->nbBlocksPerRowSpinBoxMin->value())
+      _ui->nbBlocksPerRowSpinBoxMin->value()) {
     _ui->nbBlocksPerRowSpinBoxMin->setValue(
       _ui->nbBlocksPerRowSpinBoxMax->value());
+  }
 
   _params.setNbBlocksPerRowMinMax(_ui->nbBlocksPerRowSpinBoxMin->value(),
                                   _ui->nbBlocksPerRowSpinBoxMax->value());
@@ -147,8 +151,9 @@ RandomDocumentParametersDialog::updateNbBlocksPerRowMax()
 void
 RandomDocumentParametersDialog::updateLineSpacingMin()
 {
-  if (_ui->lineSpacingMinSpinBox->value() > _ui->lineSpacingMaxSpinBox->value())
+  if (_ui->lineSpacingMinSpinBox->value() > _ui->lineSpacingMaxSpinBox->value()) {
     _ui->lineSpacingMaxSpinBox->setValue(_ui->lineSpacingMinSpinBox->value());
+  }
 
   _params.setLineSpacingMinMax(_ui->lineSpacingMinSpinBox->value(),
                                _ui->lineSpacingMaxSpinBox->value());
@@ -156,8 +161,9 @@ RandomDocumentParametersDialog::updateLineSpacingMin()
 void
 RandomDocumentParametersDialog::updateLineSpacingMax()
 {
-  if (_ui->lineSpacingMaxSpinBox->value() < _ui->lineSpacingMinSpinBox->value())
+  if (_ui->lineSpacingMaxSpinBox->value() < _ui->lineSpacingMinSpinBox->value()) {
     _ui->lineSpacingMinSpinBox->setValue(_ui->lineSpacingMaxSpinBox->value());
+  }
 
   _params.setLineSpacingMinMax(_ui->lineSpacingMinSpinBox->value(),
                                _ui->lineSpacingMaxSpinBox->value());

@@ -176,7 +176,7 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
   assert(charCounter > 0); //B
   meanCharHeight =
     meanCharHeight / charCounter; //B: do we really want integer division ???
-  const int lineSpacing = (maxCharHeight * 1.2); //B: implicit cast ???
+  const int lineSpacing = (maxCharHeight * 1.2f); //B: implicit cast ???
 
   if (maxLineLong < columnsWidth) { // re-form background and columns width
     //        int delta = columnsWidth - maxLineLong;
@@ -530,7 +530,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   // check if height of all paragraph > columns height
   assert(itemCounter > 0); //B
   meanCharHeight = meanCharHeight / itemCounter;
-  int lineSpacing = (maxCharHeight * 1.2);
+  int lineSpacing = (maxCharHeight * 1.2f);
 
   // check fitted column width with text input
   if (maxLineLong < columnsWidth) { // re-form background and columns width
@@ -1100,7 +1100,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   // check if height of all paragraph > columns height
   assert(itemCounter > 0); //B
   meanCharHeight = meanCharHeight / itemCounter;
-  const int lineSpacing = (maxCharHeight * 1.2);
+  const int lineSpacing = (maxCharHeight * 1.2f);
 
   // check fitted column width with text input
   if (maxLineLong < _columnsWidth) { // re-form background and columns width

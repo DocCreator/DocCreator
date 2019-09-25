@@ -21,14 +21,16 @@ namespace Doc
     {
       //B:TODO:API is it necessary to return a QString (already available from passed parameter)
 
-      if (value == nullptr)
+      if (value == nullptr) {
 	return QString();
+      }
 
       QString key = value->getName();
 
       HashType::iterator it = _styles.find(key);
-      if (it == _styles.end())
+      if (it == _styles.end()) {
 	it = _styles.insert(key, new styleReferenceCounter(value));
+      }
       styleReferenceCounter* ref = it.value();
 
       ref->add();
@@ -37,8 +39,9 @@ namespace Doc
 
     void DocStyleManager::removeReference(DocStyle* old)
     {
-        if (old == nullptr)
+      if (old == nullptr) {
             return;
+      }
 
         removeReference(old->getName());
     }
@@ -46,8 +49,9 @@ namespace Doc
     void DocStyleManager::removeReference(const QString &key)
     {
       HashType::iterator it = _styles.find(key);
-      if (it == _styles.end())
+      if (it == _styles.end()) {
 	return;
+      }
       styleReferenceCounter* ref = it.value();
 
       ref->remove();
@@ -59,8 +63,9 @@ namespace Doc
     DocStyle* DocStyleManager::getStyle(const QString &key)
     {
       HashType::iterator it = _styles.find(key);
-      if (it == _styles.end())
+      if (it == _styles.end()) {
 	return nullptr;
+      }
       styleReferenceCounter* ref = it.value();
 
       return ref->style();
@@ -75,8 +80,9 @@ namespace Doc
 	const auto itEnd = styles.end();
 	for ( ; it != itEnd; ++it) {
 	  styleReferenceCounter* ref = it.value();
-	  if (ref->counter() > 0)
+	  if (ref->counter() > 0) {
 	    list.append(ref->style());
+	  }
         }
         return list;
     }

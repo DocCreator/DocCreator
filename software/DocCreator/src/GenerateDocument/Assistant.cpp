@@ -1045,23 +1045,30 @@ Assistant::PageParams_updateMin()
 {
   //spinBox_YYYMin was updated, we change spinBox_YYYMax
 
-  if (ui->spinBox_marginTopMin->value() > ui->spinBox_marginTopMax->value())
+  if (ui->spinBox_marginTopMin->value() > ui->spinBox_marginTopMax->value()) {
     ui->spinBox_marginTopMax->setValue(ui->spinBox_marginTopMin->value());
+  }
   if (ui->spinBox_marginBottomMin->value() >
-      ui->spinBox_marginBottomMax->value())
+      ui->spinBox_marginBottomMax->value()) {
     ui->spinBox_marginBottomMax->setValue(ui->spinBox_marginBottomMin->value());
-  if (ui->spinBox_marginRightMin->value() > ui->spinBox_marginRightMax->value())
+  }
+  if (ui->spinBox_marginRightMin->value() > ui->spinBox_marginRightMax->value()) {
     ui->spinBox_marginRightMax->setValue(ui->spinBox_marginRightMin->value());
-  if (ui->spinBox_marginLeftMin->value() > ui->spinBox_marginLeftMax->value())
+  }
+  if (ui->spinBox_marginLeftMin->value() > ui->spinBox_marginLeftMax->value()) {
     ui->spinBox_marginLeftMax->setValue(ui->spinBox_marginLeftMin->value());
+  }
 
-  if (ui->spinBox_blockXMin->value() > ui->spinBox_blockXMax->value())
+  if (ui->spinBox_blockXMin->value() > ui->spinBox_blockXMax->value()) {
     ui->spinBox_blockXMax->setValue(ui->spinBox_blockXMin->value());
-  if (ui->spinBox_blockYMin->value() > ui->spinBox_blockYMax->value())
+  }
+  if (ui->spinBox_blockYMin->value() > ui->spinBox_blockYMax->value()) {
     ui->spinBox_blockYMax->setValue(ui->spinBox_blockYMin->value());
+  }
 
-  if (ui->spinBox_lineSpacingMin->value() > ui->spinBox_lineSpacingMax->value())
+  if (ui->spinBox_lineSpacingMin->value() > ui->spinBox_lineSpacingMax->value()) {
     ui->spinBox_lineSpacingMax->setValue(ui->spinBox_lineSpacingMin->value());
+  }
 
   //emit completeChanged();
 }
@@ -1071,23 +1078,30 @@ Assistant::PageParams_updateMax()
 {
   //spinBox_YYYMax was updated, we change spinBox_YYYMin
 
-  if (ui->spinBox_marginTopMax->value() < ui->spinBox_marginTopMin->value())
+  if (ui->spinBox_marginTopMax->value() < ui->spinBox_marginTopMin->value()) {
     ui->spinBox_marginTopMin->setValue(ui->spinBox_marginTopMax->value());
+  }
   if (ui->spinBox_marginBottomMax->value() <
-      ui->spinBox_marginBottomMin->value())
+      ui->spinBox_marginBottomMin->value()) {
     ui->spinBox_marginBottomMin->setValue(ui->spinBox_marginBottomMax->value());
-  if (ui->spinBox_marginRightMax->value() < ui->spinBox_marginRightMin->value())
+  }
+  if (ui->spinBox_marginRightMax->value() < ui->spinBox_marginRightMin->value()) {
     ui->spinBox_marginRightMin->setValue(ui->spinBox_marginRightMax->value());
-  if (ui->spinBox_marginLeftMax->value() < ui->spinBox_marginLeftMin->value())
+  }
+  if (ui->spinBox_marginLeftMax->value() < ui->spinBox_marginLeftMin->value()) {
     ui->spinBox_marginLeftMin->setValue(ui->spinBox_marginLeftMax->value());
+  }
 
-  if (ui->spinBox_blockXMax->value() < ui->spinBox_blockXMin->value())
+  if (ui->spinBox_blockXMax->value() < ui->spinBox_blockXMin->value()) {
     ui->spinBox_blockXMin->setValue(ui->spinBox_blockXMax->value());
-  if (ui->spinBox_blockYMax->value() < ui->spinBox_blockYMin->value())
+  }
+  if (ui->spinBox_blockYMax->value() < ui->spinBox_blockYMin->value()) {
     ui->spinBox_blockYMin->setValue(ui->spinBox_blockYMax->value());
+  }
 
-  if (ui->spinBox_lineSpacingMax->value() < ui->spinBox_lineSpacingMin->value())
+  if (ui->spinBox_lineSpacingMax->value() < ui->spinBox_lineSpacingMin->value()) {
     ui->spinBox_lineSpacingMin->setValue(ui->spinBox_lineSpacingMax->value());
+  }
 
   //emit completeChanged();
 }
@@ -3077,7 +3091,7 @@ Assistant::Hole_OptionCheckedHole()
 void
 Assistant::Hole_updateTirageAndTotal()
 {
-  const int nbDegs = (_Hole_nbHoleSelected ? 1 : 0);
+  const int nbDegs = (_Hole_nbHoleSelected != 0 ? 1 : 0);
 
   ui->NbDegHole->setText(QString::number(nbDegs));
 
@@ -3137,7 +3151,7 @@ Assistant::Hole_chooseColor()
 void
 Assistant::Hole_tirageHoleChanged(int /*value*/)
 {
-  const int nbDegs = (_Hole_nbHoleSelected ? 1 : 0);
+  const int nbDegs = (_Hole_nbHoleSelected != 0 ? 1 : 0);
   ui->NbDegHole->setText(QString::number(nbDegs));
 
   const bool enabled = (nbDegs > 0);
@@ -3271,7 +3285,7 @@ sortImageFilenamesByImageArea(QStringList &filenames)
     const QImage image(filename);
     size_t area = INVALID_AREA;
     if (!image.isNull())
-      area = image.width() * (size_t)image.height();
+      area = image.width() * static_cast<size_t>( image.height() );
     areas[i] = area;
   }
 
@@ -4117,9 +4131,9 @@ Assistant::GDD_setupGUIImages()
   GDD_EnableGDDOption();
 
   if (ui->GDD_insertTypeCB->count() == 0) {
-    ui->GDD_insertTypeCB->addItem(tr("None"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_IS)));
-    ui->GDD_insertTypeCB->addItem(tr("To gray"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY)));
-    ui->GDD_insertTypeCB->addItem(tr("To gray if destination image is gray"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY)));
+    ui->GDD_insertTypeCB->addItem(tr("None"), QVariant(static_cast<int>(dc::GradientDomainDegradation::InsertType::INSERT_AS_IS)));
+    ui->GDD_insertTypeCB->addItem(tr("To gray"), QVariant(static_cast<int>(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY)));
+    ui->GDD_insertTypeCB->addItem(tr("To gray if destination image is gray"), QVariant(static_cast<int>(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY)));
   }
   assert(ui->GDD_insertTypeCB->count() == 3);
   ui->GDD_insertTypeCB->setCurrentIndex(2);
@@ -4885,7 +4899,7 @@ Assistant::do_GDD(const QString &imageBasename,
   const QString stainImagesPath = ui->GDD_stainImagesPath->text();
   const int minNumStains = ui->GDD_numStainsMin->value();
   const int maxNumStains = std::max(ui->GDD_numStainsMin->value(), minNumStains + 1);
-  const dc::GradientDomainDegradation::InsertType insertType = (dc::GradientDomainDegradation::InsertType)(ui->GDD_insertTypeCB->currentData().toInt());
+  const dc::GradientDomainDegradation::InsertType insertType = static_cast<dc::GradientDomainDegradation::InsertType>( ui->GDD_insertTypeCB->currentData().toInt() );
   const bool doRotations = ui->GDD_doRotations->isChecked();
   
   const int numDraws = ui->TirageGDD->value();
@@ -4912,8 +4926,8 @@ Assistant::do_GDD(const QString &imageBasename,
     saveXml += QLatin1String("\t<Parameters>\n");
     saveXml += "\t\t<StainImagesPath>" + stainImagesPath + "</StainImagePath>\n";
     saveXml += "\t\t<NumStains>" + QString::number(numStains) + "</NumStains>\n";
-    saveXml += "\t\t<InsertType>" + QString::number((int)insertType) + "</InsertType>\n";
-    saveXml += "\t\t<DoRotations>" + QString::number((int)doRotations) + "</DoRotations>\n";
+    saveXml += "\t\t<InsertType>" + QString::number(static_cast<int>(insertType)) + "</InsertType>\n";
+    saveXml += "\t\t<DoRotations>" + QString::number(static_cast<int>(doRotations)) + "</DoRotations>\n";
     saveXml += QLatin1String("\t</Parameters>\n");
     saveXml += QLatin1String("</Degradation>");
 

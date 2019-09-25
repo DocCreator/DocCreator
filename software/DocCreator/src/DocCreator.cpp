@@ -473,8 +473,9 @@ DocCreator::newDocument()
 {
   if (Context::DocumentContext::instance()->modified() || _firstStart) {
     int response = QMessageBox::Discard;
-    if (!_firstStart)
+    if (!_firstStart) {
       response = processDisplaySaveMessage(QStringLiteral("creating new"));
+    }
 
     switch (response) {
       case QMessageBox::Save:
@@ -699,11 +700,13 @@ DocCreator::print()
 void
 DocCreator::saveDocument()
 {
-  if (Context::DocumentContext::instance()->isNewDocument())
+  if (Context::DocumentContext::instance()->isNewDocument()) {
     saveDocumentAs();
-  else if (Context::DocumentContext::instance()->modified())
+  }
+  else if (Context::DocumentContext::instance()->modified()) {
     saveDocumentToXml(
       Context::DocumentContext::instance()->getCurrentDocumentPath());
+  }
 }
 
 void
@@ -715,8 +718,9 @@ DocCreator::saveDocumentAs()
                                  QString(),
                                  tr("Xml Old Document (*.od *.xml)"));
 
-  if (!filepath.isEmpty())
+  if (!filepath.isEmpty()) {
     saveDocumentToXml(filepath);
+  }
 }
 
 void
@@ -790,8 +794,9 @@ DocCreator::loadFont()
   QString filePath = QFileDialog::getOpenFileName(
     this, tr("Open a font..."), QString(), tr("Xml Old font (*.of *.xml)"));
 
-  if (!filePath.isEmpty())
+  if (!filePath.isEmpty()) {
     addNewFont(IOManager::FontFileManager::fontFromXml(filePath));
+  }
 }
 
 /*
@@ -878,10 +883,12 @@ DocCreator::addNewFont(Models::Font *font)
   int index = 0;
   QString originalFontName = font->getName();
   QString newFontName = originalFontName;
-  while (fontContext->getFont(newFontName) != nullptr)
+  while (fontContext->getFont(newFontName) != nullptr) {
     newFontName = originalFontName + "(" + QString::number(index++) + ")";
-  if (newFontName != originalFontName)
+  }
+  if (newFontName != originalFontName) {
     font->setName(newFontName);
+  }
 
   fontContext->addFont(font);
   fontContext->setCurrentFont(font->getName());
@@ -961,8 +968,9 @@ DocCreator::insertImageBlock()
 {
   QString imagePath = QFileDialog::getOpenFileName(
     this, tr("Insert an image..."), QString(), getReadImageFilter());
-  if (!imagePath.isEmpty() && !imagePath.isNull())
+  if (!imagePath.isEmpty() && !imagePath.isNull()) {
     _docController->addImageBlock(imagePath);
+  }
 }
 
 void
@@ -977,8 +985,9 @@ DocCreator::exportToImage()
   QString imagePath = QFileDialog::getSaveFileName(
     this, tr("Export to PNG format..."), QString(), tr("PNG file (*.png)"));
 
-  if (!imagePath.isEmpty() && !imagePath.isNull())
+  if (!imagePath.isEmpty() && !imagePath.isNull()) {
     _docController->exportToImage(imagePath);
+  }
 }
 
 void
@@ -1265,10 +1274,12 @@ DocCreator::createControllers()
   _fontEditorView = new FontEditorView(_fontController);
   qDebug() << "\t create controller: font";
   //Add visibility of other controller if needed
-  if (_documentView != nullptr)
+  if (_documentView != nullptr) {
     _documentView->setKeyboardController(_keyboardController);
-  if (_fontEditorView != nullptr)
+  }
+  if (_fontEditorView != nullptr) {
     _fontEditorView->setKeyboardController(_keyboardController);
+  }
   if (_keyboardView != nullptr) {
     _keyboardView->setKeyboardController(_keyboardController);
     _keyboardView->setDocumentController(_docController);
@@ -1944,8 +1955,9 @@ DocCreator::populateFontSelector()
   const QString currentFontName =
     Context::FontContext::instance()->getCurrentFontName();
   const int index = _fontComboBox->findText(currentFontName);
-  if (index != -1)
+  if (index != -1) {
     _fontComboBox->setCurrentIndex(index);
+  }
 }
 
 void
@@ -1974,8 +1986,9 @@ DocCreator::changeFont(const QString &fontName)
 
     Context::FontContext::instance()->setCurrentFont(fontName);
     QWidget *central = centralWidget();
-    if (central != nullptr)
+    if (central != nullptr) {
       central->setFocus();
+    }
   }
 }
 

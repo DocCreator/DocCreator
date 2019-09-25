@@ -710,7 +710,7 @@ public:
     const int numEdgesPerBin = 1024; //approximate/wished for
 
     m_numBins = std::max((size_t)1, numEdges / numEdgesPerBin);
-    m_step = numYs / (float)m_numBins;
+    m_step = numYs / static_cast<float>(m_numBins);
 
     const float reserve_size_factor = 2.65f; //arbitrary
 
@@ -1526,7 +1526,7 @@ public:
     assert(m_yMin <= m_yMax);
 
     m_numBins = std::max((uint32_t)1, numTriangles / numTrianglesPerBin);
-    m_step = (m_yMax - m_yMin) / (float)m_numBins;
+    m_step = (m_yMax - m_yMin) / static_cast<float>(m_numBins);
 
 #ifndef NDEBUG
     std::cerr << "SpacePartionnerY: m_numBins=" << m_numBins

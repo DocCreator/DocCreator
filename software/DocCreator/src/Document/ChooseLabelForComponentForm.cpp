@@ -720,11 +720,13 @@ ChooseLabelForComponentForm::btnLabelingClicked()
       if (first_cb == nullptr) {
         first_cb = _map_Items_SmallComponentBlocks.value(first_item);
         img_CharData_1 = _map_SmallComponent_Imagedata.value(first_cb);
-      } else {
+      }
+      else {
         chk_medium_1 = true;
       }
-      if (first_cb != nullptr)
+      if (first_cb != nullptr) {
         chk_small_1 = true;
+      }
 
       Doc::DocComponentBlock *second_cb =
         _map_Items_BigComponentBlocks.value(second_item);
@@ -738,11 +740,13 @@ ChooseLabelForComponentForm::btnLabelingClicked()
       if (second_cb == nullptr) {
         second_cb = _map_Items_SmallComponentBlocks.value(second_item);
         img_CharData_2 = _map_SmallComponent_Imagedata.value(second_cb);
-      } else {
+      }
+      else {
         chk_medium_2 = true;
       }
-      if (second_cb != nullptr)
+      if (second_cb != nullptr) {
         chk_small_2 = true;
+      }
       //
 
       //B:TODO:OPTIM: In the following code, it seems that we copy blocks of images
@@ -751,13 +755,15 @@ ChooseLabelForComponentForm::btnLabelingClicked()
       QImage img_FinalCharData;
       if (_cbPositions->currentText() == QLatin1String("Top")) { // top position
         int delta_h = img_CharData_1.height() / 3;
-        if (img_CharData_1.height() > img_CharData_2.height())
+        if (img_CharData_1.height() > img_CharData_2.height()) {
           delta_h = img_CharData_2.height() / 3;
+	}
 
         int h = delta_h + img_CharData_1.height() + img_CharData_2.height();
         int w = img_CharData_1.width();
-        if (w < img_CharData_2.width())
+        if (w < img_CharData_2.width()) {
           w = img_CharData_2.width();
+	}
 
         img_FinalCharData = QImage(w, h, QImage::Format_ARGB32_Premultiplied);
         img_FinalCharData.fill(
@@ -769,48 +775,61 @@ ChooseLabelForComponentForm::btnLabelingClicked()
         if (img_CharData_1.width() * img_CharData_1.height() <
             img_CharData_2.width() * img_CharData_2.height()) {
 
-          for (int y = 0; y < img_CharData_1.height(); ++y)
-            for (int x = 0; x < img_CharData_1.width(); ++x)
+          for (int y = 0; y < img_CharData_1.height(); ++y) {
+            for (int x = 0; x < img_CharData_1.width(); ++x) {
               img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
                                          y,
                                          img_CharData_1.pixel(x, y));
+	    }
+	  }
 
-          for (int y = 0; y < img_CharData_2.height(); ++y)
-            for (int x = 0; x < img_CharData_2.width(); ++x)
+          for (int y = 0; y < img_CharData_2.height(); ++y) {
+            for (int x = 0; x < img_CharData_2.width(); ++x) {
               img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
                                          y + img_CharData_1.height() + delta_h,
                                          img_CharData_2.pixel(x, y));
+	    }
+	  }
 
-        } else {
+        }
+	else {
 
-          for (int y = 0; y < img_CharData_2.height(); ++y)
-            for (int x = 0; x < img_CharData_2.width(); ++x)
+          for (int y = 0; y < img_CharData_2.height(); ++y) {
+            for (int x = 0; x < img_CharData_2.width(); ++x) {
               img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
                                          y,
                                          img_CharData_2.pixel(x, y));
+	    }
+	  }
 
-          for (int y = 0; y < img_CharData_1.height(); ++y)
-            for (int x = 0; x < img_CharData_1.width(); ++x)
+          for (int y = 0; y < img_CharData_1.height(); ++y) {
+            for (int x = 0; x < img_CharData_1.width(); ++x) {
               img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
                                          y + img_CharData_2.height() + delta_h,
                                          img_CharData_1.pixel(x, y));
+	    }
+	  }
         }
         char_w = img_FinalCharData.width();
         char_h = img_FinalCharData.height();
 
-      } else if (_cbPositions->currentText() ==
+      }
+      else if (_cbPositions->currentText() ==
                  QLatin1String("Right")) { //right position
         ;
-      } else if (_cbPositions->currentText() ==
+      }
+      else if (_cbPositions->currentText() ==
                  QLatin1String("Bottom")) { //bottom position
         int delta_h = img_CharData_1.height() / 3;
-        if (img_CharData_1.height() > img_CharData_2.height())
+        if (img_CharData_1.height() > img_CharData_2.height()) {
           delta_h = img_CharData_2.height() / 3;
+	}
 
         int h = delta_h + img_CharData_1.height() + img_CharData_2.height();
         int w = img_CharData_1.width();
-        if (w < img_CharData_2.width())
+        if (w < img_CharData_2.width()) {
           w = img_CharData_2.width();
+	}
 
         img_FinalCharData = QImage(w, h, QImage::Format_ARGB32_Premultiplied);
         img_FinalCharData.fill(
@@ -821,43 +840,55 @@ ChooseLabelForComponentForm::btnLabelingClicked()
         //B:TODO:OPTIM: do not use pixel()/setPixel()
         if (img_CharData_1.width() * img_CharData_1.height() <
             img_CharData_2.width() * img_CharData_2.height()) {
-          for (int y = 0; y < img_CharData_1.height(); ++y)
-            for (int x = 0; x < img_CharData_1.width(); ++x)
+          for (int y = 0; y < img_CharData_1.height(); ++y) {
+            for (int x = 0; x < img_CharData_1.width(); ++x) {
               img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
                                          y + img_CharData_2.height() + delta_h,
                                          img_CharData_1.pixel(x, y));
+	    }
+	  }
 
-          for (int y = 0; y < img_CharData_2.height(); ++y)
-            for (int x = 0; x < img_CharData_2.width(); ++x)
+          for (int y = 0; y < img_CharData_2.height(); ++y) {
+            for (int x = 0; x < img_CharData_2.width(); ++x) {
               img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
                                          y,
                                          img_CharData_2.pixel(x, y));
+	    }
+	  }
 
-        } else {
+        }
+	else {
 
-          for (int y = 0; y < img_CharData_2.height(); ++y)
-            for (int x = 0; x < img_CharData_2.width(); ++x)
+          for (int y = 0; y < img_CharData_2.height(); ++y) {
+            for (int x = 0; x < img_CharData_2.width(); ++x) {
               img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
                                          y + img_CharData_1.height() + delta_h,
                                          img_CharData_2.pixel(x, y));
+	    }
+	  }
 
-          for (int y = 0; y < img_CharData_1.height(); ++y)
-            for (int x = 0; x < img_CharData_1.width(); ++x)
+          for (int y = 0; y < img_CharData_1.height(); ++y) {
+            for (int x = 0; x < img_CharData_1.width(); ++x) {
               img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
                                          y,
                                          img_CharData_1.pixel(x, y));
+	    }
+	  }
         }
         char_w = img_FinalCharData.width();
         char_h = img_FinalCharData.height();
-      } else { // left position
+      }
+      else { // left position
       }
 
       char_x = first_cb->x();
-      if (first_cb->x() > second_cb->x())
+      if (first_cb->x() > second_cb->x()) {
         char_x = second_cb->x();
+      }
       char_y = first_cb->y();
-      if (first_cb->y() > second_cb->y())
+      if (first_cb->y() > second_cb->y()) {
         char_y = second_cb->y();
+      }
 
       if (img_CharData_1.width() * img_CharData_1.height() <
           img_CharData_2.width() * img_CharData_2.height()) {
@@ -872,24 +903,30 @@ ChooseLabelForComponentForm::btnLabelingClicked()
           map_block_images->insert(
             second_cb, _map_BigComponent_Imagedata.value(second_cb));
           _map_BigComponentBlock_DisplayForListWidget[second_cb] = false;
-        } else if (chk_medium_2) {
+        }
+	else if (chk_medium_2) {
           _map_MediumComponent_Imagedata[second_cb] = img_FinalCharData;
           map_block_images->insert(
             second_cb, _map_MediumComponent_Imagedata.value(second_cb));
           _map_MediumComponentBlock_DisplayForListWidget[second_cb] = false;
-        } else {
+        }
+	else {
           _map_SmallComponent_Imagedata[second_cb] = img_FinalCharData;
           map_block_images->insert(
             second_cb, _map_SmallComponent_Imagedata.value(second_cb));
           _map_SmallComponentBlock_DisplayForListWidget[second_cb] = false;
         }
-        if (chk_big_1)
+        if (chk_big_1) {
           _map_BigComponentBlock_DisplayForListWidget[first_cb] = false;
-        if (chk_medium_1)
+	}
+        if (chk_medium_1) {
           _map_MediumComponentBlock_DisplayForListWidget[first_cb] = false;
-        if (chk_small_1)
+	}
+        if (chk_small_1) {
           _map_SmallComponentBlock_DisplayForListWidget[first_cb] = false;
-      } else {
+	}
+      }
+      else {
 
         first_cb->setWidth(char_w);
         first_cb->setHeight(char_h);
@@ -901,12 +938,14 @@ ChooseLabelForComponentForm::btnLabelingClicked()
           map_block_images->insert(first_cb,
                                    _map_BigComponent_Imagedata.value(first_cb));
           _map_BigComponentBlock_DisplayForListWidget[first_cb] = false;
-        } else if (chk_medium_1) {
+        }
+	else if (chk_medium_1) {
           _map_MediumComponent_Imagedata[first_cb] = img_FinalCharData;
           map_block_images->insert(
             first_cb, _map_MediumComponent_Imagedata.value(first_cb));
           _map_MediumComponentBlock_DisplayForListWidget[first_cb] = false;
-        } else {
+        }
+	else {
           _map_SmallComponent_Imagedata[first_cb] = img_FinalCharData;
           map_block_images->insert(
             first_cb, _map_SmallComponent_Imagedata.value(first_cb));

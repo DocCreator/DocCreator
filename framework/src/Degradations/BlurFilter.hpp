@@ -63,9 +63,9 @@ namespace dc {
 
 
     /*
-      Search the size of filter that we have to apply to original image & img 
-      to look like the dst image.
-      @a dstRadius is computed with getRadiusFourier() on dst image.
+      Search the size of the filter that we have to apply to image @a img 
+      to look like a dst image.
+      @a dstRadius may have been computed with getRadiusFourier() on dst image.
 
       The obtained filter size can then be used as intensity parameter of blurFilter() function, with method=Method::GAUSSIAN.
     */

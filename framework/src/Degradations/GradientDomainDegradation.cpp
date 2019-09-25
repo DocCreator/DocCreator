@@ -177,8 +177,9 @@ isGray(const cv::Mat &in)
 	 in.type() == CV_8UC3 ||
 	 in.type() == CV_8UC4);
   
-  if (in.type() == CV_8UC1)
+  if (in.type() == CV_8UC1) {
     return true;
+  }
   if (in.type() == CV_8UC3) {
     int rows = in.rows;
     int cols = in.cols;

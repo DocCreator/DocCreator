@@ -25,9 +25,9 @@ GradientDomainDegradationDialog::GradientDomainDegradationDialog(QWidget *parent
 {
   ui->setupUi(this);
 
-  ui->comboBoxInsertType->addItem(tr("None"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_IS)));
-  ui->comboBoxInsertType->addItem(tr("To gray"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY)));
-  ui->comboBoxInsertType->addItem(tr("To gray if destination image is gray"), QVariant((int)(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY)));
+  ui->comboBoxInsertType->addItem(tr("None"), QVariant(static_cast<int>(dc::GradientDomainDegradation::InsertType::INSERT_AS_IS)));
+  ui->comboBoxInsertType->addItem(tr("To gray"), QVariant(static_cast<int>(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY)));
+  ui->comboBoxInsertType->addItem(tr("To gray if destination image is gray"), QVariant(static_cast<int>(dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY)));
   ui->comboBoxInsertType->setCurrentIndex(2);
       
   connect(ui->pushButtonStainsPath, SIGNAL(clicked()), this, SLOT(chooseImageDir()));
@@ -66,7 +66,7 @@ GradientDomainDegradationDialog::getNumStains() const
 dc::GradientDomainDegradation::InsertType
 GradientDomainDegradationDialog::getInsertType() const
 {
-  return (dc::GradientDomainDegradation::InsertType)(ui->comboBoxInsertType->currentData().toInt());
+  return static_cast<dc::GradientDomainDegradation::InsertType>( ui->comboBoxInsertType->currentData().toInt() );
 }
 
 bool
@@ -97,8 +97,9 @@ GradientDomainDegradationDialog::chooseImageDir()
 {
 
   QString dir = ui->lineEditStainsPath->text();
-  if (dir.isEmpty())
+  if (dir.isEmpty()) {
     dir = getStainImagesDefaultPath();
+  }
   
  QString path =
     QFileDialog::getExistingDirectory(this,
@@ -128,18 +129,21 @@ GradientDomainDegradationDialog::updateOkButton()
 
   QPushButton *okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
   assert(okButton);
-  if (imageValid && stainsDirValid && outputFileValid)
+  if (imageValid && stainsDirValid && outputFileValid) {
     okButton->setEnabled(true);
-  else
-    okButton->setEnabled(false);  
+  }
+  else {
+    okButton->setEnabled(false);
+  }
 }
 
 bool
 GradientDomainDegradationDialog::isStainImagesDirValid() const
 {
   const QString path = getStainImagesPath();
-  if (path.isEmpty())
+  if (path.isEmpty()) {
     return false;
+  }
   return QFileInfo(path).dir().exists();
   //TODO: also check that there are images in directory
 }
@@ -148,8 +152,9 @@ bool
 GradientDomainDegradationDialog::isOutputFileValid() const
 {
   const QString path = getOutputFilename();
-  if (path.isEmpty())
+  if (path.isEmpty()) {
     return false;
+  }
   return QFileInfo(path).dir().exists();
 }
 

@@ -1,15 +1,14 @@
-#include <iostream> //DEBUG
-
 #include "PhantomCharacter.hpp"
-#include "ConnectedComponent.hpp"
-#include "FileUtils.hpp"
+
 #include <cassert>
 #include <cmath> //sqrt
 #include <ctime> //time
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "Degradations/BlurFilter.hpp" // To test blur
+#include "ConnectedComponent.hpp"
+#include "FileUtils.hpp"
+#include "Degradations/BlurFilter.hpp"
 
 namespace dc {
   namespace PhantomCharacter {
@@ -125,50 +124,59 @@ namespace dc {
       const uchar *p = pattern.ptr<uchar>(yOrigin);
       int d = 0;
       for (int x = xOrigin; x < pattern.cols; ++x) {
-	if (p[x] != BLACK)
+	if (p[x] != BLACK) {
 	  break;
+	}
 	++d;
       }
-      if (d < minDist)
+      if (d < minDist) {
 	minDist = d;
+      }
 
       //search toward left
       d = 0;
       const int x0 = std::max(0, xOrigin - minDist);
       for (int x = xOrigin; x >= x0; --x) {
-	if (p[x] != BLACK)
+	if (p[x] != BLACK) {
 	  break;
+	}
 	++d;
       }
-      if (d < minDist)
+      if (d < minDist) {
 	minDist = d;
+      }
 
-      if (minDist == 0) //early out : return if already 0.
+      if (minDist == 0) { //early out : return if already 0.
 	return minDist;
+      }
 
       //search toward bottom
       d = 0;
       const int y1 = std::min(yOrigin + minDist, pattern.rows);
       for (int y = yOrigin; y < y1; ++y) {
 	p = pattern.ptr<uchar>(y);
-	if (p[xOrigin] != BLACK)
+	if (p[xOrigin] != BLACK) {
 	  break;
+	}
 	++d;
       }
-      if (d < minDist)
+      if (d < minDist) {
 	minDist = d;
+      }
 
       //search toward top
       d = 0;
       const int y0 = std::max(yOrigin - minDist, 0);
       for (int y = yOrigin; y >= y0; --y) {
 	p = pattern.ptr<uchar>(y);
-	if (p[xOrigin] != BLACK)
+	if (p[xOrigin] != BLACK) {
 	  break;
+	}
 	++d;
       }
-      if (d < minDist)
+      if (d < minDist) {
 	minDist = d;
+      }
 
       return minDist;
 
@@ -210,8 +218,9 @@ namespace dc {
     V
     makeGradient(V oldPixel, V newPixel, int distance)
     {
-      if (distance > 1)
+      if (distance > 1) {
 	return newPixel;
+      }
 
       const float alpha = 0.3f;
       const float oneMinusAlpha = 1.f - alpha;
@@ -231,8 +240,9 @@ namespace dc {
     uchar
     makeGradient<uchar>(uchar oldPixel, uchar newPixel, int distance)
     {
-      if (distance > 1)
+      if (distance > 1) {
 	return newPixel;
+      }
 
       const float alpha = 0.3f;
       const float oneMinusAlpha = 1.f - alpha;
@@ -271,32 +281,41 @@ namespace dc {
 	  const cv::Vec3b *src = mat.ptr<cv::Vec3b>(y);
 	  for (int x = 0; x < w; ++x) {
 	    if (src[x] == BLACK) {
-	      if (y > maxY)
+	      if (y > maxY) {
 		maxY = y;
-	      if (y < minY)
+	      }
+	      if (y < minY) {
 		minY = y;
-	      if (x > maxX)
+	      }
+	      if (x > maxX) {
 		maxX = x;
-	      if (x < minX)
+	      }
+	      if (x < minX) {
 		minX = x;
+	      }
 	    }
 	  }
 	}
-      } else {
+      }
+      else {
 	assert(mat.type() == CV_8UC1);
 	const unsigned char BLACK = 0;
 	for (int y = 0; y < h; ++y) {
 	  const unsigned char *src = mat.ptr<unsigned char>(y);
 	  for (int x = 0; x < w; ++x) {
 	    if (src[x] == BLACK) {
-	      if (y > maxY)
+	      if (y > maxY) {
 		maxY = y;
-	      if (y < minY)
+	      }
+	      if (y < minY) {
 		minY = y;
-	      if (x > maxX)
+	      }
+	      if (x > maxX) {
 		maxX = x;
-	      if (x < minX)
+	      }
+	      if (x < minX) {
 		minX = x;
+	      }
 	    }
 	  }
 	}
@@ -327,11 +346,13 @@ namespace dc {
 	  const cv::Vec3b *src1 = m1.ptr<cv::Vec3b>(i);
 	  const cv::Vec3b *src2 = m2.ptr<cv::Vec3b>(i);
 	  for (int j = 0; j < w; ++j) {
-	    if (src1[j] == BLACK && src2[j] != BLACK)
+	    if (src1[j] == BLACK && src2[j] != BLACK) {
 	      return false;
+	    }
 	  }
 	}
-      } else {
+      }
+      else {
 	assert(m1.type() == CV_8UC1);
 	assert(m1.type() == m2.type());
 	const unsigned char BLACK = 0;
@@ -339,8 +360,9 @@ namespace dc {
 	  const unsigned char *src1 = m1.ptr<unsigned char>(i);
 	  const unsigned char *src2 = m2.ptr<unsigned char>(i);
 	  for (int j = 0; j < w; ++j) {
-	    if (src1[j] == BLACK && src2[j] != BLACK)
+	    if (src1[j] == BLACK && src2[j] != BLACK) {
 	      return false;
+	    }
 	  }
 	}
       }
@@ -377,19 +399,23 @@ namespace dc {
       const int p_width = p_maxX - p_minX + 1;
       const int p_height = p_maxY - p_minY + 1;
 
-      if (p_width > width || p_height > height)
+      if (p_width > width || p_height > height) {
 	return INVALID_POINT;
-      if (p_minX == INT_MAX || p_maxX == 0 || p_minY == INT_MAX || p_maxY == 0)
+      }
+      if (p_minX == INT_MAX || p_maxX == 0 || p_minY == INT_MAX || p_maxY == 0) {
 	return INVALID_POINT;
+      }
 
       assert(p_minX + p_width <= matPattern.cols);
       assert(p_minY + p_height <= matPattern.rows);
 
       cv::Mat p_mat = matPattern(cv::Rect(p_minX, p_minY, p_width, p_height));
-      if (p_mat.type() == CV_8UC3)
+      if (p_mat.type() == CV_8UC3) {
 	cvtColor(p_mat, p_mat, cv::COLOR_BGR2GRAY); //TO get a CV_8UC1 type
-      else if (p_mat.type() == CV_8UC4)
+      }
+      else if (p_mat.type() == CV_8UC4) {
 	cvtColor(p_mat, p_mat, cv::COLOR_BGRA2GRAY); //TO get a CV_8UC1 type
+      }
       assert(p_mat.type() == CV_8UC1);
       
       const cv::Vec3b BLACK(0, 0, 0);
@@ -411,8 +437,9 @@ namespace dc {
 	  assert(y + p_height <= maxY + 1);
 	  cv::Mat bin_mat = matBin(cv::Rect(x, y, p_width, p_height));
 
-	  if (checkIncluded(p_mat, bin_mat))
+	  if (checkIncluded(p_mat, bin_mat)) {
 	    return cv::Point(x, y);
+	  }
 	}
       }
 
@@ -485,11 +512,12 @@ namespace dc {
 
       //Take a slightly greater height
       int yMax = yOrigin + height;
-      if (yOrigin - (height * COEFF_HEIGHT_MARGIN) >= 1)
+      if (yOrigin - (height * COEFF_HEIGHT_MARGIN) >= 1) {
 	yOrigin -= (height * COEFF_HEIGHT_MARGIN); //Start a little higher
-      if (yMax + (height * COEFF_HEIGHT_MARGIN) < outputBin.rows)
+      }
+      if (yMax + (height * COEFF_HEIGHT_MARGIN) < outputBin.rows) {
 	yMax += (height * COEFF_HEIGHT_MARGIN); //Search a little lower
-
+      }
       int minX = SPACING_MAX;
       unsigned char currentPix;
 
@@ -499,25 +527,31 @@ namespace dc {
 	while (!found && x <= minX) {
 	  currentPix = 0;
 	  if (leftNeighbor) {
-	    if (xOrigin - x > 0)
+	    if (xOrigin - x > 0) {
 	      currentPix = outputBin.at<unsigned char>(y, xOrigin - x);
-	  } else {
-	    if (xOrigin + x < outputBin.cols)
+	    }
+	  }
+	  else {
+	    if (xOrigin + x < outputBin.cols) {
 	      currentPix = outputBin.at<unsigned char>(y, xOrigin + x);
+	    }
 	  }
 	  if (currentPix == 0) {
 	    found = true;
-	    if (minX > x)
+	    if (minX > x) {
 	      minX = x;
+	    }
 	  }
 	  ++x;
 	}
       }
-      if (minX == SPACING_MAX)
+      if (minX == SPACING_MAX) {
 	return INT_MAX;
+      }
       //else
-      if (leftNeighbor)
+      if (leftNeighbor) {
 	return xOrigin - minX;
+      }
       //else
       return xOrigin + minX;
     }
@@ -544,8 +578,9 @@ namespace dc {
       for (int y = 0; y < bh; ++y) {
 	V *d = dst.ptr<V>(origin_y + y) + origin_x;
 	const V *s = src.ptr<V>(y);
-	for (int x = 0; x < bw; ++x)
+	for (int x = 0; x < bw; ++x) {
 	  d[x] = s[x];
+	}
       }
     }
     
@@ -778,10 +813,12 @@ namespace dc {
 
       int firstSide = 0, lastSide = 1; //to define which side we have to work on
 
-      if ((leftCharFound && minX - maxXLeft < SPACING_MIN) || height == 0)
+      if ((leftCharFound && minX - maxXLeft < SPACING_MIN) || height == 0) {
 	firstSide = 1;
-      if ((rightCharFound && minXRight - maxX < SPACING_MIN) || height == 0)
+      }
+      if ((rightCharFound && minXRight - maxX < SPACING_MIN) || height == 0) {
 	lastSide = 0;
+      }
 
       cv::Mat patternMat;
       cv::Point origin = INVALID_POINT;
@@ -789,12 +826,14 @@ namespace dc {
       //to be sure to not make a degradation lighter than the old pixel
       cv::Vec3b oldPixel, newPixel;
 
-      if (firstSide == 1 && lastSide == 0)
+      if (firstSide == 1 && lastSide == 0) {
 	return false;
+      }
 
       const std::vector<std::string> patterns = dc::listDirectory(phantomPatternsPath);
-      if (patterns.empty())
+      if (patterns.empty()) {
 	return false;
+      }
       const int numPatterns = (int)(patterns.size());
 
       for (int side = firstSide; side <= lastSide; ++side) { //0 = left, 1 = right
@@ -818,17 +857,21 @@ namespace dc {
 	  int widthPattern, maxWidth, minWidth;
 	  int heightPattern, minHeight, maxHeight;
 
-	  if (side == 0 && leftCharFound)
+	  if (side == 0 && leftCharFound) {
 	    maxWidth = (minX - maxXLeft) / 2;
-	  else if (side == 1 && rightCharFound)
+	  }
+	  else if (side == 1 && rightCharFound) {
 	    maxWidth = (minXRight - maxX) / 2;
-	  else
+	  }
+	  else {
 	    maxWidth = (width * MAX_WIDTH_PRC) / 100;
+	  }
 
 	  minWidth = (width * MIN_WIDTH_PRC) / 100;
 
-	  if (maxWidth <= minWidth)
+	  if (maxWidth <= minWidth) {
 	    maxWidth = minWidth + 1;
+	  }
 
 	  widthPattern = boundedRand(
 				     minWidth, maxWidth); //rand()% (maxWidth - minWidth) + minWidth ;
@@ -839,12 +882,15 @@ namespace dc {
 	  heightPattern = boundedRand(
 				      minHeight, maxHeight); //rand()% (maxHeight - minHeight) + minHeight;
 
-	  if (widthPattern == 0)
+	  if (widthPattern == 0) {
 	    widthPattern = minWidth;
-	  if (heightPattern == 0)
+	  }
+	  if (heightPattern == 0) {
 	    heightPattern = MIN_HEIGHT;
-	  if (widthPattern < MIN_WIDTH)
+	  }
+	  if (widthPattern < MIN_WIDTH) {
 	    widthPattern = MIN_WIDTH;
+	  }
 
 	  resize(patternMat, patternMat, cv::Size(widthPattern, heightPattern));
 
@@ -861,17 +907,19 @@ namespace dc {
 	    (!minReach || !maxReach) -> We stop when we have reached the begin and the end of the ccs (so when we have try with all the characters)
 	  */
 	  while (origin == INVALID_POINT && (!minReach || !maxReach)) {
-	    if (!maxReach)
+	    if (!maxReach) {
 	      origin = contains(outputBin, ccs[posDegraded + pos], patternMat);
-
-	    if (origin != INVALID_POINT && !minReach)
+	    }
+	    if (origin != INVALID_POINT && !minReach) {
 	      origin = contains(outputBin, ccs[posDegraded - pos], patternMat);
-
+	    }
 	    ++pos;
-	    if (posDegraded + pos >= (int)ccs.size())
+	    if (posDegraded + pos >= (int)ccs.size()) {
 	      maxReach = true;
-	    if (posDegraded - pos < 0)
+	    }
+	    if (posDegraded - pos < 0) {
 	      minReach = true;
+	    }
 	  }
 
 	  /*RESIZE
@@ -928,50 +976,55 @@ namespace dc {
 
 	    if (side == 0) { //LEFT
 
-	      if (leftCharFound)
-		xMinPattern =
-		  ((minX + maxXLeft) /
-		   2); //The center between the character and his neighbor
-	      else
-		xMinPattern =
-		  minX -
-		  MAX_MARGIN; //if there is not neighbor, we take a fixed maximum width between character and degradation
-
-	      if (xMinPattern < 0)
+	      if (leftCharFound) {
+		xMinPattern = ((minX + maxXLeft) / 2);
+		//The center between the character and his neighbor
+	      }
+	      else {
+		xMinPattern = minX - MAX_MARGIN;
+		//if there is not neighbor, we take a fixed maximum width between character and degradation
+	      }
+	      
+	      if (xMinPattern < 0) {
 		xMinPattern = 0; //to not go out the document
-
+	      }
+	      
 	      xMaxPattern = minX - MIN_MARGIN; // we take a fixed minimum width
 	      // between character and its
 	      // degradation
 
-	      if (xMinPattern >= xMaxPattern)
-		xMaxPattern =
-		  xMinPattern +
-		  1; //to be sure that max > min (+1 to shift toward right and don't go out the document)
-	    } else if (side == 1) { //RIGHT
+	      if (xMinPattern >= xMaxPattern) {
+		xMaxPattern = xMinPattern + 1;
+		//to be sure that max > min
+		// (+1 to shift toward right and don't go out the document)
+	      }
+	      
+	    }
+	    else if (side == 1) { //RIGHT
 
-	      if (rightCharFound)
-		xMaxPattern =
-		  ((maxX + minXRight) / 2) -
-		  (patternMat.cols /
-		   2); //The center between the character and his neighbor (and shift to be symetric with the left degradation)
-	      else
-		xMaxPattern =
-		  maxX + MAX_MARGIN -
-		  patternMat
-		  .cols; //if there is not neighbor, we take a fixed maximum (and shift to be symetric with the left degradation)
-
-	      if (xMaxPattern > output.cols)
+	      if (rightCharFound) {
+		xMaxPattern = ((maxX + minXRight) / 2) - (patternMat.cols / 2);
+		//The center between the character and his neighbor
+		// (and shift to be symetric with the left degradation)
+	      }
+	      else {
+		xMaxPattern = maxX + MAX_MARGIN - patternMat.cols;
+		//if there is not neighbor, we take a fixed maximum (and shift to be symetric with the left degradation)
+	      }
+	      
+	      if (xMaxPattern > output.cols) {
 		xMaxPattern = output.cols; //to not go out the document
-
+	      }
+	      
 	      xMinPattern = maxX + MIN_MARGIN; // we take a fixed minimum width
 	      // between character and its
 	      // degradation
 
-	      if (xMinPattern >= xMaxPattern)
-		xMinPattern =
-		  xMaxPattern -
-		  1; //to be sure that max > min (-1 to shift toward left and don't go out the document)
+	      if (xMinPattern >= xMaxPattern) {
+		xMinPattern = xMaxPattern - 1;
+		//to be sure that max > min
+		// (-1 to shift toward left and don't go out the document)
+	      }
 	    }
 
 	    const int xPattern = boundedRand(
@@ -1014,8 +1067,9 @@ namespace dc {
       cv::Mat imgBin = binarize(img);
       ConnectedComponent::extractAllConnectedComponents(imgBin, ccs, 4);
 
-      if (ccs.empty())
+      if (ccs.empty()) {
 	return output;
+      }
 
       size_t sz = ccs.size();
       std::vector<size_t> areas(sz, 0);
@@ -1046,8 +1100,9 @@ namespace dc {
       filteredCCs.reserve(sz);
       for (size_t i = 0; i < sz; ++i) {
 	const float areaAABB = (float)(areas[i]);
-	if (areaAABB > lowTh && areaAABB <= highTh)
+	if (areaAABB > lowTh && areaAABB <= highTh) {
 	  filteredCCs.push_back(ccs[i]);
+	}
       }
       std::swap(ccs, filteredCCs);
       //sz = ccs.size();
@@ -1056,12 +1111,15 @@ namespace dc {
       srand(time(nullptr)); // initialization
       int probOccurence = 0;
 
-      if (frequency == Frequency::RARE)
+      if (frequency == Frequency::RARE) {
 	probOccurence = 15; // 15 %
-      else if (frequency == Frequency::FREQUENT)
+      }
+      else if (frequency == Frequency::FREQUENT) {
 	probOccurence = 40;
-      else if (frequency == Frequency::VERY_FREQUENT)
+      }
+      else if (frequency == Frequency::VERY_FREQUENT) {
 	probOccurence = 70;
+      }
 
 #ifdef SAVE_DEGRADATIONS_IMAGE
       cv::Mat degrads(img.rows,
@@ -1074,7 +1132,7 @@ namespace dc {
 	//Random : choose if we apply a default on this characters or not
 	int chosen = rand() % 100; // random number between 0 and 100
 
-	if (chosen < probOccurence) // if random number is included in the x % (x
+	if (chosen < probOccurence) { // if random number is included in the x % (x
 	  // which was chosen by the user)
 	  degradeComposant(output,
 			   ccs[i],
@@ -1085,6 +1143,7 @@ namespace dc {
 			   degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
 			   , phantomPatternsPath);
+	}
       }
 
 #ifdef SAVE_DEGRADATIONS_IMAGE

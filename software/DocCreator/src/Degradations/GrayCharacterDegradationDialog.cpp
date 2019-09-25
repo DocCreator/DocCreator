@@ -58,8 +58,9 @@ GrayCharacterDegradationDialog::changeIndependentPercent()
   int D = ui->cboDisconnection->value();
 
   int delta = 0;
-  if ((I + O + D) > 100)
+  if ((I + O + D) > 100) {
     delta = I + O + D - 100;
+  }
 
   ui->cboOverlapping->setValue(O - delta / 2);
   ui->cboDisconnection->setValue(D - delta + delta / 2);
@@ -77,8 +78,9 @@ GrayCharacterDegradationDialog::changeOverlappingPercent()
   int D = ui->cboDisconnection->value();
 
   int delta = 0;
-  if ((I + O + D) > 100)
+  if ((I + O + D) > 100) {
     delta = I + O + D - 100;
+  }
 
   ui->cboIndependent->setValue(I - delta / 2);
   ui->cboDisconnection->setValue(D - delta + delta / 2);
@@ -95,8 +97,9 @@ GrayCharacterDegradationDialog::changeDisconnectionPercent()
   int D = ui->cboDisconnection->value();
 
   int delta = 0;
-  if ((I + O + D) > 100)
+  if ((I + O + D) > 100) {
     delta = I + O + D - 100;
+  }
 
   ui->cboIndependent->setValue(I - delta / 2);
   ui->cboOverlapping->setValue(O - delta + delta / 2);
@@ -119,17 +122,19 @@ GrayCharacterDegradationDialog::degrade()
   //B
   //assert(_docController);
   QImage img = _docController->toQImage(WithTextBlocks | WithImageBlocks);
-  if (img.isNull())
+  if (img.isNull()) {
     return;
+  }
 
   dc::GrayscaleCharsDegradationModelQ cdg(img);
 
-  QImage dst = cdg.degradate(levelOfNoise, I, O, D);
+  const QImage dst = cdg.degradate(levelOfNoise, I, O, D);
 
   //B: It would be better to be able to visualize the produced image
   // and not save it on disk
 
-  QString path = ui->txtSaveTo->text();
-  if (!path.isEmpty())
+  const QString path = ui->txtSaveTo->text();
+  if (!path.isEmpty()) {
     dst.save(path);
+  }
 }

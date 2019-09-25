@@ -9,10 +9,12 @@ namespace dc {
   {
     QImage finalImg;
 
-    if (_mode == dc::BlurFilter::Mode::COMPLETE)
+    if (_mode == dc::BlurFilter::Mode::COMPLETE) {
       finalImg = dc::BlurFilter::blur(_original, _method, _intensity);
-    else
+    }
+    else {
       finalImg = applyPattern(_original, _pattern, _method, _intensity);
+    }
 
     emit imageReady(finalImg);
 

@@ -12,8 +12,9 @@ BackgroundContext *BackgroundContext::_instance;
 BackgroundContext *
 BackgroundContext::instance()
 {
-  if (_instance == nullptr)
+  if (_instance == nullptr) {
     _instance = new BackgroundContext();
+  }
   return _instance;
 }
 
@@ -80,8 +81,9 @@ void
 BackgroundContext::setPath(const QString &path)
 {
   _path = path;
-  if (!_path.isEmpty() && _path[_path.length() - 1] != '/')
+  if (!_path.isEmpty() && _path[_path.length() - 1] != '/') {
     _path.push_back('/');
+  }
 }
 
 BackgroundList

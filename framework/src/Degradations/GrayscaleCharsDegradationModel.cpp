@@ -502,12 +502,14 @@ namespace dc {
 	      pixel.gradient_angle = 0;
 	    }
 
-	    if (pixel.gradient_angle == 0)
+	    if (pixel.gradient_angle == 0) {
 	      pixel.gradient_angle = 10; //B: why this value ???
+	    }
 
 	    // MAX gradient value
-	    if (_MAX_Gradient < pixel.gradient_value)
+	    if (_MAX_Gradient < pixel.gradient_value) {
 	      _MAX_Gradient = pixel.gradient_value;
+	    }
 
 	    // AVG gradient value
 	    _AVG_Gradient += pixel.gradient_value;
@@ -576,16 +578,20 @@ namespace dc {
 	  ++d_0;
 	  A_0.x = x;
 	  A_0.y = yo;
-	} else
+	}
+	else {
 	  break;
+	}
       }
       for (int x = xo; x >= 0; --x) {
 	if (m[x] == 0) {
 	  ++d_0;
 	  B_0.x = x;
 	  B_0.y = yo;
-	} else
+	}
+	else {
 	  break;
+	}
       }
     }
     // 90 degree
@@ -614,28 +620,34 @@ namespace dc {
     cv::Point A_45, B_45;
     int y = yo;
     for (int x = xo; x < width; ++x) {
-      if (y < 0)
+      if (y < 0) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_45;
 	A_45.x = x;
 	A_45.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       --y;
     }
     y = yo;
     for (int x = xo; x >= 0; --x) {
-      if (y >= height)
+      if (y >= height) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_45;
 	B_45.x = x;
 	B_45.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       ++y;
     }
     //135 degree
@@ -643,28 +655,34 @@ namespace dc {
     cv::Point A_135, B_135;
     y = yo;
     for (int x = xo; x < width; ++x) {
-      if (y >= height)
+      if (y >= height) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_135;
 	A_135.x = x;
 	A_135.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       ++y;
     }
     y = yo;
     for (int x = xo; x >= 0; --x) {
-      if (y < 0)
+      if (y < 0) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_135;
 	B_135.x = x;
 	B_135.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       --y;
     }
     --d_0;
@@ -1565,10 +1583,12 @@ namespace dc {
       const Seedpoint &sp = _listSeedPoints[i];
       if (sp.type < 0 || sp.type > 2) {
 	sz -= 1;
-	if (sz > sz0)
+	if (sz > sz0) {
 	  break;
+	}
 	std::swap(_listSeedPoints[i], _listSeedPoints[sz]);
-      } else {
+      }
+      else {
 	++i;
       }
     }
@@ -1984,10 +2004,12 @@ namespace dc {
 	if (isFtoB) {
 	  B1_moyen_gris = Centre_gray + (B_gris - Centre_gray) * dis / deltaDis;
 	} else {
-	  if (B_gris == 0)
+	  if (B_gris == 0) {
 	    B_gris = 1;
-	  if (Centre_gray == 0)
+	  }
+	  if (Centre_gray == 0) {
 	    Centre_gray = 1;
+	  }
 	  B1_moyen_gris = /*C_gris + (B_gris - C_gris)*dis/deltaDis;}*/ exp(
 									    (log(B_gris) - log(Centre_gray)) * (dis / deltaDis) +
 									    log(Centre_gray));
@@ -1999,36 +2021,44 @@ namespace dc {
 
 	int grisGenerator = var_nor_ForPixelEcllipse();
 
-	if (isFtoB)
+	if (isFtoB) {
 	  while (grisGenerator < (B1_moyen_gris - pixel_signma) ||
 		 grisGenerator > (B1_moyen_gris + sigma_gaussien)) {
 	    grisGenerator = var_nor_ForPixelEcllipse();
 	    ++limiter1;
-	    if (limiter1 > 100)
+	    if (limiter1 > 100) {
 	      break;
+	    }
 	  }
-	else
+	}
+	else {
 	  while (grisGenerator < 0 ||
 		 grisGenerator < (B1_moyen_gris - pixel_signma) ||
 		 grisGenerator > (B1_moyen_gris + pixel_signma)) {
 	    grisGenerator = var_nor_ForPixelEcllipse();
 	    ++limiter1;
-	    if (limiter1 > 100)
+	    if (limiter1 > 100) {
 	      break;
+	    }
 	  }
+	}
 	//
-	if (grisGenerator < BLACK)
+	if (grisGenerator < BLACK) {
 	  grisGenerator = BLACK;
-	else if (grisGenerator > WHITE)
+	}
+	else if (grisGenerator > WHITE) {
 	  grisGenerator = WHITE;
+	}
 	//
 
 	assert(B1.y >= 0 && B1.y < imgGrayOutput.rows && B1.x >= 0 &&
 	       B1.x < imgGrayOutput.cols); //B
 
-	if (!isFtoB)
-	  if (imgGrayOutput.at<uchar>(B1.y, B1.x) < Centre_gray)
+	if (!isFtoB) {
+	  if (imgGrayOutput.at<uchar>(B1.y, B1.x) < Centre_gray) {
 	    continue;
+	  }
+	}
 	imgGrayOutput.at<uchar>(B1.y, B1.x) = grisGenerator;
       }
     }
@@ -2059,8 +2089,9 @@ namespace dc {
       const uchar *mc = _mat_contour.ptr<uchar>(y);
       for (int i = x; i >= x0; --i) {
 	assert(i >= 0);
-	if (mc[i] == WHITE)
+	if (mc[i] == WHITE) {
 	  break;
+	}
 	++dist; //0 degree
       }
     }
@@ -2073,11 +2104,13 @@ namespace dc {
       const uchar *mc = _mat_contour.ptr<uchar>(y);
       for (int i = x; i < x1; ++i) {
 	assert(i < _width);
-	if (mc[i] == WHITE)
+	if (mc[i] == WHITE) {
 	  break;
+	}
 	++dist; //0 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
+	}
       }
     }
     minDist = std::min(dist, minDist);
@@ -2087,11 +2120,13 @@ namespace dc {
     for (int i = y; i >= y0; --i) {
       assert(i >= 0);
       assert(i >= 0 && i < _mat_contour.rows && x >= 0 && x < _mat_contour.cols);
-      if (_mat_contour.at<uchar>(i, x) == WHITE)
+      if (_mat_contour.at<uchar>(i, x) == WHITE) {
 	break;
+      }
       ++dist; // 90 degree
-      if (dist >= minDist)
+      if (dist >= minDist) {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2100,11 +2135,13 @@ namespace dc {
     for (int i = y; i < y1; ++i) {
       assert(i < _height);
       assert(i >= 0 && i < _mat_contour.rows && x >= 0 && x < _mat_contour.cols);
-      if (_mat_contour.at<uchar>(i, x) == WHITE)
+      if (_mat_contour.at<uchar>(i, x) == WHITE) {
 	break;
+      }
       ++dist; // 90 degree
-      if (dist >= minDist)
+      if (dist >= minDist) {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2116,13 +2153,17 @@ namespace dc {
 	assert(i < _width);
 	assert(j >= 0 && j < _mat_contour.rows && i >= 0 &&
 	       i < _mat_contour.cols);
-	if (_mat_contour.at<uchar>(j, i) == WHITE)
+	if (_mat_contour.at<uchar>(j, i) == WHITE) {
 	  break;
+	}
 	++dist; //45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2134,13 +2175,17 @@ namespace dc {
 	assert(i < _width);
 	assert(j >= 0 && j < _mat_contour.rows && i >= 0 &&
 	       i < _mat_contour.cols);
-	if (_mat_contour.at<uchar>(j, i) == WHITE)
+	if (_mat_contour.at<uchar>(j, i) == WHITE) {
 	  break;
+	}
 	++dist; // -45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2155,10 +2200,13 @@ namespace dc {
 	if (_mat_contour.at<uchar>(j, i) == WHITE)
 	  break;
 	++dist; // 45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2170,13 +2218,17 @@ namespace dc {
 	assert(i >= 0);
 	assert(j >= 0 && j < _mat_contour.rows && i >= 0 &&
 	       i < _mat_contour.cols);
-	if (_mat_contour.at<uchar>(j, i) == WHITE)
+	if (_mat_contour.at<uchar>(j, i) == WHITE) {
 	  break;
+	}
 	++dist; // -45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2204,8 +2256,9 @@ namespace dc {
 	if (m[x] == 255) {
 	  const float distSq = (pixel.pos.x - x) * (pixel.pos.x - x) +
 	    (pixel.pos.y - y) * (pixel.pos.y - y);
-	  if (distSq < minDistSq)
+	  if (distSq < minDistSq) {
 	    minDistSq = distSq;
+	  }
 	}
       }
     }
@@ -2523,8 +2576,9 @@ namespace dc {
 							  float percent_independent)
   {
     const size_t sz = _listPixels.size();
-    if (sz == 0)
+    if (sz == 0) {
       return;
+    }
 
     //estimate r by using histogram
     std::vector<float> listProbability;

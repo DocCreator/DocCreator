@@ -43,7 +43,7 @@ Baseline::computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines)
 
   //B: What are these constants ????
   const int densityThreshold =
-    (int)(212.453255 * (characterDensity * characterDensity) -
+    static_cast<int>(212.453255 * (characterDensity * characterDensity) -
           306.0151077 * characterDensity + 244.3721012);
 
   // horizontal blur
@@ -56,7 +56,7 @@ Baseline::computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines)
   cv::medianBlur(dst, dst, 9);
 
   // Mask peeling
-  peel(dst, dst, 2, (int)(0.8 * characterHeight));
+  peel(dst, dst, 2, static_cast<int>(0.8 * characterHeight));
 
   // Hough transform line detection
   cv::HoughLinesP(

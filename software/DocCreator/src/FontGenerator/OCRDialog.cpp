@@ -79,10 +79,10 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
     const QMouseEvent *k = (QMouseEvent *)event;
 
     const double xmouse =
-      (int)(((double)k->pos().x() / ui->originalLabel->pixmap()->width()) *
+      static_cast<int>((static_cast<double>(k->pos().x()) / ui->originalLabel->pixmap()->width()) *
             m_originalImg.width());
     const double ymouse =
-      (int)(((double)k->pos().y() / ui->originalLabel->pixmap()->height()) *
+      static_cast<int>((static_cast<double>(k->pos().y()) / ui->originalLabel->pixmap()->height()) *
             m_originalImg.height());
 
     for (int i = 0; i < (int)m_font.size(); ++i) {
@@ -169,7 +169,7 @@ OCRDialog::getQImageFromMask(const cv::Mat &original,
   int rows = original.rows;
   int cols = original.cols;
   if (original.isContinuous() && mask.isContinuous() &&
-      (size_t)qimg.bytesPerLine() == sizeof(int) * cols) {
+      static_cast<size_t>(qimg.bytesPerLine()) == sizeof(int) * cols) {
     cols *= rows;
     rows = 1;
   }
@@ -256,7 +256,7 @@ OCRDialog::process()
 
     tess.SetPageSegMode(tesseract::PSM_SPARSE_TEXT);
 
-    tess.SetImage((uchar *)tmp.data, tmp.cols, tmp.rows, 1, tmp.cols);
+    tess.SetImage(static_cast<uchar *>(tmp.data), tmp.cols, tmp.rows, 1, tmp.cols);
     tess.GetUTF8Text();
 
     tesseract::ResultIterator *ri = tess.GetIterator();
@@ -329,7 +329,7 @@ OCRDialog::process()
           fl.baseline2 = b2 - r.y;
           fl.baseline = (int)((y1 + y2) / 2 - r.y);
 
-          fl.GT_baseline = (int)((fl.baseline2 + fl.baseline) / 2);
+          fl.GT_baseline = static_cast<int>((fl.baseline2 + fl.baseline) / 2);
           fl.confidence = conf;
           fl.rect = r;
           fl.checked = false;
