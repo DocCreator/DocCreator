@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 #include <limits>
+#include <numeric> //accumulate
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -1150,6 +1151,7 @@ namespace dc {
     if (_width * _height >= 1000000)
       max_dis = std::max(_width, _height) / 15;
     //B:TODO: This does not work if we have a small image and a big text.
+#if 0
     {
       size_t m0 = 0;
       double m1 = 0.0, m2 = 0.0;
@@ -1172,6 +1174,38 @@ namespace dc {
 	max_dis = std::max(max_dis, max_disB);
       }
     }
+#else
+    {
+      /*
+	//B:24/09/2019
+	Current code produces ugly results on "big" characters.
+	Thus we do not want to select too "big" characters.
+
+	This code should give acceptable results if we have a majority of
+	small characters (and potentially some "big" characters,
+        for the titles for example).
+	We do not set an absolute maximum for now. Thus if we only have
+        "big" characters on the image, the result will still be ugly...
+       */
+
+      const size_t sz = ccsInfo.size();
+      std::vector<size_t> ccsSize(sz);
+      for (size_t i=0; i<sz; ++i) {
+        ccsSize[i] = ccsInfo[i].size();
+      }
+      auto itMed = ccsSize.begin()+sz/2;
+      std::nth_element(ccsSize.begin(), itMed, ccsSize.end());
+      const auto itMax = std::max_element(ccsSize.begin(), ccsSize.end());
+      const auto itMin = std::min_element(ccsSize.begin(), ccsSize.end());
+      auto mean = std::accumulate(std::begin(ccsSize), std::end(ccsSize), 0.0) / ccsSize.size();
+      //std::cerr<<"min="<<*itMin<<" median="<<*itMed<<" max="<<*itMax<<"  mean="<<mean<<"\n";
+
+      //std::cerr<<"max_dis="<<max_dis<<"\n";
+      max_dis = std::min(*itMed * 2, size_t(mean+0.5));
+      //std::cerr<<"max_dis="<<max_dis<<"\n";
+    }
+#endif //0
+
 
     const int max_dis_square = max_dis * max_dis;
 
