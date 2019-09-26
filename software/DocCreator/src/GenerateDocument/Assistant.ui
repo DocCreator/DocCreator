@@ -1510,7 +1510,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>change shown example</string>
+     <string>Change preview area of both recto and verso images</string>
     </property>
     <property name="text">
      <string>Switch</string>
@@ -1754,7 +1754,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>change shown example</string>
+     <string>Change preview area</string>
     </property>
     <property name="text">
      <string>Switch</string>
@@ -1802,7 +1802,7 @@
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>change shown example</string>
+           <string>Change preview image</string>
           </property>
           <property name="text">
            <string>Switch</string>
@@ -2050,7 +2050,7 @@
       </rect>
      </property>
      <property name="toolTip">
-      <string>change shown example</string>
+      <string>Change preview area</string>
      </property>
      <property name="text">
       <string>Switch</string>
@@ -2071,8 +2071,6 @@
     </property>
    </widget>
   </widget>
-
-
   <widget class="QWizardPage" name="GDD">
    <property name="subTitle">
     <string>DocCreator: Gradient Domain Degradation</string>
@@ -2127,60 +2125,60 @@
        </layout>
       </item>
       <item>
-	<layout class="QHBoxLayout" name="horizontalLayout_25gd">
-         <item>
-          <widget class="QLabel" name="GDD_numStainsLabel">
-           <property name="text">
-            <string>Number of stain images to copy: </string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="GDD_numStainsMinLabel">
-           <property name="text">
-            <string>min # </string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="GDD_numStainsMin">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>10000</number>
-           </property>
-           <property name="value">
-            <number>1</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="GDD_numStainsMaxLabel">
-           <property name="text">
-            <string>max # </string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="GDD_numStainsMax">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>10000</number>
-           </property>
-           <property name="value">
-            <number>20</number>
-           </property>
-          </widget>
-         </item>
+       <layout class="QHBoxLayout" name="horizontalLayout_25gd">
+        <item>
+         <widget class="QLabel" name="GDD_numStainsLabel">
+          <property name="text">
+           <string>Number of stain images to copy: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="GDD_numStainsMinLabel">
+          <property name="text">
+           <string>min # </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="GDD_numStainsMin">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10000</number>
+          </property>
+          <property name="value">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="GDD_numStainsMaxLabel">
+          <property name="text">
+           <string>max # </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="GDD_numStainsMax">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10000</number>
+          </property>
+          <property name="value">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
         <item>
          <spacer name="horizontalSpacer_5gd">
           <property name="orientation">
@@ -2193,7 +2191,7 @@
            </size>
           </property>
          </spacer>
-        </item>	 
+        </item>
        </layout>
       </item>
       <item>
@@ -2208,9 +2206,9 @@
           </property>
          </widget>
         </item>
-	<item>
-	  <widget class="QComboBox" name="GDD_insertTypeCB"/>
-	</item>
+        <item>
+         <widget class="QComboBox" name="GDD_insertTypeCB"/>
+        </item>
        </layout>
       </item>
       <item>
@@ -2241,7 +2239,6 @@
     </property>
    </widget>
   </widget>
-
   <widget class="QWizardPage" name="Blur">
    <property name="subTitle">
     <string>DocCreator: Blur</string>
@@ -2637,7 +2634,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>change shown example</string>
+     <string>Change preview image</string>
     </property>
     <property name="text">
      <string>Switch</string>
@@ -2725,7 +2722,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>change shown example</string>
+     <string>Change preview image</string>
     </property>
     <property name="text">
      <string>Switch</string>
@@ -3797,16 +3794,16 @@ completePathToOutputDirectory </string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupText"/>
-  <buttongroup name="buttonGroupParamsLeftMargin"/>
-  <buttongroup name="buttonGroupParamsRightMargin"/>
-  <buttongroup name="buttonGroupParamsImageSize"/>
-  <buttongroup name="buttonGroupTextGeneration"/>
   <buttongroup name="buttonGroupParamsBlockX"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
-  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroupParamsLeftMargin"/>
+  <buttongroup name="buttonGroupTextGeneration"/>
   <buttongroup name="buttonGroupParamsTopMargin"/>
-  <buttongroup name="buttonGroupParamsBottomMargin"/>
   <buttongroup name="buttonGroupParamsLineSpacing"/>
+  <buttongroup name="buttonGroupParamsBottomMargin"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroupParamsRightMargin"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroupText"/>
+  <buttongroup name="buttonGroupParamsImageSize"/>
  </buttongroups>
 </ui>

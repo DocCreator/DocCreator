@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QMessageBox>
+#include <QProgressDialog>
 #include <QTextStream>
 
 #include "Degradations/BleedThroughQ.hpp"
@@ -61,6 +62,7 @@ static const int HOLE_PREVIEW_HEIGHT = 319;
 Assistant::Assistant(DocumentController *doc, QWidget *parent)
   : QWizard(parent)
   , ui(new Ui::Assistant)
+  , _progressDialog(nullptr), _numGeneratedImages(0)
 {
   ui->setupUi(this);
 
@@ -220,12 +222,13 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(valueChanged(int)),
                    this,
                    SLOT(CharDeg_nbIterationsMaxChangedChar()));
-  QObject::connect(
-    ui->SwitchChar, SIGNAL(clicked()), this, SLOT(CharDeg_LoadPrevImgChar()));
+  QObject::connect(ui->SwitchChar, SIGNAL(clicked()),
+		   this, SLOT(CharDeg_LoadPrevImgChar()));
   QObject::connect(ui->TirageChar,
                    SIGNAL(valueChanged(int)),
                    this,
                    SLOT(CharDeg_tirageCharChanged(int)));
+
 
   QObject::connect(ui->CheckShad,
                    SIGNAL(stateChanged(int)),
@@ -487,13 +490,56 @@ Assistant::~Assistant()
   delete ui;
 }
 
-static QImage
+/**
+ * gives a random value in [minV; maxV[
+ *
+ * @warning call srandom once before this function.
+ */
+static int
+P_bounded_rand(int minV, int maxV)
+{
+  assert(minV < maxV);
+  int r = rand();
+  r = (r != RAND_MAX ? r : 0);
+  return static_cast<int>(minV +
+                          (static_cast<float>(r) / RAND_MAX * (maxV - minV)));
+}
+
+//Take a random part of the image (trying to avoid borders)
+static
+QImage
 takePart(const QImage &img)
 {
-  int x = std::max(0, std::min(BLEED_X, img.width() - BLEED_PREVIEW_WIDTH));
-  int y = std::max(0, std::min(BLEED_Y, img.height() - BLEED_PREVIEW_HEIGHT));
-  int w = std::min(BLEED_PREVIEW_WIDTH, img.width());
-  int h = std::min(BLEED_PREVIEW_HEIGHT, img.height());
+  int x = 0;
+  int w = img.width();
+  if (img.width() - BLEED_PREVIEW_WIDTH > 0) {
+    if (img.width() > BLEED_PREVIEW_WIDTH+2*BLEED_X) {
+      x = P_bounded_rand(BLEED_X, img.width() - BLEED_PREVIEW_WIDTH-BLEED_X);
+      //to avoid to draw an area too much on the border of the image
+    }
+    else {
+      x = P_bounded_rand(0, img.width() - BLEED_PREVIEW_WIDTH);
+    }
+    w = BLEED_PREVIEW_WIDTH;
+  }
+
+  int y =0;
+  int h = img.height();
+  if (img.height() - BLEED_PREVIEW_HEIGHT > 0) {
+    if (img.height() > BLEED_PREVIEW_HEIGHT+2*BLEED_Y) {
+      y = P_bounded_rand(BLEED_Y, img.height() - BLEED_PREVIEW_HEIGHT-BLEED_Y);
+      //to avoid to draw an area too much on the border of the image
+    }
+    else {
+      y = P_bounded_rand(0, img.height() - BLEED_PREVIEW_HEIGHT);
+    }
+    h = BLEED_PREVIEW_HEIGHT;
+  }
+
+  assert(x < img.width());
+  assert(y < img.height());
+  assert(x+w <= img.width());
+  assert(y+h <= img.height());
 
   return img.copy(QRect(x, y, w, h));
 }
@@ -568,7 +614,7 @@ Assistant::askIfProceedDespiteImageInDir(const QString &path) const
   if (hasFiles) {
     QMessageBox msgBox;
     msgBox.setText(tr("The output directory already contains image files."));
-    msgBox.setInformativeText(tr("Do you want to proceed anyway?"));
+    msgBox.setInformativeText(tr("New images may overwrite existing ones.\nDo you want to proceed anyway?"));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
@@ -615,7 +661,7 @@ Assistant::validateCurrentPage()
         return false;
       }
 
-      generateDegradedImages(); //B: we od it here instead of in accept, cf REM1.
+      generateDegradedImages(); //B: we add it here instead of in accept, cf REM1.
 
       updateResults();
 
@@ -1573,26 +1619,13 @@ Assistant::generateTxtImages()
 #endif //0
 
   _PicDirectory = QString();
-  std::cerr << "_inputImageList.size()=" << _inputImageList.size() << "\n";
+  //std::cerr << "_inputImageList.size()=" << _inputImageList.size() << "\n";
   enableAccordingToInputImages();
 
   QGuiApplication::restoreOverrideCursor();
 }
 
-/**
- * gives a random value in [minV; maxV[
- *
- * @warning call srandom once before this function.
- */
-static int
-P_bounded_rand(int minV, int maxV)
-{
-  assert(minV < maxV);
-  int r = rand();
-  r = (r != RAND_MAX ? r : 0);
-  return static_cast<int>(minV +
-                          (static_cast<float>(r) / RAND_MAX * (maxV - minV)));
-}
+
 
 void
 Assistant::BleedThrough_LoadPrevImg()
@@ -1731,7 +1764,8 @@ Assistant::BleedThrough_EnableBleedOption()
     switchEnabled = (_inputImageList.size() > 1); //at least two images
     _BleedThrough_bleedEnable = enabled;
     BleedThrough_updateTirageAndTotal();
-  } else {
+  }
+  else {
     _BleedThrough_bleedEnable = enabled;
     ui->NbDegBleed->setEnabled(enabled);
     ui->TirageBleed->setEnabled(enabled);
@@ -1753,7 +1787,7 @@ Assistant::BleedThrough_EnableBleedOption()
 void
 Assistant::BleedThrough_setupGUIImages()
 {
-  ui->SwitchBleed->setToolTip(tr("Switch both recto and verso images"));
+  ui->SwitchBleed->setToolTip(tr("Change preview area of both recto and verso images"));
 
   ui->BleedMinPreviewLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
   ui->BleedMinPreviewLabel->setText(tr("preview"));
@@ -1888,17 +1922,17 @@ Assistant::CharDeg_LoadPrevImgChar()
 {
   if (!_inputImageList.empty()) {
 
-    int nbPic = P_bounded_rand(0, _inputImageList.size());
+    int imgIndex = P_bounded_rand(0, _inputImageList.size());
     if (_inputImageList.size() > 1)
-      while (nbPic == _CharDeg_indexRecto)
-        nbPic = P_bounded_rand(0, _inputImageList.size());
+      while (imgIndex == _CharDeg_indexRecto)
+        imgIndex = P_bounded_rand(0, _inputImageList.size());
 
-    _CharDeg_indexRecto = nbPic;
-    assert(nbPic < _inputImageList.size());
-    QString imagePath = _inputImageList[nbPic];
+    _CharDeg_indexRecto = imgIndex;
+    assert(imgIndex < _inputImageList.size());
+    QString imagePath = _inputImageList[imgIndex];
     imagePath = _PicDirectory + "/" + imagePath;
     _CharDeg_rectoImgChar.load(imagePath);
-    //std::cout << ".............  " << imagePath.toStdString() << std::endl;
+    std::cout << "............. ["<<imgIndex<<"]: "<< imagePath.toStdString() <<" isNull? "<<_CharDeg_rectoImgChar.isNull()<< std::endl;
 
     if (!_CharDeg_rectoImgChar.isNull()) {
 
@@ -2070,16 +2104,17 @@ Assistant::Shadow_LoadPrevImgShad()
 {
   if (!_inputImageList.empty()) {
 
-    int nbPic = P_bounded_rand(0, _inputImageList.size());
+    int imgIndex = P_bounded_rand(0, _inputImageList.size());
     if (_inputImageList.size() > 1)
-      while (nbPic == _Shadow_indexRecto)
-        nbPic = P_bounded_rand(0, _inputImageList.size());
-    assert(nbPic < _inputImageList.size());
+      while (imgIndex == _Shadow_indexRecto)
+        imgIndex = P_bounded_rand(0, _inputImageList.size());
+    assert(imgIndex < _inputImageList.size());
 
-    _Shadow_indexRecto = nbPic;
-    QString path = _inputImageList[nbPic];
+    _Shadow_indexRecto = imgIndex;
+    QString path = _inputImageList[imgIndex];
     path = _PicDirectory + "/" + path;
     _Shadow_rectoImgShad.load(path);
+
     if (!_Shadow_rectoImgShad.isNull()) {
 
       _Shadow_rectoImgShad =
@@ -2136,7 +2171,8 @@ Assistant::Shadow_updatePreviewAll()
 {
   if (_Shadow_nbShadSelected > 0) {
     Shadow_setPreview(_Shadow_borderStack[_Shadow_nbShadSelected - 1]);
-  } else {
+  }
+  else {
     ui->ShadPreviewLabel->setPixmap(QPixmap::fromImage(_Shadow_rectoImgShad));
     ui->ShadPreviewLabel->setMinimumSize(_Shadow_rectoImgShad.size());
   }
@@ -2266,14 +2302,14 @@ Assistant::Phantom_LoadPrevImgPhant()
 {
   if (!_inputImageList.empty()) {
 
-    int nbPic = P_bounded_rand(0, _inputImageList.size());
+    int imgIndex = P_bounded_rand(0, _inputImageList.size());
     if (_inputImageList.size() > 1)
-      while (_Phantom_indexRecto == nbPic)
-        nbPic = P_bounded_rand(0, _inputImageList.size());
+      while (_Phantom_indexRecto == imgIndex)
+        imgIndex = P_bounded_rand(0, _inputImageList.size());
 
-    _Phantom_indexRecto = nbPic;
+    _Phantom_indexRecto = imgIndex;
 
-    QString imagePath = _inputImageList[nbPic];
+    QString imagePath = _inputImageList[imgIndex];
     imagePath = _PicDirectory + "/" + imagePath;
     _Phantom_rectoImgPhant.load(imagePath);
 
@@ -2710,13 +2746,13 @@ void
 Assistant::Blur_LoadPrevImgBlur()
 {
   if (!_inputImageList.empty()) {
-    int nbPic = P_bounded_rand(0, _inputImageList.size());
+    int imgIndex = P_bounded_rand(0, _inputImageList.size());
     if (!_inputImageList.empty())
-      while (_Blur_indexRecto == nbPic)
-        nbPic = P_bounded_rand(0, _inputImageList.size());
-    assert(nbPic < _inputImageList.size());
-    _Blur_indexRecto = nbPic;
-    QString imagePath = _inputImageList[nbPic];
+      while (_Blur_indexRecto == imgIndex)
+        imgIndex = P_bounded_rand(0, _inputImageList.size());
+    assert(imgIndex < _inputImageList.size());
+    _Blur_indexRecto = imgIndex;
+    QString imagePath = _inputImageList[imgIndex];
     imagePath = _PicDirectory + "/" + imagePath;
     _Blur_rectoImgBlur.load(imagePath);
     //std::cout << ".............  " << imagePath.toStdString() << std::endl;
@@ -3103,9 +3139,10 @@ Assistant::Hole_updateTirageAndTotal()
     ui->TirageHole->setValue(0);
 
   if (nbDegs > 0 && ui->TirageHole->value() == 0) {
-    ui->TirageHole->setValue(
-      1); //will call Hole_tirageHoleChanged via signal/slot
-  } else {
+    ui->TirageHole->setValue(1);
+    //will call Hole_tirageHoleChanged via signal/slot
+  }
+  else {
     const int total = nbDegs * _inputImageList.size() * ui->TirageHole->value();
     ui->TotalHole->setText(QString::number(total));
     updateTotalPic();
@@ -3208,14 +3245,14 @@ Assistant::Hole_LoadPrevImgHole()
 {
   if (!_inputImageList.empty()) {
 
-    int nbPic = P_bounded_rand(0, _inputImageList.size());
+    int imgIndex = P_bounded_rand(0, _inputImageList.size());
     if (_inputImageList.size() > 1)
-      while (nbPic == _Hole_indexRecto)
-        nbPic = P_bounded_rand(0, _inputImageList.size());
+      while (imgIndex == _Hole_indexRecto)
+        imgIndex = P_bounded_rand(0, _inputImageList.size());
 
-    _Hole_indexRecto = nbPic;
+    _Hole_indexRecto = imgIndex;
 
-    QString imagePath = _inputImageList[nbPic];
+    QString imagePath = _inputImageList[imgIndex];
     imagePath = _PicDirectory + "/" + imagePath;
     _Hole_rectoImgHole.load(imagePath);
     //std::cout << ".............  " << imagePath.toStdString() << std::endl;
@@ -3407,7 +3444,7 @@ Hole_degradateImageRandom(QImage &degImg,
 
   if (!holePattern.isNull()) {
 
-    std::cerr << "   filename=" << filename.toStdString() << "\n";
+    //std::cerr << "   filename=" << filename.toStdString() << "\n";
 
     if (scaleW != 1.f && scaleH != 1.f) {
       const int holeWidth = static_cast<int>(holePattern.width() * scaleW);
@@ -4844,7 +4881,7 @@ Assistant::do_bleed(const QString &imageBasename,
     out << saveXml;
     file.close();
 
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    updateProgress();
   }
 }
 
@@ -4887,7 +4924,7 @@ Assistant::do_charDeg(const QString &imageBasename,
     out << saveXml;
     file.close();
 
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    updateProgress();
   }
 }
 
@@ -4973,7 +5010,7 @@ Assistant::do_shadow(const QString &imageBasename,
                      intensity,
                      angle);
 
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    updateProgress();
   }
 }
 
@@ -5043,14 +5080,14 @@ Assistant::do_phantom(const QString &imageBasename,
       Phantom_applyAndSave(recto, dc::PhantomCharacter::Frequency::RARE,
 			   _PhantomPatternsPath, i, imageBasename, outputImageDir);
 
-      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+      updateProgress();
     }
 
     if (ui->Phantom_Frequent->isChecked()) {
       Phantom_applyAndSave(recto, dc::PhantomCharacter::Frequency::FREQUENT,
 			   _PhantomPatternsPath, i, imageBasename, outputImageDir);
 
-      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+      updateProgress();
     }
 
     if (ui->Phantom_VeryFrequent->isChecked()) {
@@ -5058,7 +5095,7 @@ Assistant::do_phantom(const QString &imageBasename,
       Phantom_applyAndSave(recto, dc::PhantomCharacter::Frequency::VERY_FREQUENT,
 			   _PhantomPatternsPath, i, imageBasename, outputImageDir);
 
-      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+      updateProgress();
     }
   }
 }
@@ -5289,7 +5326,7 @@ Assistant::do_blur(const QString &imageBasename,
                               imageBasename,
                               outputImageDir);
 
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        updateProgress();
       }
     }
 
@@ -5308,7 +5345,7 @@ Assistant::do_blur(const QString &imageBasename,
                               imageBasename,
                               outputImageDir);
 
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        updateProgress();
       }
     }
 
@@ -5327,7 +5364,7 @@ Assistant::do_blur(const QString &imageBasename,
                               imageBasename,
                               outputImageDir);
 
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        updateProgress();
       }
     }
 
@@ -5346,7 +5383,7 @@ Assistant::do_blur(const QString &imageBasename,
                               imageBasename,
                               outputImageDir);
 
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        updateProgress();
       }
     }
 
@@ -5365,7 +5402,7 @@ Assistant::do_blur(const QString &imageBasename,
                               imageBasename,
                               outputImageDir);
 
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        updateProgress();
       }
     }
 
@@ -5384,7 +5421,7 @@ Assistant::do_blur(const QString &imageBasename,
                               imageBasename,
                               outputImageDir);
 
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+        updateProgress();
       }
     }
   }
@@ -5446,7 +5483,7 @@ Assistant::do_hole(const QString &imageBasename,
     Hole_saveImage(rectoC, path, lPrefix, imgExt, holes);
     //TODO: handle error !
 
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    updateProgress();
   }
 }
 
@@ -5516,11 +5553,23 @@ Assistant::do_3D(const QString &imageBasename,
     out << saveXml;
     file.close();
 
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    updateProgress();
   }
 
   delete w;
 }
+
+//To call when one more image has been saved
+void
+Assistant::updateProgress() const
+{
+  assert(_progressDialog);
+
+  _progressDialog->setValue(_progressDialog->value()+1);
+  _numGeneratedImages += 1;
+  qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+}
+
 
 void
 Assistant::generateDegradedImages() const
@@ -5540,6 +5589,16 @@ Assistant::generateDegradedImages() const
     inputImageDir += '/';
 
   const int numPics = picsList.size();
+
+  if (numPics > 0) {
+    _numGeneratedImages = 0;
+    _progressDialog = new QProgressDialog("Generating images...", "Cancel", 0, numPics);
+    _progressDialog->setWindowModality(Qt::WindowModal);
+    _progressDialog->setMinimumDuration(10); //time in ms before it appears
+    _progressDialog->show();
+  }
+
+
   for (int picIndex = 0; picIndex < numPics; ++picIndex) {
     const QString &pic = picsList[picIndex];
 
@@ -5548,8 +5607,6 @@ Assistant::generateDegradedImages() const
     const QString imageBasename =
       QFileInfo(pic).completeBaseName(); //remove path & last extension
 
-    std::cerr << "----------------------- " << picIndex << "/" << numPics
-              << "\n";
 
     const QString rectoPath = inputImageDir + pic;
     QImage recto(rectoPath);
@@ -5557,32 +5614,49 @@ Assistant::generateDegradedImages() const
     if (recto.isNull()) {
       std::cerr << "ERROR: unable to load image: " << rectoPath.toStdString()
                 << "\n";
-    } else {
+    }
+    else {
       assert(!recto.isNull());
 
       //Apply bleedThrough if enabled
       if (this->bleedEnable()) {
         do_bleed(imageBasename, recto, picIndex, inputImageDir, savePath);
+
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
 
       //Apply CharacterDegradation if enabled
       if (this->charEnable()) {
         do_charDeg(imageBasename, recto, savePath);
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
 
       //Apply Shadow Binding if enabled
       if (this->shadEnable()) {
         do_shadow(imageBasename, recto, savePath);
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
 
       //Apply phantom characters if enabled
       if (this->phantEnable()) {
         do_phantom(imageBasename, recto, savePath);
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
 
       //Apply blur degradations if enabled
       if (this->blurEnable()) {
         do_blur(imageBasename, recto, savePath);
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
 
       //Apply holes if enabled
@@ -5593,15 +5667,24 @@ Assistant::generateDegradedImages() const
       //Apply 3D if enabled
       if (this->dist3DEnable()) {
         do_3D(imageBasename, recto, savePath);
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
 
       //Apply Gradient Domain Degradation if enabled
       if (this->gddEnable()) {
         do_GDD(imageBasename, recto, savePath);
+	if (_progressDialog->wasCanceled()) {
+	  break;
+	}
       }
       
     }
   }
+
+  delete _progressDialog;
+  _progressDialog = nullptr;
 
   QGuiApplication::restoreOverrideCursor();
 }
@@ -5609,11 +5692,13 @@ Assistant::generateDegradedImages() const
 void
 Assistant::updateResults()
 {
+  const size_t numImagesToGenerate = ui->TotalPic->text().toUInt();
+
   ui->label_results->setText(
-    tr("%n image(s) have been written into directory:\n%1",
-       "",
-       ui->TotalPic->text().toUInt())
-      .arg(_outputDegradedImageDir));
+			     tr("%1/%n image(s) have been written into directory:\n%3", "", numImagesToGenerate)
+			     .arg(_numGeneratedImages)
+			     .arg(_outputDegradedImageDir)
+			     );
 }
 
 void

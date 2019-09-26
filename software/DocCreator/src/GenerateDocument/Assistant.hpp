@@ -16,6 +16,7 @@ class RandomDocumentParameters;
 namespace Ui {
 class Assistant;
 }
+class QProgressDialog;
 
 struct HoleData;
 
@@ -321,6 +322,9 @@ protected:
              const QImage &recto,
              const QString &outputImageDir) const;
 
+
+  void updateProgress() const;
+
 private:
   Ui::Assistant *ui;
 
@@ -462,6 +466,9 @@ private:
   QStringList _txtList;
   QStringList _inputImageList;
   DocumentController *_DocController;
+
+  mutable QProgressDialog *_progressDialog;
+  mutable size_t _numGeneratedImages;
 };
 
 #endif // ASSISTANT_H
