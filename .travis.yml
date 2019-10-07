@@ -11,7 +11,7 @@ cache: ccache
 jobs:
   include:
     ###
-    - stage: Ubuntu 14.04 (gcc-4.8.4, cmake 3.9.2) Qt4.8.6, Debug
+    - stage: Ubuntu 14.04 (gcc-4.8.4, cmake 3.9.2) Qt5.2.1, Debug
       os: linux
       dist: trusty
       compiler: gcc
@@ -24,16 +24,19 @@ jobs:
             - libpng-dev
             - libjpeg-dev
             - libopencv-dev
-            # - qtbase5-dev
-            # - qtdeclarative5-dev
-            # - libqt5xmlpatterns5-dev
-            # - libqt5opengl5-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
 
       script:
         - cmake --version
-        - qmake --version
         - gcc --version
         - ninja --version
+        - qmake --version
+        - qtchooser -list-versions
+        - export QT_SELECT=qt5
+        - qmake --version        
         - mkdir build
         - cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
