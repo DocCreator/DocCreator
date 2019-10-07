@@ -40,6 +40,7 @@ jobs:
         - ls tests/Degradations/
         - tests/Degradations/testBleedThrough
         - ninja test
+        - qmake-qt5 --version
 
     - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
       os: linux
