@@ -33,14 +33,16 @@ jobs:
         - cmake --version
         - qmake --version
         - gcc --version
+        - ls -l /usr/bin/qmake*
+        - qtchooser -list-versions
+        - export QT_SELECT=qt5
+        - qmake --version        
         - mkdir build
         - cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
         - ninja -j 3
-        - ls tests/Degradations/
-        - tests/Degradations/testBleedThrough
         - ninja test
-        - qmake-qt5 --version
+
 
     - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
       os: linux
