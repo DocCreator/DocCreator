@@ -11,29 +11,90 @@ cache: ccache
 jobs:
   include:
     ###
-    # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Release
-    #   os: linux
-    #   dist: trusty
-    #   compiler: gcc
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - cmake
-    #         - ccache
-    #         - ninja-build
-    #         - libpng-dev
-    #         - libjpeg-dev
-    #         - libopencv-dev
-    #         - qtbase5-dev
-    #         - qtdeclarative5-dev
-    #         - libqt5xmlpatterns5-dev
-    #         - libqt5opengl5-dev
+    - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
+      os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
 
-    #   script:
-    #     - mkdir build
-    #     - cd build
-    #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release 
-    #     - ninja -j 3
+      script:
+        - cmake --version
+        - qmake --version
+        - gcc --version
+        - ninja --version
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ninja test
+
+    - stage: Ubuntu 16.04, gcc-5.4.0, Qt5.5.1, cmake 3.5.1, Release
+      os: linux
+      dist: xenial
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
+
+      script:
+        - cmake --version
+        - qmake --version
+        - gcc --version
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ninja test
+
+    - stage: Ubuntu 18.04, gcc-7.4.0, Qt5.9.5, cmake 3.10.2, Release
+      os: linux
+      dist: xenial
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
+
+      script:
+        - cmake --version
+        - qmake --version
+        - gcc --version
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ninja test
 
     # ###
     # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
@@ -143,10 +204,30 @@ jobs:
   #######################################################
   
     ###
-    # - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
-    #   os: osx
-    #   osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
-    #   compiler: clang
+    - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
+      os: osx
+      osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
+      compiler: clang
+
+      before_install:
+        - brew update
+        - brew list
+        #- brew outdated qt || brew upgrade qt
+        - brew install qt
+        - brew list
+        - ls /usr/local/opt/
+        - export PATH=$PATH:/usr/local/opt/qt/bin
+        #- brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
+        - pip2 uninstall -y numpy && brew install opencv #see https://github.com/travis-ci/travis-ci/issues/6688
+        - brew list
+
+      script:
+        - cmake --version
+        - qmake --version
+        - mkdir build
+        - cd build
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt)
+        - make -j 3
       
     #   before_install:
     #     - echo $PATH
@@ -215,6 +296,8 @@ jobs:
         - brew list
 
       script:
+        - cmake --version
+        - qmake --version
         - mkdir build
         - cd build
         - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt)
