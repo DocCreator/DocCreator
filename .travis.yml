@@ -11,6 +11,36 @@ cache: ccache
 jobs:
   include:
     ###
+    - stage: Ubuntu 16.04, gcc-5.4.0, Qt5.5.1, cmake 3.5.1, Release
+      os: linux
+      dist: xenial
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
+
+      script:
+        - cmake --version
+        - qmake --version
+        - gcc --version
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ls tests/Degradations/
+        - tests/Degradations/testBleedThrough
+        - ninja test
+
     - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
       os: linux
       dist: trusty
@@ -38,34 +68,8 @@ jobs:
         - cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
         - ninja -j 3
-        - ninja test
-
-    - stage: Ubuntu 16.04, gcc-5.4.0, Qt5.5.1, cmake 3.5.1, Release
-      os: linux
-      dist: xenial
-      compiler: gcc
-      addons:
-        apt:
-          packages:
-            - cmake
-            - ccache
-            - ninja-build
-            - libpng-dev
-            - libjpeg-dev
-            - libopencv-dev
-            - qtbase5-dev
-            - qtdeclarative5-dev
-            - libqt5xmlpatterns5-dev
-            - libqt5opengl5-dev
-
-      script:
-        - cmake --version
-        - qmake --version
-        - gcc --version
-        - mkdir build
-        - cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-        - ninja -j 3
+        - ls tests/Degradations/
+        - tests/Degradations/testBleedThrough
         - ninja test
 
     - stage: Ubuntu 18.04, gcc-7.4.0, Qt5.9.5, cmake 3.10.2, Release
