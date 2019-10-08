@@ -1,5 +1,6 @@
 ﻿environment:
   NINJA_URL: "https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip"
+  VCVAR2017: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat'
   matrix:
     # MSVC x64 Ninja Qt 5.12.4
     - CMAKE_GENERATOR: "Ninja"
@@ -20,7 +21,7 @@ platform:
   - x64
   
 configuration:
-  - Debug
+  #- Debug   #it does not compile in Debug due to tesseract305d.lib
   - Release
   
 init:
@@ -36,6 +37,7 @@ init:
   
 build_script:
   - mkdir build
-  - cd build 
+  - cd build
+  - if %CMAKE_GENERATOR%==Ninja (call %VCVARSALL%)
   - cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_PREFIX_PATH="%QT5_DIR%" -DCMAKE_CONFIGURATIONS_TYPES="%CONFIGURATION%"
   - cmake --build . --config "%CONFIGURATION%"
