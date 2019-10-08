@@ -1,6 +1,5 @@
 ﻿environment:
   NINJA_URL: "https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip"
-  VCVAR2017: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat
   matrix:
     # MSVC x64 Ninja Qt 5.12.4
     - CMAKE_GENERATOR: "Ninja"
@@ -26,20 +25,17 @@ configuration:
   
 init:
   # Install Ninja
-  - ps: |
-      if ("$env:CMAKE_GENERATOR" -eq "Ninja") {
-        appveyor DownloadFile $env:NINJA_URL -FileName ninja.zip ;
-        7z x ninja.zip -oC:\ninja > nul ;
-        $env.PATH = C:\ninja;$env.PATH ;
-        ninja --version ;
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-      }
+  - appveyor DownloadFile %NINJA_URL% -FileName ninja.zip ;
+  - 7z x ninja.zip -oC:\ninja > nul ;
+  - set PATH=C:\ninja;%PATH% ;
+  - ninja --version ;
   
   # Install OpenCV (with chocolatey)
   - choco install OpenCV -y
   - set OPENCV_DIR=C:\tools\opencv\build
   
 build_script:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - mkdir build
   - cd build
   - cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_PREFIX_PATH="%QT5_DIR%" -DCMAKE_CONFIGURATIONS_TYPES="%CONFIGURATION%"
