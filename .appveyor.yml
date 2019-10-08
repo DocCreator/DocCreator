@@ -3,11 +3,11 @@
   matrix:
     # MSVC x64 Ninja Qt 5.12.4
     - CMAKE_GENERATOR: "Ninja"
-      QT5_DIR: "C:\Qt\5.12.4\msvc2017_64"
+      QT5_DIR: C:\Qt\5.12.4\msvc2017_64
       
     # MSVC x64 msbuild Qt 5.13.0
     - CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-      QT5_DIR: "C:\Qt\5.13.0\msvc2017_64"
+      QT5_DIR: C:\Qt\5.13.0\msvc2017_64
  
 shallow_clone: true
 
