@@ -293,7 +293,8 @@ jobs:
     ###
     - stage: macOS 10.12, clang, Qt5 & OpenCV from brew, Release
       os: osx
-      osx_image: xcode8.3 #uses macOS 10.12 & Xcode 8.3.3, cmake 3.6.2
+      #osx_image: xcode8.3 #uses macOS 10.12 & Xcode 8.3.3, cmake 3.6.2
+      osx_image: xcode9.2 #uses macOS 10.12 & Xcode 9.2, cmake 3.6.2
       compiler: clang
 
       before_install:
