@@ -26,13 +26,13 @@ configuration:
   
 init:
   # Install Ninja
-  - if "%CMAKE_GENERATOR%"=="Ninja" {
+  - if "%CMAKE_GENERATOR%"=="Ninja" (
       appveyor DownloadFile %NINJA_URL% -FileName ninja.zip ;
       7z x ninja.zip -oC:\ninja > nul ;
       set PATH=C:\ninja;%PATH% ;
       ninja --version ;
       call "%VCVAR2017%"
-    }
+    )
   
   # Install OpenCV (with chocolatey)
   - choco install OpenCV -y
