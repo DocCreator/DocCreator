@@ -25,10 +25,10 @@ configuration:
   
 init:
   # Install Ninja
-  - appveyor DownloadFile %NINJA_URL% -FileName ninja.zip ;
-  - 7z x ninja.zip -oC:\ninja > nul ;
-  - set PATH=C:\ninja;%PATH% ;
-  - ninja --version ;
+  - appveyor DownloadFile %NINJA_URL% -FileName ninja.zip
+  - 7z x ninja.zip -oC:\ninja > nul
+  - set PATH=C:\ninja;%PATH%
+  - ninja --version
   
   # Install OpenCV (with chocolatey)
   - choco install OpenCV -y
