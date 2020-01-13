@@ -634,8 +634,8 @@ namespace dc {
       cv::Mat planes[] = { cv::Mat_<float>(padded),
 			   cv::Mat::zeros(padded.size(), CV_32F) };
       cv::Mat complexI;
-      cv::Mat_<float> tmpT = cv::Mat_<float>(padded);
-      cv::Mat temp = cv::Mat::zeros(padded.size(), CV_32F);
+      //cv::Mat_<float> tmpT = cv::Mat_<float>(padded); //B:unused
+      //cv::Mat temp = cv::Mat::zeros(padded.size(), CV_32F); //B:unused
       cv::merge(
 		planes, 2, complexI); // Add to the expanded another plane with zeros
       cv::dft(complexI, complexI);
