@@ -575,7 +575,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   _docController->addTextBlock(
     pageMarginLeft, pageMarginTop, columnsWidth, columnsHeight);
 
-  bool isBalance = true;
+  const bool isBalance = true; //B:useless?
   if (isBalance) {
     int heightFilledTextBlock = 0;
     QList<LineText *> tmpParagraphs;
@@ -1157,7 +1157,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
 
   //_docController->addTextBlock(pageMarginLeft, pageMarginTop, columnsWidth, columnsHeight);
 
-  bool isBalance = true;
+  const bool isBalance = true; //B:useless?
   if (isBalance) {
     int heightFilledTextBlock = 0;
     QList<LineText *> tmpLines;

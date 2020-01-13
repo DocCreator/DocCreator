@@ -10,6 +10,9 @@ class FRAMEWORK_EXPORT XMLDocumentSaver : public DocumentSaver
 public:
   explicit XMLDocumentSaver(Doc::Document *doc);
   ~XMLDocumentSaver();
+  XMLDocumentSaver(const XMLDocumentSaver &) = delete;
+  XMLDocumentSaver &operator=(const XMLDocumentSaver &) = delete;
+
 
   virtual void createNewDocumentOutput() override;
 
