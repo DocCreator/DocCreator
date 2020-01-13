@@ -483,7 +483,7 @@ struct DEBUG_VertexIndexSorter
 {
   const Mesh &m_mesh;
 
-  DEBUG_VertexIndexSorter(const Mesh &mesh)
+  explicit DEBUG_VertexIndexSorter(const Mesh &mesh)
     : m_mesh(mesh)
   {}
 
@@ -2738,13 +2738,13 @@ getIntersectionLine(const Mesh &mesh,
 
       if (xzidxs.size() < 10) {
         std::cerr << "non duplicates:\n";
-        for (std::vector<X_Z_Idx>::iterator it = xzidxs.begin(); it != itNE2;
-             ++it)
-          std::cerr << it->x << " " << it->z << " idx=" << it->idx << "\n";
+        for (std::vector<X_Z_Idx>::iterator itD = xzidxs.begin(); itD != itNE2;
+             ++itD)
+          std::cerr << itD->x << " " << itD->z << " idx=" << itD->idx << "\n";
         std::cerr << "duplicates:\n";
-        for (std::vector<X_Z_Idx>::iterator it = itNE2; it != xzidxs.end();
-             ++it)
-          std::cerr << it->x << " " << it->z << " idx=" << it->idx << "\n";
+        for (std::vector<X_Z_Idx>::iterator itD = itNE2; itD != xzidxs.end();
+             ++itD)
+          std::cerr << itD->x << " " << itD->z << " idx=" << itD->idx << "\n";
       }
       exit(13);
     }
