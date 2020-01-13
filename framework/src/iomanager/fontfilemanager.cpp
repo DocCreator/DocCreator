@@ -312,8 +312,8 @@ FontFileManager::saveBaseLineInformation(const QString &path,
     return -1;
   }
   file.close();
-  QDomElement docElem = doc.documentElement();
-  QDomElement write_elem = doc.createElement(QStringLiteral("information"));
+  //QDomElement docElem = doc.documentElement(); //B:unused
+  QDomElement write_elem = doc.createElement(QStringLiteral("information")); //B:unused
 
   QDomNodeList letters = doc.elementsByTagName(QStringLiteral("letter"));
 
