@@ -304,16 +304,16 @@
   
   <controlbuttons> <!-- Boutons de contrôles, on a besoin uniquement de ceux là, ni plus ni moins (bien que c'est à voir pour les deux alt, ctrl -->
     <button id="16777251" name="Alt" width="6.0" height="19.0" positionX="8.0" positionY="77.0" />
-    <button id="16781571" name="Alt Gr" width="6.0" height="19.0" positionX="62.75" positionY="77.0" />
+    <button id="16781571" name="Alt Gr" width="7.5" height="19.0" positionX="62.75" positionY="77.0" />
     <button id="16777248" name="Shift" width="14.5" height="16.0" positionX="1.5" positionY="56.0" />
     <button id="16777219" name="Backspace" width="11.0" height="16.0" positionX="87.5" positionY="2.0" />
     <button id="16777223" name="Del" width="6.0" height="19.0" positionX="69.25" positionY="77.0" />
     <button id="16777249" name="Ctrl" width="6.0" height="19.0" positionX="1.5" positionY="77.0" />
     <!-- <button id="16777249" name="RCtrl" width="6.0" height="19.0" positionX="62.5" positionY="77.0" /> -->
-    <button id="16777235" name="Up" width="6.0" height="10.0" positionX="82.5" positionY="77.0" />
-    <button id="16777237" name="Down" width="6.0" height="10.0" positionX="82.5" positionY="87.0" />
-    <button id="16777234" name="Left" width="6.0" height="10.0" positionX="75.75" positionY="87.0" />
-    <button id="16777236" name="Right" width="6.0" height="10.0" positionX="89.25" positionY="87.0" />
+    <button id="16777235" name="Up" width="7.5" height="11.8" positionX="83" positionY="75.0" />
+    <button id="16777237" name="Down" width="7.5" height="11.8" positionX="83" positionY="87.0" />
+    <button id="16777234" name="Left" width="7.2" height="11.8" positionX="75.75" positionY="87.0" />
+    <button id="16777236" name="Right" width="7.2" height="11.8" positionX="90.65" positionY="87.0" />
     <button id="16777217" name="Tab" width="9.25" height="16.0" positionX="1.5" positionY="20.0" />
     <button id="16777252" name="CapsLock" width="10.75" height="16.0" positionX="1.5" positionY="38.0" />
     <button id="16777220" name="Enter" width="11.25" height="33.0" positionX="86.0" positionY="38.0" />
