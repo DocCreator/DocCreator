@@ -1442,8 +1442,8 @@ DocCreator::createActions()
 
   //DocCreator
   _chooseTypeDoc = new QAction(
-    QIcon(":/images/generate.png"), tr("&Generate Documents..."), this);
-  _chooseTypeDoc->setStatusTip(tr("Generate synthetic documents"));
+    QIcon(":/images/generate.png"), tr("Batch &Generation of Documents..."), this);
+  _chooseTypeDoc->setStatusTip(tr("Batch generate synthetic documents"));
   connect(_chooseTypeDoc, SIGNAL(triggered()), this, SLOT(generateDocuments()));
 
 
@@ -1465,7 +1465,7 @@ DocCreator::createActions()
   connect(_binarization, SIGNAL(triggered()), this, SLOT(binarization()));
 
   _synthetiseImage = new QAction(tr("&Synthetize image..."), this);
-  _synthetiseImage->setStatusTip(tr("Synthetise image"));
+  _synthetiseImage->setStatusTip(tr("Synthetize image"));
   connect(_synthetiseImage, SIGNAL(triggered()), this, SLOT(synthetiseImage()));
 
   _lineDetection = new QAction(tr("&LineDetection..."), this);
@@ -1861,7 +1861,7 @@ DocCreator::createMenus()
   _toolsMenu->addAction(_importBackgroundAct);
   _toolsMenu->addAction(_loadKeyboard);
 
-  _fontGeneratorMenu = menuBar()->addMenu(tr("Synthetise"));
+  _fontGeneratorMenu = menuBar()->addMenu(tr("Synthetize"));
   _fontGeneratorMenu->addAction(_backgroundReconstruction);
   _fontGeneratorMenu->addAction(_fontExtraction);
   _fontGeneratorMenu->addAction(_synthetiseImage);
