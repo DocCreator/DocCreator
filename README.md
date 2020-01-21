@@ -211,7 +211,9 @@ You can then launch the executable:
 #### -DBUILD_OTHER_PROGS=ON
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PROGS=ON to cmake. It will be build other example programs using DocCreator framework.  
-In particular, it will build **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*
+In particular, it will build:  
+	* **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*  
+	* **MakeFont** that allows to create DocCreator *old-fonts* from existing (TrueType) fonts. You can save the produced files in *data/font* to use these fonts in DocCreator.  
 
 #### -DBUILD_OTHER_PROGS_3D=ON
 
