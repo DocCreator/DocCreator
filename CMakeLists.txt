@@ -101,6 +101,8 @@ IF(NOT BUILD_TESSERACT)
   #if Tesseract is found, Tesseract_TESSDATA_PARENT_DIR should be set
   IF(NOT Tesseract_FOUND)
     SET(BUILD_TESSERACT ON CACHE STRING "Build Leptonica/Tesseract from sources." FORCE)
+  else()
+    message(STATUS "Found Tesseract.")
   ENDIF(NOT Tesseract_FOUND)
 ENDIF(NOT BUILD_TESSERACT)
 
@@ -247,7 +249,7 @@ IF(BUILD_TESSERACT)
   ENDIF()
 
   #download tessdata
-  SET(TESSDATA_URL http://github.com/tesseract-ocr/tessdata/raw/master)
+  SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata/raw/master)
   IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
     FILE(DOWNLOAD ${TESSDATA_URL}/eng.traineddata ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
     FILE(DOWNLOAD ${TESSDATA_URL}/fra.traineddata ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata)
