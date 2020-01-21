@@ -17,14 +17,14 @@ public:
   explicit Font(const QString &name);
 
   /**
-               Check if a Character @a c is already present in font.
-            */
+     Check if a Character @a c is already present in font.
+  */
   bool contains(Character *c) const;
 
   /**
-               Add a Character @a c if not already present in font.
-               Return true if character was added to font, false otherwise.
-            */
+     Add a Character @a c if not already present in font.
+     Return true if character was added to font, false otherwise.
+  */
   bool addCharacter(Character *c);
 
   Character *getCharacter(const QString &charValue) const;
