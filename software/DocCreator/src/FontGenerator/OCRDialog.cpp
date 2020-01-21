@@ -215,6 +215,12 @@ OCRDialog::process()
   tess.SetVariable("tessedit_char_whitelist",
                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
+#if TESSERACT_VERSION == 262144
+  //On Ubuntu 18.04, it seems that tesseract 4.0 needs "tessdata" in path to find languages
+  // and thus to initialize correctly.
+  m_tessdataParentDir += "tessdata";
+#endif
+
   const QByteArray tessdataParentDirBA = m_tessdataParentDir.toLatin1();
   const char *tessdataParentDir = tessdataParentDirBA.constData();
   //B:Warning: tessdataParentDir must end with "/"
@@ -250,6 +256,7 @@ OCRDialog::process()
 #endif //TESSERACT_VERSION
 
   const int tessInitFailed =
+    //tess.Init("/usr/share/tesseract-ocr/4.00/tessdata/", language, tesseract::OEM_DEFAULT);
     tess.Init(tessdataParentDir, language, tesseract::OEM_DEFAULT);
 
   if (tessInitFailed == 0) {
@@ -352,6 +359,11 @@ OCRDialog::process()
     m_currentIndex = 0;
 
     updateView();
+  }
+  else {
+
+    std::cerr<<"ERROR: tesseract initialization failed\n";
+    std::cerr <<" TESSERACT_VERSION="<<TESSERACT_VERSION<<"\n";
   }
 }
 
