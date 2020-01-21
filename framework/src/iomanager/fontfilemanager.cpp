@@ -177,9 +177,7 @@ FontFileManager::fontFromDirectory(const QString &dirpath,
       }
       charData = new Models::CharacterData(image, id.toInt());
 
-      if (font->getCharacter(character) == nullptr)
-        font->addCharacter(new Models::Character(character));
-      font->getCharacter(character)->add(charData);
+      font->addCharacter(character, charData);
     }
   }
 

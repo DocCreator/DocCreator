@@ -459,6 +459,11 @@ private:
   QString _outputDegradedImageDir;
   QString _outputTxtImageDir;
 
+  QString _originalCurrentFont;
+  QList<Models::Font *> _originalFonts;
+  QString _originalCurrentBackgroundName;
+  QList<QString> _originalBackgrounds;
+
   QStringListModel _fontList;
   QStringListModel _backgroundList;
   QStringList _fontListChoice;

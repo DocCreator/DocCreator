@@ -59,6 +59,55 @@ static const int BLUR_PREVIEW_HEIGHT = 319;
 static const int HOLE_PREVIEW_WIDTH = 209;
 static const int HOLE_PREVIEW_HEIGHT = 319;
 
+
+//CODE DUPLICATION with RandomDocumentCreator
+static void
+saveFonts(QString &prevCurrFontName, QList<Models::Font *> &prevFonts)
+{
+  prevCurrFontName = Context::FontContext::instance()->getCurrentFontName();
+  QStringList prevFontList = Context::FontContext::instance()->getFontNames();
+  for (const QString &fontName : prevFontList) {
+    prevFonts.push_back(Context::FontContext::instance()->getFont(fontName));
+    Context::FontContext::instance()->removeFont(fontName);
+  }
+}
+
+static void
+restoreFonts(const QString &prevCurrFontName,
+             const QList<Models::Font *> &prevFonts)
+{
+  for (Models::Font *f : prevFonts) {
+    Context::FontContext::instance()->addFont(f);
+  }
+  if (!prevCurrFontName.isEmpty()) {
+    Context::FontContext::instance()->setCurrentFont(prevCurrFontName);
+  }
+}
+
+static void
+saveBackgrounds(QString &prevCurrBackgroundName, QList<QString> &prevBackgrounds)
+{
+  prevCurrBackgroundName = Context::BackgroundContext::instance()->getCurrentBackground();
+  prevBackgrounds = Context::BackgroundContext::instance()->getBackgrounds();
+  Context::BackgroundContext::instance()->clear();
+}
+
+static void
+restoreBackgrounds(const QString &prevCurrBackgroundName,
+		   const QList<QString> &prevBackgrounds)
+{
+  for (const QString &b : prevBackgrounds) {
+    Context::BackgroundContext::instance()->addBackground(b);
+  }
+  if (!prevCurrBackgroundName.isEmpty()) {
+    Context::BackgroundContext::instance()->setCurrentBackground(prevCurrBackgroundName);
+  }
+}
+
+
+
+
+
 Assistant::Assistant(DocumentController *doc, QWidget *parent)
   : QWizard(parent)
   , ui(new Ui::Assistant)
@@ -105,17 +154,26 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   QColor Hole_defaultBackgroundColor(0, 0, 0, 255);
   Hole_setBackgroundColor(Hole_defaultBackgroundColor);
 
+
+  saveFonts(_originalCurrentFont, _originalFonts);
+
   const QString fontPath = QDir(Core::ConfigurationManager::get(
                                   AppConfigMainGroup, AppConfigFontFolderKey)
                                   .toString())
                              .absolutePath();
   updateListFont(fontPath);
+
+  saveBackgrounds(_originalCurrentBackgroundName, _originalBackgrounds);
+
+
   const QString backgroundPath =
     QDir(Core::ConfigurationManager::get(AppConfigMainGroup,
                                          AppConfigBackgdFolderKey)
            .toString())
       .absolutePath();
   updateListBackground(backgroundPath);
+
+
 
   //QObject::connect(ui->FolderText, SIGNAL(clicked()), this, SLOT(RadioButtons()));
   //QObject::connect(ui->LoremIpsum, SIGNAL(clicked()), this, SLOT(RadioButtons()));
@@ -488,6 +546,10 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
 Assistant::~Assistant()
 {
   delete ui;
+
+  restoreFonts(_originalCurrentFont, _originalFonts);
+  restoreBackgrounds(_originalCurrentBackgroundName, _originalBackgrounds);
+
 }
 
 /**
@@ -883,6 +945,9 @@ Assistant::updateListFont(const QString &fontPath)
   Context::FontContext::instance()->initialize(fontPath, fontExt);
 
   const QStringList list = Context::FontContext::instance()->getFontNames();
+
+  if (! list.isEmpty())
+    Context::FontContext::instance()->setCurrentFont(list.back());
 
   _fontList.setStringList(list);
   ui->listFontView->setModel(&_fontList);
@@ -1507,7 +1572,9 @@ Assistant::generateTxtImages()
 	  RandomDocumentParameters param;
 	  commonParams.copyTo(param);
 	  const QString txtPath = _txtDirectory + "/" + file;
-	  const QString fontPath = _FontDirectory + "/" + font + ".of";
+	  QString fontPath = _FontDirectory + "/" + font;
+	  if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
+	    fontPath += ".of";
 	  param.fontList.append(fontPath);
 	  param.textList.append(txtPath);
 	  param.outputFolderPath = _outputTxtImageDir;
@@ -1538,7 +1605,9 @@ Assistant::generateTxtImages()
 
 	RandomDocumentParameters param;
 	commonParams.copyTo(param);
-	const QString fontPath = _FontDirectory + "/" + font + ".of";
+	QString fontPath = _FontDirectory + "/" + font;
+	if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
+	  fontPath += ".of";
 	param.fontList.append(fontPath);
 	param.outputFolderPath = _outputTxtImageDir;
 
@@ -1585,7 +1654,9 @@ Assistant::generateTxtImages()
   }
   const QStringList &fontListChoice = _fontListChoice;
   for (const QString &font : fontListChoice) {
-    const QString fontPath = _FontDirectory + "/" + font + ".of";
+    QString fontPath = _FontDirectory + "/" + font;
+    if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
+      fontPath += ".of";
     params.fontList.append(fontPath);
   }
 

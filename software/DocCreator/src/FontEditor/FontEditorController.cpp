@@ -25,5 +25,5 @@ FontEditorController::addCharacter(const QString &s)
   }
 
   _view->addCharacter(
-    Context::FontContext::instance()->getCurrentFont()->getCharacter(s));
+    Context::FontContext::instance()->getCurrentFont()->getEditableCharacter(s));
 }
