@@ -31,7 +31,7 @@ FontFileManager::fontFromXml(const QString &filepath)
   QFile file(filepath);
   const bool ok = file.open(QFile::ReadOnly);
   if (!ok) {
-    std::cerr << "Warning: unable to open font file: " << filepath.toStdString()
+    std::cerr << "Warning: unable to open input font file: " << filepath.toStdString()
               << "\n";
     return nullptr;
   }
@@ -192,7 +192,7 @@ FontFileManager::fontToXml(const Models::Font *font, const QString &filepath)
   QFile file(filepath);
   const bool ok = file.open(QFile::WriteOnly);
   if (!ok) {
-    std::cerr << "Warning: unable to open font file: " << filepath.toStdString()
+    std::cerr << "Warning: unable to open output font file: " << filepath.toStdString()
               << "\n";
     return;
   }
