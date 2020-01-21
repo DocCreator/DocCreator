@@ -86,8 +86,8 @@ FontContext::clear()
   FontMap::iterator it = _fontMap.begin();
   const FontMap::iterator itEnd = _fontMap.end();
   for (; it != itEnd; ++it) {
-    delete it
-      .value(); //B: should we notify observers befeore deletion ???? Or should we use shared_ptr ???
+    delete it.value();
+    //B: should we notify observers before deletion ???? Or should we use shared_ptr ???
   }
   _fontMap.clear();
   _currentFont = nullptr;
