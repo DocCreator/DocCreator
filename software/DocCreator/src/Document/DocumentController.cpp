@@ -412,7 +412,7 @@ DocumentController::addCharacter(const QString &s, int id)
     return;
   }
 
-  Models::Character *character = font->getCharacter(s);
+  const Models::Character *character = font->getCharacter(s);
   if (character == nullptr) {
     return;
   }
@@ -493,7 +493,7 @@ DocumentController::addCharacters(const QList<QString> &charList)
   //
   for (const QString &s : charList) {
 
-    Models::Character *character = font->getCharacter(s);
+    const Models::Character *character = font->getCharacter(s);
 
     if (character != nullptr) {
 

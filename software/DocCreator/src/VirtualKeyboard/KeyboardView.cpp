@@ -472,7 +472,7 @@ KeyboardView::drawKeyboard(Models::Font *font)
     if (fontCodeValue > -1) {
 
       const QString charValue(static_cast<QChar>(fontCodeValue));
-      Models::Character *c = font->getCharacter(charValue);
+      const Models::Character *c = font->getCharacter(charValue);
 
       if (c != nullptr) {
         charButtonView->setEnabled(true);

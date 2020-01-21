@@ -55,13 +55,13 @@ FontEditorView::setCenterChar(Models::Character *ch)
 }
 
 void
-FontEditorView::setLeftChar(Models::Character *ch)
+FontEditorView::setLeftChar(const Models::Character *ch)
 {
   _scene->setLeftChar(ch);
 }
 
 void
-FontEditorView::setRightChar(Models::Character *ch)
+FontEditorView::setRightChar(const Models::Character *ch)
 {
   _scene->setRightChar(ch);
 }
@@ -71,7 +71,8 @@ FontEditorView::addCharacter(Models::Character *ch)
 {
   if (_scene->getCenterCharItem() == nullptr) {
     setCenterChar(ch);
-  } else {
+  }
+  else {
     switch (_scene->getCursorItem()->getCursorPosition()) {
       case RIGHT:
         setRightChar(ch);

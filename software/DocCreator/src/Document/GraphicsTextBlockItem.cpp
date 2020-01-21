@@ -111,7 +111,7 @@ GraphicsTextBlockItem::setCursorOnCharacter(GraphicsCharacterItem *charItem,
     (charItem->getCharacter()->getCharacterValue() == QLatin1String("\n"));
   cursorBefore = isReturn ? true : cursorBefore;
 
-  Models::Character *c = charItem->getCharacter();
+  const Models::Character *c = charItem->getCharacter();
   const int charImgWidth = charItem->pixmap().width();
   const int charImgHeight = charItem->pixmap().height();
   const int upLineExtra = charImgHeight * (-c->getUpLine() / 100);
@@ -351,7 +351,7 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
   }
   assert(font != nullptr);
 
-  Models::Character *character = font->getCharacter(cDisplay);
+  const Models::Character *character = font->getCharacter(cDisplay);
   if (character == nullptr) { //B: does it happen ?
     return;
   }

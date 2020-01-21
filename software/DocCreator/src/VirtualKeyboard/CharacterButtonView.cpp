@@ -145,7 +145,7 @@ CharacterButtonView::openCharacterChoice()
   assert(fontCode !=
          -1); //Button shoud be disabled if not associated to a font code
   const QString charValue = QString(QChar(fontCode));
-  Models::Character *c =
+  const Models::Character *c =
     Context::FontContext::instance()->getCurrentFont()->getCharacter(charValue);
   assert(c);
   //Models::CharacterDataList charDatas = c->getAllCharacterData();

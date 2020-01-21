@@ -17,13 +17,13 @@ class GraphicsCharacterItem
   Q_OBJECT
 
 public:
-  GraphicsCharacterItem(Models::Character *character,
+  GraphicsCharacterItem(const Models::Character *character,
                         int id,
                         int index,
                         bool mustDeleteCharacter = false);
   ~GraphicsCharacterItem();
 
-  Models::Character *getCharacter() { return _character; }
+  const Models::Character *getCharacter() { return _character; }
 
   void setIndex(int value) { _index = value; }
   int index() const { return _index; }
@@ -44,7 +44,7 @@ protected:
 
 protected:
   //Attributes
-  Models::Character *_character;
+  const Models::Character *_character;
   QImage _img;
   QImage _img_highlighted;
 

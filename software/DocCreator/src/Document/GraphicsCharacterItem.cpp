@@ -18,7 +18,7 @@
 //B:DESIGN: I added "mustDeleteCharacter" parameter to be able to delete characters that are not associated with a character present in the font
 // cf graphicstextblockitem.cpp, it is used for "\n" character.
 
-GraphicsCharacterItem::GraphicsCharacterItem(Models::Character *character,
+GraphicsCharacterItem::GraphicsCharacterItem(const Models::Character *character,
                                              int id,
                                              int index,
                                              bool mustDeleteCharacter)

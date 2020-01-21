@@ -5,7 +5,7 @@
 #include "models/characterdata.h"
 #include <QImage>
 
-CharacterListView::CharacterListView(Models::Character *character,
+CharacterListView::CharacterListView(const Models::Character *character,
                                      QPoint pos,
                                      QWidget *parent)
   : QListWidget(parent)

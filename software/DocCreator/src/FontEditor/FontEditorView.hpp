@@ -27,8 +27,8 @@ public:
 
   /* Setters */
   void setCenterChar(Models::Character *ch);
-  void setLeftChar(Models::Character *ch);
-  void setRightChar(Models::Character *ch);
+  void setLeftChar(const Models::Character *ch);
+  void setRightChar(const Models::Character *ch);
   void addCharacter(Models::Character *ch);
   void setKeyboardController(KeyboardController *keyboardController);
 
