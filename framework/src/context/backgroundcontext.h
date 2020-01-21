@@ -27,11 +27,11 @@ public:
   void setChanged(bool changed);
   void setCurrentBackground(const QString &backgroundName);
   BackgroundList getBackgrounds() const;
+  void addBackground(const QString &background);
 
   void clear();
 
 private:
-  void addBackground(const QString &background);
   void setPath(const QString &path);
 
 private:
