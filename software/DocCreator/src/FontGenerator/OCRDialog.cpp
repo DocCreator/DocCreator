@@ -211,13 +211,39 @@ OCRDialog::process()
 
   /* Tesseract processing */
 
+  std::cerr<<"TESSERACT_VERSION="<<TESSERACT_VERSION<<"\n";
+
+#if TESSERACT_VERSION == 262144
+
+  const std::string lc = setlocale(LC_NUMERIC, NULL);
+  const std::string newLocale = "C";
+  if (lc != newLocale) {
+    //setlocale(LC_NUMERIC, newLocale.c_str());
+    setlocale(LC_ALL, newLocale.c_str());
+    const std::string newLocaleSet = setlocale(LC_NUMERIC, NULL);
+    std::cerr << "Warning: changing LC_NUMERIC from " << lc << " to "
+              << newLocaleSet << " for Tesseract\n";
+
+  //On Ubuntu 19.04, with tesseract 4.0.0 (version=262144)
+  //the constructor tesseract::TessBaseAPI::TessBaseAPI()
+  //fails with this error message:
+  //!strcmp(locale, "C"):Error:Assert failed:in file baseapi.cpp, line 209
+
+  //On Ubuntu 18.04 LTS with same version of tesseract, there is no such error.
+  }
+#endif
+
   tesseract::TessBaseAPI tess;
   tess.SetVariable("tessedit_char_whitelist",
                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
-#if TESSERACT_VERSION == 262144
-  //On Ubuntu 18.04, it seems that tesseract 4.0 needs "tessdata" in path to find languages
+#if TESSERACT_VERSION >= 262144
+  //On Ubuntu 18.04 LTS with tesseract 4.0 (version=262144)
+  //On Ubuntu 19.10 with tesseract 4.1 (version=262400)
+  // it seems that tesseract needs "tessdata" in path to find languages
   // and thus to initialize correctly.
+  //On Ubuntu 19.04 with tesseract 4.0 (version=262144) [same than 18.04]
+  // it is not needed but does not hurt...
   m_tessdataParentDir += "tessdata";
 #endif
 
