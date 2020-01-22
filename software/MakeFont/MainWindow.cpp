@@ -232,7 +232,12 @@ saveFont(const QFont &font,
     const QChar c = charactersToSave.at(i);
 
     //std::cerr<<QString(c).toStdString()<<"\n";
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    int width = fontMetrics.horizontalAdvance(c);
+#else
     int width = fontMetrics.width(c);
+#endif
     int height = fontMetrics.height();
     //QRect boundingRect = fontMetrics.boundingRect(c);
     //std::cerr<<"height="<<height<<"\n";
