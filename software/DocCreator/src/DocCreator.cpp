@@ -1742,6 +1742,7 @@ DocCreator::getTessdataParentDir() const
   QString d = Core::ConfigurationManager::get(AppConfigMainGroup,
                                               AppConfigTessdataParentFolderKey)
                 .toString();
+
   if (d.isEmpty()) {
     //path relative to executable path
     /*
@@ -1751,16 +1752,31 @@ DocCreator::getTessdataParentDir() const
     dir.cd("DocCreator");
     d = dir.absolutePath();
     */
-    //tessdata/ at same level than data/, thus same parent.
-    QDir dir(findRelativeDataDir());
+    QString dataDirStr = findRelativeDataDir();
+    //std::cerr<<"dataDir="<<dataDirStr.toStdString()<<"\n";
+    QDir dir(dataDirStr);
     const bool ok = dir.cdUp();
     if (ok) {
       d = dir.absolutePath();
+      const bool ok2 = dir.cd("tessdata");
+      //if ok2, tessdata is at same level than data/ (thus with same parent directory)
+      if (! ok2) {
+	const bool ok3 = dir.cd("thirdparty");
+	if (ok3) {
+	  d = dir.absolutePath();
+	  const bool ok4 = dir.cd("tessdata");
+	  //if ok4, tessdata is in thirdparty/ at same level than data/
+	  if ( ! ok4)
+	    d = "";
+	}
+      }
     }
+
   }
   std::cerr << "getTessdataParentDir(): " << d.toStdString() << "\n";
   return d;
 }
+
 
 void
 DocCreator::fontExtraction()
