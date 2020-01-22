@@ -1,0 +1,42 @@
+﻿environment:
+  NINJA_URL: "https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip"
+  matrix:
+    # MSVC x64 Ninja Qt 5.12.4
+    - CMAKE_GENERATOR: "Ninja"
+      QT5_DIR: C:\Qt\5.12.4\msvc2017_64
+      
+    # MSVC x64 msbuild Qt 5.13.0
+    - CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+      QT5_DIR: C:\Qt\5.13.0\msvc2017_64
+ 
+shallow_clone: true
+
+clone_folder: c:\projects\DocCreator
+
+os:
+  - Visual Studio 2017
+  
+platform:
+  - x64
+  
+configuration:
+  #- Debug   #it does not compile in Debug due to tesseract305d.lib
+  - Release
+  
+init:
+  # Install Ninja
+  - appveyor DownloadFile %NINJA_URL% -FileName ninja.zip
+  - 7z x ninja.zip -oC:\ninja > nul
+  - set PATH=C:\ninja;%PATH%
+  - ninja --version
+  
+  # Install OpenCV (with chocolatey)
+  - choco install OpenCV -y
+  - set OPENCV_DIR=C:\tools\opencv\build
+  
+build_script:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - mkdir build
+  - cd build
+  - cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_PREFIX_PATH="%QT5_DIR%" -DCMAKE_CONFIGURATIONS_TYPES="%CONFIGURATION%"
+  - cmake --build . --config "%CONFIGURATION%"

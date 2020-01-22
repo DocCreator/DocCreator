@@ -144,8 +144,8 @@ CharacterButtonView::openCharacterChoice()
   const int fontCode = getFontCodeValue();
   assert(fontCode !=
          -1); //Button shoud be disabled if not associated to a font code
-  const QString charValue = QString((QChar)fontCode);
-  Models::Character *c =
+  const QString charValue = QString(QChar(fontCode));
+  const Models::Character *c =
     Context::FontContext::instance()->getCurrentFont()->getCharacter(charValue);
   assert(c);
   //Models::CharacterDataList charDatas = c->getAllCharacterData();
@@ -186,10 +186,12 @@ CharacterButtonView::getController()
 void
 CharacterButtonView::mousePressEvent(QMouseEvent *e)
 {
-  if (e->button() == Qt::RightButton)
+  if (e->button() == Qt::RightButton) {
     openCharacterChoice();
-  else
+  }
+  else {
     QPushButton::mousePressEvent(e);
+  }
 }
 
 /* Slots */

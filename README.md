@@ -1,6 +1,8 @@
-# DocCreator
+# DocCreator [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
+[![Build Status](https://api.travis-ci.org/DocCreator/DocCreator.svg?branch=master)](https://travis-ci.org/DocCreator/DocCreator)
 
- DocCreator is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
+
+ [DocCreator](https://doc-creator.labri.fr/) is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
 
  Citation: if you use DocCreator in Reaserch work for publication, please cite:  
  **Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.**  
@@ -162,7 +164,7 @@ You can then launch the executable:
 
 On Windows, with Visual Studio:  
 First, open a "Developer Command Prompt" ("Developer Command Prompt for VS 2017" for VS17 for example).
-(you can check that OPENCV_DIR is correctly set by doing: echo %OPENCV_DIR%)
+(you can check that OPENCV_DIR is correctly set by doing: `echo %OPENCV_DIR%`)
 go to the source directory,  
 `cd <DocCreatorDirectory>`  
 `mkdir build`  
@@ -209,7 +211,9 @@ You can then launch the executable:
 #### -DBUILD_OTHER_PROGS=ON
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PROGS=ON to cmake. It will be build other example programs using DocCreator framework.  
-In particular, it will build **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*
+In particular, it will build:  
+	* **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*  
+	* **MakeFont** that allows to create DocCreator *old-fonts* from existing (TrueType) fonts. You can save the produced files in *data/font* to use these fonts in DocCreator.  
 
 #### -DBUILD_OTHER_PROGS_3D=ON
 

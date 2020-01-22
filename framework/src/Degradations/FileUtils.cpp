@@ -1,7 +1,8 @@
 #include <cassert>
-#include <vector>
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
+
 
 
 #ifndef WIN32
@@ -28,7 +29,7 @@ namespace dc {
       return entries;
     }
 
-    while ((entry = readdir(dp))) {
+    while ((entry = readdir(dp)) != nullptr) {
 
       if (strncmp(entry->d_name, ".", 1) != 0
 	  && strncmp(entry->d_name, "..", 2) != 0) {

@@ -46,8 +46,9 @@ XMLDocumentLoader::buildStyles()
            _reader->name() == "styles") &&
          !_reader->atEnd()) {
     if (_reader->name() == "style" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       _output->addStyle(buildStyle());
+    }
     _reader->readNext();
   }
 }
@@ -63,8 +64,9 @@ XMLDocumentLoader::buildContent()
     //QXmlStreamReader::TokenType token = _reader->tokenType();
 
     if (_reader->name() == "page" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       _output->add(buildPage());
+    }
     _reader->readNext();
   }
 }
@@ -103,11 +105,13 @@ XMLDocumentLoader::buildPage()
            _reader->name() == "page") &&
          !_reader->atEnd()) {
     if (_reader->name() == "textBlock" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       p->add(buildTextBlock());
+    }
     if (_reader->name() == "imageBlock" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       p->add(buildImageBlock());
+    }
     _reader->readNext();
   }
 
@@ -117,7 +121,7 @@ XMLDocumentLoader::buildPage()
 Doc::DocImageBlock *
 XMLDocumentLoader::buildImageBlock()
 {
-  Doc::DocImageBlock *ib = new Doc::DocImageBlock(
+  auto ib = new Doc::DocImageBlock(
     _reader->attributes().value(QStringLiteral("filePath")).toString());
 
   ib->setX(_reader->attributes().value(QStringLiteral("x")).toString().toInt());
@@ -163,8 +167,9 @@ XMLDocumentLoader::buildTextBlock()
            _reader->name() == "textBlock") &&
          !_reader->atEnd()) {
     if (_reader->name() == "paragraph" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       tb->add(buildParagraph());
+    }
     _reader->readNext();
   }
 
@@ -202,7 +207,7 @@ XMLDocumentLoader::buildParagraph()
 Doc::DocString *
 XMLDocumentLoader::buildString()
 {
-  Doc::DocString *s = new Doc::DocString(
+  auto *s = new Doc::DocString(
     new Doc::DocStyle(
       _reader->attributes().value(QStringLiteral("style")).toString()),
     _output);
@@ -212,8 +217,9 @@ XMLDocumentLoader::buildString()
            _reader->name() == "string") &&
          !_reader->atEnd()) {
     if (_reader->name() == "char" &&
-        _reader->tokenType() == QXmlStreamReader::StartElement)
+        _reader->tokenType() == QXmlStreamReader::StartElement) {
       s->add(buildCharacter());
+    }
     _reader->readNext();
   }
 

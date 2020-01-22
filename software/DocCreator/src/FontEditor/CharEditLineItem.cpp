@@ -95,6 +95,7 @@ CharEditLineItem::setLinePos(int pos, bool emitSignal)
   else if (_orientation == VERTICAL)
     this->setPos(pos, _fixedPos);
 
-  if (emitSignal)
+  if (emitSignal) {
     emit moving(pos);
+  }
 }

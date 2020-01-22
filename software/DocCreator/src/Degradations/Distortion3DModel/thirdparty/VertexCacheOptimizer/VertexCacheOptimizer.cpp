@@ -99,22 +99,22 @@ void optimizeIndexOrder(uint32_t VertexCount, uint32_t IndexCount, uint32_t *Ind
 
   for(int i=0;i<cacheSize;i++)
   {
-    float score = (i<3) ? 0.75f : powf(1.0f - (i-3)/float(cacheSize-3),1.5f);
-    pos2Score[i] = (int) (score * 65536.0f + 0.5f);
+    const float score = (i<3) ? 0.75f : powf(1.0f - (i-3)/float(cacheSize-3),1.5f);
+    pos2Score[i] = static_cast<int> (score * 65536.0f + 0.5f);
   }
 
   val2Score[0] = 0;
   for(int i=1;i<16;i++)
   {
-    float score = 2.0f / sqrtf((float) i);
-    val2Score[i] = (int) (score * 65536.0f + 0.5f);
+    const float score = 2.0f / sqrtf((float) i);
+    val2Score[i] = static_cast<int> (score * 65536.0f + 0.5f);
   }
 
   // outer loop: find triangle to start with
   indPtr = IndexBuffer;
   int seedPos = 0;
 
-  while(1)
+  while(true)
   {
     int seedScore = -1;
     int seedTri = -1;
@@ -225,7 +225,7 @@ void optimizeIndexOrder(uint32_t VertexCount, uint32_t IndexCount, uint32_t *Ind
           vert->CachePos = -1;
 
         // also add to open vertices list if the vertex is indeed open
-        if(vert->OpenPos<0 && vert->TrisLeft)
+        if(vert->OpenPos<0 && vert->TrisLeft!=0)
         {
           vert->OpenPos = openCount;
           openVerts[openCount++] = vertInd;

@@ -8,6 +8,7 @@ configure_file(paths.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/paths.hpp @ONLY)
 
 
 SET(TESTS_DEGRADATIONS_SRC
+  testCommon
   testBleedThrough
   testBlurDegradation
   testCharactersDegradation

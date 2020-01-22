@@ -13,15 +13,17 @@ ControlButtonView::ControlButtonView(KeyboardView *parent, int id)
 void
 ControlButtonView::pressKey()
 {
-  if (!_pressed)
+  if (!_pressed) {
     processKey();
+  }
 }
 
 void
 ControlButtonView::releaseKey()
 {
-  if (_pressed)
+  if (_pressed) {
     processKey();
+  }
 }
 
 /* Events */

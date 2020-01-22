@@ -55,21 +55,23 @@ namespace dc {
       //Pattern : 0.2*x*x + 0.5*y*y + 0.27*x*y - 330.71*x - 554.29*y = -170351.99
       //others numbers are here to ajust the coefficient chosen to Resize the ellipse. (For example, the variable y is multiplied by 0.1 when the size is increased by one). These coefficients were computed for this pattern thanks to Geogebra
       const float a = 0.5;
-      const float b = (-554.29 - (coeff * 0.1)) + (0.27 * (x + horizontal));
-      const float c = (170351.99 - (coeff * 34.61)) +
+      const float b = (-554.29f - (coeff * 0.1f)) + (0.27f * (x + horizontal));
+      const float c = (170351.99f - (coeff * 34.61f)) +
 	(0.2 * (x + horizontal) * (x + horizontal)) -
-	((330.71 - (coeff * 0.03)) * (x + horizontal));
-      const float discr = b * b - (4 * a * c);
+	((330.71f - (coeff * 0.03f)) * (x + horizontal));
+      const float discr = b * b - (4.f * a * c);
 
       if (discr > 0) {
 	calcSolutions(a, b, discr, y1, y2);
 	y1 += vertical;
 	y2 += vertical;
-      } else if (discr == 0) {
+      }
+      else if (discr == 0) {
 	y1 = -b / (2 * a);
 	y1 += vertical;
 	y2 = -FLT_MAX;
-      } else {
+      }
+      else {
 	y1 = -FLT_MAX;
       }
     }
@@ -96,7 +98,8 @@ namespace dc {
 	calcSolutions(a, b, discr, y1, y2);
 	y1 = rows - (y1 + vertical);
 	y2 = rows - (y2 + vertical);
-      } else if (discr == 0) {
+      }
+      else if (discr == 0) {
 	y1 = -b / (2 * a);
 	y1 = rows - (y1 + vertical);
 	y2 = -FLT_MAX;
@@ -132,27 +135,32 @@ namespace dc {
 	yFunction = fctSinus(x, rows, coeff, vertical, horizontal);
 	break;
 
-      case Function::ELLIPSE: {
-	float y1 = 0;
-	float y2 = 0;
-	fctEllipse(x, horizontal, vertical, coeff, y1, y2);
-	yFunction = (y != -FLT_MAX ? static_cast<int>(y1)
-		     : -1); //To be sure we are in ellipse
-	y2Function =
-	  (y2 != -FLT_MAX ? static_cast<int>(y2)
-	   : -1); //To know if their are just one solution
+      case Function::ELLIPSE:
+	{
+	  float y1 = 0;
+	  float y2 = 0;
+	  fctEllipse(x, horizontal, vertical, coeff, y1, y2);
+	  yFunction = (y != -FLT_MAX ? static_cast<int>(y1)
+		       : -1); //To be sure we are in ellipse
+	  y2Function =
+	    (y2 != -FLT_MAX ? static_cast<int>(y2)
+	     : -1); //To know if their are just one solution
 
-	if (yFunction < 0 || yFunction > rows)
-	  y2Function = -1;
-      } break;
+	  if (yFunction < 0 || yFunction > rows) {
+	    y2Function = -1;
+	  }
+	}
+	break;
 
-      case Function::HYPERBOLA: {
-	float y1 = 0;
-	float y2 = 0;
-	fctHyperbola(x, rows, horizontal, vertical, coeff, y1, y2);
-	yFunction = static_cast<int>(y1);
-	y2Function = (y2 != -FLT_MAX ? static_cast<int>(y2) : -1);
-      } break;
+      case Function::HYPERBOLA:
+	{
+	  float y1 = 0;
+	  float y2 = 0;
+	  fctHyperbola(x, rows, horizontal, vertical, coeff, y1, y2);
+	  yFunction = static_cast<int>(y1);
+	  y2Function = (y2 != -FLT_MAX ? static_cast<int>(y2) : -1);
+	}
+	break;
       }
     }
 
@@ -173,11 +181,16 @@ namespace dc {
 		     fct, rows, x, y, vertical, horizontal, coeff, yFunction, y2Function);
 
       if (yFunction != -1) {
-	if (yFunction - radius <= y && y <= yFunction + radius && y2Function != 1)
+	if ((yFunction - radius <= y)
+	    && (y <= yFunction + radius)
+	    && (y2Function != 1)) {
 	  return true;
-	if (y2Function != -1 && y2Function - radius <= y &&
-	    y <= y2Function + radius)
+	}
+	if ((y2Function != -1)
+	    && (y2Function - radius <= y)
+	    && (y <= y2Function + radius)) {
 	  return true;
+	}
       }
 
       return false;
@@ -203,9 +216,10 @@ namespace dc {
 	const V *b = blurredMat.ptr<V>(y);
 	V *r = resultMat.ptr<V>(y);
 	for (int x = 0; x < cols; ++x) {
-	  if (isNearFunction(
-			     x, y, rows, function, horizontal, vertical, coeff, radius)) //Center
+	  if (isNearFunction(x, y, rows, function,
+			     horizontal, vertical, coeff, radius)) { //Center
 	    r[x] = b[x];
+	  }
 	  //else
 	  //r[x] = o[x];
 	}
@@ -257,13 +271,17 @@ namespace dc {
 
       if (fct == Function::ELLIPSE || fct == Function::HYPERBOLA) {
 	if (y2Function == -1) { //Mean there are juste one solution
-	  if (y == yFunction)
+	  if (y == yFunction) {
 	    return true;
-	} else { //Two solutions
-	  if (y < yFunction && y > y2Function)
-	    return true;
+	  }
 	}
-      } else if (y > yFunction) {
+	else { //Two solutions
+	  if (y < yFunction && y > y2Function) {
+	    return true;
+	  }
+	}
+      }
+      else if (y > yFunction) {
 	return true;
       }
 
@@ -292,9 +310,10 @@ namespace dc {
 	  const V *b = blurredMat.ptr<V>(y);
 	  V *r = resultMat.ptr<V>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (upperThan(
-			  function, rows, x, y, vertical, horizontal, coeff))
+	    if (upperThan(function, rows, x, y,
+			  vertical, horizontal, coeff)) {
 	      r[x] = b[x];
+	    }
 	  }
 	}
       }
@@ -303,9 +322,10 @@ namespace dc {
 	  const V *b = blurredMat.ptr<V>(y);
 	  V *r = resultMat.ptr<V>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (!upperThan(
-			   function, rows, x, y, vertical, horizontal, coeff))
+	    if (!upperThan(function, rows, x, y,
+			   vertical, horizontal, coeff)) {
 	      r[x] = b[x];
+	    }
 	  }
 	}
       }
@@ -396,8 +416,9 @@ namespace dc {
 	V *r = resultMat.ptr<V>(y);
 
 	for (int x = 0; x < cols; ++x) {
-	  if (p[x] == BLACK)
+	  if (p[x] == BLACK) {
 	    r[x] = b[x];
+	  }
 	}
       }
 
@@ -413,7 +434,7 @@ namespace dc {
     {
       assert(patternMat.type() == CV_8UC1);
       assert(originalMat.type() == CV_8UC3 || originalMat.type() == CV_8UC4 || originalMat.type() == CV_8UC1);
-      
+
       if (originalMat.type() == CV_8UC3) {
 	return applyPattern<cv::Vec3b>(originalMat, patternMat,
 				       method, intensity);
@@ -458,8 +479,9 @@ namespace dc {
 				horizontal,
 				vertical,
 				coeff,
-				radius)) //Center
+				radius)) { //Center
 	      r[x] = WHITE;
+	    }
 	  }
 	}
       }
@@ -467,9 +489,10 @@ namespace dc {
 	for (int y = 0; y < rows; ++y) {
 	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (!upperThan(
-			   function, rows, x, y, vertical, horizontal, coeff))
+	    if (!upperThan(function, rows, x, y,
+			   vertical, horizontal, coeff)) {
 	      r[x] = WHITE;
+	    }
 	  }
 	}
       }
@@ -478,16 +501,17 @@ namespace dc {
 	for (int y = 0; y < rows; ++y) {
 	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (upperThan(
-			  function, rows, x, y, vertical, horizontal, coeff))
+	    if (upperThan(function, rows, x, y,
+			  vertical, horizontal, coeff)) {
 	      r[x] = WHITE;
+	    }
 	  }
 	}
       }
 
       assert(resultMat.type() == CV_8UC1);
       assert(resultMat.size() == originalMat.size());
-      
+
       return resultMat;
     }
     
@@ -505,12 +529,14 @@ namespace dc {
     {
       cv::Mat resultMat = originalMat.clone();
 
-      if (area == Area::CENTERED)
+      if (area == Area::CENTERED) {
 	degradateCenter(blurredMat, resultMat, function,
 			horizontal, vertical, coeff, radius);
-      else
+      }
+      else {
 	degradateBorder(blurredMat, resultMat, function,
 			area, vertical, coeff, horizontal);
+      }
 
       return resultMat;
     }
@@ -543,7 +569,7 @@ namespace dc {
       }
 
       assert(matOut.type() == img.type());
-      
+
       return matOut;
     }
 
@@ -559,7 +585,7 @@ namespace dc {
 	 int radius)
     {
       assert(img.type() == CV_8UC3 || img.type() == CV_8UC4 || img.type() == CV_8UC1);
-      
+
       //B:TODO:OPTIM:
       // we apply the blur on the whole image
       // and then keep only the part in the computed pattern.
@@ -584,10 +610,12 @@ namespace dc {
 
     */
     float
-    getRadiusFourier(const cv::Mat &originalMatColor)
+    getRadiusFourier(const cv::Mat &img)
     {
+      assert(img.type() == CV_8UC3);
+
       cv::Mat originalMat;
-      cv::cvtColor(originalMatColor,
+      cv::cvtColor(img,
 		   originalMat,
 		   cv::COLOR_BGR2GRAY); //To get a grayscale image
 
@@ -606,8 +634,8 @@ namespace dc {
       cv::Mat planes[] = { cv::Mat_<float>(padded),
 			   cv::Mat::zeros(padded.size(), CV_32F) };
       cv::Mat complexI;
-      cv::Mat_<float> tmpT = cv::Mat_<float>(padded);
-      cv::Mat temp = cv::Mat::zeros(padded.size(), CV_32F);
+      //cv::Mat_<float> tmpT = cv::Mat_<float>(padded); //B:unused
+      //cv::Mat temp = cv::Mat::zeros(padded.size(), CV_32F); //B:unused
       cv::merge(
 		planes, 2, complexI); // Add to the expanded another plane with zeros
       cv::dft(complexI, complexI);
@@ -673,7 +701,8 @@ namespace dc {
       while (!found && pixelX > 0 && pixelY > 0) {
 	if (calcRayon.at<uchar>(pixelY, pixelX) == 0) {
 	  found = true;
-	} else {
+	}
+	else {
 	  --pixelX;
 	  --pixelY;
 	}
@@ -692,11 +721,11 @@ namespace dc {
     /*
       Search the size of filter (represented here by intensity) that we have to apply to fit with the example selected.
 
-      QImage original is the image on which we want to apply blur.
-      radiusExample is the radius (computed by the fonction getRadiusFourier) of the example selected.
+      @a img is the image on which we want to apply blur.
+      @a dstRadius is the radius (computed by the fonction getRadiusFourier) of the example selected.
     */
     int
-    searchFitFourier(const cv::Mat &original, float radiusExample)
+    searchFitFourier(const cv::Mat &img, float dstRadius)
     {
       bool found = false;
       int intensity = 0;
@@ -704,24 +733,28 @@ namespace dc {
       int intensityMin = MIN_BLUR_FOURIER;
       int intensityMax = MAX_BLUR_FOURIER;
 
-      while (!found && intensityMax - intensityMin >
-	     2) //binary search to find intensity that we need
-	{
-	  intensity = ((intensityMax + intensityMin) / 2);
-	  if (intensity % 2 == 0)
-	    --intensity; // to get an odd number
+      while (!found && intensityMax - intensityMin > 2) {
+	//binary search to find intensity that we need
 
-	  float radius = getRadiusFourier(blur(
-					       original,
-					       Method::GAUSSIAN,
-					       intensity)); // compute the radius of result image with actual intensity
-	  if (radius > radiusExample + INTERVAL_FOURIER) //not enough blur
-	    intensityMin = intensity;
-	  else if (radius < radiusExample - INTERVAL_FOURIER) // too blur
-	    intensityMax = intensity;
-	  else
-	    found = true;
+	intensity = ((intensityMax + intensityMin) / 2);
+	if (intensity % 2 == 0) {
+	    --intensity; // to get an odd number
 	}
+
+	// compute the radius of result image with actual intensity
+	const float radius = getRadiusFourier(blur(img,
+						   Method::GAUSSIAN,
+						   intensity));
+	if (radius > dstRadius + INTERVAL_FOURIER) { //not enough blur
+	    intensityMin = intensity;
+	}
+	else if (radius < dstRadius - INTERVAL_FOURIER) { // too blur
+	  intensityMax = intensity;
+	}
+	else {
+	  found = true;
+	}
+      }
 
       return intensity;
     }

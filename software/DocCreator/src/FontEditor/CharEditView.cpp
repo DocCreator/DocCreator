@@ -31,11 +31,14 @@ void
 CharEditView::wheelEvent(QWheelEvent *event)
 {
   if (event->delta() > 0) {
-    if (zoomScaleIndex < MAX_ZOOM)
+    if (zoomScaleIndex < MAX_ZOOM) {
       zoomIn();
-  } else {
-    if (zoomScaleIndex > -MAX_ZOOM)
+    }
+  }
+  else {
+    if (zoomScaleIndex > -MAX_ZOOM) {
       zoomOut();
+    }
   }
 }
 

@@ -66,14 +66,14 @@ namespace dc {
 
     }
 
-    cv::Mat 
-    shadowBinding(const cv::Mat &matIn,
+    cv::Mat
+    shadowBinding(const cv::Mat &img,
 		  Border border,
 		  int distance,
 		  float intensity,
 		  float angle)
     {
-      cv::Mat matOut = matIn.clone();
+      cv::Mat matOut = img.clone();
       
       cv::Rect rec;
 
@@ -127,16 +127,16 @@ namespace dc {
        @param[in, out] matOut.
     */
     cv::Mat
-    shadowBinding(const cv::Mat &matIn,
+    shadowBinding(const cv::Mat &img,
 		  float distanceRatio,
 		  Border border,
 		  float intensity,
 		  float angle)
     {
       const int distance =
-	getDistance(border, distanceRatio, matIn.cols, matIn.rows);
+	getDistance(border, distanceRatio, img.cols, img.rows);
 
-      return shadowBinding(matIn, border, distance, intensity, angle);
+      return shadowBinding(img, border, distance, intensity, angle);
     }
 
 

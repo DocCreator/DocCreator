@@ -18,13 +18,14 @@ namespace dc {
       assert(pattern.type() == CV_8UC1);
 
       //Original border patterns are on TOP side
-      if (side == Border::TOP)
+      if (side == Border::TOP) {
 	return pattern;
-
+      }
       int rows = pattern.rows;
       int cols = pattern.cols;
-      if (side != Border::BOTTOM)
+      if (side != Border::BOTTOM) {
 	std::swap(rows, cols);
+      }
 
       cv::Mat changedMat(rows, cols, CV_8UC1);
 
@@ -36,18 +37,22 @@ namespace dc {
 	    d[x] = pattern.at<uchar>(cols - 1 - x, y);
 	  }
 	}
-      } else if (side == Border::BOTTOM) {
+      }
+      else if (side == Border::BOTTOM) {
 	for (int y = 0; y < rows; ++y) {
 	  const uchar *p = pattern.ptr<uchar>(rows - 1 - y);
 	  uchar *d = changedMat.ptr<uchar>(y);
-	  for (int x = 0; x < cols; ++x)
+	  for (int x = 0; x < cols; ++x) {
 	    d[x] = p[x];
+	  }
 	}
-      } else if (side == Border::LEFT) {
+      }
+      else if (side == Border::LEFT) {
 	for (int y = 0; y < rows; ++y) {
 	  uchar *d = changedMat.ptr<uchar>(y);
-	  for (int x = 0; x < cols; ++x)
+	  for (int x = 0; x < cols; ++x) {
 	    d[x] = pattern.at<uchar>(x, y);
+	  }
 	}
       }
 
@@ -60,8 +65,9 @@ namespace dc {
       assert(pattern.type() == CV_8UC1);
 
       //Original corner patterns are on TOPLEFT side
-      if (side == Corner::TOPLEFT)
+      if (side == Corner::TOPLEFT) {
 	return pattern;
+      }
 
       cv::Mat changedMat(pattern.rows, pattern.cols, CV_8UC1);
 
@@ -72,22 +78,27 @@ namespace dc {
 	for (int y = 0; y < rows; ++y) {
 	  const uchar *p = pattern.ptr<uchar>(y);
 	  uchar *d = changedMat.ptr<uchar>(y);
-	  for (int x = 0; x < cols; ++x)
+	  for (int x = 0; x < cols; ++x) {
 	    d[x] = p[cols - 1 - x];
+	  }
 	}
-      } else if (side == Corner::BOTTOMRIGHT) {
+      }
+      else if (side == Corner::BOTTOMRIGHT) {
 	for (int y = 0; y < rows; ++y) {
 	  const uchar *p = pattern.ptr<uchar>(rows - 1 - y);
 	  uchar *d = changedMat.ptr<uchar>(y);
-	  for (int x = 0; x < cols; ++x)
+	  for (int x = 0; x < cols; ++x) {
 	    d[x] = p[cols - 1 - x];
+	  }
 	}
-      } else if (side == Corner::BOTTOMLEFT) {
+      }
+      else if (side == Corner::BOTTOMLEFT) {
 	for (int y = 0; y < rows; ++y) {
 	  const uchar *p = pattern.ptr<uchar>(rows - 1 - y);
 	  uchar *d = changedMat.ptr<uchar>(y);
-	  for (int x = 0; x < cols; ++x)
+	  for (int x = 0; x < cols; ++x) {
 	    d[x] = p[x];
+	  }
 	}
       }
 
@@ -106,16 +117,20 @@ namespace dc {
 	  PIXEL_BLACK) { //not in marge if it's not in black pattern
 
 	for (int i = 0; i < width; ++i) {
-	  if (x - i > 0 && matPattern.at<uchar>(y, x - i) != PIXEL_BLACK)
+	  if (x - i > 0 && matPattern.at<uchar>(y, x - i) != PIXEL_BLACK) {
 	    return true;
+	  }
 	  if (x + i < matPattern.cols &&
-	      matPattern.at<uchar>(y, x + i) != PIXEL_BLACK)
+	      matPattern.at<uchar>(y, x + i) != PIXEL_BLACK) {
 	    return true;
-	  if (y - i > 0 && matPattern.at<uchar>(y - i, x) != PIXEL_BLACK)
+	  }
+	  if (y - i > 0 && matPattern.at<uchar>(y - i, x) != PIXEL_BLACK) {
 	    return true;
+	  }
 	  if (y + i < matPattern.rows &&
-	      matPattern.at<uchar>(y + i, x) != PIXEL_BLACK)
+	      matPattern.at<uchar>(y + i, x) != PIXEL_BLACK) {
 	    return true;
+	  }
 	}
       }
 
@@ -278,8 +293,9 @@ namespace dc {
 	const uchar *p = matPattern.ptr<uchar>(y);
 	T *d = matOut.ptr<T>(y + yOrigin);
 	const T *b = nullptr;
-	if (y + yOrigin >= 0 && y + yOrigin < matBelow.rows)
+	if (y + yOrigin >= 0 && y + yOrigin < matBelow.rows) {
 	  b = matBelow.ptr<T>(y + yOrigin);
+	}
 	for (int x = x0; x < x1; ++x) {
 	  assert(x + xOrigin >= 0 && x + xOrigin < matOut.cols &&
 		 y + yOrigin >= 0 && y + yOrigin < matOut.rows);
@@ -359,10 +375,10 @@ namespace dc {
 
       cv::Mat matPattern = holePattern;
       if (type == HoleType::BORDER && side > 0) {
-	matPattern = changeBorderPattern(matPattern, (Border)side);
+	matPattern = changeBorderPattern(matPattern, static_cast<Border>(side));
       }
       else if (type == HoleType::CORNER && side > 0) {
-	matPattern = changeCornerPattern(matPattern, (Corner)side);
+	matPattern = changeCornerPattern(matPattern, static_cast<Corner>(side));
       }
 
       //B:TODO: remove this "size" parameter 
@@ -415,7 +431,7 @@ namespace dc {
 
     
     cv::Point
-    getRandomPosition(const cv::Size &matOriginalSize,
+    getRandomPosition(const cv::Size &imgSize,
 		      const cv::Size &holePatternSize,
 		      HoleType type,
 		      float ratioOutside,
@@ -425,8 +441,8 @@ namespace dc {
       
       int startX = 0;
       int startY = 0;
-      int endX = matOriginalSize.width;
-      int endY = matOriginalSize.height;
+      int endX = imgSize.width;
+      int endY = imgSize.height;
 
       //B: Here we move the corner/border pattern
       //   according to its 'side'.
@@ -435,8 +451,8 @@ namespace dc {
 
       const int holeW = holePatternSize.width;
       const int holeH = holePatternSize.height;
-      const int imgW = matOriginalSize.width;
-      const int imgH = matOriginalSize.height;
+      const int imgW = imgSize.width;
+      const int imgH = imgSize.height;
       
       const int rw = std::max(static_cast<int>(holeW * ratioOutside), 1);
       const int rh = std::max(static_cast<int>(holeH * ratioOutside), 1);

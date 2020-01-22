@@ -52,8 +52,8 @@ BinarizationDialog::eventFilter(QObject *watched, QEvent *event)
     const double val_h = (double)(std::min(CROP_HEIGHT, _originalImg.rows)) /
                          _originalImg.rows; //height();
 
-    _crop_x = (double)k->pos().x() / _thumbnail.width() - val_w / 2;
-    _crop_y = (double)k->pos().y() / _thumbnail.height() - val_h / 2;
+    _crop_x = static_cast<double>(k->pos().x()) / _thumbnail.width() - val_w / 2;
+    _crop_y = static_cast<double>(k->pos().y()) / _thumbnail.height() - val_h / 2;
 
     updateView();
   }
@@ -76,10 +76,12 @@ BinarizationDialog::process()
 {
 
   cv::Mat mat;
-  if (_background_checked)
+  if (_background_checked) {
     Binarization::preProcess(_originalImg, mat, _background_erosion);
-  else
+  }
+  else {
     _originalImg.copyTo(mat);
+  }
 
   const int winx = _window_size < mat.cols ? _window_size : mat.cols - 1;
   const int winy = _window_size < mat.rows ? _window_size : mat.rows - 1;
@@ -100,8 +102,10 @@ BinarizationDialog::process()
       break;
   }
 
-  if (_enhancement_checked)
-    Binarization::postProcess(img_bin, img_bin, 0.9, (int)10 * _post_process_v);
+  if (_enhancement_checked) {
+    Binarization::postProcess(img_bin, img_bin, 0.9, static_cast<int>(10) * _post_process_v);
+  }
+  //B:TODO: what are these magic values ?
 
   _binarizedImg = Convertor::getQImage(img_bin);
   updateView();
@@ -127,10 +131,10 @@ BinarizationDialog::updateView()
     (double)(std::min(CROP_HEIGHT, _originalImg.rows)) / _originalImg.rows;
 
   // Rectangle coordinates
-  const int rect_x = (int)(_crop_x * IMG_WIDTH);
-  const int rect_y = (int)(_crop_y * IMG_HEIGHT);
-  const int rect_w = (int)(val_w * IMG_WIDTH);
-  const int rect_h = (int)(val_h * IMG_HEIGHT);
+  const int rect_x = static_cast<int>(_crop_x * IMG_WIDTH);
+  const int rect_y = static_cast<int>(_crop_y * IMG_HEIGHT);
+  const int rect_w = static_cast<int>(val_w * IMG_WIDTH);
+  const int rect_h = static_cast<int>(val_h * IMG_HEIGHT);
 
   QRectF rect(rect_x, rect_y, rect_w, rect_h);
   p.drawRect(rect);

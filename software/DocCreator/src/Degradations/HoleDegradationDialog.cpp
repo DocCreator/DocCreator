@@ -97,7 +97,7 @@ HoleDegradationDialog::HoleDegradationDialog(QWidget *parent)
   _horizontal = ui->horizontalSlider->value();
   _vertical = ui->verticalSlider->value();
   _size = ui->sizeSlider->value();
-  _type = (dc::HoleDegradation::HoleType)ui->typeComboBox->currentIndex();
+  _type = static_cast<dc::HoleDegradation::HoleType>( ui->typeComboBox->currentIndex() );
   _side = static_cast<int>(dc::HoleDegradation::Border::TOP);
   _width = 0;
   _intensity = ui->intensitySlider->value();
@@ -195,26 +195,32 @@ HoleDegradationDialog::nextClicked()
 void
 HoleDegradationDialog::updatePatterns()
 {
-  if (_pattern < 0) //happens when no pattern was loaded
+  if (_pattern < 0) { //happens when no pattern was loaded
     return;
+  }
 
   QString path;
 
-  if (_type == dc::HoleDegradation::HoleType::CENTER)
+  if (_type == dc::HoleDegradation::HoleType::CENTER) {
     path = getCenterHolePatternsPath();
-  if (_type == dc::HoleDegradation::HoleType::BORDER)
+  }
+  else if (_type == dc::HoleDegradation::HoleType::BORDER) {
     path = getBorderHolePatternsPath();
-  else if (_type == dc::HoleDegradation::HoleType::CORNER)
+  }
+  else if (_type == dc::HoleDegradation::HoleType::CORNER) {
     path = getCornerHolePatternsPath();
+  }
 
   _patterns = getDirectoryList(path);
 
   const int numPatterns = _patterns.size();
-  if (numPatterns == 0)
+  if (numPatterns == 0) {
     return;
+  }
 
-  if (_pattern >= numPatterns)
+  if (_pattern >= numPatterns) {
     _pattern = 0;
+  }
 
   assert(_pattern >= 0 && _pattern < numPatterns);
   path = QDir(path).absoluteFilePath(_patterns.at(_pattern));
@@ -226,8 +232,9 @@ HoleDegradationDialog::updatePatterns()
   sideChanged(_side); // will update constraints and updateSliders();
   this->updateGeometry();
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -618,28 +625,32 @@ HoleDegradationDialog::sideChanged(int side)
       _vertical = 0;
       break;
     case 2: //BOTTOM OR BOTTOMRIGHT
-      if (_type == dc::HoleDegradation::HoleType::BORDER)
+      if (_type == dc::HoleDegradation::HoleType::BORDER) {
         _horizontal = 0;
-      else if (_type == dc::HoleDegradation::HoleType::CORNER)
+      }
+      else if (_type == dc::HoleDegradation::HoleType::CORNER) {
         _horizontal = _originalImg.width() - _patternImg.width();
-
+      }
       _vertical = _originalImg.height() - _patternImg.height();
       break;
     case 3: //LEFT OR BOTTOM LEF
       _horizontal = 0;
 
-      if (_type == dc::HoleDegradation::HoleType::BORDER)
+      if (_type == dc::HoleDegradation::HoleType::BORDER) {
         _vertical = 0;
-      else if (_type == dc::HoleDegradation::HoleType::CORNER)
+      }
+      else if (_type == dc::HoleDegradation::HoleType::CORNER) {
         _vertical = _originalImg.height() - _patternImg.height();
+      }
 
       break;
   }
 
   updateSliders();
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -648,8 +659,9 @@ HoleDegradationDialog::setTransparent()
   _color = QColor(255, 255, 255, 0);
   ui->colorLabel->setVisible(false);
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -657,23 +669,27 @@ HoleDegradationDialog::colorChanged(QColor color)
 {
   _color = color;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
 HoleDegradationDialog::belowChanged()
 {
   QString path;
-  if (!ui->belowLineEdit->text().isEmpty())
+  if (!ui->belowLineEdit->text().isEmpty()) {
     path = ui->belowLineEdit->text();
-  else
+  }
+  else {
     path = QString();
+  }
 
   _pageBelow = QImage(path);
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -681,8 +697,9 @@ HoleDegradationDialog::horizontalChanged(int horizontal)
 {
   _horizontal = horizontal;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -690,8 +707,9 @@ HoleDegradationDialog::verticalChanged(int vertical)
 {
   _vertical = vertical;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -699,8 +717,9 @@ HoleDegradationDialog::sizeChanged(int size)
 {
   _size = size;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -708,8 +727,9 @@ HoleDegradationDialog::widthChanged(int width)
 {
   _width = width;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -717,8 +737,9 @@ HoleDegradationDialog::intensityChanged(int intensity)
 {
   _intensity = -intensity * 0.1;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -733,7 +754,8 @@ HoleDegradationDialog::typeChanged(int type)
     ui->borderGroupBox->setVisible(true);
     ui->topButton->setChecked(true);
     sideChanged(static_cast<int>(dc::HoleDegradation::Border::TOP));
-  } else if (_type == dc::HoleDegradation::HoleType::CORNER) {
+  }
+  else if (_type == dc::HoleDegradation::HoleType::CORNER) {
     ui->cornerGroupBox->setVisible(true);
     ui->topLeftButton->setChecked(true);
     sideChanged(static_cast<int>(dc::HoleDegradation::Corner::TOPLEFT));
@@ -741,8 +763,9 @@ HoleDegradationDialog::typeChanged(int type)
 
   updatePatterns();
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -770,8 +793,9 @@ HoleDegradationDialog::removeHole()
 
     for (int y = hole.getY(); y < hole.getY() + hole.getHeight(); y++) {
       for (int x = hole.getX(); x < hole.getX() + hole.getWidth(); x++) {
-        if (y > 0 && y < resultMat.rows && x > 0 && x < resultMat.cols)
+        if (y > 0 && y < resultMat.rows && x > 0 && x < resultMat.cols) {
           resultMat.at<cv::Vec3b>(y, x) = tmpMat.at<cv::Vec3b>(y, x);
+	}
       }
     }
 
@@ -815,12 +839,15 @@ getPath(dc::HoleDegradation::HoleType type, int pattern)
 {
   QString path;
 
-  if (type == dc::HoleDegradation::HoleType::CENTER)
+  if (type == dc::HoleDegradation::HoleType::CENTER) {
     path = HoleDegradationDialog::getCenterHolePatternsPath();
-  if (type == dc::HoleDegradation::HoleType::BORDER)
+  }
+  else if (type == dc::HoleDegradation::HoleType::BORDER) {
     path = HoleDegradationDialog::getBorderHolePatternsPath();
-  else if (type == dc::HoleDegradation::HoleType::CORNER)
+  }
+  else if (type == dc::HoleDegradation::HoleType::CORNER) {
     path = HoleDegradationDialog::getCornerHolePatternsPath();
+  }
 
   const QStringList patterns = HoleDegradationDialog::getDirectoryList(path);
 
@@ -847,9 +874,12 @@ HoleDegradationDialog::containsHole(const QList<Hole> &holes,
     const int w = hole.getWidth();
     const int h = hole.getHeight();
 
-    if (x < topRight.x() && topLeft.x() < x + w && y < bottomLeft.y() &&
-        topLeft.y() < y + h)
+    if (x < topRight.x() &&
+	topLeft.x() < x + w &&
+	y < bottomLeft.y() &&
+        topLeft.y() < y + h) {
       return true;
+    }
   }
 
   return false;
@@ -880,27 +910,33 @@ HoleDegradationDialog::generateHoles()
   do {
     const int tmpType = rand() % 3; //random type
 
-    if (tmpType == 0) //Can't cast directly ? (error -fpermissive)
+    if (tmpType == 0) { //Can't cast directly ? (error -fpermissive)
       type = dc::HoleDegradation::HoleType::CENTER;
-    else if (tmpType == 1)
+    }
+    else if (tmpType == 1) {
       type = dc::HoleDegradation::HoleType::BORDER;
-    else if (tmpType == 2)
+    }
+    else if (tmpType == 2) {
       type = dc::HoleDegradation::HoleType::CORNER;
+    }
 
     const int numberOfHole = countHole(type);
 
-    if (numberOfHole == 0) //no pattern was loaded
+    if (numberOfHole == 0) { //no pattern was loaded
       return;
+    }
 
     hole = rand() % numberOfHole; //Select random hole among these that we count
 
     pattern = QImage(getPath(type, hole));
 
-    if (type == dc::HoleDegradation::HoleType::BORDER || type == dc::HoleDegradation::HoleType::CORNER)
+    if (type == dc::HoleDegradation::HoleType::BORDER
+	|| type == dc::HoleDegradation::HoleType::CORNER) {
       side = rand() % 4;
+    }
 
-    findBound(
-      type, minH, maxH, minV, maxV, side, pattern); //set the right bound
+    findBound(type, minH, maxH,
+	      minV, maxV, side, pattern); //set the right bound
     int nbRound = 0;
     do {
       horizontal = rand() % (maxH - minH) + minH;
@@ -908,10 +944,9 @@ HoleDegradationDialog::generateHoles()
       size = rand() % (maxSize - minSize) + minSize;
       ++nbRound;
       contain = containsHole(_holes, pattern, horizontal, vertical, size);
-    } while (
-      contain &&
-      nbRound <
-        NB_TRY_MAX); //While we don't find a place and that is not too much try
+    } while (contain && nbRound < NB_TRY_MAX);
+    //While we don't find a place and that is not too much try
+
   } while (contain); //If we didn't have found a place, we generate a new hole
 
   //Update parameters
@@ -928,29 +963,38 @@ HoleDegradationDialog::generateHoles()
   _pattern = hole;
   updatePatterns();
 
-  sideChanged(
-    side); //Allow to set new side, update radio button, update result image in same time ans also set constraints
+  sideChanged(side);
+  //Allow to set new side, update radio button, update result image in same time ans also set constraints
 
   //update dialog (IHM)
   if (type == dc::HoleDegradation::HoleType::BORDER) {
     dc::HoleDegradation::Border border = static_cast<dc::HoleDegradation::Border>(side);
-    if (border == dc::HoleDegradation::Border::TOP)
+    if (border == dc::HoleDegradation::Border::TOP) {
       ui->topButton->setChecked(true);
-    else if (border == dc::HoleDegradation::Border::RIGHT)
+    }
+    else if (border == dc::HoleDegradation::Border::RIGHT) {
       ui->rightButton->setChecked(true);
-    else if (border == dc::HoleDegradation::Border::BOTTOM)
+    }
+    else if (border == dc::HoleDegradation::Border::BOTTOM) {
       ui->bottomButton->setChecked(true);
-    else if (border == dc::HoleDegradation::Border::LEFT)
+    }
+    else if (border == dc::HoleDegradation::Border::LEFT) {
       ui->leftButton->setChecked(true);
-  } else if (type == dc::HoleDegradation::HoleType::CORNER) {
+    }
+  }
+  else if (type == dc::HoleDegradation::HoleType::CORNER) {
     dc::HoleDegradation::Corner corner = static_cast<dc::HoleDegradation::Corner>(side);
-    if (corner == dc::HoleDegradation::Corner::TOPLEFT)
+    if (corner == dc::HoleDegradation::Corner::TOPLEFT) {
       ui->topLeftButton->setChecked(true);
-    else if (corner == dc::HoleDegradation::Corner::TOPRIGHT)
+    }
+    else if (corner == dc::HoleDegradation::Corner::TOPRIGHT) {
       ui->topRightButton->setChecked(true);
-    else if (corner == dc::HoleDegradation::Corner::BOTTOMRIGHT)
+    }
+    else if (corner == dc::HoleDegradation::Corner::BOTTOMRIGHT) {
       ui->bottomRightButton->setChecked(true);
-    else if (corner == dc::HoleDegradation::Corner::BOTTOMLEFT)
+    }
+    else if (corner == dc::HoleDegradation::Corner::BOTTOMLEFT) {
       ui->bottomLeftButton->setChecked(true);
+    }
   }
 }

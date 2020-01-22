@@ -116,7 +116,7 @@ protected:
   void updateBackgroundTransformation();
 
 private:
-  typedef enum { MODE_MOVE_CAMERA = 0, MODE_SELECTION_VERTEX } Mode;
+  enum class Mode { MOVE_CAMERA = 0, SELECTION_VERTEX };
 
   /*
 

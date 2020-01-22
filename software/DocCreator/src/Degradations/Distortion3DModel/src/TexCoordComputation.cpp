@@ -483,7 +483,7 @@ struct DEBUG_VertexIndexSorter
 {
   const Mesh &m_mesh;
 
-  DEBUG_VertexIndexSorter(const Mesh &mesh)
+  explicit DEBUG_VertexIndexSorter(const Mesh &mesh)
     : m_mesh(mesh)
   {}
 
@@ -710,7 +710,7 @@ public:
     const int numEdgesPerBin = 1024; //approximate/wished for
 
     m_numBins = std::max((size_t)1, numEdges / numEdgesPerBin);
-    m_step = numYs / (float)m_numBins;
+    m_step = numYs / static_cast<float>(m_numBins);
 
     const float reserve_size_factor = 2.65f; //arbitrary
 
@@ -1526,7 +1526,7 @@ public:
     assert(m_yMin <= m_yMax);
 
     m_numBins = std::max((uint32_t)1, numTriangles / numTrianglesPerBin);
-    m_step = (m_yMax - m_yMin) / (float)m_numBins;
+    m_step = (m_yMax - m_yMin) / static_cast<float>(m_numBins);
 
 #ifndef NDEBUG
     std::cerr << "SpacePartionnerY: m_numBins=" << m_numBins
@@ -2738,13 +2738,13 @@ getIntersectionLine(const Mesh &mesh,
 
       if (xzidxs.size() < 10) {
         std::cerr << "non duplicates:\n";
-        for (std::vector<X_Z_Idx>::iterator it = xzidxs.begin(); it != itNE2;
-             ++it)
-          std::cerr << it->x << " " << it->z << " idx=" << it->idx << "\n";
+        for (std::vector<X_Z_Idx>::iterator itD = xzidxs.begin(); itD != itNE2;
+             ++itD)
+          std::cerr << itD->x << " " << itD->z << " idx=" << itD->idx << "\n";
         std::cerr << "duplicates:\n";
-        for (std::vector<X_Z_Idx>::iterator it = itNE2; it != xzidxs.end();
-             ++it)
-          std::cerr << it->x << " " << it->z << " idx=" << it->idx << "\n";
+        for (std::vector<X_Z_Idx>::iterator itD = itNE2; itD != xzidxs.end();
+             ++itD)
+          std::cerr << itD->x << " " << itD->z << " idx=" << itD->idx << "\n";
       }
       exit(13);
     }

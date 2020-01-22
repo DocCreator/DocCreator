@@ -42,8 +42,9 @@ CharEditScene::CharEditScene(Models::Character *ch, QObject *parent)
   _rightLineItem = new CharEditLineItem(VERTICAL, 1000, _center.x() + 20);
   addItem(_rightLineItem);
 
-  if (ch != nullptr)
+  if (ch != nullptr) {
     setCenterChar(ch);
+  }
 
   _cursorItem =
     new CharEditCursorItem(CENTER, _baseLineItem->y() - _upLineItem->y() - 4);
@@ -55,7 +56,7 @@ CharEditScene::CharEditScene(Models::Character *ch, QObject *parent)
 }
 
 void
-CharEditScene::setCenterChar(Models::Character *ch)
+CharEditScene::setCenterChar(const Models::Character *ch)
 {
   _centerChar = ch;
   //TODO: choose a median character
@@ -86,10 +87,11 @@ CharEditScene::setCenterChar(Models::Character *ch)
 }
 
 void
-CharEditScene::setLeftChar(Models::Character *ch)
+CharEditScene::setLeftChar(const Models::Character *ch)
 {
-  if (_centerCharItem == nullptr)
+  if (_centerCharItem == nullptr) {
     return;
+  }
 
   _leftChar = ch;
   //TODO: choose a median character
@@ -108,10 +110,11 @@ CharEditScene::setLeftChar(Models::Character *ch)
 }
 
 void
-CharEditScene::setRightChar(Models::Character *ch)
+CharEditScene::setRightChar(const Models::Character *ch)
 {
-  if (_centerCharItem == nullptr)
+  if (_centerCharItem == nullptr) {
     return;
+  }
 
   _rightChar = ch;
   //TODO: choose a median character

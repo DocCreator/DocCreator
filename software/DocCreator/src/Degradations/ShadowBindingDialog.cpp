@@ -104,8 +104,9 @@ ShadowBindingDialog::intensityChanged(int intensity)
 {
   _intensity = getIntensityAux(intensity);
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 int
@@ -114,12 +115,13 @@ ShadowBindingDialog::getDistanceAux(int distance) const
   assert(ui->distanceSlider->maximum() != 0);
   //we cap the maximum of shadowed area to 40% of minimum size (w or h) of image
   int w = 800;
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     w = std::min(_originalImg.width(), _originalImg.height());
-  w = 0.4 * w;
+  }
+  w = static_cast<int>( 0.4f * w + 0.5f);
 
   const int d =
-    static_cast<int>(w * distance / (float)ui->distanceSlider->maximum() + 0.5);
+    static_cast<int>(w * distance / (float)ui->distanceSlider->maximum() + 0.5f);
   //std::cerr<<"*** distance="<<distance<<" w="<<w<<" maxD="<<ui->distanceSlider->maximum()<<" => d="<<d<<"\n";
   return d;
 }
@@ -129,8 +131,9 @@ ShadowBindingDialog::distanceChanged(int distance)
 {
   _distance = getDistanceAux(distance);
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
@@ -138,24 +141,30 @@ ShadowBindingDialog::angleChanged(int angle)
 {
   _angle = angle;
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void
 ShadowBindingDialog::borderChanged()
 {
-  if (ui->leftButton->isChecked())
+  if (ui->leftButton->isChecked()) {
     _border = dc::ShadowBinding::Border::LEFT;
-  else if (ui->topButton->isChecked())
+  }
+  else if (ui->topButton->isChecked()) {
     _border = dc::ShadowBinding::Border::TOP;
-  else if (ui->rightButton->isChecked())
+  }
+  else if (ui->rightButton->isChecked()) {
     _border = dc::ShadowBinding::Border::RIGHT;
-  else
+  }
+  else {
     _border = dc::ShadowBinding::Border::BOTTOM;
+  }
 
-  if (!_originalImgSmall.isNull())
+  if (!_originalImgSmall.isNull()) {
     updateResultImage();
+  }
 }
 
 void

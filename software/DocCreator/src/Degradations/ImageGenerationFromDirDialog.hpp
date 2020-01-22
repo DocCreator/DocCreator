@@ -4,13 +4,13 @@
 #include <QDialog>
 #include <QDir>
 
-typedef struct
+struct LineText
 {
   QList<QString> charList;
   int Long;
   int Height;
   float meanCharHeight;
-} LineText;
+};
 
 namespace Doc {
 class DocTextBlock;
@@ -55,7 +55,7 @@ private:
   Doc::Page *createAPage(Doc::Document *document);
   Doc::DocTextBlock *createATextBox(Doc::Document *document, int x, int y);
   QImage buildImage(const QString &file);
-  QImage getCharacterImage(Models::Character *ch);
+  QImage getCharacterImage(const Models::Character *ch);
   void bindTextForATextBox(QStringList &textLines, Doc::DocTextBlock *tb);
   Doc::Page *bindTextForAPage(Doc::Document *document, QStringList &TEXT_lines);
   QStringList readTextFile(const QString &filePath);

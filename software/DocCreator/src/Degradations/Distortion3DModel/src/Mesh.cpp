@@ -79,7 +79,7 @@ Mesh::allocateVertices(uint32_t numVerts)
 
     if (numVertices > 0) {
       const size_t s = numVertices * 3 * sizeof(float);
-      vertices = (float *)malloc(s);
+      vertices = static_cast<float *>( malloc(s) );
       if (vertices == nullptr) {
 	numVertices = 0;
       }
@@ -94,7 +94,7 @@ Mesh::allocateNormals()
 
   if (numVertices > 0) {
     const size_t s = numVertices * 3 * sizeof(float);
-    normals = (float *)malloc(s);
+    normals = static_cast<float *>( malloc(s) );
   }
 }
 
@@ -105,7 +105,7 @@ Mesh::allocateTexCoords()
 
   if (numVertices > 0) {
     const size_t s = numVertices * 2 * sizeof(float);
-    texCoords = (float *)malloc(s);
+    texCoords = static_cast<float *>( malloc(s) );
   }
 }
 
@@ -1729,7 +1729,7 @@ DEBUG_checkEdges(const Mesh &mesh)
 //B: it can probably be faster if we consider that we have closed contours
 // and no loops (no "8")
 
-typedef uint32_t label; //we can probably use something smaller than uint32_t...
+using label = uint32_t; //we can probably use something smaller than uint32_t...
 
 //@param[in, out] labels
 size_t

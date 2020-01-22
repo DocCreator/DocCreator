@@ -340,8 +340,10 @@ RandomDocumentCreator::create()
 
     Context::FontContext::instance()->addFontsFromXmlFiles(_params.fontList);
     QStringList fontList =
-      Context::FontContext::instance()
-        ->getFontNames(); //may be different than _params.fontList
+      Context::FontContext::instance()->getFontNames();
+    //may be different than _params.fontList
+    assert(fontList.size() > 0);
+    Context::FontContext::instance()->setCurrentFont(fontList.back());
 
     //B: should we have _params.nbDocs && _params.nbPages ???
     // Is it possible to render several images (pages) in the same document !
@@ -454,9 +456,14 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     QStringList fontList =
       Context::FontContext::instance()
         ->getFontNames(); //may be different than _params.fontList
+    if (Context::FontContext::instance()->getCurrentFont() == nullptr
+	&& ! fontList.isEmpty())
+      Context::FontContext::instance()->setCurrentFont(fontList.back());
 
-    //std::cerr<<"fontList.size()="<<fontList.size()<<"\n";
+
+    //std::cerr<<"++++ fontList.size()="<<fontList.size()<<"\n";
     //std::cerr<<"_params.backgroundList.size()="<<_params.backgroundList.size()<<"\n";
+    //std::cerr<<"++++ currentFont="<<Context::FontContext::instance()->getCurrentFont()<<"\n";
 
     //set random background if available
     if (_params.backgroundList.size() == 1) {

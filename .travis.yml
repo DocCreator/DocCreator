@@ -11,29 +11,100 @@ cache: ccache
 jobs:
   include:
     ###
-    # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Release
-    #   os: linux
-    #   dist: trusty
-    #   compiler: gcc
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - cmake
-    #         - ccache
-    #         - ninja-build
-    #         - libpng-dev
-    #         - libjpeg-dev
-    #         - libopencv-dev
-    #         - qtbase5-dev
-    #         - qtdeclarative5-dev
-    #         - libqt5xmlpatterns5-dev
-    #         - libqt5opengl5-dev
+    - stage: Ubuntu 14.04 (gcc-4.8.4, cmake 3.9.2) Qt 5.2.1, Debug
+      os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
 
-    #   script:
-    #     - mkdir build
-    #     - cd build
-    #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release 
-    #     - ninja -j 3
+      script:
+        - cmake --version
+        - gcc --version
+        - ninja --version
+        - qmake --version
+        - qtchooser -list-versions
+        - export QT_SELECT=qt5
+        - qmake --version        
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ninja test
+
+    - stage: Ubuntu 16.04 (gcc-5.4.0, cmake 3.12.4), Qt 5.5.1, Release
+      os: linux
+      dist: xenial
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
+
+      script:
+        - cmake --version
+        - gcc --version
+        - qmake --version
+        - qtchooser -list-versions
+        - export QT_SELECT=qt5
+        - qmake --version        
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ninja test
+
+
+    - stage: Ubuntu 18.04 (gcc-7.4.0, cmake 3.10.2), Qt 5.9.5, Release
+      os: linux
+      dist: bionic
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+            - qtbase5-dev
+            - qtdeclarative5-dev
+            - libqt5xmlpatterns5-dev
+            - libqt5opengl5-dev
+
+      script:
+        - cmake --version
+        - gcc --version
+        - qmake --version
+        - qtchooser -list-versions
+        - export QT_SELECT=qt5
+        - qmake --version        
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        - ninja -j 3
+        - ninja test
 
     # ###
     # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
@@ -141,12 +212,8 @@ jobs:
     # #     - ninja -j 3
 
   #######################################################
-  
-    ###
-    # - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
-    #   os: osx
-    #   osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
-    #   compiler: clang
+
+    #OLD
       
     #   before_install:
     #     - echo $PATH
@@ -196,10 +263,67 @@ jobs:
     #     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5.5)
     #     - make -j 3
 
+
+    ### 09/2019: homebrew does not support 10.11 (El Capitan) anymore
+    # - stage: Mac OS, clang, Qt5 & OpenCV from brew, Release
+    #   os: osx
+    #   osx_image: xcode7.3 #uses OS X 10.11.6 & Xcode 7.3.1, cmake 3.6.2
+    #   compiler: clang
+
+    #   before_install:
+    #     - brew update
+    #     - brew list
+    #     #- brew outdated qt || brew upgrade qt
+    #     - brew install qt
+    #     - brew list
+    #     - ls /usr/local/opt/
+    #     - export PATH=$PATH:/usr/local/opt/qt/bin
+    #     #- brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
+    #     - pip2 uninstall -y numpy && brew install opencv #see https://github.com/travis-ci/travis-ci/issues/6688
+    #     - brew list
+
+    #   script:
+    #     - cmake --version
+    #     - qmake --version
+    #     - mkdir build
+    #     - cd build
+    #     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt)
+    #     - make -j 3
+
     ###
-    - stage: Mac OS, recent clang, Qt5 & OpenCV from brew, Release
+    ### 10/2019: this config does not work. It seems that homebrew try to rebuild too many things...
+    # - stage: macOS 10.12, clang, Qt5 & OpenCV from brew, Release
+    #   os: osx
+    #   #osx_image: xcode8.3 #uses macOS 10.12 & Xcode 8.3.3, cmake 3.6.2
+    #   osx_image: xcode9.2 #uses macOS 10.12 & Xcode 9.2, cmake 3.6.2
+    #   compiler: clang
+
+    #   before_install:
+    #     - brew update
+    #     - brew list
+    #     #- brew outdated qt || brew upgrade qt
+    #     - brew install qt
+    #     - brew list
+    #     - ls /usr/local/opt/
+    #     - export PATH=$PATH:/usr/local/opt/qt/bin
+    #     #- brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
+    #     - pip2 uninstall -y numpy && brew install opencv #see https://github.com/travis-ci/travis-ci/issues/6688
+    #     - brew list
+
+    #   script:
+    #     - cmake --version
+    #     - qmake --version
+    #     - mkdir build
+    #     - cd build
+    #     - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
+    #     - make -j 3
+    #     - make test
+
+    
+    ###
+    - stage: macOS 10.14, recent clang, Qt5 & OpenCV from brew, Release & Debug
       os: osx
-      osx_image: xcode9.4  #OS X 10.13 & Xcode 9.4.1
+      osx_image: xcode11  #macOS 10.14 & Xcode 11.0
       compiler: clang
 
       before_install:
@@ -215,10 +339,19 @@ jobs:
         - brew list
 
       script:
+        - cmake --version
+        - qmake --version
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt)
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
         - make -j 3
+        - make test
+        - cd ..
+        - mkdir buildDebug
+        - cd buildDebug
+        - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
+        - make -j 3
+        - make test
 
         
        

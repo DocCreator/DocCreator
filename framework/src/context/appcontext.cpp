@@ -18,8 +18,9 @@ AppContext::getActiveController()
 AppContext *
 AppContext::instance()
 {
-  if (_instance == nullptr)
+  if (_instance == nullptr) {
     _instance = new AppContext();
+  }
   return _instance;
 }
 } //namespace Context

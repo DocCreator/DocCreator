@@ -2,6 +2,8 @@
 
 #include "models/character.h"
 
+#include <iostream>
+
 namespace Models {
 Font::Font()
 {
@@ -12,6 +14,17 @@ Font::Font(const QString &name)
 {
   initialize(name);
 }
+
+Font::~Font()
+{
+  CharacterMap::iterator it = _characterMap.begin();
+  const CharacterMap::iterator itEnd = _characterMap.end();
+  for (; it != itEnd; ++it) {
+    delete it.value();
+  }
+  _characterMap.clear();
+}
+
 
 bool
 Font::contains(Character *c) const
@@ -29,15 +42,20 @@ Font::contains(Character *c) const
 bool
 Font::addCharacter(Character *c)
 {
-  if (contains(c))
+  if (contains(c)) {
     return false;
+  }
+
+  auto it = _characterMap.find(c->getCharacterValue());
+  if (it != _characterMap.end())
+      delete it.value();
 
   _characterMap.insert(c->getCharacterValue(), c);
 
   return true;
 }
 
-Character *
+const Character *
 Font::getCharacter(const QString &charValue) const
 {
   auto it = _characterMap.find(charValue);
@@ -45,6 +63,26 @@ Font::getCharacter(const QString &charValue) const
     return it.value();
 
   return nullptr;
+}
+
+Character *
+Font::getEditableCharacter(const QString &charValue) const
+{
+  auto it = _characterMap.find(charValue);
+  if (it != _characterMap.end())
+    return it.value();
+
+  return nullptr;
+}
+
+void
+Font::addCharacter(const QString &charValue, CharacterData *cd)
+{
+  auto it = _characterMap.find(charValue);
+  if (it == _characterMap.end()) {
+    it =_characterMap.insert(charValue, new Models::Character(charValue));
+  }
+  it.value()->add(cd);
 }
 
 /* Setters */

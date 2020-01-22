@@ -31,7 +31,7 @@ FontFileManager::fontFromXml(const QString &filepath)
   QFile file(filepath);
   const bool ok = file.open(QFile::ReadOnly);
   if (!ok) {
-    std::cerr << "Warning: unable to open font file: " << filepath.toStdString()
+    std::cerr << "Warning: unable to open input font file: " << filepath.toStdString()
               << "\n";
     return nullptr;
   }
@@ -177,9 +177,7 @@ FontFileManager::fontFromDirectory(const QString &dirpath,
       }
       charData = new Models::CharacterData(image, id.toInt());
 
-      if (font->getCharacter(character) == nullptr)
-        font->addCharacter(new Models::Character(character));
-      font->getCharacter(character)->add(charData);
+      font->addCharacter(character, charData);
     }
   }
 
@@ -192,7 +190,7 @@ FontFileManager::fontToXml(const Models::Font *font, const QString &filepath)
   QFile file(filepath);
   const bool ok = file.open(QFile::WriteOnly);
   if (!ok) {
-    std::cerr << "Warning: unable to open font file: " << filepath.toStdString()
+    std::cerr << "Warning: unable to open output font file: " << filepath.toStdString()
               << "\n";
     return;
   }
@@ -312,8 +310,8 @@ FontFileManager::saveBaseLineInformation(const QString &path,
     return -1;
   }
   file.close();
-  QDomElement docElem = doc.documentElement();
-  QDomElement write_elem = doc.createElement(QStringLiteral("information"));
+  //QDomElement docElem = doc.documentElement(); //B:unused
+  QDomElement write_elem = doc.createElement(QStringLiteral("information")); //B:unused
 
   QDomNodeList letters = doc.elementsByTagName(QStringLiteral("letter"));
 

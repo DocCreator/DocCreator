@@ -55,13 +55,13 @@ FontEditorView::setCenterChar(Models::Character *ch)
 }
 
 void
-FontEditorView::setLeftChar(Models::Character *ch)
+FontEditorView::setLeftChar(const Models::Character *ch)
 {
   _scene->setLeftChar(ch);
 }
 
 void
-FontEditorView::setRightChar(Models::Character *ch)
+FontEditorView::setRightChar(const Models::Character *ch)
 {
   _scene->setRightChar(ch);
 }
@@ -71,7 +71,8 @@ FontEditorView::addCharacter(Models::Character *ch)
 {
   if (_scene->getCenterCharItem() == nullptr) {
     setCenterChar(ch);
-  } else {
+  }
+  else {
     switch (_scene->getCursorItem()->getCursorPosition()) {
       case RIGHT:
         setRightChar(ch);
@@ -89,8 +90,9 @@ FontEditorView::addCharacter(Models::Character *ch)
 void
 FontEditorView::keyPressEvent(QKeyEvent *e)
 {
-  if (_keyboardController == nullptr)
+  if (_keyboardController == nullptr) {
     return;
+  }
 
   _keyboardController->keyPressEvent(e);
 }
@@ -98,8 +100,9 @@ FontEditorView::keyPressEvent(QKeyEvent *e)
 void
 FontEditorView::keyReleaseEvent(QKeyEvent *e)
 {
-  if (_keyboardController == nullptr)
+  if (_keyboardController == nullptr) {
     return;
+  }
 
   _keyboardController->keyReleaseEvent(e);
 }

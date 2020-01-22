@@ -12,23 +12,27 @@ namespace Doc
     _marginTop(0),
     _marginBottom(0)
   {
-    if (_width < 0)
+    if (_width < 0) {
       _width = 0;
-    if (_height < 0)
+    }
+    if (_height < 0) {
       _height = 0;
+    }
   }
 
   void Block::setWidth(int value)
   {
-    if (value < 0)
+    if (value < 0) {
       value = 0;
+    }
     _width = value;
   }
   
   void Block::setHeight(int value)
   {
-    if (value < 0)
+    if (value < 0) {
       value = 0;
+    }
     _height = value;
   }
   

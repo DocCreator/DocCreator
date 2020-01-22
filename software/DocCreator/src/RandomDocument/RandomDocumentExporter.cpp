@@ -36,11 +36,13 @@ RandomDocumentExporter::getFilePath(const QString &prefix,
   filename.append("/");
   filename.append(prefix);
   filename.append("_");
-  if (_numberWidth <= 0)
+  if (_numberWidth <= 0) {
     filename.append(QString::number(_nbDocWritten));
-  else
+  }
+  else {
     filename.append(
       QString("%1").arg(_nbDocWritten, _numberWidth, 10, QChar('0')));
+  }
   filename.append(extension);
 
   return filename;

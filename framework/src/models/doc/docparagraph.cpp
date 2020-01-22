@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-#include "document.h"
 #include "doccharacter.h"
+#include "document.h"
 
 namespace Doc
 {
@@ -15,8 +15,9 @@ namespace Doc
       _tabulationSize(0)
     {
       Document* doc = this->getDocument();
-      if (doc != nullptr)
+      if (doc != nullptr) {
 	_styleTMP = doc->getStyle();
+      }
 
       //std::cerr<<"# DocParagraph::DocParagraph this="<<this<<" document="<<doc<<" _styleTMP="<<_styleTMP<<"\n";
 
@@ -58,8 +59,9 @@ namespace Doc
     DocParagraph* DocParagraph::getSelection()
     {
         int offset = this->offset();
-        if (this->isEmpty() || _endOfSelection == offset)
+        if (this->isEmpty() || _endOfSelection == offset) {
             return nullptr;
+	}
 
         auto result = new DocParagraph(getDocument());
         QList<DocString*> list;
@@ -67,8 +69,9 @@ namespace Doc
         for (DocString* e : getStrings())
         {
             DocString* selection = e->getSelection();
-            if (selection != nullptr)
+            if (selection != nullptr) {
                 list.append(selection);
+	    }
         }
 
 /*
@@ -155,16 +158,18 @@ namespace Doc
 
     void DocParagraph::setLineSpacing(int value)
     {
-        if (value < 0)
+      if (value < 0) {
             value = 0;
+      }
 
         _lineSpacing = value;
     }
 
     void DocParagraph::setTabulationSize(int value)
     {
-        if (value < 0)
+      if (value < 0) {
             value = 0;
+      }
 
         _tabulationSize = value;
     }
@@ -185,8 +190,9 @@ namespace Doc
     void DocParagraph::actionWhenElementIsEmpty(DocString* empty)
     {
         int index = _elements.indexOf(empty);
-        if (index == -1)
+        if (index == -1) {
             return;
+	}
 
         if (empty != nullptr && empty->isEmpty())
         {
@@ -201,8 +207,9 @@ namespace Doc
     {
         this->setOffset(this->offset()-1);
         DocString* current = this->nextElement();
-        if (current == nullptr)
+        if (current == nullptr) {
             return;
+	}
         current->setOffset(current->length());
         current->removeBeforeCursor();
         this->setLength(this->length()-1);
@@ -217,31 +224,39 @@ namespace Doc
     void DocParagraph::setOffset(int value)
     {
         int l = length();
-        if (value >= l)
+        if (value >= l) {
             _endOfParagraph->setOffset(_endOfParagraph->length());
-        else
+	}
+        else {
             _endOfParagraph->setOffset(0);
+	}
 
-        if (value < 0)
+        if (value < 0) {
             value = 0;
-        else if (value > (l - _endOfParagraph->length()))
+	}
+        else if (value > (l - _endOfParagraph->length())) {
             value = l - _endOfParagraph->length();
+	}
 
         const int previousOffset = offset();
         NodeOfNodes<DocString>::setOffset(value);
 
-        if (!_isSelecting && !_isRemovingSelection)
+        if (!_isSelecting && !_isRemovingSelection) {
             _endOfSelection = this->offset();
+	}
 
-        if (offset() == previousOffset)
+        if (offset() == previousOffset) {
             return;
+	}
 
         DocString* current = currentElement();
         DocString* previous = previousElement();
-        if (current->isAtBeginning() && previous != nullptr)
+        if (current->isAtBeginning() && previous != nullptr) {
             current = previous;
-        if (current != nullptr)
+	}
+        if (current != nullptr) {
             _styleTMP = current->getStyle();
+	}
     }
 
     int DocParagraph::offset() const
@@ -274,8 +289,9 @@ namespace Doc
     DocStyle* DocParagraph::getStyle()
     {
         DocString* current = currentElement();
-        if (current == nullptr || current->getStyle() != _styleTMP)
+        if (current == nullptr || current->getStyle() != _styleTMP) {
             return _styleTMP;
+	}
 
         return current->getStyle();
     }
@@ -283,8 +299,9 @@ namespace Doc
     QList<DocParagraph*> DocParagraph::splitAtPosition(int position)
     {
         QList< DocParagraph* > list;
-        if (isEmpty())
+        if (isEmpty()) {
             return list;
+	}
 
         DocParagraph* firstPart = this->clone();
         DocParagraph* secondPart = this->clone();

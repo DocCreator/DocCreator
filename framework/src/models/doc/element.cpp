@@ -18,8 +18,9 @@ namespace Doc
   
   void Element::setLength(int value)
   {
-    if (value < 0)
+    if (value < 0) {
       value = 0;
+    }
     _length = value;
   }
 

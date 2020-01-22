@@ -39,13 +39,14 @@ find_path(Tesseract_TESSDATA_PARENT_DIR
   PATHS ${Tesseract_PKGCONF_DATAROOTDIR}
   /usr/share/tesseract
   /usr/share/tesseract-ocr
+  /usr/share/tesseract-ocr/4.00
   )
 
 INCLUDE(FindPackageHandleStandardArgs)
 
-# handle the QUIETLY and REQUIRED arguments and set GIRL_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set Tesseract_FOUND to TRUE if
 # all listed variables are TRUE
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Tesseract DEFAULT_MSG Tesseract_LIBRARY Tesseract_INCLUDE_DIR Lept_FOUND)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Tesseract DEFAULT_MSG Tesseract_LIBRARY Tesseract_INCLUDE_DIR Lept_FOUND Tesseract_TESSDATA_PARENT_DIR)
 
 IF(TESSERACT_FOUND)
   SET(Tesseract_FOUND TRUE)

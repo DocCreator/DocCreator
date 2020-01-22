@@ -38,8 +38,9 @@ GraphicsBlockItem::boundingRect() const
 void
 GraphicsBlockItem::hide(bool transparent)
 {
-  if (transparent)
+  if (transparent) {
     setPen(QPen(Qt::transparent));
+  }
   else {
     QPen pen(Qt::red);
     pen.setStyle(Qt::DashLine);

@@ -71,8 +71,9 @@ void
 GraphicView::setOffset(int value)
 {
   GraphicsPageItem *current = currentPageItem();
-  if (current != nullptr)
+  if (current != nullptr) {
     current->setOffset(value);
+  }
 }
 
 void
@@ -111,8 +112,9 @@ QSize
 GraphicView::getImageSize()
 {
   GraphicsPageItem *currentPage = currentPageItem();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return QSize();
+  }
 
   return currentPage->boundingRect().toRect().size();
 }
@@ -235,26 +237,31 @@ void
 GraphicView::wheelEvent(QWheelEvent *event)
 {
   if (event->delta() > 0) {
-    if (_zoomScaleIndex < MAX_ZOOM_GRAPHICVIEW)
+    if (_zoomScaleIndex < MAX_ZOOM_GRAPHICVIEW) {
       zoomIn();
-  } else {
-    if (_zoomScaleIndex > -MAX_ZOOM_GRAPHICVIEW)
+    }
+  }
+  else {
+    if (_zoomScaleIndex > -MAX_ZOOM_GRAPHICVIEW) {
       zoomOut();
+    }
   }
 }
 
 void
 GraphicView::keyPressEvent(QKeyEvent *event)
 {
-  if (_parent != nullptr)
+  if (_parent != nullptr) {
     _parent->keyPressEvent(event);
+  }
 }
 
 void
 GraphicView::keyReleaseEvent(QKeyEvent *event)
 {
-  if (_parent != nullptr)
+  if (_parent != nullptr) {
     _parent->keyReleaseEvent(event);
+  }
 }
 
 /* Slots */
@@ -279,8 +286,9 @@ GraphicView::load()
   clear();
 
   Doc::Document *document = getElement();
-  if (document == nullptr)
+  if (document == nullptr) {
     return;
+  }
 
   for (Doc::Page *p : document->getPages()) {
     addPage(p);
@@ -291,8 +299,9 @@ void
 GraphicView::draw(bool complete)
 {
   Doc::Document *document = getElement();
-  if (document == nullptr)
+  if (document == nullptr) {
     return;
+  }
 
   synchroniseWithElement();
 
@@ -305,10 +314,12 @@ GraphicView::draw(bool complete)
       GraphicsPageItem *pageItem = _map.value(p);
       pageItem->drawElement(p, complete);
     }
-  } else {
+  }
+  else {
     GraphicsPageItem *currentPage = currentPageItem();
-    if (currentPage != nullptr)
+    if (currentPage != nullptr) {
       currentPage->drawElement(document->currentPage(), complete);
+    }
     //QMessageBox::information(nullptr, "PARTIAL", "redraw");
   }
 }
@@ -430,7 +441,8 @@ copyImage(QImage &outImg, const QImage &charImage, int cx0, int cy0)
       }
     }
 
-  } else {
+  }
+  else {
 
     for (int y = y0; y < y1; ++y) {
       const int cy = y - cy0;
@@ -440,11 +452,12 @@ copyImage(QImage &outImg, const QImage &charImage, int cx0, int cy0)
         assert(x >= 0 && y >= 0 && x < w && y < h);
         const QRgb cPix = charImage.pixel(cx, cy);
         const int a = qAlpha(cPix);
-        if (a != 0)
+        if (a != 0) {
           outImg.setPixel(
             x,
             y,
             cPix); //B: we do not take destination pixel into account ... ?
+	}
       }
     }
   }
@@ -456,12 +469,14 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
   //std::cerr << "GraphicView::getDocumentImage()\n";
 
   GraphicsPageItem *currentPage = currentPageItem();
-  if (currentPage == nullptr)
+  if (currentPage == nullptr) {
     return QImage();
+  }
 
   // Hide blocks rects
-  for (GraphicsBlockItem *blockItem : currentPage->getGraphicsBlockItems())
+  for (GraphicsBlockItem *blockItem : currentPage->getGraphicsBlockItems()) {
     blockItem->hide(true);
+  }
 
   // Create the image and render it...
   //const int w = currentPage->pixmap().width();
@@ -649,8 +664,9 @@ GraphicsPageItem *
 GraphicView::currentPageItem()
 {
   Doc::Document *d = getElement();
-  if (d == nullptr)
+  if (d == nullptr) {
     return nullptr;
+  }
 
   return _map.value(d->currentPage());
 }
@@ -659,9 +675,9 @@ void
 GraphicView::synchroniseWithElement()
 {
   Doc::Document *document = getElement();
-  if (document == nullptr)
+  if (document == nullptr) {
     return;
-
+  }
   /* removing items that doesn't exist on the document */
   QList<Doc::Page *> pages = document->getPages();
   QList<Doc::Page *> listToRemove;

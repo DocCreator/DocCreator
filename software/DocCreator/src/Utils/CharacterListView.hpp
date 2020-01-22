@@ -13,7 +13,7 @@ class CharacterListView : public QListWidget
   Q_OBJECT
 
 public:
-  CharacterListView(Models::Character *character,
+  CharacterListView(const Models::Character *character,
                     QPoint pos,
                     QWidget *parent = nullptr);
 
@@ -24,7 +24,7 @@ signals:
   void characterItemClicked(CharacterListWidgetItem *charItem);
 
 private:
-  Models::Character *_character;
+  const Models::Character *_character;
 };
 
 #endif // CHOICECHARACTERLISTVIEW_H

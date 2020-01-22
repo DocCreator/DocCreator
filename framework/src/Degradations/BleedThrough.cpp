@@ -21,10 +21,10 @@ namespace dc {
     const float dt = 0.05f;  //B: ?????  //Why isn't it a parameter of the algo ?
 
     //B: remove useless: / 100.0f * 100.0f
-    const float c = (1.0f / (1.0f + (ixn - u) * (ixn - u) )) /* (1.0 / ((1.0 + ixn*ixn)/(0.2*0.2)) )*/;
-    const float c1 = (1.0f / (1.0f + (ixp - u) * (ixp - u) )) /* (1.0 / ((1.0 + ixp*ixp)/(0.2*0.2)) )*/;
-    const float c2 = (1.0f / (1.0f + (iyp - u) * (iyp - u) )) /* (1.0 / ((1.0 + iyp*iyp)/(0.2*0.2)) )*/;
-    const float c3 = (1.0f / (1.0f + (iyn - u) * (iyn - u) )) /* (1.0 / ((1.0 + iyn*iyn)/(0.2*0.2)) )*/;
+    const float c = (1.0f / (1.0f + (ixn - u) * (ixn - u) )) /* (1.0f / ((1.0f + ixn*ixn)/(0.2f*0.2f)) )*/;
+    const float c1 = (1.0f / (1.0f + (ixp - u) * (ixp - u) )) /* (1.0f / ((1.0f + ixp*ixp)/(0.2f*0.2f)) )*/;
+    const float c2 = (1.0f / (1.0f + (iyp - u) * (iyp - u) )) /* (1.0f / ((1.0f + iyp*iyp)/(0.2f*0.2f)) )*/;
+    const float c3 = (1.0f / (1.0f + (iyn - u) * (iyn - u) )) /* (1.0f / ((1.0f + iyn*iyn)/(0.2f*0.2f)) )*/;
   
     const float delta = (c * (ixn - current)
 			 + c1 * (ixp - current)
@@ -40,7 +40,7 @@ namespace dc {
   template <typename T>
   class BleedThroughDiffusionThreadA : public cv::ParallelLoopBody
   {
-  public :
+  public:
         
     BleedThroughDiffusionThreadA(const cv::Mat &originalRecto,
 				 const cv::Mat &recto,
@@ -48,12 +48,12 @@ namespace dc {
 				 cv::Mat &out);
 
 
-    virtual void operator()(const cv::Range &r) const;
+    virtual void operator()(const cv::Range &r) const override;
 
     //update @a out on Rect(x,y,w,h)
     void process(int _x, int _y, int _w, int _h) const;
   
-  protected :
+  private:
     const cv::Mat &_originalRecto;
     const cv::Mat &_recto;
     const cv::Mat &_verso;

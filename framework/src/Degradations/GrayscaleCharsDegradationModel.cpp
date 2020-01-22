@@ -5,11 +5,11 @@
 #include <cmath>
 #include <ctime>
 #include <limits>
+#include <numeric> //accumulate
 
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "ConnectedComponent.hpp"
-
 
 namespace dc {
 
@@ -150,7 +150,6 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::initialize(const cv::Mat &imgInput)
   {
-
     _MAX_Gradient = INT_MIN;
     _AVG_Gradient = 0;
 
@@ -186,7 +185,9 @@ namespace dc {
       _mat_gray = imgInput.clone();
     }
     else {
-      _nb_connectedcomponants = 0;
+      _nb_connectedcomponants = NO_CC;
+      _mat_output = imgInput.clone(); //need same type as input
+      assert(_mat_output.type() == _inputType);
       return;
     }
     assert(_mat_gray.type() == CV_8UC1);
@@ -195,12 +196,13 @@ namespace dc {
     _width = _mat_gray.cols;
     _height = _mat_gray.rows;
 
-    _mat_binary = binarize();
-    //set _nb_connectedcomponants to NO_CC if no CC found.
-
-    _mat_output = _mat_gray.clone();
+    _mat_binary = binarize(); //binarize _mat_gray
+    //set _nb_connectedcomponants to NO_CC if color-uniform image,
+    // but CCs are not yet computed.
 
     if (_nb_connectedcomponants != NO_CC) {
+
+      _mat_output = _mat_gray.clone();
 
 #ifdef TIMING
       auto t0 = std::chrono::steady_clock::now();
@@ -229,6 +231,9 @@ namespace dc {
 		<< "ms\n";
       std::cerr << "_listPixels.size()=" << _listPixels.size() << "\n";
 #endif
+    }
+    else {
+      _mat_output = imgInput.clone(); //to have same type as input
     }
   }
 
@@ -321,99 +326,99 @@ namespace dc {
 					       float O,
 					       float D)
   {
-    if (_nb_connectedcomponants <= 0) {
-      return _mat_output;
+    if (_nb_connectedcomponants > 0) {
+
+      /*
+	qDebug() << "##### GrayscaleCharsDegradationModel::degradate(" << level
+	<< ", " << I << ", " << O << ", " << D << ")";
+      */
+
+      const int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
+
+      _nbSPs_User =
+	NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
+      /*
+	qDebug() << "getNumberOfConnectedComponants()="
+	<< getNumberOfConnectedComponants();
+	qDebug() << "_nbSPs_User=" << _nbSPs_User;
+      */
+#ifdef TIMING
+      auto t0 = std::chrono::steady_clock::now();
+#endif
+
+      calculatePixelsProbability();
+
+#ifdef TIMING
+      auto t1 = std::chrono::steady_clock::now();
+#endif
+
+      flipPixelsByProbability(I);
+
+#ifdef TIMING
+      auto t2 = std::chrono::steady_clock::now();
+#endif
+
+      //qDebug() << "seed point classification: get type "<< _MAX_Gradient << " " << _listSeedPoints.size() ;
+
+      calculateNoiseRegionType();
+
+#ifdef TIMING
+      auto t3 = std::chrono::steady_clock::now();
+#endif
+
+      //qDebug() << "seed point classification: separate by type " ;
+
+      separateSeedPointsByTypes(O, D);
+
+#ifdef TIMING
+      auto t4 = std::chrono::steady_clock::now();
+#endif
+
+      //qDebug() << "seed point classification: asigne size of ellipses";
+
+      assignmentSizeOfNoiseRegion();
+
+#ifdef TIMING
+      auto t5 = std::chrono::steady_clock::now();
+#endif
+
+      grayscaleDegradationByTypes();
+
+#ifdef TIMING
+      auto t6 = std::chrono::steady_clock::now();
+#endif
+
+
+#ifdef TIMING
+      {
+	auto time1 = t1 - t0;
+	auto time2 = t2 - t1;
+	auto time3 = t3 - t2;
+	auto time4 = t4 - t3;
+	auto time5 = t5 - t4;
+	auto time6 = t6 - t5;
+	std::cerr << "time calculatePixelsProbability="
+		  << std::chrono::duration<double, std::milli>(time1).count()
+		  << "ms\n";
+	std::cerr << "time flipPixelsByProbability="
+		  << std::chrono::duration<double, std::milli>(time2).count()
+		  << "ms\n";
+	std::cerr << "time calculateNoiseRegionType="
+		  << std::chrono::duration<double, std::milli>(time3).count()
+		  << "ms\n";
+	std::cerr << "time separateSeedPointsByTypes="
+		  << std::chrono::duration<double, std::milli>(time4).count()
+		  << "ms\n";
+	std::cerr << "time assignmentSizeOfNoiseRegion="
+		  << std::chrono::duration<double, std::milli>(time5).count()
+		  << "ms\n";
+	std::cerr << "time grayscaleDegradationByTypes="
+		  << std::chrono::duration<double, std::milli>(time6).count()
+		  << "ms\n";
+      }
+#endif
+
     }
-
-    /*
-    qDebug() << "##### GrayscaleCharsDegradationModel::degradate(" << level
-	     << ", " << I << ", " << O << ", " << D << ")";
-    */
-
-    const int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
-
-    _nbSPs_User =
-      NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
-    /*
-    qDebug() << "getNumberOfConnectedComponants()="
-	     << getNumberOfConnectedComponants();
-    qDebug() << "_nbSPs_User=" << _nbSPs_User;
-    */
-#ifdef TIMING
-    auto t0 = std::chrono::steady_clock::now();
-#endif
-
-    calculatePixelsProbability();
-
-#ifdef TIMING
-    auto t1 = std::chrono::steady_clock::now();
-#endif
-
-    flipPixelsByProbability(I);
-
-#ifdef TIMING
-    auto t2 = std::chrono::steady_clock::now();
-#endif
-
-    //qDebug() << "seed point classification: get type "<< _MAX_Gradient << " " << _listSeedPoints.size() ;
-
-    calculateNoiseRegionType();
-
-#ifdef TIMING
-    auto t3 = std::chrono::steady_clock::now();
-#endif
-
-    //qDebug() << "seed point classification: separate by type " ;
-
-    separateSeedPointsByTypes(O, D);
-
-#ifdef TIMING
-    auto t4 = std::chrono::steady_clock::now();
-#endif
-
-    //qDebug() << "seed point classification: asigne size of ellipses";
-
-    assignmentSizeOfNoiseRegion();
-
-#ifdef TIMING
-    auto t5 = std::chrono::steady_clock::now();
-#endif
-
-    grayscaleDegradationByTypes();
-
-#ifdef TIMING
-    auto t6 = std::chrono::steady_clock::now();
-#endif
-
-
-#ifdef TIMING
-    {
-      auto time1 = t1 - t0;
-      auto time2 = t2 - t1;
-      auto time3 = t3 - t2;
-      auto time4 = t4 - t3;
-      auto time5 = t5 - t4;
-      auto time6 = t6 - t5;
-      std::cerr << "time calculatePixelsProbability="
-	       << std::chrono::duration<double, std::milli>(time1).count()
-	       << "ms\n";
-      std::cerr << "time flipPixelsByProbability="
-	       << std::chrono::duration<double, std::milli>(time2).count()
-	       << "ms\n";
-      std::cerr << "time calculateNoiseRegionType="
-	       << std::chrono::duration<double, std::milli>(time3).count()
-	       << "ms\n";
-      std::cerr << "time separateSeedPointsByTypes="
-	       << std::chrono::duration<double, std::milli>(time4).count()
-	       << "ms\n";
-      std::cerr << "time assignmentSizeOfNoiseRegion="
-	       << std::chrono::duration<double, std::milli>(time5).count()
-	       << "ms\n";
-      std::cerr << "time grayscaleDegradationByTypes="
-	       << std::chrono::duration<double, std::milli>(time6).count()
-	       << "ms\n";
-    }
-#endif
 
     //TODO: not needed if degradation worked on color image
     assert(_inputType == CV_8UC1 ||
@@ -502,12 +507,14 @@ namespace dc {
 	      pixel.gradient_angle = 0;
 	    }
 
-	    if (pixel.gradient_angle == 0)
+	    if (pixel.gradient_angle == 0) {
 	      pixel.gradient_angle = 10; //B: why this value ???
+	    }
 
 	    // MAX gradient value
-	    if (_MAX_Gradient < pixel.gradient_value)
+	    if (_MAX_Gradient < pixel.gradient_value) {
 	      _MAX_Gradient = pixel.gradient_value;
+	    }
 
 	    // AVG gradient value
 	    _AVG_Gradient += pixel.gradient_value;
@@ -576,16 +583,20 @@ namespace dc {
 	  ++d_0;
 	  A_0.x = x;
 	  A_0.y = yo;
-	} else
+	}
+	else {
 	  break;
+	}
       }
       for (int x = xo; x >= 0; --x) {
 	if (m[x] == 0) {
 	  ++d_0;
 	  B_0.x = x;
 	  B_0.y = yo;
-	} else
+	}
+	else {
 	  break;
+	}
       }
     }
     // 90 degree
@@ -614,28 +625,34 @@ namespace dc {
     cv::Point A_45, B_45;
     int y = yo;
     for (int x = xo; x < width; ++x) {
-      if (y < 0)
+      if (y < 0) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_45;
 	A_45.x = x;
 	A_45.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       --y;
     }
     y = yo;
     for (int x = xo; x >= 0; --x) {
-      if (y >= height)
+      if (y >= height) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_45;
 	B_45.x = x;
 	B_45.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       ++y;
     }
     //135 degree
@@ -643,28 +660,34 @@ namespace dc {
     cv::Point A_135, B_135;
     y = yo;
     for (int x = xo; x < width; ++x) {
-      if (y >= height)
+      if (y >= height) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_135;
 	A_135.x = x;
 	A_135.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       ++y;
     }
     y = yo;
     for (int x = xo; x >= 0; --x) {
-      if (y < 0)
+      if (y < 0) {
 	break;
+      }
       assert(y >= 0 && y < _mat_CCs.rows && x >= 0 && x < _mat_CCs.cols);
       if (_mat_CCs.at<uchar>(y, x) == 0) {
 	++d_135;
 	B_135.x = x;
 	B_135.y = y;
-      } else
+      }
+      else {
 	break;
+      }
       --y;
     }
     --d_0;
@@ -1132,6 +1155,7 @@ namespace dc {
     if (_width * _height >= 1000000)
       max_dis = std::max(_width, _height) / 15;
     //B:TODO: This does not work if we have a small image and a big text.
+#if 0
     {
       size_t m0 = 0;
       double m1 = 0.0, m2 = 0.0;
@@ -1154,6 +1178,38 @@ namespace dc {
 	max_dis = std::max(max_dis, max_disB);
       }
     }
+#else
+    {
+      /*
+	//B:24/09/2019
+	Current code produces ugly results on "big" characters.
+	Thus we do not want to select too "big" characters.
+
+	This code should give acceptable results if we have a majority of
+	small characters (and potentially some "big" characters,
+        for the titles for example).
+	We do not set an absolute maximum for now. Thus if we only have
+        "big" characters on the image, the result will still be ugly...
+       */
+
+      const size_t sz = ccsInfo.size();
+      std::vector<size_t> ccsSize(sz);
+      for (size_t i=0; i<sz; ++i) {
+        ccsSize[i] = ccsInfo[i].size();
+      }
+      auto itMed = ccsSize.begin()+sz/2;
+      std::nth_element(ccsSize.begin(), itMed, ccsSize.end());
+      //const auto itMax = std::max_element(ccsSize.begin(), ccsSize.end());
+      //const auto itMin = std::min_element(ccsSize.begin(), ccsSize.end());
+      auto mean = std::accumulate(std::begin(ccsSize), std::end(ccsSize), 0.0) / ccsSize.size();
+      //std::cerr<<"min="<<*itMin<<" median="<<*itMed<<" max="<<*itMax<<"  mean="<<mean<<"\n";
+
+      //std::cerr<<"max_dis="<<max_dis<<"\n";
+      max_dis = std::min(*itMed * 2, size_t(mean+0.5));
+      //std::cerr<<"max_dis="<<max_dis<<"\n";
+    }
+#endif //0
+
 
     const int max_dis_square = max_dis * max_dis;
 
@@ -1565,10 +1621,12 @@ namespace dc {
       const Seedpoint &sp = _listSeedPoints[i];
       if (sp.type < 0 || sp.type > 2) {
 	sz -= 1;
-	if (sz > sz0)
+	if (sz > sz0) {
 	  break;
+	}
 	std::swap(_listSeedPoints[i], _listSeedPoints[sz]);
-      } else {
+      }
+      else {
 	++i;
       }
     }
@@ -1984,10 +2042,12 @@ namespace dc {
 	if (isFtoB) {
 	  B1_moyen_gris = Centre_gray + (B_gris - Centre_gray) * dis / deltaDis;
 	} else {
-	  if (B_gris == 0)
+	  if (B_gris == 0) {
 	    B_gris = 1;
-	  if (Centre_gray == 0)
+	  }
+	  if (Centre_gray == 0) {
 	    Centre_gray = 1;
+	  }
 	  B1_moyen_gris = /*C_gris + (B_gris - C_gris)*dis/deltaDis;}*/ exp(
 									    (log(B_gris) - log(Centre_gray)) * (dis / deltaDis) +
 									    log(Centre_gray));
@@ -1999,36 +2059,44 @@ namespace dc {
 
 	int grisGenerator = var_nor_ForPixelEcllipse();
 
-	if (isFtoB)
+	if (isFtoB) {
 	  while (grisGenerator < (B1_moyen_gris - pixel_signma) ||
 		 grisGenerator > (B1_moyen_gris + sigma_gaussien)) {
 	    grisGenerator = var_nor_ForPixelEcllipse();
 	    ++limiter1;
-	    if (limiter1 > 100)
+	    if (limiter1 > 100) {
 	      break;
+	    }
 	  }
-	else
+	}
+	else {
 	  while (grisGenerator < 0 ||
 		 grisGenerator < (B1_moyen_gris - pixel_signma) ||
 		 grisGenerator > (B1_moyen_gris + pixel_signma)) {
 	    grisGenerator = var_nor_ForPixelEcllipse();
 	    ++limiter1;
-	    if (limiter1 > 100)
+	    if (limiter1 > 100) {
 	      break;
+	    }
 	  }
+	}
 	//
-	if (grisGenerator < BLACK)
+	if (grisGenerator < BLACK) {
 	  grisGenerator = BLACK;
-	else if (grisGenerator > WHITE)
+	}
+	else if (grisGenerator > WHITE) {
 	  grisGenerator = WHITE;
+	}
 	//
 
 	assert(B1.y >= 0 && B1.y < imgGrayOutput.rows && B1.x >= 0 &&
 	       B1.x < imgGrayOutput.cols); //B
 
-	if (!isFtoB)
-	  if (imgGrayOutput.at<uchar>(B1.y, B1.x) < Centre_gray)
+	if (!isFtoB) {
+	  if (imgGrayOutput.at<uchar>(B1.y, B1.x) < Centre_gray) {
 	    continue;
+	  }
+	}
 	imgGrayOutput.at<uchar>(B1.y, B1.x) = grisGenerator;
       }
     }
@@ -2059,8 +2127,9 @@ namespace dc {
       const uchar *mc = _mat_contour.ptr<uchar>(y);
       for (int i = x; i >= x0; --i) {
 	assert(i >= 0);
-	if (mc[i] == WHITE)
+	if (mc[i] == WHITE) {
 	  break;
+	}
 	++dist; //0 degree
       }
     }
@@ -2073,11 +2142,13 @@ namespace dc {
       const uchar *mc = _mat_contour.ptr<uchar>(y);
       for (int i = x; i < x1; ++i) {
 	assert(i < _width);
-	if (mc[i] == WHITE)
+	if (mc[i] == WHITE) {
 	  break;
+	}
 	++dist; //0 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
+	}
       }
     }
     minDist = std::min(dist, minDist);
@@ -2087,11 +2158,13 @@ namespace dc {
     for (int i = y; i >= y0; --i) {
       assert(i >= 0);
       assert(i >= 0 && i < _mat_contour.rows && x >= 0 && x < _mat_contour.cols);
-      if (_mat_contour.at<uchar>(i, x) == WHITE)
+      if (_mat_contour.at<uchar>(i, x) == WHITE) {
 	break;
+      }
       ++dist; // 90 degree
-      if (dist >= minDist)
+      if (dist >= minDist) {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2100,11 +2173,13 @@ namespace dc {
     for (int i = y; i < y1; ++i) {
       assert(i < _height);
       assert(i >= 0 && i < _mat_contour.rows && x >= 0 && x < _mat_contour.cols);
-      if (_mat_contour.at<uchar>(i, x) == WHITE)
+      if (_mat_contour.at<uchar>(i, x) == WHITE) {
 	break;
+      }
       ++dist; // 90 degree
-      if (dist >= minDist)
+      if (dist >= minDist) {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2116,13 +2191,17 @@ namespace dc {
 	assert(i < _width);
 	assert(j >= 0 && j < _mat_contour.rows && i >= 0 &&
 	       i < _mat_contour.cols);
-	if (_mat_contour.at<uchar>(j, i) == WHITE)
+	if (_mat_contour.at<uchar>(j, i) == WHITE) {
 	  break;
+	}
 	++dist; //45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2134,13 +2213,17 @@ namespace dc {
 	assert(i < _width);
 	assert(j >= 0 && j < _mat_contour.rows && i >= 0 &&
 	       i < _mat_contour.cols);
-	if (_mat_contour.at<uchar>(j, i) == WHITE)
+	if (_mat_contour.at<uchar>(j, i) == WHITE) {
 	  break;
+	}
 	++dist; // -45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2155,10 +2238,13 @@ namespace dc {
 	if (_mat_contour.at<uchar>(j, i) == WHITE)
 	  break;
 	++dist; // 45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2170,13 +2256,17 @@ namespace dc {
 	assert(i >= 0);
 	assert(j >= 0 && j < _mat_contour.rows && i >= 0 &&
 	       i < _mat_contour.cols);
-	if (_mat_contour.at<uchar>(j, i) == WHITE)
+	if (_mat_contour.at<uchar>(j, i) == WHITE) {
 	  break;
+	}
 	++dist; // -45 degree
-	if (dist >= minDist)
+	if (dist >= minDist) {
 	  break;
-      } else
+	}
+      }
+      else {
 	break;
+      }
     }
     minDist = std::min(dist, minDist);
 
@@ -2204,8 +2294,9 @@ namespace dc {
 	if (m[x] == 255) {
 	  const float distSq = (pixel.pos.x - x) * (pixel.pos.x - x) +
 	    (pixel.pos.y - y) * (pixel.pos.y - y);
-	  if (distSq < minDistSq)
+	  if (distSq < minDistSq) {
 	    minDistSq = distSq;
+	  }
 	}
       }
     }
@@ -2523,8 +2614,9 @@ namespace dc {
 							  float percent_independent)
   {
     const size_t sz = _listPixels.size();
-    if (sz == 0)
+    if (sz == 0) {
       return;
+    }
 
     //estimate r by using histogram
     std::vector<float> listProbability;

@@ -2,15 +2,16 @@
 
 namespace Doc
 {
-    DocImageBlock::DocImageBlock(const QString &filePath)
+  DocImageBlock::DocImageBlock(const QString &filePath) :
+    Block(),
+    _filePath(filePath)
     {
-      _filePath = filePath;
     }
 
     DocImageBlock::DocImageBlock(const QString &filePath, int w, int h, int x, int y) : 
-      Block(w, h, x, y)
+      Block(w, h, x, y),
+    _filePath(filePath)
     {
-      _filePath = filePath;
     }
 
     QString DocImageBlock::content() const

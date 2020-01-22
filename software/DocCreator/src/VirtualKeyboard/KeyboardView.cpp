@@ -179,22 +179,27 @@ KeyboardView::processControlButton(int key)
     _ctrlPressed = true;
     _controlButtons.value(Qt::Key_Control)->pressKey();
     redrawKeyboard();
-  } else if (controlKey == Qt::Key_Alt) {
+  }
+  else if (controlKey == Qt::Key_Alt) {
     _altPressed = true;
     _controlButtons.value(Qt::Key_Alt)->pressKey();
     redrawKeyboard();
-  } else if (controlKey == Qt::Key_Shift)
+  }
+  else if (controlKey == Qt::Key_Shift) {
     _shiftPressed = true;
-  else if (controlKey == Qt::Key_AltGr)
+  }
+  else if (controlKey == Qt::Key_AltGr) {
     _altGrPressed = true;
+  }
 
   if (controlKey != Qt::Key_Shift && _ctrlPressed && _altPressed) {
     controlKey = Qt::Key_AltGr;
     _altGrPressed = true;
   }
 
-  if (!_controlButtons.contains(key))
+  if (!_controlButtons.contains(key)) {
     return;
+  }
 
   //const int SIZE_TAB=5; //B:WARNING: SIZE_TAB also defined in documentcontroller.cpp
 
@@ -257,19 +262,23 @@ KeyboardView::processControlButtonRelease(int key)
       break;
     case Qt::Key_AltGr:
       _altGrPressed = false;
-      if (_shiftPressed)
+      if (_shiftPressed) {
         _currentMode = UpperCase;
-      else
+      }
+      else {
         _currentMode = LowerCase;
+      }
       _controlButtons.value(Qt::Key_AltGr)->releaseKey();
       redrawKeyboard();
       break;
     case Qt::Key_Shift:
       _shiftPressed = false;
-      if (_altGrPressed)
+      if (_altGrPressed) {
         _currentMode = Alternate;
-      else
+      }
+      else {
         _currentMode = LowerCase;
+      }
       _controlButtons.value(Qt::Key_Shift)->releaseKey();
       redrawKeyboard();
       break;
@@ -351,9 +360,9 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
         const int fontCode = charButtonView->getFontCode(mode);
         if (fontCode == -1) {
           int indexChar = 0;
-          for (
-            iter = fontCharsMap.begin(); iter != fontCharsMap.end(); ++iter,
-           ++indexChar) { //TODO:OPTIM: on ne veut pas retraverser tous les caracteres pour savoir ceux qui sont allloués !!!
+          for (iter = fontCharsMap.begin();
+	       iter != fontCharsMap.end();
+	       ++iter, ++indexChar) { //TODO:OPTIM: on ne veut pas retraverser tous les caracteres pour savoir ceux qui sont alloués !!!
             const int u = iter.key().unicode()->unicode();
             if (!checkedFontCodes.contains(u) &&
                 !checkedKBCodes.contains(keyboardCode)) {
@@ -439,8 +448,9 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
 void
 KeyboardView::drawKeyboard(Models::Font *font)
 {
-  if (font == nullptr)
+  if (font == nullptr) {
     return;
+  }
 
   //assert(font != nullptr);
   if (_currentFontName != font->getName()) {
@@ -462,7 +472,7 @@ KeyboardView::drawKeyboard(Models::Font *font)
     if (fontCodeValue > -1) {
 
       const QString charValue(static_cast<QChar>(fontCodeValue));
-      Models::Character *c = font->getCharacter(charValue);
+      const Models::Character *c = font->getCharacter(charValue);
 
       if (c != nullptr) {
         charButtonView->setEnabled(true);

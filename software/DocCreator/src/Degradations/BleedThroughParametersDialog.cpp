@@ -183,8 +183,9 @@ BleedThroughParametersDialog::updateBleedImage(int nbIter, bool fromZero)
 void
 BleedThroughParametersDialog::nbIterationsChanged(int value)
 {
-  if (!_rectoImgSmall.isNull() && !_versoImgSmall.isNull())
+  if (!_rectoImgSmall.isNull() && !_versoImgSmall.isNull()) {
     updateBleedImage(value, false);
+  }
 
   _params.setNbIterations(value);
 }

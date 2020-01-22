@@ -22,8 +22,9 @@ GraphicsComponentBlockItem::GraphicsComponentBlockItem(
 void
 GraphicsComponentBlockItem::clear()
 {
-  if (_pixmapItem != nullptr)
+  if (_pixmapItem != nullptr) {
     _pixmapItem->setPixmap(QPixmap());
+  }
 }
 
 void
@@ -51,8 +52,9 @@ GraphicsComponentBlockItem::load()
 {
   Doc::DocComponentBlock *docComponentBlock =
     dynamic_cast<Doc::DocComponentBlock *>(getElement());
-  if (docComponentBlock == nullptr)
+  if (docComponentBlock == nullptr) {
     return;
+  }
 
   _pixmapItem = new QGraphicsPixmapItem();
   _pixmapItem->setParentItem(this);
@@ -134,8 +136,10 @@ GraphicsComponentBlockItem::updatePosition()
 
   GraphicsBlockItem::updatePosition();
   Doc::DocComponentBlock *docComponentBlock = getElement();
-  if (docComponentBlock == nullptr)
+  if (docComponentBlock == nullptr) {
     return;
-  if (docController != nullptr)
+  }
+  if (docController != nullptr) {
     docController->setBlockGeometry(x(), y(), rect().width(), rect().height());
+  }
 }

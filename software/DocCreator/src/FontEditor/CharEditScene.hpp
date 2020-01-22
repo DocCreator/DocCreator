@@ -19,9 +19,9 @@ public:
                          QObject *parent = nullptr);
 
   //Setters
-  void setCenterChar(Models::Character *ch);
-  void setLeftChar(Models::Character *ch);
-  void setRightChar(Models::Character *ch);
+  void setCenterChar(const Models::Character *ch);
+  void setLeftChar(const Models::Character *ch);
+  void setRightChar(const Models::Character *ch);
 
   //Getters
   QGraphicsPixmapItem *getCenterCharItem() { return _centerCharItem; }
@@ -58,7 +58,7 @@ private:
 private:
   QPointF _center;
 
-  Models::Character *_centerChar, *_leftChar, *_rightChar;
+  const Models::Character *_centerChar, *_leftChar, *_rightChar;
   QGraphicsPixmapItem *_centerCharItem, *_leftCharItem, *_rightCharItem;
   CharEditLineItem *_upLineItem, *_baseLineItem, *_leftLineItem,
     *_rightLineItem;

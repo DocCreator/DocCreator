@@ -47,8 +47,9 @@ namespace Doc
     DocTextBlock* DocTextBlock::getSelection()
     {
         int offset = this->offset();
-        if (this->isEmpty() || _endOfSelection == offset)
+        if (this->isEmpty() || _endOfSelection == offset) {
             return nullptr;
+	}
 
         auto result = new DocTextBlock(getDocument());
         QList<DocParagraph*> list;
@@ -57,8 +58,9 @@ namespace Doc
         for (DocParagraph* e : elements) 
         {
             DocParagraph* selection = e->getSelection();
-            if (selection != nullptr)
+            if (selection != nullptr) {
                 list.append(selection);
+	    }
         }
 /*
         int min = (_endOfSelection < offset) ? _endOfSelection : offset;
@@ -130,18 +132,20 @@ namespace Doc
         }
         else {
             DocParagraph* current = next;
-            if (current == nullptr)
+            if (current == nullptr) {
                 current = previous;
-            if (current == nullptr)
+	    }
+            if (current == nullptr) {
                 return;
+	    }
 
             int oldOffset = this->offset();
             QList<DocParagraph*> splitted = current->splitAtPosition(current->offset());
             DocParagraph* toRemove = _elements.at(_index);
             _elements.removeAt(_index);
-            for (DocParagraph* p : splitted)
+            for (DocParagraph* p : splitted) {
                 NodeOfNodes<DocParagraph>::add(p);
-
+	    }
             this->setLength(this->length()-toRemove->length());
             this->setOffset(oldOffset+e->length());
         }
@@ -149,8 +153,9 @@ namespace Doc
 
     void DocTextBlock::add(const QList<DocParagraph*> &l)
     {
-      for (DocParagraph* e : l)
+      for (DocParagraph* e : l) {
             this->add(e);
+      }
     }
 
     DocParagraph* DocTextBlock::currentParagraph()
@@ -165,15 +170,17 @@ namespace Doc
 
     void DocTextBlock::changeStyle(DocStyle* style)
     {
-        if (isEmpty())
+      if (isEmpty()) {
             return;
+      }
 
         DocParagraph* current = currentElement();
         if (current == nullptr)
         {
             DocParagraph* previous = previousElement();
-            if (previous == nullptr)
+            if (previous == nullptr) {
                 return;
+	    }
             current = previous;
         }
         current->changeStyle(style);
@@ -185,8 +192,9 @@ namespace Doc
         if (current == nullptr)
         {
             DocParagraph* previous = previousElement();
-            if (previous == nullptr)
+            if (previous == nullptr) {
                 return nullptr;
+	    }
             current = previous;
         }
         return current->getStyle();
@@ -227,8 +235,9 @@ namespace Doc
         DocParagraph* nextOfNext = nextElement();
         this->setOffset(this->offset()-1);
 
-        if (next != nullptr && _index == _elements.count()-1)
+        if (next != nullptr && _index == _elements.count()-1) {
             return;
+	}
 
         if (next != nullptr && next->isEmpty())
         {

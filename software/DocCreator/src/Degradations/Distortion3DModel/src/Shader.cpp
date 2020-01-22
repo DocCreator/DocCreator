@@ -32,11 +32,13 @@ static void
 printInfoLog(GLuint object, const std::string &msg)
 {
   GLint logLength = 0;
-  if (glIsShader(object)) {
+  if (glIsShader(object) != 0u) {
     glGetShaderiv(object, GL_INFO_LOG_LENGTH, &logLength);
-  } else if (glIsProgram(object)) {
+  }
+  else if (glIsProgram(object) != 0u) {
     glGetProgramiv(object, GL_INFO_LOG_LENGTH, &logLength);
-  } else {
+  }
+  else {
     std::cerr << "Error: Not a shader or a program\n";
     return;
   }
@@ -44,10 +46,12 @@ printInfoLog(GLuint object, const std::string &msg)
   if (logLength > 0) {
 
     auto log = new GLchar[logLength];
-    if (glIsShader(object))
+    if (glIsShader(object) != 0u) {
       glGetShaderInfoLog(object, logLength, nullptr, log);
-    else if (glIsProgram(object))
+    }
+    else if (glIsProgram(object) != 0u) {
       glGetProgramInfoLog(object, logLength, nullptr, log);
+    }
 
     std::cerr << msg << " info: \n" << log << "\n";
 
@@ -100,7 +104,7 @@ createShader(const std::string &src, GLenum type, const std::string &msg)
 
   GL_CHECK_ERROR_ALWAYS();
 
-  glShaderSource(res, 1, (const GLchar **)&s_src, nullptr);
+  glShaderSource(res, 1, static_cast<const GLchar **>(&s_src), nullptr);
 
   GL_CHECK_ERROR_ALWAYS();
 
@@ -139,8 +143,9 @@ Shader::loadFromStrings(const std::string &vertexString,
 
   if (vertexString != "") {
     GLuint shader = createShader(vertexString, GL_VERTEX_SHADER, "vertex");
-    if (!shader)
+    if (shader == 0u) {
       return false;
+    }
     glAttachShader(program, shader);
     //std::cerr << "attach vertex shader " << shader << "\n";
   }
@@ -148,8 +153,9 @@ Shader::loadFromStrings(const std::string &vertexString,
   if (fragmentString != "") {
     GLuint shader =
       createShader(fragmentString, GL_FRAGMENT_SHADER, "fragment");
-    if (!shader)
+    if (shader == 0u) {
       return false;
+    }
     glAttachShader(program, shader);
     //std::cerr << "attach fragment shader " << shader << "\n";
   }
@@ -157,7 +163,7 @@ Shader::loadFromStrings(const std::string &vertexString,
   glLinkProgram(program);
   GLint link_ok = GL_FALSE;
   glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
-  if (!link_ok) {
+  if (link_ok == 0) {
     std::cerr << "ERROR: unable to link program\n";
     printInfoLog(program, "program");
     glDeleteProgram(program);

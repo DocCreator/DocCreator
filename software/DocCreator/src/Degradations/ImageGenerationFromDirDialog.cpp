@@ -146,7 +146,7 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
       for (size_t i = 0; i < lineSize; ++i) {
 
         QString charDisplay(line.at(i));
-        Models::Character *character = _font->getCharacter(charDisplay);
+        const Models::Character *character = _font->getCharacter(charDisplay);
 
         if (character != nullptr &&
             !charDisplay.isEmpty()) { // if the character exist in the font, get
@@ -176,7 +176,7 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
   assert(charCounter > 0); //B
   meanCharHeight =
     meanCharHeight / charCounter; //B: do we really want integer division ???
-  const int lineSpacing = (maxCharHeight * 1.2); //B: implicit cast ???
+  const int lineSpacing = (maxCharHeight * 1.2f); //B: implicit cast ???
 
   if (maxLineLong < columnsWidth) { // re-form background and columns width
     //        int delta = columnsWidth - maxLineLong;
@@ -342,7 +342,7 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
                 for (Doc::DocString *s : p->getStrings()) {
                   if (!s->getCharacters().empty())
                     for (Doc::DocCharacter *ch : s->getCharacters()) {
-                      Models::Character *character =
+                      const Models::Character *character =
                         _font->getCharacter(ch->getDisplay());
                       const QString chDisplay = ch->getDisplay();
                       if (character == nullptr ||
@@ -377,7 +377,7 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
                                             2; // adjust the character position
 
                       const QString cDisplay = c->getDisplay();
-                      Models::Character *character =
+                      const Models::Character *character =
                         _font->getCharacter(cDisplay);
 
                       if (character != nullptr && !cDisplay.isEmpty()) {
@@ -495,7 +495,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
       for (size_t i = 0; i < lineSize; ++i) {
 
         QString charDisplay(line.at(i));
-        Models::Character *character = _font->getCharacter(charDisplay);
+        const Models::Character *character = _font->getCharacter(charDisplay);
 
         if (character != nullptr &&
             !charDisplay.isEmpty()) { // if the character exist in the font, get
@@ -530,7 +530,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   // check if height of all paragraph > columns height
   assert(itemCounter > 0); //B
   meanCharHeight = meanCharHeight / itemCounter;
-  int lineSpacing = (maxCharHeight * 1.2);
+  int lineSpacing = (maxCharHeight * 1.2f);
 
   // check fitted column width with text input
   if (maxLineLong < columnsWidth) { // re-form background and columns width
@@ -575,7 +575,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   _docController->addTextBlock(
     pageMarginLeft, pageMarginTop, columnsWidth, columnsHeight);
 
-  bool isBalance = true;
+  const bool isBalance = true; //B:useless?
   if (isBalance) {
     int heightFilledTextBlock = 0;
     QList<LineText *> tmpParagraphs;
@@ -610,7 +610,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
           // check word long
           int wordLong = 0;
           for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-            Models::Character *character =
+            const Models::Character *character =
               _font->getCharacter(tmpP->charList.at(i));
             if (character != nullptr) {
               const Models::CharacterData *charData =
@@ -842,7 +842,7 @@ ImageGenerationFromDirDialog::createATextBox(Doc::Document *document,
 }
 
 QImage
-ImageGenerationFromDirDialog::getCharacterImage(Models::Character *ch)
+ImageGenerationFromDirDialog::getCharacterImage(const Models::Character *ch)
 {
   const Models::CharacterData *charData = ch->getRandomCharacterData();
   const QImage charImage = charData->getImage();
@@ -877,7 +877,7 @@ ImageGenerationFromDirDialog::bindTextForATextBox(QStringList &textLines,
       } // IF the block is full -> out
 
       QChar c = line.at(0); // Get the current character
-      Models::Character *character = _font->getCharacter(QString(c));
+      const Models::Character *character = _font->getCharacter(QString(c));
 
       if (character != nullptr) {
 
@@ -1065,7 +1065,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
       for (size_t i = 0; i < lineSize; ++i) {
 
         QString charDisplay(line.at(i));
-        Models::Character *character = _font->getCharacter(charDisplay);
+        const Models::Character *character = _font->getCharacter(charDisplay);
 
         if (character != nullptr &&
             !charDisplay.isEmpty()) { // if the character exist in the font, get
@@ -1100,7 +1100,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   // check if height of all paragraph > columns height
   assert(itemCounter > 0); //B
   meanCharHeight = meanCharHeight / itemCounter;
-  const int lineSpacing = (maxCharHeight * 1.2);
+  const int lineSpacing = (maxCharHeight * 1.2f);
 
   // check fitted column width with text input
   if (maxLineLong < _columnsWidth) { // re-form background and columns width
@@ -1157,7 +1157,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
 
   //_docController->addTextBlock(pageMarginLeft, pageMarginTop, columnsWidth, columnsHeight);
 
-  bool isBalance = true;
+  const bool isBalance = true; //B:useless?
   if (isBalance) {
     int heightFilledTextBlock = 0;
     QList<LineText *> tmpLines;
@@ -1192,7 +1192,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
           // check word long
           int wordLong = 0;
           for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-            Models::Character *character =
+            const Models::Character *character =
               _font->getCharacter(tmpLine->charList.at(i));
             if (character != nullptr) {
               const Models::CharacterData *charData =
@@ -1342,7 +1342,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
 
       int x = dx;
       int y = dy;
-      Models::Character *character = _font->getCharacter(s);
+      const Models::Character *character = _font->getCharacter(s);
 
       if (character != nullptr) {
         const Models::CharacterData *charData =

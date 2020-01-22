@@ -348,7 +348,7 @@ bool write_off(const Surface_mesh& mesh, const std::string& filename)
     // faces
     for (Surface_mesh::Face_iterator fit=mesh.faces_begin(); fit!=mesh.faces_end(); ++fit)
     {
-        int nV = mesh.valence(*fit);
+        const int nV = mesh.valence(*fit);
         fprintf(out, "%d", nV);
         Surface_mesh::Vertex_around_face_circulator fvit=mesh.vertices(*fit), fvend=fvit;
         do
