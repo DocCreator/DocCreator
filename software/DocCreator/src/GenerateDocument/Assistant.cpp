@@ -180,6 +180,10 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
 
   QObject::connect(
     ui->btnChooseTxtDir, SIGNAL(clicked()), this, SLOT(chooseTextDirectory()));
+  QObject::connect(ui->listTextView,
+                   SIGNAL(clicked(QModelIndex)),
+                   this,
+                   SLOT(textSelectionChanges()));
 
   //QObject::connect(ui->pageNumber, SIGNAL(valueChanged(int)), this, SIGNAL(completeChanged()));
 
@@ -694,7 +698,10 @@ Assistant::validateCurrentPage()
         return false;
 
       if (askIfProceedDespiteImageInDir(_outputTxtImageDir)) {
-        generateTxtImages(); //B: we can not call generateTxtImages in nextId() as it is const (and called several times) ! So we do it here...
+        generateTxtImages();
+	//B: we can not call generateTxtImages in nextId() as it is const (and called several times) !
+	//So we do it here...
+
         return (!_inputImageList.isEmpty());
       }
       //else
@@ -740,13 +747,14 @@ Assistant::validateCurrentPage()
 
 A lot of checks are done in nextId() or validateCurrentPage().
 One problem is that the next button, that should be disabled when these checks are invalid, always appears enabled.
-According to Qt documentation, the solution would be to have one individual class inheriting from QWizardPage for each page, and override isComplete() (and emit completeChange() when necessary).
+According to Qt documentation, the solution would be to have one individual class inheriting from QWizardPage for each page, 
+and override isComplete() (and emit completeChange() when necessary).
 But as we have all the GUI defined in Assistant.ui, it probably entails that we have to do one .ui per page !?
 
 */
 
 /*
-  B: if the order of pages is changed in nextId()
+  B: if the order of pages for degradations is changed in nextId()
   it is probably a good idea to also change the display order on Page_FinalDegradations
   int Assistant.ui file
 
@@ -803,6 +811,10 @@ Assistant::nextId() const
     case Page_FinalText:
       if (_outputTxtImageDir.isEmpty())
         return currentId();
+      return Page_ConfirmDegradations;
+      break;
+
+    case Page_ConfirmDegradations:
       return Page_CharDeg;
       break;
 
@@ -876,38 +888,65 @@ Assistant::chooseTextDirectory()
                                       QStringLiteral("./"),
                                       QFileDialog::ShowDirsOnly);
   if (!path.isEmpty()) {
-    ui->txtFilePath->setText(path);
-    _txtDirectory = path;
-
-    this->populateTxtList();
+    this->updateListText(path);
   }
+}
+
+QStringList
+getTextFiles(const QString &path)
+{
+  QStringList nameFilters;
+  nameFilters << QStringLiteral("*.txt");
+
+  QDir directory(path);
+  QList<QString> fileList =
+    directory.entryList(nameFilters, QDir::Files | QDir::Readable);
+
+  return fileList;
 }
 
 void
-Assistant::populateTxtList()
+Assistant::updateListText(const QString &path)
 {
   QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
-  _txtList.clear();
+  ui->txtFilePath->setText(path);
 
-  if (!_txtDirectory.isEmpty()) {
-    QStringList nameFilters;
-    nameFilters << QStringLiteral("*.txt");
+  ui->listTextView->clearSelection();
 
-    QDir directory(_txtDirectory);
-    QList<QString> fileList =
-      directory.entryList(nameFilters, QDir::Files | QDir::Readable);
-    _txtList.reserve(fileList.size());
-    for (const QString &file : fileList) {
-      _txtList.append(directory.relativeFilePath(file));
-    }
-  }
-  ui->label_nbTextFiles->setText(tr("%n text file(s)", "", _txtList.count()));
+  _txtDirectory = path;
+
+  QStringList list = getTextFiles(path);
+
+  list.sort();
+  //To have files in a predictive order
+
+  _textListModel.setStringList(list);
+  ui->listTextView->setModel(&_textListModel);
+  ui->listTextView->selectAll();
+
+  textSelectionChanges();
 
   QGuiApplication::restoreOverrideCursor();
-
-  //emit completeChanged();
 }
+
+void
+Assistant::textSelectionChanges()
+{
+  QModelIndexList listSelectionsText =
+    ui->listTextView->selectionModel()->selectedIndexes();
+  _txtList.clear();
+  _txtList.reserve(listSelectionsText.count());
+  for (const auto &t : listSelectionsText) {
+    const QString selectedText = _textListModel.data(t, Qt::DisplayRole).toString();
+    _txtList.append(selectedText);
+  }
+
+  ui->label_nbTextFiles->setText(
+    tr("%n selected text(s)", "", _txtList.size()));
+}
+
+
 
 void
 Assistant::chooseFontDirectory()
@@ -944,16 +983,18 @@ Assistant::updateListFont(const QString &fontPath)
   Context::FontContext::instance()->clear();
   Context::FontContext::instance()->initialize(fontPath, fontExt);
 
-  const QStringList list = Context::FontContext::instance()->getFontNames();
+  QStringList list = Context::FontContext::instance()->getFontNames();
 
-  if (! list.isEmpty())
+  if (! list.isEmpty()) {
+    list.sort();
     Context::FontContext::instance()->setCurrentFont(list.back());
+  }
 
-  _fontList.setStringList(list);
-  ui->listFontView->setModel(&_fontList);
-  //ui->listFontView->selectAll();
+  _fontListModel.setStringList(list);
+  ui->listFontView->setModel(&_fontListModel);
+  ui->listFontView->selectAll();
 
-  fontSelectionChanges(); //B: useful ?
+  fontSelectionChanges();
 }
 
 void
@@ -964,7 +1005,7 @@ Assistant::fontSelectionChanges()
   _fontListChoice.clear();
   _fontListChoice.reserve(listSelectionsFont.count());
   for (const auto &f : listSelectionsFont) {
-    const QString selectedFont = _fontList.data(f, Qt::DisplayRole).toString();
+    const QString selectedFont = _fontListModel.data(f, Qt::DisplayRole).toString();
     _fontListChoice.append(selectedFont);
   }
 
@@ -983,7 +1024,6 @@ Assistant::chooseBackgroundDirectory()
                                       QStringLiteral("./"),
                                       QFileDialog::ShowDirsOnly);
   if (!path.isEmpty()) {
-    ui->backgroundPath->setText(path);
     this->updateListBackground(path);
   }
 }
@@ -1010,9 +1050,10 @@ Assistant::updateListBackground(const QString &pathBack)
   Context::BackgroundList backgroundList =
     Context::BackgroundContext::instance()->getBackgrounds();
   QStringList listBack(backgroundList);
-  _backgroundList.setStringList(listBack);
-  ui->listBackgroundView->setModel(&_backgroundList);
-  //ui->listBackgroundView->selectAll();
+  listBack.sort();
+  _backgroundListModel.setStringList(listBack);
+  ui->listBackgroundView->setModel(&_backgroundListModel);
+  ui->listBackgroundView->selectAll();
 
   backgroundSelectionChanges(); //B: useful ?
 }
@@ -1026,7 +1067,7 @@ Assistant::backgroundSelectionChanges()
   _backgroundListChoice.reserve(listSelectionBack.count());
   for (const auto &sb : listSelectionBack) {
     const QString selectedBack =
-      _backgroundList.data(sb, Qt::DisplayRole).toString();
+      _backgroundListModel.data(sb, Qt::DisplayRole).toString();
     _backgroundListChoice.append(selectedBack);
   }
 
@@ -1328,7 +1369,7 @@ Assistant::updateTxtGenerationInfo()
 
   if (oneRandomFontAndBackground) {
     ui->label_FinalText->setText(
-      tr("With %1 text(s), 1 random font and 1 one random background image:\n "
+      tr("With %1 text(s), 1 random font and 1 random background image:\n "
          "%2 image(s) will be generated if you click Next")
         .arg(nbTexts)
         .arg(nbGeneratedTxtImages));
@@ -1527,8 +1568,7 @@ Assistant::GTChecked()
 void
 Assistant::addInputImage(const QString &imageFilename)
 {
-  std::cerr << "Assistant::addInputImage " << imageFilename.toStdString()
-            << "\n";
+  //std::cerr<<"Assistant::addInputImage "<<imageFilename.toStdString()<<"\n";
   _inputImageList.push_back(imageFilename);
 }
 
@@ -1545,6 +1585,18 @@ computeNumberWidth(int n)
 #ifdef TIMING
 #include <chrono> //DEBUG
 #endif            //TIMING
+
+QString
+makePath(const QString &dir, const QString &file)
+{
+  QString res = dir;
+  const QChar sep = '/';
+  if (! dir.isEmpty() && dir[dir.size()-1] != sep)
+    res += sep;
+  res += file;
+  return res;
+}
+
 
 void
 Assistant::generateTxtImages()
@@ -1571,8 +1623,8 @@ Assistant::generateTxtImages()
 
 	  RandomDocumentParameters param;
 	  commonParams.copyTo(param);
-	  const QString txtPath = _txtDirectory + "/" + file;
-	  QString fontPath = _FontDirectory + "/" + font;
+	  const QString txtPath = makePath(_txtDirectory, file);
+	  QString fontPath = makePath(_FontDirectory, font);
 	  if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
 	    fontPath += ".of";
 	  param.fontList.append(fontPath);
@@ -1605,7 +1657,7 @@ Assistant::generateTxtImages()
 
 	RandomDocumentParameters param;
 	commonParams.copyTo(param);
-	QString fontPath = _FontDirectory + "/" + font;
+	QString fontPath = makePath(_FontDirectory, font);
 	if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
 	  fontPath += ".of";
 	param.fontList.append(fontPath);
@@ -1649,12 +1701,12 @@ Assistant::generateTxtImages()
   params.backgroundList = _backgroundListChoice;
   const QStringList &txtList = _txtList;
   for (const QString &txtFile : txtList) {
-    const QString txtPath = _txtDirectory + "/" + txtFile;
+    const QString txtPath = makePath(_txtDirectory, txtFile);
     params.textList.append(txtPath);
   }
   const QStringList &fontListChoice = _fontListChoice;
   for (const QString &font : fontListChoice) {
-    QString fontPath = _FontDirectory + "/" + font;
+    QString fontPath = makePath(_FontDirectory, font);
     if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
       fontPath += ".of";
     params.fontList.append(fontPath);
@@ -1710,7 +1762,7 @@ Assistant::BleedThrough_LoadPrevImg()
 
     _BleedThrough_indexRecto = nbPic;
     QString imagePath = _inputImageList[nbPic];
-    imagePath = _PicDirectory + "/" + imagePath;
+    imagePath = makePath(_PicDirectory, imagePath);
     _BleedThrough_rectoImg.load(imagePath);
     //std::cout << ".............  " << imagePath.toStdString() << std::endl;
     if (!_BleedThrough_rectoImg.isNull()) {
@@ -1750,7 +1802,7 @@ Assistant::BleedThrough_setVersoImage()
       nbPic = P_bounded_rand(0, _inputImageList.size());
 
     QString imagePath = _inputImageList[nbPic];
-    imagePath = _PicDirectory + "/" + imagePath;
+    imagePath = makePath(_PicDirectory, imagePath);
     _BleedThrough_versoImg.load(imagePath);
   }
 
@@ -2001,9 +2053,10 @@ Assistant::CharDeg_LoadPrevImgChar()
     _CharDeg_indexRecto = imgIndex;
     assert(imgIndex < _inputImageList.size());
     QString imagePath = _inputImageList[imgIndex];
-    imagePath = _PicDirectory + "/" + imagePath;
+    //std::cerr<<imgIndex<<") _PicDirectory="<<_PicDirectory.toStdString()<<" imagePath="<<imagePath.toStdString()<<"\n";
+    imagePath = makePath(_PicDirectory, imagePath);
     _CharDeg_rectoImgChar.load(imagePath);
-    std::cout << "............. ["<<imgIndex<<"]: "<< imagePath.toStdString() <<" isNull? "<<_CharDeg_rectoImgChar.isNull()<< std::endl;
+    //std::cout << "............. ["<<imgIndex<<"]: "<< imagePath.toStdString() <<" isNull? "<<_CharDeg_rectoImgChar.isNull()<< std::endl;
 
     if (!_CharDeg_rectoImgChar.isNull()) {
 
@@ -2183,7 +2236,7 @@ Assistant::Shadow_LoadPrevImgShad()
 
     _Shadow_indexRecto = imgIndex;
     QString path = _inputImageList[imgIndex];
-    path = _PicDirectory + "/" + path;
+    path = makePath(_PicDirectory, path);
     _Shadow_rectoImgShad.load(path);
 
     if (!_Shadow_rectoImgShad.isNull()) {
@@ -2381,7 +2434,7 @@ Assistant::Phantom_LoadPrevImgPhant()
     _Phantom_indexRecto = imgIndex;
 
     QString imagePath = _inputImageList[imgIndex];
-    imagePath = _PicDirectory + "/" + imagePath;
+    imagePath = makePath(_PicDirectory, imagePath);
     _Phantom_rectoImgPhant.load(imagePath);
 
     if (!_Phantom_rectoImgPhant.isNull()) {
@@ -2824,7 +2877,7 @@ Assistant::Blur_LoadPrevImgBlur()
     assert(imgIndex < _inputImageList.size());
     _Blur_indexRecto = imgIndex;
     QString imagePath = _inputImageList[imgIndex];
-    imagePath = _PicDirectory + "/" + imagePath;
+    imagePath = makePath(_PicDirectory, imagePath);
     _Blur_rectoImgBlur.load(imagePath);
     //std::cout << ".............  " << imagePath.toStdString() << std::endl;
     if (!_Blur_rectoImgBlur.isNull()) {
@@ -3324,7 +3377,7 @@ Assistant::Hole_LoadPrevImgHole()
     _Hole_indexRecto = imgIndex;
 
     QString imagePath = _inputImageList[imgIndex];
-    imagePath = _PicDirectory + "/" + imagePath;
+    imagePath = makePath(_PicDirectory, imagePath);
     _Hole_rectoImgHole.load(imagePath);
     //std::cout << ".............  " << imagePath.toStdString() << std::endl;
     if (!_Hole_rectoImgHole.isNull()) {
