@@ -508,8 +508,8 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
       (w != m_cachedBgImage.width() || h != m_cachedBgImage.height())) {
 
     //qDebug() << "GraphicView::getDocumentImage() load image: "<<path;
-    std::cerr << "GraphicView::getDocumentImage() load image: "
-              << path.toStdString() << "\n";
+    //std::cerr << "GraphicView::getDocumentImage() load image: "
+    //          << path.toStdString() << "\n";
 
 #ifdef TIMING
     auto t0 = std::chrono::steady_clock::now();
