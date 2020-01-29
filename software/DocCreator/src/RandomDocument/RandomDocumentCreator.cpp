@@ -461,7 +461,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
       Context::FontContext::instance()->setCurrentFont(fontList.back());
 
 
-    //std::cerr<<"++++ fontList.size()="<<fontList.size()<<"\n";
+    //std::cerr<<"++@++ _params.fontList.size()="<<_params.fontList.size()<<"\n";
+    //std::cerr<<"++@++ fontList.size()="<<fontList.size()<<"\n";
     //std::cerr<<"_params.backgroundList.size()="<<_params.backgroundList.size()<<"\n";
     //std::cerr<<"++++ currentFont="<<Context::FontContext::instance()->getCurrentFont()<<"\n";
 
@@ -477,16 +478,16 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
       }
     }
 
-    assert(!_params.fontList.isEmpty());
+    assert(!fontList.isEmpty());
     QString fontName = fontList.at(0);
 
     if (!_params.textList.empty()) {
       for (int textIndex = 0; textIndex < _params.textList.size();
            ++textIndex) {
 
-        if (_params.fontList.size() > 1) {
+        if (fontList.size() > 1) {
           const int fontIndex =
-            RandomElement().randomInt(0, _params.fontList.size() - 1);
+            RandomElement().randomInt(0, fontList.size() - 1);
           fontName = fontList.at(fontIndex);
         }
         if (_params.backgroundList.size() > 1) {
