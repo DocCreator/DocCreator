@@ -246,7 +246,7 @@ saveFont(const QFont &font,
     //std::cerr<<"fontMetrics.ascent()="<< fontMetrics.ascent()<<"\n";
     
     QImage img(width, height, QImage::Format_ARGB32);
-    img.fill(qRgba(0,0,0,0));
+    img.fill(qRgba(255,255,255,0));
     QPainter p(&img);
     p.setFont(font);
     p.setPen(QPen(Qt::black));
