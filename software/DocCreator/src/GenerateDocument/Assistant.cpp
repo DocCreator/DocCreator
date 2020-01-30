@@ -174,7 +174,6 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   updateListBackground(backgroundPath);
 
 
-
   //QObject::connect(ui->FolderText, SIGNAL(clicked()), this, SLOT(RadioButtons()));
   //QObject::connect(ui->LoremIpsum, SIGNAL(clicked()), this, SLOT(RadioButtons()));
 
@@ -184,6 +183,10 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(clicked(QModelIndex)),
                    this,
                    SLOT(textSelectionChanges()));
+  QObject::connect(ui->btnSelectTxt, SIGNAL(clicked()),
+		   this, SLOT(textSelectAll()));
+  QObject::connect(ui->btnDeselectTxt, SIGNAL(clicked()),
+		   this, SLOT(textDeselectAll()));
 
   //QObject::connect(ui->pageNumber, SIGNAL(valueChanged(int)), this, SIGNAL(completeChanged()));
 
@@ -193,6 +196,10 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(clicked(QModelIndex)),
                    this,
                    SLOT(fontSelectionChanges()));
+  QObject::connect(ui->btnSelectFont, SIGNAL(clicked()),
+		   this, SLOT(fontSelectAll()));
+  QObject::connect(ui->btnDeselectFont, SIGNAL(clicked()),
+		   this, SLOT(fontDeselectAll()));
 
   QObject::connect(ui->btnChooseBackgroundDir,
                    SIGNAL(clicked()),
@@ -202,6 +209,12 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(clicked(QModelIndex)),
                    this,
                    SLOT(backgroundSelectionChanges()));
+  QObject::connect(ui->btnSelectBckgd, SIGNAL(clicked()),
+		   this, SLOT(bckgdSelectAll()));
+  QObject::connect(ui->btnDeselectBckgd, SIGNAL(clicked()),
+		   this, SLOT(bckgdDeselectAll()));
+
+
   //QObject::connect(ui->LoremIpsum, SIGNAL(clicked()),this, SLOT(changeLoremIpsum()));
   //QObject::connect(ui->FolderText, SIGNAL(clicked()), this, SLOT(changeLoremIpsum()));
 
@@ -946,6 +959,20 @@ Assistant::textSelectionChanges()
     tr("%n selected text(s)", "", _txtList.size()));
 }
 
+void
+Assistant::textSelectAll()
+{
+  ui->listTextView->selectAll();
+  textSelectionChanges();
+}
+
+void
+Assistant::textDeselectAll()
+{
+  ui->listTextView->clearSelection();
+  textSelectionChanges();
+}
+
 
 
 void
@@ -1016,6 +1043,22 @@ Assistant::fontSelectionChanges()
 }
 
 void
+Assistant::fontSelectAll()
+{
+  ui->listFontView->selectAll();
+  fontSelectionChanges();
+}
+
+void
+Assistant::fontDeselectAll()
+{
+  ui->listFontView->clearSelection();
+  fontSelectionChanges();
+}
+
+
+
+void
 Assistant::chooseBackgroundDirectory()
 {
   const QString path =
@@ -1076,6 +1119,23 @@ Assistant::backgroundSelectionChanges()
 
   //emit completeChanged();
 }
+
+void
+Assistant::bckgdSelectAll()
+{
+  ui->listBackgroundView->selectAll();
+  backgroundSelectionChanges();
+}
+
+void
+Assistant::bckgdDeselectAll()
+{
+  ui->listBackgroundView->clearSelection();
+  backgroundSelectionChanges();
+}
+
+
+
 
 void
 Assistant::PageParams_connect()
@@ -1700,9 +1760,16 @@ Assistant::generateTxtImages()
   //copy list of backgrounds/textFiles/fonts in params
   params.backgroundList = _backgroundListChoice;
   const QStringList &txtList = _txtList;
-  for (const QString &txtFile : txtList) {
-    const QString txtPath = makePath(_txtDirectory, txtFile);
-    params.textList.append(txtPath);
+  if (ui->FolderText->isChecked()) {
+    for (const QString &txtFile : txtList) {
+      const QString txtPath = makePath(_txtDirectory, txtFile);
+      params.textList.append(txtPath);
+    }
+    params.nbPages = 1;
+  }
+  else {
+    const int nbTexts = ui->pageNumber->value();
+    params.nbPages = nbTexts;
   }
   const QStringList &fontListChoice = _fontListChoice;
   for (const QString &font : fontListChoice) {
@@ -1727,7 +1794,8 @@ Assistant::generateTxtImages()
     ui->FontBackgroundRandomRB->isChecked();
   if (oneRandomFontAndBackground) {
     random.createAllTextsOneFontBackground();
-  } else { //all combinations
+  }
+  else { //all combinations
     random.createAllTexts();
   }
 
