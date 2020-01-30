@@ -143,6 +143,13 @@ protected slots:
   void chooseGTDirectory();
   void chooseOutputDegradedImageDir();
   //void changeLoremIpsum();
+  void textSelectAll();
+  void textDeselectAll();
+  void fontSelectAll();
+  void fontDeselectAll();
+  void bckgdSelectAll();
+  void bckgdDeselectAll();
+
   void textSelectionChanges();
   void fontSelectionChanges();
   void backgroundSelectionChanges();
