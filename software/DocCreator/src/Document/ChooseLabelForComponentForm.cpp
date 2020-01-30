@@ -881,6 +881,8 @@ ChooseLabelForComponentForm::btnLabelingClicked()
       else { // left position
       }
 
+      assert(first_cb);//B
+      assert(second_cb);//B
       char_x = first_cb->x();
       if (first_cb->x() > second_cb->x()) {
         char_x = second_cb->x();

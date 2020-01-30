@@ -365,7 +365,7 @@ OCRDialog::process()
           fl.GT_baseline = static_cast<int>((fl.baseline2 + fl.baseline) / 2);
           fl.confidence = conf;
           fl.rect = r;
-          fl.checked = false;
+          //fl.checked = false; //already done by constructor
 
           // And pushed to the list
           m_font.push_back(fl);

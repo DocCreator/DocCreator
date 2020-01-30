@@ -25,9 +25,9 @@ GridPageLayout::newTextBlock(const int blockNumber)
   for (int i = 0; i < blocks.size() && !added; ++i) {
     for (int j = 0; j < blocks[i]->size() && !added; ++j) {
       if (blocks[i]->at(j) == nullptr) {
-        qDebug() << "i,j" << i << "," << j;
+        //qDebug() << "i,j" << i << "," << j;
         if (blockNumber == -1 || blockNumber == nb) {
-          qDebug() << "Added";
+          //qDebug() << "Added";
           QVector<Doc::DocTextBlock *> *jBlock = blocks.at(i);
           addedTextBlock =
             creatTextBlock(j * w + page.x(), i * h + page.y(), w, h);

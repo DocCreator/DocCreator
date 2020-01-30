@@ -644,7 +644,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
         tmpParagraphs.push_back(tmp2);
         // Reset heightchecker
         heightFilledTextBlock =
-          tmpP->Height - tmp1->Height; // update the height of fille text.
+          tmpP->Height - tmp1->Height; // update the height of filled text.
 
       } else { // continue to add paragraph to the current textblock
         heightFilledTextBlock =
@@ -1334,6 +1334,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
     p->setLineSpacing(lineSpacing);
     Doc::DocTextBlock *currentTextBlock =
       dynamic_cast<Doc::DocTextBlock *>(document->currentBlock());
+    assert(currentTextBlock != nullptr);
     currentTextBlock->add(p);
 
     int dx = 0;

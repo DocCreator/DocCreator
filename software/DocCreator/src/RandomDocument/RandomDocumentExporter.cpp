@@ -59,7 +59,7 @@ RandomDocumentExporter::getDocImageFilePath() const
 void
 RandomDocumentExporter::saveRandomDocument()
 {
-  qDebug() << metaObject()->className() << " :::::::::::::: saveDoc";
+  //qDebug() << metaObject()->className() << " :::::::::::::: saveDoc";
 
   //B: Why do we need the CurrentRandomDocumentContext ????
   //It seems that it is only to be able to call saveProperties(randDoc->getProperties());
@@ -95,8 +95,8 @@ RandomDocumentExporter::saveTextFile()
 void
 RandomDocumentExporter::writeImage(const QImage &image)
 {
-  qDebug() << metaObject()->className() << "path=" << getDocImageFilePath()
-           << " image.isNull()=" << image.isNull() << "\n";
+  qDebug() << metaObject()->className() << "path=" << getDocImageFilePath() << "\n";
+  //         << " image.isNull()=" << image.isNull() << "\n";
 
   if (!image.isNull()) {
     const QString filename = getDocImageFilePath();

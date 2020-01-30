@@ -36,6 +36,7 @@ protected:
   virtual void initializePage(int id) override;
   virtual bool validateCurrentPage() override;
 
+  void updateListText(const QString &textPath);
   void updateListFont(const QString &fontPath);
   void updateListBackground(const QString &pathBack);
   void loadInputDegradationImageList();
@@ -44,7 +45,6 @@ protected:
   QString PicDirectory() const;
   QString saveDirectory() const;
   QStringList picsList() const;
-  void populateTxtList();
 
   void setSemi(bool semi);
 
@@ -143,6 +143,7 @@ protected slots:
   void chooseGTDirectory();
   void chooseOutputDegradedImageDir();
   //void changeLoremIpsum();
+  void textSelectionChanges();
   void fontSelectionChanges();
   void backgroundSelectionChanges();
   void PageParams_updateMin();
@@ -338,6 +339,7 @@ private:
     Page_BackgroundFiles,
     Page_PageParams,
     Page_FinalText,
+    Page_ConfirmDegradations,
     Page_ImageAndGtDirs,
     Page_Bleed,
     Page_CharDeg,
@@ -464,11 +466,12 @@ private:
   QString _originalCurrentBackgroundName;
   QList<QString> _originalBackgrounds;
 
-  QStringListModel _fontList;
-  QStringListModel _backgroundList;
+  QStringListModel _textListModel;
+  QStringListModel _fontListModel;
+  QStringListModel _backgroundListModel;
+  QStringList _txtList;
   QStringList _fontListChoice;
   QStringList _backgroundListChoice;
-  QStringList _txtList;
   QStringList _inputImageList;
   DocumentController *_DocController;
 
