@@ -400,6 +400,16 @@ QImage GraphicView::getDocumentBinaryGTImage()
 #include <chrono>
 #endif //TIMING
 
+
+#if 0
+ //Previously, we we using this function, copyImage(),
+ //to copy @a charImage into destination image ]& outImg.
+ //It does not handle alpha blending correctly.
+ //(It only worked if alpha=0 or 255 in charImage, not for values in between)
+ // [In particular, it dos not work with batch generation with fonts made by our MakeFont tool]
+ //It is better to use a QPainter (with drawImage()) to handle alpha blending correctly.
+ // ( https://en.wikipedia.org/wiki/Alpha_compositing )
+
 /*
   Copy image @a charImage at position (@a cx0, @a cy0) in @a outImg.
 
@@ -436,7 +446,7 @@ copyImage(QImage &outImg, const QImage &charImage, int cx0, int cy0)
 
         const QRgb cPix = s[cx];
         const int a = qAlpha(cPix);
-        if (a != 0)
+        if (a != 0) //BUG if a!=255
           d[x] = cPix;
       }
     }
@@ -452,7 +462,7 @@ copyImage(QImage &outImg, const QImage &charImage, int cx0, int cy0)
         assert(x >= 0 && y >= 0 && x < w && y < h);
         const QRgb cPix = charImage.pixel(cx, cy);
         const int a = qAlpha(cPix);
-        if (a != 0) {
+        if (a != 0) { //BUG if a!=255
           outImg.setPixel(
             x,
             y,
@@ -462,6 +472,11 @@ copyImage(QImage &outImg, const QImage &charImage, int cx0, int cy0)
     }
   }
 }
+
+#endif //0
+
+
+
 
 QImage
 GraphicView::getDocumentImage(DocRenderFlags flags)
@@ -562,6 +577,8 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
   auto t6 = std::chrono::steady_clock::now();
 #endif //TIMING
 
+  QPainter painter(&outImg);
+
   Context::FontContext *fontContext = Context::FontContext::instance();
   DocumentController *controller =
     static_cast<DocumentController *>(getController()); //B:dynamic_cast?
@@ -616,7 +633,7 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
                 const int cx0 = tb_x + c->x();
                 const int cy0 = tb_y + c->y();
 
-                copyImage(outImg, charImage, cx0, cy0);
+		painter.drawImage(cx0, cy0, charImage);
               }
             }
           }
@@ -633,7 +650,7 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
       QImage img(imagePath);
       img = img.scaled(ib->width(), ib->height());
 
-      copyImage(outImg, img, ib->x(), ib->y());
+      painter.drawImage(ib->x(), ib->y(), img);
     }
   }
 
