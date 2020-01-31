@@ -535,7 +535,7 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
 
       const bool useRandomTextFile = true;
       for (int i=0; i<_params.nbPages; ++i) {
-	create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+		create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
       }
     }
 
@@ -560,7 +560,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
 /*
   Create F*B*T documents with the F fonts, B backgrounds and T texts available in _params.
 
-  _params.nbPages is not used.
+ If @a _params.textList is not empty, these text files will be used.
+  Otherwise, @a _params.nbPages random text will used.
  */
 void
 RandomDocumentCreator::createAllTexts()
@@ -642,6 +643,7 @@ RandomDocumentCreator::createAllTexts()
           const QString &fontName = fontList.at(fontIndex);
 
           if (!_params.textList.empty()) {
+			//we use texts from _params.textList
             for (int textIndex = 0; textIndex < _params.textList.size();
                  ++textIndex) {
 
@@ -649,10 +651,13 @@ RandomDocumentCreator::createAllTexts()
               create_aux(
                 randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
             }
-          } else {
-            //must generate one random text with Lipsum4Qt
+          }
+		  else {
+            //we generate _params.nbPages random texts
             const bool useRandomTextFile = true;
-            create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+            for (int i=0; i<_params.nbPages; ++i) {
+	            create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+			}
           }
         }
       }
@@ -664,6 +669,7 @@ RandomDocumentCreator::createAllTexts()
         const QString &fontName = fontList.at(fontIndex);
 
         if (!_params.textList.empty()) {
+		  //we use texts from _params.textList
           for (int textIndex = 0; textIndex < _params.textList.size();
                ++textIndex) {
 
@@ -671,10 +677,13 @@ RandomDocumentCreator::createAllTexts()
             create_aux(
               randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
           }
-        } else {
-          //must generate one random text with Lipsum4Qt
+        }
+		else {
+          //we generate _params.nbPages random texts
           const bool useRandomTextFile = true;
-          create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+          for (int i = 0; i < _params.nbPages; ++i) {
+	          create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+		  }
         }
       }
     }
