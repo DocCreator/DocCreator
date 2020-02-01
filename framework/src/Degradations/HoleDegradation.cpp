@@ -423,7 +423,7 @@ namespace dc {
       int
       random_in_range(int rMin, int rMax)
       {
-	const std::uniform_int_distribution<int> dist(rMin, rMax);
+	std::uniform_int_distribution<int> dist(rMin, rMax);
 	return dist(mt);
       }
     } //anonymous namespace

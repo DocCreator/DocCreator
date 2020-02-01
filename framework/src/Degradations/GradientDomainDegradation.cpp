@@ -264,8 +264,8 @@ degradation(const cv::Mat &in,
   
   std::random_device rd; // obtain a random number from hardware
   std::mt19937 eng(rd()); // seed the generator
-  const std::uniform_int_distribution<> distrX(0, in.cols);
-  const std::uniform_int_distribution<> distrY(0, in.rows);
+  std::uniform_int_distribution<> distrX(0, in.cols);
+  std::uniform_int_distribution<> distrY(0, in.rows);
 
   bool isImgGray = false;
   if (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY) {
@@ -274,7 +274,7 @@ degradation(const cv::Mat &in,
   const bool haveToConvert = (insertType == InsertType::INSERT_AS_GRAY
 			      || (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY && isImgGray));
 
-  const std::uniform_int_distribution<> distrAngle(0, 3); //angles [0, 90, 180, 270]
+  std::uniform_int_distribution<> distrAngle(0, 3); //angles [0, 90, 180, 270]
   
   const size_t numIndices = indices.size();
   for (size_t i=0; i<numIndices; ++i) {
