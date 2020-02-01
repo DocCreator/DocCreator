@@ -143,7 +143,7 @@ copyOnto(const cv::Mat &stainImg,
     mask = cv::Scalar(255, 255, 255); //set white everywhere
 
     cv::Mat output2;
-    const int flags2 = cv::MIXED_CLONE;
+    constexpr int flags2 = cv::MIXED_CLONE;
     cv::seamlessClone(stainImgCrop, dstImg, mask, newPosCenter, output2, flags2);
     dstImg = output2;
     
@@ -264,8 +264,8 @@ degradation(const cv::Mat &in,
   
   std::random_device rd; // obtain a random number from hardware
   std::mt19937 eng(rd()); // seed the generator
-  std::uniform_int_distribution<> distrX(0, in.cols);
-  std::uniform_int_distribution<> distrY(0, in.rows);
+  const std::uniform_int_distribution<> distrX(0, in.cols);
+  const std::uniform_int_distribution<> distrY(0, in.rows);
 
   bool isImgGray = false;
   if (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY) {
@@ -274,7 +274,7 @@ degradation(const cv::Mat &in,
   const bool haveToConvert = (insertType == InsertType::INSERT_AS_GRAY
 			      || (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY && isImgGray));
 
-  std::uniform_int_distribution<> distrAngle(0, 3); //angles [0, 90, 180, 270]
+  const std::uniform_int_distribution<> distrAngle(0, 3); //angles [0, 90, 180, 270]
   
   const size_t numIndices = indices.size();
   for (size_t i=0; i<numIndices; ++i) {
@@ -308,7 +308,7 @@ degradation(const cv::Mat &in,
     }
 
     
-    cv::Point pos(distrX(eng), distrY(eng));
+    const cv::Point pos(distrX(eng), distrY(eng));
 
     assert(out.type() == CV_8UC3);
     assert(stain.type() == CV_8UC3);
@@ -329,7 +329,7 @@ degradation(const cv::Mat &in,
     //cv::extractChannel(in, alpha, 4); //suppose @a in in BGRA
     cv::Mat from[] = {out, in};
     cv::Mat out2(in.rows, in.cols, in.type());
-    int from_to[] = {0,0, 1,1, 2,2, 6,3};
+    const int from_to[] = {0,0, 1,1, 2,2, 6,3};
     cv::mixChannels(from, 2, &out2, 1, from_to, 4);
     out = out2;
   }

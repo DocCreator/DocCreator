@@ -34,9 +34,9 @@ namespace dc {
    *
    *    - [number of noise regions  nbp = 100, % of independent spots m = 30, % of overlapping spots n = 40, % of disconnection spots l = 30]
    */
-  const int WHITE = 255;
-  const int BLACK = 0;
-  const float PERCENT = 0.01f;
+  constexpr int WHITE = 255;
+  constexpr int BLACK = 0;
+  constexpr float PERCENT = 0.01f;
 
   struct Pixel
   {

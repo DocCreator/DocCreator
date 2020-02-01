@@ -27,7 +27,7 @@ namespace dc {
    *
    */
 
-  static const int NO_CC = -1;
+  static constexpr int NO_CC = -1;
   //B:TODO: Do we really need this constant ???
 
 #if 0
@@ -333,7 +333,7 @@ namespace dc {
 	<< ", " << I << ", " << O << ", " << D << ")";
       */
 
-      const int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
+      constexpr int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
 
       _nbSPs_User =
 	NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
@@ -779,10 +779,10 @@ namespace dc {
   {
     std::vector<cv::Point> pts;
 
-    if ((unsigned)pt1.x >= (unsigned)width ||
-	(unsigned)pt2.x >= (unsigned)width ||
-	(unsigned)pt1.y >= (unsigned)height ||
-	(unsigned)pt2.y >= (unsigned)height) {
+    if (static_cast<unsigned>(pt1.x) >= static_cast<unsigned>(width) ||
+	static_cast<unsigned>(pt2.x) >= static_cast<unsigned>(width) ||
+	static_cast<unsigned>(pt1.y) >= static_cast<unsigned>(height) ||
+	static_cast<unsigned>(pt2.y) >= static_cast<unsigned>(height)) {
 
       const bool inside = cv::clipLine(cv::Size(width, height), pt1, pt2);
       if (!inside)
@@ -790,7 +790,7 @@ namespace dc {
     }
 
     int bt_pix = 1;
-    int bt_pix0 = 1;
+    constexpr int bt_pix0 = 1;
     int istep = width;
 
     int dx = pt2.x - pt1.x;
@@ -822,11 +822,11 @@ namespace dc {
     assert(dx >= 0 && dy >= 0);
 
     int err = dx - (dy + dy);
-    int plusDelta = dx + dx;
-    int minusDelta = -(dy + dy);
-    int plusStep = istep;
-    int minusStep = bt_pix;
-    int count = dx + 1;
+    const int plusDelta = dx + dx;
+    const int minusDelta = -(dy + dy);
+    const int plusStep = istep;
+    const int minusStep = bt_pix;
+    const int count = dx + 1;
 
     pts.reserve(count);
 
@@ -834,8 +834,8 @@ namespace dc {
     p.x = pt1.x;
     p.y = pt1.y;
 
-    int ptr0 = 0;
-    int step = width;
+    constexpr int ptr0 = 0;
+    const int step = width;
 
     for (int i = 0; i < count; ++i) {
 
@@ -845,8 +845,8 @@ namespace dc {
       err += minusDelta + (plusDelta & mask);
 
       ptr += minusStep + (plusStep & mask);
-      p.y = (int)((ptr - ptr0) / step);
-      p.x = (int)((ptr - ptr0) - p.y * step);
+      p.y = static_cast<int>((ptr - ptr0) / step);
+      p.x = static_cast<int>((ptr - ptr0) - p.y * step);
     }
 
     return pts;
@@ -873,7 +873,7 @@ namespace dc {
 
       std::vector<cv::Point> listPointsInLine;
 
-      float gradient_angle = sp.pixel.gradient_angle;
+      const float gradient_angle = sp.pixel.gradient_angle;
       if (gradient_angle != 0 && gradient_angle != 180 && gradient_angle != 90) {
 
 	//B: gradient_angle==0 can not happen cf calculatePixelsDistanceTransform() !
@@ -989,12 +989,12 @@ namespace dc {
 
       float first_min = std::numeric_limits<float>::max();
       float second_min = std::numeric_limits<float>::max();
-      float dis_max = localZone * sqrt(2);
+      const float dis_max = localZone * sqrtf(2);
       {
 	for (const cv::Point pt : listEdgePoints) { //(copy of Point)
 
 	  const float dis =
-	    sqrt((xo - pt.x) * (xo - pt.x) +
+	    sqrtf((xo - pt.x) * (xo - pt.x) +
 		 (yo - pt.y) * (yo - pt.y)); //B:TODO:OPTIM: avoid sqrt
 	  if (first_min > dis) {
 	    second_min = first_min;
@@ -1012,7 +1012,7 @@ namespace dc {
 
 	int angle = 0;
 	cv::Point A, B;
-	int d_stroke_width_min = getMinStrokeWidthAtASeedPoint(sp, angle, A, B);
+	const int d_stroke_width_min = getMinStrokeWidthAtASeedPoint(sp, angle, A, B);
 	if (second_min > d_stroke_width_min)
 	  second_min = d_stroke_width_min;
 
@@ -1052,7 +1052,7 @@ namespace dc {
 
       if (sp.type == 2) { // Disconnection spots
 
-	const float a03 = 1;
+	constexpr float a03 = 1;
 	sp.size = sp.b_cheval + a03;
 
 	if (sp.size <= 1.f)
@@ -1098,7 +1098,7 @@ namespace dc {
 
   struct PtSorter_X_Y
   {
-    bool operator()(cv::Point p1, cv::Point p2) const
+    bool operator()(cv::Point p1, cv::Point p2) const noexcept
     {
       return p1.x < p2.x || (p1.x == p2.x && p1.y < p2.y);
     }
@@ -1106,7 +1106,7 @@ namespace dc {
 
   struct PtSorter_Y_X
   {
-    bool operator()(cv::Point p1, cv::Point p2) const
+    bool operator()(cv::Point p1, cv::Point p2) const noexcept
     {
       return p1.y < p2.y || (p1.y == p2.y && p1.x < p2.x);
     }
@@ -1124,7 +1124,7 @@ namespace dc {
     assert(_mat_binary.type() == CV_8UC1);
 
     CCs ccsInfo;
-    const int connectivity = 4;
+    constexpr int connectivity = 4;
     ConnectedComponent::extractAllConnectedComponents(
 						      _mat_binary, ccsInfo, connectivity);
 
@@ -1150,7 +1150,7 @@ namespace dc {
 
     int id_cc = 0;
 
-    const int minCCSize = 20;
+    constexpr int minCCSize = 20;
     int max_dis = std::max(_width, _height) / 35;
     if (_width * _height >= 1000000)
       max_dis = std::max(_width, _height) / 15;
@@ -1197,7 +1197,7 @@ namespace dc {
       for (size_t i=0; i<sz; ++i) {
         ccsSize[i] = ccsInfo[i].size();
       }
-      auto itMed = ccsSize.begin()+sz/2;
+      const auto itMed = ccsSize.begin()+sz/2;
       std::nth_element(ccsSize.begin(), itMed, ccsSize.end());
       //const auto itMax = std::max_element(ccsSize.begin(), ccsSize.end());
       //const auto itMin = std::min_element(ccsSize.begin(), ccsSize.end());
@@ -1358,15 +1358,15 @@ namespace dc {
 #endif //0
 
 	  assert(counter > 0);
-	  _Mean_CC_Stroke += width_of_CC / (float)counter;
+	  _Mean_CC_Stroke += width_of_CC / static_cast<float>(counter);
 
 	  ++id_cc;
 
 	  //paint enlarged AABB in _mat_reduce_pixels
-	  int y0 = std::max(min_y - cc_height / 2, 0);
-	  int y1 = std::min(max_y + cc_height / 2, _height - 1);
-	  int x0 = std::max(min_x - cc_width / 2, 0);
-	  int x1 = std::min(max_x + cc_width / 2, _width - 1);
+	  const int y0 = std::max(min_y - cc_height / 2, 0);
+	  const int y1 = std::min(max_y + cc_height / 2, _height - 1);
+	  const int x0 = std::max(min_x - cc_width / 2, 0);
+	  const int x1 = std::min(max_x + cc_width / 2, _width - 1);
 	  for (int y = y0; y <= y1; ++y) {
 	    uchar *m = _mat_reduce_pixels.ptr<uchar>(y);
 	    for (int x = x0; x <= x1; ++x) {
@@ -1413,7 +1413,7 @@ namespace dc {
       static_cast<size_t>(percent_diffusion * _nbSPs_User * 0.01f);
     size_t nbCheval = static_cast<size_t>(percent_cheval * _nbSPs_User * 0.01f);
     assert(nbDiffusion + nbCheval <= (size_t)_nbSPs_User);
-    size_t nbIndependent = _nbSPs_User - nbDiffusion - nbCheval;
+    const size_t nbIndependent = _nbSPs_User - nbDiffusion - nbCheval;
 
     std::vector<float> listFirstThreslhold;
     std::vector<float> listSecondThreslhold;
@@ -1422,7 +1422,7 @@ namespace dc {
     size_t counter = 0;
     // Only the black seed-point pixels will become disconnection spots
 
-    for (Seedpoint &sp : _listSeedPoints) {
+    for (const Seedpoint &sp : _listSeedPoints) {
       if (sp.type == 5 && !sp.pixel.isBackground) {
 	listSecondThreslhold.push_back(sp.b_cheval);
       }
@@ -1435,7 +1435,7 @@ namespace dc {
 
       std::sort(listSecondThreslhold.begin(), listSecondThreslhold.end());
       assert(nbDiffusion > 0); //B
-      float secondThreshold = listSecondThreslhold[nbDiffusion - 1];
+      const float secondThreshold = listSecondThreslhold[nbDiffusion - 1];
 
       for (Seedpoint &sp : _listSeedPoints) {
 	if (sp.type == 5) {
@@ -1459,7 +1459,7 @@ namespace dc {
     listFirstThreslhold.clear();
     counter = 0;
     if (nbCheval > 0) {
-      for (Seedpoint &sp : _listSeedPoints) {
+      for (const Seedpoint &sp : _listSeedPoints) {
 	if (sp.type == 4)
 	  listFirstThreslhold.push_back(sp.b_tache);
       }
@@ -1470,7 +1470,7 @@ namespace dc {
 	if (nbCheval > listFirstThreslhold.size())
 	  nbCheval = listFirstThreslhold.size();
 	assert(nbCheval > 0); //B
-	float firstThreshold = listFirstThreslhold[nbCheval - 1];
+	const float firstThreshold = listFirstThreslhold[nbCheval - 1];
 
 	for (Seedpoint &sp : _listSeedPoints) {
 	  if (sp.type == 4 && sp.b_tache <= firstThreshold) {
@@ -1536,7 +1536,7 @@ namespace dc {
       }
     }
 
-    int selectedBGSPs = counter;
+    const int selectedBGSPs = counter;
     counter = 0;
     if ((nbIndependent - selectedBGSPs) < listSecondThreslhold.size() &&
 	!listSecondThreslhold.empty()) {
@@ -1569,7 +1569,7 @@ namespace dc {
     if ((selectedBGSPs + counter) < nbIndependent) {
       size_t nbNeedMore = nbIndependent - selectedBGSPs - counter;
       counter = 0;
-      for (Seedpoint &sp : _listSeedPoints) {
+      for (const Seedpoint &sp : _listSeedPoints) {
 	if (sp.type == 3)
 	  listFirstThreslhold.push_back(sp.b_tache);
       }
@@ -1788,13 +1788,13 @@ namespace dc {
     int meanB = _avgBackground;
     int meanF = _avgForeground;
 
-    MyRNG rng((unsigned int)time(nullptr));
+    MyRNG rng(static_cast<unsigned int>(time(nullptr)));
     // generator for background
     NormalDistribution var_nor_Background(rng, meanB, _sigma_gausien);
     // generator for foreground
     NormalDistribution var_nor_Forground(rng, meanF, _sigma_gausien);
 
-    for (Seedpoint &sp : _listSeedPoints) {
+    for (const Seedpoint &sp : _listSeedPoints) {
 
       // generator for foreground
       double mean_g = 15; //(1 - 1/(double)sp.size);
@@ -1910,7 +1910,7 @@ namespace dc {
 	if (lines.size() == 1 && (lines[0])[0] < 4) {
 	  _mat_output.at<uchar>(sp.pixel.pos.y, sp.pixel.pos.x) = meanB;
 	} else {
-	  for (float *line : lines) {
+	  for (const float *line : lines) {
 	    DegradedLine(
 			 line, sp.pixel.pos, C_gris, 10, _sigma_gausien, _mat_output, true);
 	  }
@@ -1938,7 +1938,7 @@ namespace dc {
 	if (lines.size() <= 1 && (lines.at(0))[0] < 4) {
 	  _mat_output.at<uchar>(sp.pixel.pos.y, sp.pixel.pos.x) = meanF;
 	} else {
-	  for (float *line : lines) {
+	  for (const float *line : lines) {
 	    DegradedLine(
 			 line, sp.pixel.pos, C_gris, 10, _sigma_gausien, _mat_output, false);
 	  }
@@ -1951,7 +1951,7 @@ namespace dc {
     }
 
     //=========== APPLY THE FILTER GAUSIAN AT A NOISE REGION =================
-    int mask = 1;
+    constexpr int mask = 1;
     for (const cv::Rect &r : listRecs) {
       if (r.x >= 0 && r.y >= 0 && (r.x + r.width) < _width &&
 	  (r.y + r.height) < _height && r.width >= mask && r.height >= mask) {
@@ -1986,7 +1986,7 @@ namespace dc {
 						     int Centre_gray,
 						     cv::Mat &imgGrayOutput)
   {
-    int n = Line[0];
+    const int n = Line[0];
     double deltaDis = Line[1];
     int B_gris = Line[2];
 
@@ -2017,10 +2017,10 @@ namespace dc {
 					       cv::Mat &imgGrayOutput,
 					       bool isFtoB)
   {
-    MyRNG rng((unsigned int)time(nullptr));
+    MyRNG rng(static_cast<unsigned int>(time(nullptr)));
 
-    int n = Line[0];
-    float deltaDis = Line[1];
+    const int n = Line[0];
+    const float deltaDis = Line[1];
     int B_gris = Line[2];
 
     //UGLY: we should have a struct Line !!!
@@ -2111,8 +2111,8 @@ namespace dc {
   GrayscaleCharsDegradationModel::calculateApproximatelyDistanceFromBord(
 									 const Pixel &pixel) const
   {
-    int x = pixel.pos.x;
-    int y = pixel.pos.y;
+    const int x = pixel.pos.x;
+    const int y = pixel.pos.y;
 
     assert(x >= 0 && x < _width && y >= 0 && y < _height);
 
@@ -2122,7 +2122,7 @@ namespace dc {
     int minDist = 0;
 
     int dist = 0;
-    int x0 = std::max(x - _local_zone, 0);
+    const int x0 = std::max(x - _local_zone, 0);
     {
       const uchar *mc = _mat_contour.ptr<uchar>(y);
       for (int i = x; i >= x0; --i) {
@@ -2136,7 +2136,7 @@ namespace dc {
     minDist = dist;
 
     dist = 0;
-    int x1 = std::min(x + _local_zone, _width);
+    const int x1 = std::min(x + _local_zone, _width);
     {
       assert(y < _mat_contour.rows);
       const uchar *mc = _mat_contour.ptr<uchar>(y);
@@ -2154,7 +2154,7 @@ namespace dc {
     minDist = std::min(dist, minDist);
 
     dist = 0;
-    int y0 = std::max(y - _local_zone, 0);
+    const int y0 = std::max(y - _local_zone, 0);
     for (int i = y; i >= y0; --i) {
       assert(i >= 0);
       assert(i >= 0 && i < _mat_contour.rows && x >= 0 && x < _mat_contour.cols);
@@ -2169,7 +2169,7 @@ namespace dc {
     minDist = std::min(dist, minDist);
 
     dist = 0;
-    int y1 = std::min(y + _local_zone, _height);
+    const int y1 = std::min(y + _local_zone, _height);
     for (int i = y; i < y1; ++i) {
       assert(i < _height);
       assert(i >= 0 && i < _mat_contour.rows && x >= 0 && x < _mat_contour.cols);
@@ -2277,13 +2277,13 @@ namespace dc {
   GrayscaleCharsDegradationModel::calculateDistanceFromBord(
 							    const Pixel &pixel) const
   {
-    const float rate = 1.5;
+    constexpr float rate = 1.5f;
 
     const int localZone = rate * _local_zone;
-    int y0 = std::max(pixel.pos.y - localZone, 0);
-    int y1 = std::min(pixel.pos.y + localZone, _height);
-    int x0 = std::max(pixel.pos.x - localZone, 0);
-    int x1 = std::min(pixel.pos.x + localZone, _width);
+    const int y0 = std::max(pixel.pos.y - localZone, 0);
+    const int y1 = std::min(pixel.pos.y + localZone, _height);
+    const int x0 = std::max(pixel.pos.x - localZone, 0);
+    const int x1 = std::min(pixel.pos.x + localZone, _width);
 
     float minDistSq = FLT_MAX;
 
@@ -2301,7 +2301,7 @@ namespace dc {
       }
     }
 
-    return sqrt(minDistSq);
+    return sqrt(minDistSq);  //B:CONVERSION TO INT ? Is it really what we want ???
   }
 
   std::vector<float *>
@@ -2325,7 +2325,7 @@ namespace dc {
     const int ex = semi_major_axis + 10;
     cv::Mat box = cv::Mat::zeros(cv::Size(_width + ex, _height + ex),
 				 CV_8UC1); //B: TOO BIG ??????
-    cv::Point newCentre(centre.x + ex / 2, centre.y + ex / 2);
+    const cv::Point newCentre(centre.x + ex / 2, centre.y + ex / 2);
 
     cv::ellipse(box,
 		newCentre,
@@ -2351,7 +2351,7 @@ namespace dc {
       ho + ((newCentre.y + localZone2) < box.rows ? (localZone2)
 	    : (box.rows - newCentre.y));
 
-    cv::Rect r(xr, yr, wr, hr);
+    const cv::Rect r(xr, yr, wr, hr);
 
     cv::Mat mask = box(r);
 
@@ -2394,10 +2394,10 @@ namespace dc {
 
       std::vector<cv::Point> pointInLine;
       {
-	int y0 = std::max(std::max(min_y - 5, 0), ex / 2);
-	int y1 = std::min(std::min(max_y + 5, box.rows), _mat_gray.rows + ex / 2);
-	int x0 = std::max(std::max(min_x - 5, 0), ex / 2);
-	int x1 = std::min(std::min(max_x + 5, box.cols), _mat_gray.cols + ex / 2);
+	const int y0 = std::max(std::max(min_y - 5, 0), ex / 2);
+	const int y1 = std::min(std::min(max_y + 5, box.rows), _mat_gray.rows + ex / 2);
+	const int x0 = std::max(std::max(min_x - 5, 0), ex / 2);
+	const int x1 = std::min(std::min(max_x + 5, box.cols), _mat_gray.cols + ex / 2);
 	for (int y = y0; y < y1; ++y) {
 	  const uchar *b = box.ptr<uchar>(y);
 	  const int yt = y - ex / 2;
@@ -2452,19 +2452,22 @@ namespace dc {
 	if (min_B > gray)
 	  min_B = gray;
 
-	const int n = 2 * (int)(pointInLine.size()) + 3;
-	float *line = (float *)malloc(sizeof(float) * n);
+	const int n = 2 * static_cast<int>(pointInLine.size()) + 3;
+	float *line = static_cast<float *>(malloc(sizeof(float) * n));
 	if (line != nullptr) {
 	  int id = 0;
+      //0
 	  line[id] = n;
-	  ++id; //0
+	  ++id;
+      //1
 	  //B: should we use p or pt here ???
-	  line[id] = sqrt((p.x - newCentre.x) * (p.x - newCentre.x) +
+	  line[id] = sqrtf((p.x - newCentre.x) * (p.x - newCentre.x) +
 			  (p.y - newCentre.y) * (p.y - newCentre.y));
-	  ++id; //1
+	  ++id;
+      //2
 	  line[id] = gray;
-	  ++id; //2
-	  for (cv::Point px : pointInLine) {
+	  ++id;
+	  for (const cv::Point px : pointInLine) {
 
 	    assert(px.y >= 0 && px.y < _mat_gray.rows && px.x >= 0 &&
 		   px.x < _mat_gray.cols); //B
@@ -2554,7 +2557,7 @@ namespace dc {
       }
     }
     assert( nbPixelBackground <= (size_t(rows)*size_t(cols)) );
-    const size_t nbPixelForeground = (size_t(rows)*size_t(cols)) - nbPixelBackground;
+    const size_t nbPixelForeground = (static_cast<size_t>(rows)*static_cast<size_t>(cols)) - nbPixelBackground;
 
     if (nbPixelForeground > 0 && nbPixelBackground > 0) {
       _avgBackground =
@@ -2578,7 +2581,7 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::calculatePixelsProbability()
   {
-    MyRNG rng((unsigned int)time(nullptr));
+    MyRNG rng(static_cast<unsigned int>(time(nullptr)));
     UniformDistribution generator(rng, 0, 50);
 
     _beta = 0.000;
@@ -2597,14 +2600,14 @@ namespace dc {
 	_beta = generator();
 
 	//P(0|d, beta, f) = exp(-beta*d*d)
-	pixel.probability = _beta0 * (float)exp((-_beta) * d * d) + _nf;
+	pixel.probability = _beta0 * static_cast<float>(exp((-_beta) * d * d)) + _nf;
 
       } else { // BACKGROUND
 
 	_alpha = generator();
 
 	//P(1|d, anpha, f) = exp(-alpha*d*d)
-	pixel.probability = _alpha0 * (float)exp((-_alpha) * d * d) + _nb;
+	pixel.probability = _alpha0 * static_cast<float>(exp((-_alpha) * d * d)) + _nb;
       }
     }
   }
@@ -2630,7 +2633,7 @@ namespace dc {
     std::sort(listProbability.begin(), listProbability.end());
 
     const size_t nbSps_Over =
-      _nbSPs_User + _nbSPs_User * percent_independent / 100;
+      static_cast<size_t>(_nbSPs_User + _nbSPs_User * percent_independent / 100.f);
 
     float flip_random = 0.0000000f;
     assert(sz == listProbability.size());

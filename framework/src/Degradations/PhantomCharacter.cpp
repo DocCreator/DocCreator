@@ -14,40 +14,40 @@ namespace dc {
   namespace PhantomCharacter {
 
     //Spacing minimum between two character to be able to paste a pattern
-    static const int SPACING_MIN = 10;
+    static constexpr int SPACING_MIN = 10;
 
     //Spacing maximum beyond which we will consider that two character are not in the same word
-    static const int SPACING_MAX = 20;
+    static constexpr int SPACING_MAX = 20;
 
     //Define how many times we will search a character where we can copy the pattern changing the size of pattern
     //static const int NB_TRY_FIT = 5;
 
     //Minimum spacing between a character and the degradation we paste
-    static const int MIN_MARGIN = 1;
+    static constexpr int MIN_MARGIN = 1;
 
     //Maximum spacing between a character and the degradation we paste
-    static const int MAX_MARGIN = 2;
+    static constexpr int MAX_MARGIN = 2;
 
     //Coeff with which the height of pattern will be multiplied to get the minimum height of degradation
-    static const float COEFF_MIN_HEIGHT = 0.9f;
+    static constexpr float COEFF_MIN_HEIGHT = 0.9f;
 
     //Coeff with which the height of pattern will be multiplied to get the minimum height of degradation
-    static const float COEFF_MAX_HEIGHT = 1.05f;
+    static constexpr float COEFF_MAX_HEIGHT = 1.05f;
 
     //Coeff with which the height of character will be multiplied. Added to the height on each side to get the height on which we want to search neighbor (to not search just in the height, but a little more)
-    static const float COEFF_HEIGHT_MARGIN = 0.35f;
+    static constexpr float COEFF_HEIGHT_MARGIN = 0.35f;
 
     //Minimum of width that the pattern can take (considering also the marge)
-    static const int MIN_WIDTH = 5;
+    static constexpr int MIN_WIDTH = 5;
 
     //Percentage of character's width that the minimum width of pattern will take
-    static const int MIN_WIDTH_PRC = 10;
+    static constexpr int MIN_WIDTH_PRC = 10;
 
     //Percentage of character's width that the maximum width of pattern will take
-    static const int MAX_WIDTH_PRC = 30;
+    static constexpr int MAX_WIDTH_PRC = 30;
 
     //Minimum of height that the pattern can take
-    static const int MIN_HEIGHT = 5;
+    static constexpr int MIN_HEIGHT = 5;
 
     //#define SAVE_DEGRADATIONS_IMAGE 1  //to save debug image of degradations
 
@@ -118,7 +118,7 @@ namespace dc {
 
       assert(pattern.type() == CV_8UC1);
 
-      const uchar BLACK = 0;
+      constexpr uchar BLACK = 0;
 
       //search toward right
       const uchar *p = pattern.ptr<uchar>(yOrigin);
@@ -222,8 +222,8 @@ namespace dc {
 	return newPixel;
       }
 
-      const float alpha = 0.3f;
-      const float oneMinusAlpha = 1.f - alpha;
+      constexpr float alpha = 0.3f;
+      constexpr float oneMinusAlpha = 1.f - alpha;
 
       V resPixel = oldPixel; //import for V=cv::Vec4
       resPixel[0] =
@@ -244,8 +244,8 @@ namespace dc {
 	return newPixel;
       }
 
-      const float alpha = 0.3f;
-      const float oneMinusAlpha = 1.f - alpha;
+      constexpr float alpha = 0.3f;
+      constexpr float oneMinusAlpha = 1.f - alpha;
 
       const uchar resPixel = 
 	cv::saturate_cast<uchar>(alpha * oldPixel + oneMinusAlpha * newPixel);
@@ -299,7 +299,7 @@ namespace dc {
       }
       else {
 	assert(mat.type() == CV_8UC1);
-	const unsigned char BLACK = 0;
+	constexpr unsigned char BLACK = 0;
 	for (int y = 0; y < h; ++y) {
 	  const unsigned char *src = mat.ptr<unsigned char>(y);
 	  for (int x = 0; x < w; ++x) {
@@ -355,7 +355,7 @@ namespace dc {
       else {
 	assert(m1.type() == CV_8UC1);
 	assert(m1.type() == m2.type());
-	const unsigned char BLACK = 0;
+	constexpr unsigned char BLACK = 0;
 	for (int i = 0; i < h; ++i) {
 	  const unsigned char *src1 = m1.ptr<unsigned char>(i);
 	  const unsigned char *src2 = m2.ptr<unsigned char>(i);
@@ -519,7 +519,7 @@ namespace dc {
 	yMax += (height * COEFF_HEIGHT_MARGIN); //Search a little lower
       }
       int minX = SPACING_MAX;
-      unsigned char currentPix;
+      unsigned char currentPix = 0;
 
       for (int y = yOrigin; y < yMax; ++y) {
 	int x = 1;
@@ -676,7 +676,7 @@ namespace dc {
 #endif //SAVE_DEGRADATIONS_IMAGE
 		    )
     {
-      const uchar BLACK = 0;
+      constexpr uchar BLACK = 0;
 
       const int p_w = std::min(pattern.cols, output.cols - dstPoint.x);
       const int p_h = std::min(pattern.rows, output.rows - dstPoint.y);
@@ -824,7 +824,7 @@ namespace dc {
       cv::Point origin = INVALID_POINT;
 
       //to be sure to not make a degradation lighter than the old pixel
-      cv::Vec3b oldPixel, newPixel;
+      //cv::Vec3b oldPixel, newPixel;
 
       if (firstSide == 1 && lastSide == 0) {
 	return false;
@@ -834,14 +834,14 @@ namespace dc {
       if (patterns.empty()) {
 	return false;
       }
-      const int numPatterns = (int)(patterns.size());
+      const int numPatterns = static_cast<int>(patterns.size());
 
       for (int side = firstSide; side <= lastSide; ++side) { //0 = left, 1 = right
 
-	int apply = rand() % 2;
+	const int apply = rand() % 2;
 	if (apply == 1) { // apply degradation on this side or not
 
-	  int yPattern = minY;
+	  const int yPattern = minY;
 
 	  const int pattern = rand() % numPatterns; //choice of pattern
 	  assert((size_t)pattern < patterns.size());
@@ -849,13 +849,13 @@ namespace dc {
 #if CV_MAJOR_VERSION < 4
 	  const int grayFlag = CV_LOAD_IMAGE_GRAYSCALE;
 #else
-	  const int grayFlag = cv::IMREAD_GRAYSCALE;
+	  constexpr int grayFlag = cv::IMREAD_GRAYSCALE;
 #endif
 	  patternMat = cv::imread(patternFilename, grayFlag);
 	  assert(!patternMat.empty());
      
-	  int widthPattern, maxWidth, minWidth;
-	  int heightPattern, minHeight, maxHeight;
+	  int widthPattern=0, maxWidth=0, minWidth=0;
+	  int heightPattern=0, minHeight=0, maxHeight=0;
 
 	  if (side == 0 && leftCharFound) {
 	    maxWidth = (minX - maxXLeft) / 2;
@@ -914,7 +914,7 @@ namespace dc {
 	      origin = contains(outputBin, ccs[posDegraded - pos], patternMat);
 	    }
 	    ++pos;
-	    if (posDegraded + pos >= (int)ccs.size()) {
+	    if (posDegraded + pos >= static_cast<int>(ccs.size())) {
 	      maxReach = true;
 	    }
 	    if (posDegraded - pos < 0) {
@@ -1071,17 +1071,17 @@ namespace dc {
 	return output;
       }
 
-      size_t sz = ccs.size();
+      const size_t sz = ccs.size();
       std::vector<size_t> areas(sz, 0);
 
       //compute average & standard deviation (via moments) of ccs' AABB area and fill areas;
-      size_t m0 = ccs.size();
+      const size_t m0 = ccs.size();
       size_t m1 = 0, m2 = 0;
 
       for (size_t i = 0; i < sz; ++i) {
 	int width, height;
 	computeSize(ccs[i], width, height);
-	const size_t areaAABB = width * (size_t)height;
+	const size_t areaAABB = width * static_cast<size_t>(height);
 
 	areas[i] = areaAABB;
 	m1 += areaAABB;
@@ -1093,13 +1093,13 @@ namespace dc {
       const float standard_deviation = sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
 
       //Filtering of ccs
-      const float factor = 1.f;
+      constexpr float factor = 1.f;
       const float lowTh = avg * 0.6f;
       const float highTh = avg + (factor * standard_deviation);
       CCs filteredCCs;
       filteredCCs.reserve(sz);
       for (size_t i = 0; i < sz; ++i) {
-	const float areaAABB = (float)(areas[i]);
+	const float areaAABB = static_cast<float>(areas[i]);
 	if (areaAABB > lowTh && areaAABB <= highTh) {
 	  filteredCCs.push_back(ccs[i]);
 	}
@@ -1130,7 +1130,7 @@ namespace dc {
 
       for (int unsigned i = 0; i < ccs.size(); ++i) {
 	//Random : choose if we apply a default on this characters or not
-	int chosen = rand() % 100; // random number between 0 and 100
+	const int chosen = rand() % 100; // random number between 0 and 100
 
 	if (chosen < probOccurence) { // if random number is included in the x % (x
 	  // which was chosen by the user)

@@ -68,7 +68,7 @@ TxtDocumentSaver::buildPage(Doc::Page *p, int id)
 }
 
 void
-TxtDocumentSaver::buildImageBlock(Doc::DocImageBlock */*ib*/, int /*id*/)
+TxtDocumentSaver::buildImageBlock(Doc::DocImageBlock * /*ib*/, int /*id*/)
 //    void TxtDocumentSaver::buildImageBlock(Doc::DocImageBlock *ib)
 {}
 

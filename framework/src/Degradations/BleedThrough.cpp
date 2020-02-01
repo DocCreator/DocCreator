@@ -18,7 +18,7 @@ namespace dc {
   int
   bleedThrough_kernel(int u, int current, int ixp, int ixn, int iyp, int iyn)
   {
-    const float dt = 0.05f;  //B: ?????  //Why isn't it a parameter of the algo ?
+    constexpr float dt = 0.05f;  //B: ?????  //Why isn't it a parameter of the algo ?
 
     //B: remove useless: / 100.0f * 100.0f
     const float c = (1.0f / (1.0f + (ixn - u) * (ixn - u) )) /* (1.0f / ((1.0f + ixn*ixn)/(0.2f*0.2f)) )*/;
@@ -361,7 +361,7 @@ namespace dc {
     if (intersection) {
       cv::Mat imgVersoROI = imgVerso(versoROI);
 
-      cv::Rect rectoROI(x+versoROI.x, y+versoROI.y, versoROI.width, versoROI.height);
+      const cv::Rect rectoROI(x+versoROI.x, y+versoROI.y, versoROI.width, versoROI.height);
       cv::Mat imgRectoROI = imgRecto(rectoROI);
       cv::Mat originalRectoROI = originalRecto(rectoROI);
       assert(imgVersoROI.size() == imgRectoROI.size());
