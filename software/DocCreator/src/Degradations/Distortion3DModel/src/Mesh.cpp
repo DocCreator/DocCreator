@@ -439,7 +439,7 @@ Mesh::removeDuplicatedVertices()
     std::vector<uint32_t> newVIndices(numVertices,
                                       INVALID); //newVIndices[oldInd]==newInd
 
-    const float eps = std::numeric_limits<float>::epsilon() * 2.f;
+    constexpr float eps = std::numeric_limits<float>::epsilon() * 2.f;
 
     //TODO:OPTIM: QUADRATIC !!!!
 
@@ -999,13 +999,13 @@ makeSphereMesh(float radius,
 
   for (unsigned int r = 0; r < rings; ++r) {
     const float rR = r * R;
-    const float y = static_cast<float>(sin(-M_PI_2 + M_PI * rR));
-    const float sinPirR = static_cast<float>(sin(M_PI * rR));
+    const float y = sinf(static_cast<float>(-M_PI_2 + M_PI * rR));
+    const float sinPirR = sinf(static_cast<float>(M_PI * rR));
     for (unsigned int s = 0; s < sectors; ++s) {
       const float sS = s * S;
       const float sS2Pi = static_cast<float>(2 * M_PI * sS);
-      const float x = sin(sS2Pi) * sinPirR;
-      const float z = cos(sS2Pi) * sinPirR;
+      const float x = sinf(sS2Pi) * sinPirR;
+      const float z = cosf(sS2Pi) * sinPirR;
 
       *v++ = x * radius;
       *v++ = y * radius;

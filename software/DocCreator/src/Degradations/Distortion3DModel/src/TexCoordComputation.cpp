@@ -396,8 +396,8 @@ rotateAroundMean(Mesh &mesh)
     Vector3 p_avg3_s(
       p_avg3.x * scaleFactor, p_avg3.y * scaleFactor, p_avg3.z * scaleFactor);
 
-    const float cos_angle = cos(angle);
-    const float sin_angle = sin(angle);
+    const float cos_angle = cosf(angle);
+    const float sin_angle = sinf(angle);
     //Boris: TODO:OPTIM:PARALLEL?
     for (uint32_t i = 0; i < numvertices; ++i) { //vertices indices start from 1
       vertices[3 * i + 0] = vertices[3 * i + 0] - p_avg3.x;
