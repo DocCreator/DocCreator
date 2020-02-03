@@ -1703,33 +1703,35 @@ DocCreator::synthetiseImage()
         if (ocrDialog.exec()) { // Font extraction
 
           const QString fontName = ocrDialog.saveFont();
-          Models::Font *font =
-            IOManager::FontFileManager::fontFromXml(fontName);
-          assert(font);
-          addNewFont(font);
-          //B:TODO:ugly: we save to disk and reload !!!
-          //B:TODO:addNewFont will add the font to the application ! We do not want that !?
-          // we just want to add the font to the style of the document ? (cf
-          // RandomDocumentGenerator.cpp)
-          // or just do :
-          // FontContext::instance()->setCurrentFont(FontFileManager::fontFromXml(fontName));
-          // //?
-          //B: Do we need to set the font here ? before StructureDialog ?
+	  if (! fontName.isEmpty()) {
+	    Models::Font *font =
+	      IOManager::FontFileManager::fontFromXml(fontName);
+	    assert(font);
+	    addNewFont(font);
+	    //B:TODO:ugly: we save to disk and reload !!!
+	    //B:TODO:addNewFont will add the font to the application ! We do not want that !?
+	    // we just want to add the font to the style of the document ? (cf
+	    // RandomDocumentGenerator.cpp)
+	    // or just do :
+	    // FontContext::instance()->setCurrentFont(FontFileManager::fontFromXml(fontName));
+	    // //?
+	    //B: Do we need to set the font here ? before StructureDialog ?
 
-          //B:TODO !!!!!
-          //const int newLineSpacing = computeLineSpacing(font);
+	    //B:TODO !!!!!
+	    //const int newLineSpacing = computeLineSpacing(font);
 
-          StructureDialog structDialog(_docController, this);
+	    StructureDialog structDialog(_docController, this);
 
-          structDialog.init(imgDocument, binaryImage, background);
+	    structDialog.init(imgDocument, binaryImage, background);
 
-          if (structDialog.exec()) { // Structure detection
+	    if (structDialog.exec()) { // Structure detection
 
-            BackGroundChanger changer;
-            changer.changeBackGroundImage(structDialog.getResultImage());
+	      BackGroundChanger changer;
+	      changer.changeBackGroundImage(structDialog.getResultImage());
 
-            structDialog.loremIpsum();
-          }
+	      structDialog.loremIpsum();
+	    }
+	  }
         }
       }
     }
@@ -1807,11 +1809,13 @@ DocCreator::fontExtraction()
 
       if (ocrDialog.exec()) {
         const QString fontName = ocrDialog.saveFont();
-        Models::Font *font = IOManager::FontFileManager::fontFromXml(fontName);
-        assert(font);
-        addNewFont(font);
-        const int lineSpacing = computeBestLineSpacing(*font);
-        _docController->setParagraphLineSpacing(lineSpacing);
+	if (! fontName.isEmpty()) {
+	  Models::Font *font = IOManager::FontFileManager::fontFromXml(fontName);
+	  assert(font);
+	  addNewFont(font);
+	  const int lineSpacing = computeBestLineSpacing(*font);
+	  _docController->setParagraphLineSpacing(lineSpacing);
+	}
       }
     }
   }
