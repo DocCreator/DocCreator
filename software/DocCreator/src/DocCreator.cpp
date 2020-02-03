@@ -769,13 +769,13 @@ DocCreator::about()
     this,
     tr("DocCreator"),
     tr("<html><head/><body>"
-       "<p>DocCreator lets you create synthetic document images "
+       "<p>DocCreator %1 lets you create synthetic document images "
        "and apply various degradation models to document images</p>"
        "<p><span style=\"text-decoration: underline; color:#0000ff;\">"
        "https://doc-creator.labri.fr/</span></p>"
        "<p>If you use DocCreator in Reaserch work for publication, please "
        "cite:</p>"
-       "<span style=\"color:#40a7bf;\">"
+       "<span style=\"color:#f50000;\">"
        "<p>Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.</p>"
        "<p>DocCreator: A New Software for Creating Synthetic Ground-Truthed "
        "Document Images.</p>"
@@ -785,7 +785,7 @@ DocCreator::about()
        "http://www.mdpi.com/2313-433X/3/4/62</span></p></br>"
        "<p>Authors: Nicholas Journet, Boris Mansencal, "
        "Antoine Billy, Kieu Van-Cuong, Vincent Rabeux, Nicolas "
-       "Vidal, Jérémy Albouys, ...</p></body></html>"));
+       "Vidal, Jérémy Albouys, ...</p></body></html>").arg(Core::ConfigurationManager::get(AppConfigMainGroup, QStringLiteral("version")).toString()));
 }
 
 void

@@ -1,5 +1,7 @@
 [mainapp]
 
+version=${DocCreatorVersion}
+
 fontfolder=${FONT_DATA_DIRECTORY}
 backgroundfolder=${BACKGROUND_DATA_DIRECTORY}
 imagefolder=${IMAGE_DATA_DIRECTORY}
