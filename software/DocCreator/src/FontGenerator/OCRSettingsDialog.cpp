@@ -37,13 +37,13 @@ OCRSettingsDialog::buildGUI()
 
   auto openDirB = new QPushButton(tr("..."), this);
   openDirB->setToolTip(tr("Search for parent directory of tessdata directory"));
-  auto getEnvB = new QPushButton(tr("Get"), this);
-  getEnvB->setToolTip(tr("Get TESSDATA_PREFIX environment variable"));
+  auto getEnvB = new QPushButton(tr("Get env."), this);
+  getEnvB->setToolTip(tr("Set directory to TESSDATA_PREFIX environment variable"));
 
   connect(openDirB, SIGNAL(clicked()), this, SLOT(openDir()));
   connect(getEnvB, SIGNAL(clicked()), this, SLOT(getEnv()));
 
-  auto langL = new QLabel(tr("language: "), this);
+  auto langL = new QLabel(tr("Language: "), this);
   langL->setToolTip(tr("Choose language to recognize in your document"));
   m_langCB = new QComboBox(this);
 
@@ -68,6 +68,8 @@ OCRSettingsDialog::buildGUI()
   vLayout->addWidget(buttonBox);
 
   setLayout(vLayout);
+
+  setWindowTitle(tr("Tesseract OCR language settings"));
 }
 
 QString
