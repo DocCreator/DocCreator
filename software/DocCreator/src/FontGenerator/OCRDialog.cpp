@@ -7,10 +7,13 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QHash>
 #include <QMouseEvent>
 #include <QTableView>
 #include <QTextStream>
@@ -55,6 +58,8 @@ OCRDialog::OCRDialog(QWidget *parent)
 {
   ui->setupUi(this);
   ui->originalLabel->installEventFilter(this);
+
+  updateOkButton(0);
 }
 
 OCRDialog::~OCRDialog()
@@ -85,6 +90,8 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
       static_cast<int>((static_cast<double>(k->pos().y()) / ui->originalLabel->pixmap()->height()) *
             m_originalImg.height());
 
+    //B:TODO:OPTIM: check if the click is in the global bounding box of all letters ? It would avoid to search each letter.
+    
     for (int i = 0; i < (int)m_font.size(); ++i) {
       const FontLetter &f = m_font[i];
 
@@ -92,7 +99,9 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
       if (f.rect.contains(cv::Point(xmouse, ymouse))) {
         m_currentIndex = i;
         m_currentLetter = f;
-        updateView();
+	
+	std::cerr<<"eventFilter() -> updateTableLetters\n";
+	updateView();
         return QObject::eventFilter(watched, event);
       }
     }
@@ -103,9 +112,12 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
 void
 OCRDialog::init(const QImage &ori, const QImage &bin)
 {
+  std::cerr<<"OCRDialog::init()\n";
   setOriginalImage(ori);
   setBinarizedImage(bin);
+  std::cerr<<"OCRDialog::init() -> process()\n";
   process();
+  std::cerr<<"OCRDialog::init() -> updateAlphabet()\n";  
   updateAlphabet();
 }
 
@@ -202,8 +214,14 @@ OCRDialog::getQImageFromMask(const cv::Mat &original,
 void
 OCRDialog::process()
 {
-  cv::Mat src(Convertor::getCvMat(m_binarizedImg)),
-    original(Convertor::getCvMat(m_originalImg)), tmp;
+  std::cerr<<"OCRDialog::process()\n";
+  m_font.clear();
+  m_validatedFont.clear();
+  updateOkButton(0);  
+  
+  cv::Mat src(Convertor::getCvMat(m_binarizedImg));
+  cv::Mat original(Convertor::getCvMat(m_originalImg));
+  cv::Mat tmp;
   cvtColor(src, tmp, cv::COLOR_BGR2GRAY);
 
   std::vector<cv::Vec4i> baselines_tmp = m_baselines;
@@ -278,11 +296,9 @@ OCRDialog::process()
       It seems that tesseract 3.03.02-3 does not define TESSERACT_VERSION
     */
   }
-
 #endif //TESSERACT_VERSION
 
   const int tessInitFailed =
-    //tess.Init("/usr/share/tesseract-ocr/4.00/tessdata/", language, tesseract::OEM_DEFAULT);
     tess.Init(tessdataParentDir, language, tesseract::OEM_DEFAULT);
 
   if (tessInitFailed == 0) {
@@ -339,13 +355,13 @@ OCRDialog::process()
           // Bounding box computation
           int x1, y1, x2, y2;
           ri->BoundingBox(tesseract::RIL_SYMBOL, &x1, &y1, &x2, &y2);
-          cv::Rect r = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
+          const cv::Rect r = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
 
           // Tesseract baseline extraction
           ri->Baseline(tesseract::RIL_SYMBOL, &x1, &y1, &x2, &y2);
 
           // Tesseract confidence determination
-          float conf = ri->Confidence(tesseract::RIL_SYMBOL);
+          const float conf = ri->Confidence(tesseract::RIL_SYMBOL);
 
           // We extract the image
           //cv::Mat mask = src(r);
@@ -374,7 +390,7 @@ OCRDialog::process()
 
       } while ((ri->Next(tesseract::RIL_SYMBOL)));
 
-      if (!m_font.empty())
+      if (! m_font.empty())
         m_currentLetter = m_font[0];
     }
 
@@ -383,7 +399,10 @@ OCRDialog::process()
 #endif //WRITE_BASELINES
 
     m_currentIndex = 0;
+    //B:TODO: no need to update m_currentLetter ???
 
+    std::cerr<<"process() -> updateView\n";
+    
     updateView();
   }
   else {
@@ -396,17 +415,22 @@ OCRDialog::process()
 void
 OCRDialog::updateTableLetters()
 {
+  //B:TODO: get current selection before update/clear !?
 
+  std::cerr<<"OCRDialog::updateTableLetters() ----------\n";
+
+  const int row = ui->tableLetters->currentRow();
+  
   ui->tableLetters->clear();
   ui->tableLetters->setRowCount(0);
   ui->tableLetters->setColumnCount(1);
 
   QStringList horzHeaders;
-  horzHeaders << QStringLiteral("Similar symbols");
+  horzHeaders << QStringLiteral("Similar symbols"); //B:TODO: not enough space to display the whole text on Ubuntu 18.04
   ui->tableLetters->setHorizontalHeaderLabels(horzHeaders);
 
   // We take the list of letters with the same label (sorted by confidence)
-  m_similarList = getSimilarLetters(m_currentLetter);
+  m_similarList = getSimilarLetters(m_currentLetter.label);
 
   // And display them in the table
   for (const int ind : m_similarList) {
@@ -423,6 +447,17 @@ OCRDialog::updateTableLetters()
     ui->tableLetters->item(ui->tableLetters->rowCount() - 1, 0)
       ->setBackground(getConfidenceColor(f.confidence));
   }
+
+  //B:TODO: set selection
+  if (row < ui->tableLetters->rowCount()) {
+    ui->tableLetters->setCurrentCell(row, 0);
+  }
+  else {
+    if (ui->tableLetters->rowCount() > 0) {
+      ui->tableLetters->setCurrentCell(0, 0); //B:TODO: select the first with a proba < 100 ?
+    }
+  }
+  
 }
 
 /*
@@ -430,14 +465,15 @@ OCRDialog::updateTableLetters()
   If not found, m_alphabet.size() is returned.
  */
 int
-OCRDialog::indexOfFontLetterInAlphabet(const FontLetter &f)
+OCRDialog::indexOfLetterInAlphabet(const std::string &label) const
 {
   int index = m_alphabet.size();
-  for (int j = 0; j < (int)m_alphabet.size(); ++j) {
-    const int ind = m_alphabet[j].first;
+  const int asz = (int)m_alphabet.size();
+  for (int j = 0; j < asz; ++j) {
+    const int ind = m_alphabet[j].index;
     assert(ind >= 0 && ind < (int)m_font.size());
     const FontLetter &fl = m_font[ind];
-    if (f.label == fl.label) {
+    if (label == fl.label) {
       index = j;
       break;
     }
@@ -445,9 +481,41 @@ OCRDialog::indexOfFontLetterInAlphabet(const FontLetter &f)
   return index;
 }
 
+/*
+  Return true if the letters was added to m_validatedFont.
+  False otherwise.
+*/
+/*
+bool
+OCRDialog::isLetterAdded(const std::string &label) const
+{
+  for (const FontLetter &fl : m_validatedFont) {
+    if (fl.label == label)
+      return true;
+  }
+  return false;
+}
+*/
+
+int
+OCRDialog::frequencyInValidatedFont(const std::string &label) const
+{
+  int freq = 0;
+  for (const FontLetter &fl : m_validatedFont) {
+    if (fl.label == label)
+      ++freq;
+  }
+  return freq;
+}
+
+
 void
 OCRDialog::updateAlphabet()
 {
+  int row = ui->tableAlphabet->currentRow();
+  int col = ui->tableAlphabet->currentColumn();
+  std::cerr<<"updateAlphabet() row="<<row<<" col="<<col<<"\n";
+  
   ui->tableAlphabet->clear();
   ui->tableAlphabet->setRowCount(0);
   ui->tableAlphabet->setColumnCount(NUM_COLUMNS);
@@ -458,45 +526,88 @@ OCRDialog::updateAlphabet()
   for (int i = 0; i < (int)m_font.size(); ++i) {
     FontLetter &f = m_font[i];
 
-    const int indexA = indexOfFontLetterInAlphabet(f);
+    const int indexA = indexOfLetterInAlphabet(f.label);
     if (indexA < (int)m_alphabet.size()) {
       //label already in alphabet, we just increase its frequency
-      m_alphabet[indexA].second++;
+      m_alphabet[indexA].frequencyFont++;
     }
     else {
       //label is not in the alphabet, it is added with a frequency of one.
-      m_alphabet.emplace_back(std::pair<int, int>(i, 1));
+      const int freqValidated = frequencyInValidatedFont(f.label);
+      m_alphabet.emplace_back(i, 1, freqValidated);
+
+      //B:TODO:we have to store one more field : the number of instance added to m_validateFont.
     }
   }
 
-  // We sort the table according to their frequency in the text
+  //We sort by alphabetical order (make more sens than by frequency order)
   std::sort(m_alphabet.begin(),
 	    m_alphabet.end(),
-	    [](const std::pair<int, int> c1, const std::pair<int, int> c2) {
-	      return c1.second > c2.second;
+	    [this](const AlphabetInfo &c1, const AlphabetInfo &c2) {
+	      //return c1.frequencyFont > c2.frequencyFont; //sort by frequency of letter
+	      assert(c1.index < m_font.size());
+	      assert(c2.index < m_font.size());
+	      return m_font[c1.index].label < m_font[c2.index].label; //sort by alphabetical order
 	    });
 
   // We fill the QTable
   for (int j = 0; j < (int)m_alphabet.size(); ++j) {
     QTableWidgetItem *thumb = new QTableWidgetItem();
-    thumb->setText(
-      QString::fromStdString(m_font[m_alphabet[j].first].label + " (" +
-                             std::to_string(m_alphabet[j].second) + ")"));
+    //B:REM: using html text in QTableWidgetItem::setText() does not work. We would need to code a delegate ?
 
+    QString text=QString::fromStdString(m_font[m_alphabet[j].index].label + " (" + std::to_string(m_alphabet[j].frequencyFont) + ")");
+
+    const bool letterAlreadyAdded = (m_alphabet[j].frequencyValidatedFont > 0); //isLetterAdded(m_font[m_alphabet[j].index].label);
+
+    if (letterAlreadyAdded) 
+      text += QString(" [")+QString::number(m_alphabet[j].frequencyValidatedFont)+QString("]");    
+    thumb->setText(text);
+    
+    //B:TODO:we have to display one more field : the number of instance added to m_validateFont.
+
+    
     //TODO:OPTIM: set number of rows at once (setRowCount() ?)
     if (j % NUM_COLUMNS == 0)
       ui->tableAlphabet->insertRow(ui->tableAlphabet->rowCount());
 
     ui->tableAlphabet->setItem(ui->tableAlphabet->rowCount() - 1, j % NUM_COLUMNS, thumb);
 
+    /*
     if (j % 2 == 0)
       ui->tableAlphabet->item(ui->tableAlphabet->rowCount() - 1, j % NUM_COLUMNS)
         ->setBackground(QColor(235, 235, 239));
+    */
+    if (letterAlreadyAdded) {
+      ui->tableAlphabet->item(ui->tableAlphabet->rowCount() - 1, j % NUM_COLUMNS)
+	->setBackground(QColor(100, 255, 100));
+    }
+    
   }
 
   ui->tableAlphabet->horizontalHeader()->adjustSize();
+
+  if (ui->tableAlphabet->rowCount() > 0) {
+    if (row==-1
+	|| col ==-1
+	|| row >= ui->tableAlphabet->rowCount()
+	|| col >= ui->tableAlphabet->columnCount()) {
+      const size_t indexA = indexOfLetterInAlphabet(m_currentLetter.label);
+      if (indexA < m_alphabet.size()) {
+	row = indexA/NUM_COLUMNS;
+	col = indexA-row*NUM_COLUMNS;
+      }
+      else {
+	row = 0;
+	col = 0;
+      }
+    }
+    std::cerr<<"  setCurrentCell row="<<row<<" col="<<col<<"\n";
+    ui->tableAlphabet->setCurrentCell(row, col);
+  }
+  
 }
 
+//B:TODO: clean up this code
 void
 OCRDialog::updateView()
 {
@@ -577,16 +688,21 @@ OCRDialog::updateView()
 
   ui->smoothed->setChecked(m_currentLetter.checked);
 
+  std::cerr<<"updateView -> updateTableLetters\n";
   updateTableLetters();
+  if (ui->tableLetters->currentRow()==-1 && ui->tableLetters->rowCount()>0)
+    ui->tableLetters->setCurrentCell(0, 0);
+  std::cerr<<"updateView: tableLetters currentRow="<<ui->tableLetters->currentRow()<<" rowCount="<<ui->tableLetters->rowCount()<<"\n";
 
 
   //Set currentLetter as current cell in tableAlphabet
   if (! m_alphabet.empty()) {
-    const int indexA = indexOfFontLetterInAlphabet(m_currentLetter);
+    const int indexA = indexOfLetterInAlphabet(m_currentLetter.label);
     assert((size_t)indexA < m_alphabet.size());
     const int row = indexA/NUM_COLUMNS;
     const int col = indexA-row*NUM_COLUMNS;
     ui->tableAlphabet->setCurrentCell(row, col);
+    std::cerr<<"updateView: tableAlphabet->setCurrentCell("<<row<<", "<<col<<") label="<<m_currentLetter.label<<"\n";
   }
 
   // Highlight the symbols in the image with the same label
@@ -627,36 +743,52 @@ OCRDialog::getConfidenceColor(float conf) const
 }
 
 /*
-   Returns a sorted vector of the symbols with the same label than fl
+   Returns a sorted vector of the symbols with the same label @a label.
    Returns also the related index of each letter
    The letters are sorted by decreasing confidence of the guessed label
 */
 std::vector<int>
-OCRDialog::getSimilarLetters(const FontLetter &fl) const
+OCRDialog::getSimilarLetters(const std::string &label) const
 {
+  struct IndiceConfidence
+  {
+    IndiceConfidence(int i=0, float c=0.f) :
+      indice(i), confidence(c)
+    {}
+    
+    int indice;
+    float confidence;
+  };
+  
   // Get symbols with same label
-  std::vector<std::pair<int, int>> list;
+  std::vector<IndiceConfidence> list;
 
   const int sz = m_font.size();
   for (int i = 0; i < sz; ++i) {
     const FontLetter f = m_font[i];
-    if (f.label == fl.label) {
-      list.emplace_back(std::pair<int, int>(i, f.confidence));
+    if (f.label == label) {
+      std::cerr<<"** getSimilarLetters("<<label<<") push "<<i<<" (conf="<<f.confidence<<")\n";
+      list.emplace_back(IndiceConfidence(i, f.confidence));
     }
   }
 
   // Sort them by decreasing confidence
-  std::sort(list.begin(),
+  //B:REM
+  //We need stable sort here, because in on_tableAlphabet_cellClicked()
+  // we keep the first instance in m_font with the highest confidence.
+  std::stable_sort(list.begin(),
 	    list.end(),
-	    [](std::pair<int, int> c1, std::pair<int, int> c2) {
-	      return c1.second > c2.second;
+	    [](IndiceConfidence c1, IndiceConfidence c2) {
+	      return c1.confidence > c2.confidence;
 	    });
 
   // We select only the n-firsts (where n is given by the user)
   const size_t size = std::min((int)list.size(), m_maxNumberOfSymbols);
   std::vector<int> croplist(size);
-  for (size_t i = 0; i < size; ++i)
-    croplist[i] = list[i].first;
+  for (size_t i = 0; i < size; ++i) {
+    croplist[i] = list[i].indice;
+    std::cerr<<label<<": "<<list[i].confidence<<" (ind="<<list[i].indice<<")\n";
+  }
   return croplist;
 }
 
@@ -668,10 +800,10 @@ std::vector<OCRDialog::FontLetter> OCRDialog::getFinalFont() const
   std::vector<FontLetter> finalFont;
   for (int i=0; i<(int)m_alphabet.size(); ++i) {
 
-    const int ind = m_alphabet[i].first;
+    const int ind = m_alphabet[i].index;
     const FontLetter &fl = m_font[ind];
 
-    const std::vector<int> sim = getSimilarLetters(fl);
+    const std::vector<int> sim = getSimilarLetters(fl.label);
     for (int ind2 : sim) {
 
       const FontLetter &fls = m_font[ind2];
@@ -714,6 +846,7 @@ OCRDialog::on_tableLetters_clicked(const QModelIndex &index)
     m_currentLetter = m_font[m_currentIndex];
   }
 
+  std::cerr<<"on_tableLetters_clicked -> updateView\n";
   updateView();
 }
 
@@ -722,7 +855,30 @@ OCRDialog::on_baselineSpinBox_valueChanged(int arg1)
 {
   // update baseline value
   m_currentLetter.baseline = arg1;
+  std::cerr<<"on_baselineSpinBox_valueChanged -> updateView\n";
   updateView();
+}
+
+size_t
+OCRDialog::countCharacters() const
+{
+  //m_validatedFont.size() is the nuber of instances
+
+#if 0
+  //code if FontLetter::label was a QString
+  
+  QHash<QString, bool> characters; //used as an unordered_set of QStrings
+  for (const FontLetter &f : m_validatedFont)
+    characters[f.label] = true;
+  return characters.size();
+#else
+  std::unordered_set<std::string> characters;
+   for (const FontLetter &f : m_validatedFont)
+     characters.insert(f.label);
+  return characters.size();
+#endif
+
+  
 }
 
 void
@@ -739,18 +895,86 @@ OCRDialog::on_apply_clicked()
   m_font[m_currentIndex] = m_currentLetter;
 
   m_validatedFont.push_back(m_currentLetter);
+  std::cerr<<"OCRDialog::on_apply_clicked() m_validatedFont.size()="<<m_validatedFont.size()<<"\n";
 
+  const size_t indA = indexOfLetterInAlphabet(m_currentLetter.label);
+  if (indA < m_alphabet.size()) {
+    m_alphabet[indA].frequencyValidatedFont += 1;
+    std::cerr<<"OCRDialog::on_apply_clicked() m_alphabet["<<indA<<"] label="<<m_currentLetter.label<<" freqF="<<m_alphabet[indA].frequencyFont<<" freqVF="<<m_alphabet[indA].frequencyValidatedFont<<"\n";
+
+    size_t numCharacters = countCharacters();
+    ui->infoFont->setText(tr("%1 character(s) added to font").arg(numCharacters));
+    updateOkButton(numCharacters);
+  }
+  
+  
+  //B:TODO: NO: we should not change the m_currentIndex if we have not added all the letters instances to the font.
+  
   // Switch to the next symbol
   const int fontSize = m_font.size();
-  if (++m_currentIndex >= fontSize)
-    m_currentIndex = 0;
   if (fontSize == 0)
     return;
-
+#if 0
+  if (++m_currentIndex >= fontSize)
+    m_currentIndex = 0;
+#else
+  const int row = ui->tableLetters->currentRow();
+  std::cerr<<"on_apply_clicked() row="<<row<<" rowCount="<<ui->tableLetters->rowCount()<<"\n";
+  if (row+1 < ui->tableLetters->rowCount()) {
+    //not on last row
+    ui->tableLetters->setCurrentCell(row+1, 0);
+    const int newRow = ui->tableLetters->currentRow();
+    assert(newRow < m_similarList.size());
+    const int newCurrentIndex = m_similarList[newRow];
+    assert(newCurrentIndex < m_font.size());
+    m_currentIndex = newCurrentIndex;
+    std::cerr<<"on_apply_clicked() set row="<<row+1<<"\n";
+    std::cerr<<"on_apply_clicked() set newCurrentIndex="<<newCurrentIndex<<"\n";
+    
+  }
+  else {
+    //we go on the next letter in the alphabet
+    std::cerr<<"on_apply_clicked() got to the next letter\n";
+    size_t ind = indexOfLetterInAlphabet(m_currentLetter.label);
+    std::cerr<<"on_apply_clicked() alphabetTable: currentRow="<<ui->tableAlphabet->currentRow()<<" currentCol="<<ui->tableAlphabet->currentColumn()<<"\n";
+    if (ind < m_alphabet.size()) { //B:TODO: assert ???  //letter is in the font !
+      assert(m_font[m_alphabet[ind].index].label == m_currentLetter.label);
+      ind +=1;
+      if (ind >= m_alphabet.size()) {
+	std::cerr<<"on_apply_clicked() ind="<<ind<<"\n";
+	ind = 0;
+      }
+      if (ind < m_alphabet.size()) {
+	const int newCurrentIndex = m_alphabet[ind].index;
+	assert(newCurrentIndex < m_font.size());
+	m_currentIndex = newCurrentIndex;
+	const int row = ind/NUM_COLUMNS;
+	const int col = ind%NUM_COLUMNS;
+	ui->tableAlphabet->setCurrentCell(row, col);
+	ui->tableLetters->setCurrentCell(0, 0); //to have the right selection on the next updateView()/updateTableLetters()
+	std::cerr<<"on_apply_clicked() ind="<<ind<<"\n";
+	std::cerr<<"on_apply_clicked() alphabetTable: set currentRow="<<ui->tableAlphabet->currentRow()<<" currentCol="<<ui->tableAlphabet->currentColumn()<<"\n";
+	std::cerr<<"on_apply_clicked() newCurrentIndex="<<newCurrentIndex<<"\n";
+      }
+    }
+    
+  }
+#endif
+  
   m_currentLetter = m_font[m_currentIndex];
+  std::cerr<<"on_apply_clicked() m_currentLetter.label="<<m_currentLetter.label<<"\n";
 
+  std::cerr<<"on_apply_clicked -> updateView\n";
   updateView();
+  std::cerr<<"on_apply_clicked -> updateAlphabet\n";
   updateAlphabet();
+}
+
+void
+OCRDialog::updateOkButton(size_t numCharacters)
+{
+  const bool enabled = (numCharacters > 0);
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
 }
 
 void
@@ -779,6 +1003,8 @@ OCRDialog::on_deleteButton_clicked()
 
   m_currentLetter = m_font[m_currentIndex];
 
+  std::cerr<<"on_deleteButton_clicked -> updateView\n";
+
   updateView();
   updateAlphabet();
 }
@@ -788,19 +1014,28 @@ OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
 {
   // Get current label
   assert(row * NUM_COLUMNS + column < (int)m_alphabet.size());
-  std::string label = m_font[m_alphabet[row * NUM_COLUMNS + column].first].label;
-
-  int tmp_conf = -1;
+  const std::string label = m_font[m_alphabet[row * NUM_COLUMNS + column].index].label;
 
   // Select the one with the highest confidence
-  for (int i = 0; i < (int)m_font.size(); ++i) {
+  float best_confidence = -1;
+  for (size_t i = 0; i < m_font.size(); ++i) {
     const FontLetter &f = m_font[i];
-    if (f.label == label && f.confidence > tmp_conf) {
+    if (f.label == label)
+      std::cerr<<"** on_tableAlphabet_cellClicked i="<<i<<" confidence="<<f.confidence<<"\n"; 
+    
+    if (f.label == label && f.confidence > best_confidence) {
       m_currentIndex = i;
       m_currentLetter = m_font[m_currentIndex];
-      tmp_conf = f.confidence;
+      best_confidence = f.confidence;
     }
   }
+  //  and thus the first in tableLetters
+  ui->tableLetters->setCurrentCell(0, 0);
+
+  std::cerr<<"** on_tableAlphabet_cellClicked m_currentIndex="<<m_currentIndex<<" (best confidence="<<best_confidence<<")\n";
+  
+  std::cerr<<"on_tableAlphabet_cellClicked -> updateView\n";
+  
   updateView();
 }
 
@@ -808,6 +1043,7 @@ void
 OCRDialog::on_maxSymbol_valueChanged(int arg1)
 {
   m_maxNumberOfSymbols = arg1;
+  std::cerr<<"on_maxSymbol_valueChanged -> updateView\n";
   updateView();
 }
 
@@ -828,6 +1064,7 @@ OCRDialog::rebinarizeCurrentLetter()
   if (m_currentLetter.checked)
     cv::medianBlur(img_bin, img_bin, 5);
   m_currentLetter.mask = img_bin;
+  std::cerr<<"rebinarizeCurrentLetter -> updateView\n";
   updateView();
 }
 
@@ -899,9 +1136,107 @@ OCRDialog::getFont() const
   int sum_spacing_h = 0;
   int nb = 0;
 
+  std::unordered_map<std::string, std::vector<size_t> > letter2indices;
+  const size_t totalNumInstances = m_validatedFont.size();
+  for (size_t i=0; i<totalNumInstances; ++i) {
+    const FontLetter &fl = m_validatedFont[i];
+    letter2indices[fl.label].push_back(i);
+  }
+    
+  for (const auto &l2i : letter2indices) {
+    assert(! l2i.second.empty());
+    const size_t ind0 = l2i.second[0];
+    const FontLetter &fl0 = m_validatedFont[ind0];
+    assert(fl0.label == l2i.first);
+    
+    //B:TODO
+    // For now, We keep the baseline of the first instance.
+    // (It is completely arbitrary)
+    // Indeed, currently DocCreator does not handle
+    // a different baseline per instance !!!
+    // thus we have to choose one...
+
+    const qreal upLine = 0;
+    const qreal baseLine = (100.f * fl0.baseline / (float)fl0.rect.height);
+    const qreal leftLine = 0;
+    const qreal rightLine = 100;
+
+    auto c = new Models::Character(QString::fromStdString(fl0.label),
+				   upLine, baseLine, leftLine, rightLine);
+
+
+    const size_t numInstances = l2i.second.size();
+    for (size_t i=0; i<numInstances; ++i) {
+      const FontLetter &fls = m_validatedFont[l2i.second[i]];
+      
+      QImage image = getQImageFromMask(thumb(fls.rect), fls.mask);
+
+      auto *cd = new Models::CharacterData(image, i);
+      c->add(cd);
+
+      sum_spacing_w += fls.rect.width;
+      sum_spacing_h += fls.rect.height;
+      ++nb;
+    }
+
+    const bool addOk = font->addCharacter(c);
+    if (!addOk) {
+      std::cerr << "Warning: character for letter " << fl0.label
+                << " was not added to font. Already present ?\n";
+    }
+    
+  }
+
+  if (nb > 0) {
+    //add space character to font
+
+    const float mean_spacing_w = static_cast<int>(sum_spacing_w / nb + 0.5f);
+    const float mean_spacing_h = static_cast<int>(sum_spacing_h / nb + 0.5f);
+
+    const qreal upLine = 0;
+    const qreal baseLine = 100;
+    const qreal leftLine = 0;
+    const qreal rightLine = 100;
+    auto c = new Models::Character(
+      QStringLiteral(" "), upLine, baseLine, leftLine, rightLine);
+
+    QImage image(mean_spacing_w, mean_spacing_h, QImage::Format_ARGB32);
+    image.fill(qRgba(255, 255, 255, 0)); //all transparent
+    const int picture_id = 0;
+    auto *cd = new Models::CharacterData(image, picture_id);
+    c->add(cd);
+    const bool addOk = font->addCharacter(c);
+    if (!addOk) {
+      std::cerr << "Warning: character for space letter was not added to font. "
+                   "Already present ?\n";
+    }
+  }
+
+  return font;  
+  
+}
+
+
+/*
+original code
+
+B: this code is wrong ! It saves the letters present in m_alphabet 
+and not the letters added to m_validatedFont.
+
+Models::Font *
+OCRDialog::getFont() const
+{
+  auto font = new Models::Font(DEFAULT_FONT_NAME);
+
+  const cv::Mat thumb = Convertor::getCvMat(m_originalImg);
+
+  int sum_spacing_w = 0;
+  int sum_spacing_h = 0;
+  int nb = 0;
+
   const int nbLetters = m_alphabet.size();
   for (int i = 0; i < nbLetters; ++i) {
-    const int ind = m_alphabet[i].first;
+    const int ind = m_alphabet[i].index;
     const FontLetter &fl = m_font[ind];
 
     const qreal upLine = 0;
@@ -909,10 +1244,10 @@ OCRDialog::getFont() const
     const qreal leftLine = 0;
     const qreal rightLine = 100;
 
-    auto c = new Models::Character(
-      QString::fromStdString(fl.label), upLine, baseLine, leftLine, rightLine);
+    auto c = new Models::Character(QString::fromStdString(fl.label),
+				   upLine, baseLine, leftLine, rightLine);
     int picture_id = 0;
-    const std::vector<int> sim = getSimilarLetters(fl);
+    const std::vector<int> sim = getSimilarLetters(fl.label);
     for (int ind2 : sim) {
       const FontLetter &fls = m_font[ind2];
 
@@ -962,6 +1297,7 @@ OCRDialog::getFont() const
 
   return font;
 }
+*/
 
 void
 OCRDialog::writeFont(const QString &filename) const

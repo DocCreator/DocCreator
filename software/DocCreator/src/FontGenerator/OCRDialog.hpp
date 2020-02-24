@@ -102,12 +102,15 @@ protected:
                            int background_value = 237) const;
 
   QColor getConfidenceColor(float conf) const;
-  std::vector<int> getSimilarLetters(const FontLetter &fl) const;
+  std::vector<int> getSimilarLetters(const std::string &label) const;
 
   //std::vector<FontLetter> getFinalFont() const;
 
-  int indexOfFontLetterInAlphabet(const FontLetter &f);
+  int indexOfLetterInAlphabet(const std::string &label) const;
 
+  int frequencyInValidatedFont(const std::string &label) const;
+  size_t countCharacters() const;
+  void updateOkButton(size_t numCharacters);
 
 private:
   Ui::OCRDialog *ui;
@@ -121,7 +124,21 @@ private:
 
   std::vector<FontLetter> m_font;
   std::vector<int> m_similarList;
-  std::vector<std::pair<int, int>> m_alphabet;
+
+  struct AlphabetInfo {
+    explicit AlphabetInfo(int ind, int ff=1, int fvf=0):
+      index(ind), frequencyFont(ff), frequencyValidatedFont(fvf)
+    {}
+
+    int index; //letter index in m_font
+    int frequencyFont; //frequency of letter in m_font (i.e., in image as detected by OCR)
+    int frequencyValidatedFont; //frequency of letter in m_validatedFont
+
+    //REM: frequencyValidatedFont may be superior to frequencyFont
+    // because we can add the same instance several times, with a diferent baseline for example.
+  };
+  
+  std::vector<AlphabetInfo> m_alphabet;
   std::vector<cv::Vec4i> m_baselines;
   FontLetter m_currentLetter;
   int m_currentIndex;
