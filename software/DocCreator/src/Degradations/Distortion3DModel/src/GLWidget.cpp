@@ -209,18 +209,8 @@ GLWidget::initializeGL()
 
   GL_CHECK_ERROR_ALWAYS();
 
-  const std::string vert =
-#include "shaders/simple.vert"
-    ;
-  const std::string frag =
-#include "shaders/simple.frag"
-    ;
-
-  /*
-  const bool ok = m_program.loadFromFiles(SRC_DIR"/shaders/simple.vert",
-                                    SRC_DIR"/shaders/simple.frag");
-  */
-  const bool ok = m_program.loadFromStrings(vert, frag);
+#include "shader_simple.hpp"
+  const bool ok = m_program.loadFromStrings(vs_simple, fs_simple);
   if (!ok) {
     std::cerr << "ERROR: unable to load shaders\n";
     exit(10);
@@ -230,13 +220,8 @@ GLWidget::initializeGL()
 
   //For sphere :
 
-  const std::string vertS =
-#include "shaders/sphere.vert"
-    ;
-  const std::string fragS =
-#include "shaders/sphere.frag"
-    ;
-  const bool okS = m_sphereProgram.loadFromStrings(vertS, fragS);
+#include "shader_sphere.hpp"
+  const bool okS = m_sphereProgram.loadFromStrings(vs_sphere, fs_sphere);
   if (!okS) {
     std::cerr << "ERROR: unable to load (sphere) shaders\n";
     exit(10);
@@ -257,13 +242,8 @@ GLWidget::initializeGL()
 
   //For background :
 
-  const std::string vertB =
-#include "shaders/background.vert"
-    ;
-  const std::string fragB =
-#include "shaders/background.frag"
-    ;
-  const bool okP = m_backgroundProgram.loadFromStrings(vertB, fragB);
+#include "shader_background.hpp"
+  const bool okP = m_backgroundProgram.loadFromStrings(vs_background, fs_background);
   if (!okP) {
     std::cerr << "ERROR: unable to load (background) shaders\n";
     exit(10);

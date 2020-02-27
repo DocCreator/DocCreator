@@ -1,6 +1,3 @@
-#include <QApplication>
-#include <QDebug>
-#include <QImage>
 #include <cstdlib>
 #include <iostream>
 

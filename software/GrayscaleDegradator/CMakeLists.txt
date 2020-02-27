@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+# Set version variables to empty if not specified in project() call.
+IF(POLICY CMP0048)
+  CMAKE_POLICY(SET CMP0048 NEW)
+ENDIF(POLICY CMP0048)
+
 # Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
 IF(POLICY CMP0063)
   CMAKE_POLICY(SET CMP0063 NEW)

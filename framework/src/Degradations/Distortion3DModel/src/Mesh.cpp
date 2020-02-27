@@ -441,7 +441,7 @@ Mesh::removeDuplicatedVertices()
 
     constexpr float eps = std::numeric_limits<float>::epsilon() * 2.f;
 
-    //TODO:OPTIM: QUADRATIC !!!!
+    //TODO:OPTIM: QUADRATIC !!!
 
     uint32_t vi = 0;
     for (uint32_t i = 0; i < numVertices; ++i) {

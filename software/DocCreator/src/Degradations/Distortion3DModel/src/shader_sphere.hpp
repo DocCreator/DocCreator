@@ -1,15 +1,41 @@
-R"(
-#version 330 core
+#pragma once
 
-//CODE DUPLICATION with simple.frag
-// except that we do not use texture !
+const std::string vs_sphere = R"(
+
+uniform mat4 view_matrix;
+uniform mat4 projection_matrix;
+uniform mat3 normal_matrix;//allow to pass normals from object space to view space.
+uniform vec4 sphere_color;
+
+in vec4 vtx_position;
+in vec3 vtx_normal;
+//in vec4 vtx_color;
+
+out vec4 position_view;
+out vec3 normal_view;
+out vec4 color;
+
+
+void main() {
+
+    position_view = view_matrix * vtx_position;
+
+    gl_Position = projection_matrix * position_view;
+
+    normal_view = normal_matrix * vtx_normal;
+
+    color = sphere_color; //vtx_color;
+
+}
+)";
+
+const std::string fs_sphere = R"(
 
 /*
 
 Phong or Blinn-Phong lighting model computed per fragment (Phong shading)
 
 */
-
 
 
 in vec4 position_view;
@@ -23,7 +49,6 @@ out vec4 out_color;
 //We suppose that light_ambient is light ambient already multiplied with material ambient
 
 
-//const vec3 light_position_world = vec3(0.1, 0.1, 5.0);
 //const vec3 light_ambient = vec3(.01);//vec3(0.1, 0.1, 0.1);
 //const vec3 light_diffuse = vec3(0.81);//vec3(0.9);
 //const vec3 light_specular = vec3(0.16); //vec3(0.4); //vec3(0.1, 0.1, 0.1); //vec3(1.0, 1.0, 1.0);
@@ -38,17 +63,13 @@ uniform vec3 light_specular;
 uniform float specular_exponent;
 
 
-
 void main()
 {
   // //ambient intensity
   // vec3 Ia = light_ambient;
 
-  // //diffuse intensity
-  // //vec3 light_position_view = vec3(view_matrix * vec4(light_position_world, 1.0)); //B:TODO in c++ code !!!
   
   // //B: we always use normalized 'l' vector.
-  // // According to sources, it is not always the case...
 
   // vec3 l = normalize(light_position_view - position_view.xyz); //surface to light
   // float dot_prod = max(dot(l, normal_view), 0.);
@@ -70,8 +91,8 @@ void main()
 
   // vec3 Is = light_specular * specular_factor;
  
-  // out_color = color * vec4(Id + Ia + Is, 1.0);
+  // out_color = vec4(Id + Ia + Is, 1.0);
   out_color = color;
 }
+)";
 
-)"

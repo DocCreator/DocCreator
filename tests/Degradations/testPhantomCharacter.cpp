@@ -6,7 +6,6 @@
 #include "Degradations/PhantomCharacter.hpp"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp> //DEBUG
 
 #include "paths.hpp"
 #include "testCommon.hpp" //checkEqual

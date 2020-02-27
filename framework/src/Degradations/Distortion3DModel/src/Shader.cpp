@@ -64,43 +64,20 @@ createShader(const std::string &src, GLenum type, const std::string &msg)
 {
   GLuint res = glCreateShader(type);
 
-  const GLchar *s_src = src.c_str();
+  std::string src2;
+// #ifdef WITH_EMSCRIPTEN
+//   //OpenGL ES 3.0 = WebGL 2.0
+//   src2 = "#version 300 es\n";
+//   if (type == GL_FRAGMENT_SHADER)
+//     src2 += "precision highp float;\n";
+// #else
+  //OpenGL 3.3
+  src2 = "#version 330 core\n";
+//#endif //WITH_EMSCRIPTEN
+  src2 += src;
+  
+  const GLchar *s_src = src2.c_str();
 
-  //B : take GL_ES into account ?
-  /*
-
-  const GLchar* sources[] = {
-    // Define GLSL version
-#ifdef GL_ES_VERSION_2_0
-    "#version 100\n"
-#else
-    "#version 120\n"
-#endif
-    ,
-    // GLES2 precision specifiers
-#ifdef GL_ES_VERSION_2_0
-    // Define default float precision for fragment shaders:
-    (type == GL_FRAGMENT_SHADER) ?
-    "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-    "precision highp float;           \n"
-    "#else                            \n"
-    "precision mediump float;         \n"
-    "#endif                           \n"
-    : ""
-    // Note: OpenGL ES automatically defines this:
-    // #define GL_ES
-#else
-    // Ignore GLES 2 precision specifiers:
-    "#define lowp   \n"
-    "#define mediump\n"
-    "#define highp  \n"
-#endif
-    ,
-    source };
-
-    glShaderSource(res, 3, sources, NULL);
-
-   */
 
   GL_CHECK_ERROR_ALWAYS();
 

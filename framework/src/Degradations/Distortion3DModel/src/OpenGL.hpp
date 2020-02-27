@@ -1,6 +1,17 @@
 #ifndef OPENGL_HPP
 #define OPENGL_HPP
 
+
+#if USE_NATIVE_OSMESA
+#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#define GLFW_EXPOSE_NATIVE_OSMESA
+#include <GLFW/glfw3native.h>
+
+#else
+
 #if defined(_WIN32) || defined(_WIN64)
 #include <glad/glad.h>
 #else
@@ -13,6 +24,10 @@
 #endif
 
 #endif //_WIN32 || _WIN64
+
+#endif //USE_NATIVE_OSMESA
+
+
 
 //#define GL_GLEXT_PROTOTYPES
 //#ifdef __APPLE__

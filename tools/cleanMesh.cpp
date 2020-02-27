@@ -50,14 +50,16 @@ main(int argc, char *argv[])
                 << "\n";
       exit(10);
     }
-  } else if (isOBJFile(inputMeshFilename)) {
+  }
+  else if (isOBJFile(inputMeshFilename)) {
     const bool readOk = readOBJ(inputMeshFilename, mesh);
     if (!readOk) {
       std::cerr << "ERROR: unable to read OBJ file: " << inputMeshFilename
                 << "\n";
       exit(10);
     }
-  } else {
+  }
+  else {
     std::cerr << "ERROR: unhandled file format for input file: "
               << inputMeshFilename << "\n";
     exit(10);
@@ -73,10 +75,8 @@ main(int argc, char *argv[])
   }
 
   mesh.removeDegenerateTrianglesIndices();
+  mesh.removeDuplicatedVertices();
   mesh.removeNonReferencedVertices();
-
-  //remove tex coords
-  mesh.freeTexCoords();
 
   assert(mesh.isValid());
 
@@ -85,10 +85,12 @@ main(int argc, char *argv[])
   if (ext == "OBJ") {
     writeOBJ(outputMeshFilename, mesh);
     std::cout << "wrote " << outputMeshFilename << "\n";
-  } else if (ext == "BRS") {
+  }
+  else if (ext == "BRS") {
     writeBRS(outputMeshFilename, mesh);
     std::cout << "wrote " << outputMeshFilename << "\n";
-  } else {
+  }
+  else {
     std::cerr << "ERROR: unhandled file format for output file: "
               << outputMeshFilename << "\n";
   }

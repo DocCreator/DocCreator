@@ -2,36 +2,22 @@
 SET( LIB_NAME Lipsum4Qt )
 
 
-file(
-  GLOB_RECURSE
+SET(
   Lipsum4Qt_sources
-  src/*.cpp
+  src/Lipsum4Qt.cpp
   )
 
-file(
-  GLOB_RECURSE
-  Lipsum4Qt_resources
-  src/*.qrc
-  )
-
-file(
-  GLOB_RECURSE
-  Lipsum4Qt_ui
-  src/*.ui
-  )
-
-file(
-  GLOB_RECURSE
+SET(
   Lipsum4Qt_headers
-  src/*.h
-  src/*.hpp
+  src/Lipsum4Qt_global.h
+  src/Lipsum4Qt.hpp
   )
 
 set_property(SOURCE src/Lipsum4Qt.hpp
   PROPERTY MACOSX_PACKAGE_LOCATION Headers
   )
 
-QTX_ADD_RESOURCES(RCS ${Lipsum4Qt_resources} )
+#QTX_ADD_RESOURCES(RCS ${Lipsum4Qt_resources} )
 #QTX_WRAP_UI(UI ${Lipsum4Qt_ui})
 QTX_WRAP_CPP(MOC ${Lipsum4Qt_headers})
 
@@ -77,7 +63,7 @@ ENDIF()
 #       #COMMAND cp  application.ini ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/Resources
 #     #)
 # ENDIF( APPLE )
-ADD_LIBRARY(${LIB_NAME} STATIC ${Lipsum4Qt_sources}  ${MOC} ${RCS} ${UI} ${Lipsum4Qt_headers})
+ADD_LIBRARY(${LIB_NAME} STATIC ${Lipsum4Qt_sources} ${Lipsum4Qt_headers} ${MOC} )
 TARGET_INCLUDE_DIRECTORIES(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${QT_QTCORE_INCLUDE_DIR} )
 
 

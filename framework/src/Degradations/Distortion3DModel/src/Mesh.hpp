@@ -55,7 +55,6 @@ public:
   void removeDegenerateTrianglesIndices();
   void removeDuplicatedVertices();
   void removeNonReferencedVertices();
-  void removeDuplicatedAndNonReferencedVertices();
 
   /**
      Translate mesh to its origin and scale to fit in a unit cube.
