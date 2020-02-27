@@ -14,10 +14,12 @@ namespace dc {
     /*
       Add hole to an image at a given position.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      Output image will be of the same type.
       @a holePattern must be of type CV_8UC1.
 
-      pixels inside hole are filled with pixels from @a matBelow if not empty and visible or color @a color otherwise.
+      pixels inside hole are filled with pixels from @a matBelow if 
+      @a matBelow is not empty and visible, or with color @a color otherwise.
       If not empty, @a matBelow must be of the same type than @a img.
 
       @a side is used only if @a type is BORDER or CORNER.
@@ -48,7 +50,8 @@ namespace dc {
     /*
       Add hole to an image at a random position.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      Output image will be of the same type.
       @a holePattern must be of type CV_8UC1.
 
       @a holePattern is inserted at random position.

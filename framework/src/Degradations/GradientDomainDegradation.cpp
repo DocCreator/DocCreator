@@ -53,7 +53,7 @@ drawIndices(size_t numToDraw, size_t rangeMin, size_t rangeMax)
 
 /*
   compute crop of @a stainImg copied onto @a dstImg at position @a pos.
-  If there is intersection betwen @a stainImg and @a dstImg, update @a roi and @a newPos.
+  If there is intersection between @a stainImg and @a dstImg, update @a roi and @a newPos.
   
   @param[in] stainImg stain image to insert. It must be of type CV_8UC3.
   @param[in] dstImg destination image to copy onto. It must be of type 8UC3.
