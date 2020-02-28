@@ -93,22 +93,25 @@ SET(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 
 OPTION(BUILD_ONLY_DEGRADATIONS "Build only degradations library" OFF)
+if (NOT BUILD_ONLY_DEGRADATIONS)
+  message(STATUS "Build only degradations DISABLED (you can build only degradations library with '-DBUILD_ONLY_DEGRADATIONS=ON' cmake option)")
+endif (NOT BUILD_ONLY_DEGRADATIONS)
 
 
 IF(NOT BUILD_ONLY_DEGRADATIONS)
   FIND_PACKAGE(QtX REQUIRED) #TODO:DEBUG: supprimer QtX ! Ne chercher OpenGL que si ! BUILD_ONLY_DEGRADATIONS ?
 ENDIF()
 
-
-#TODO:DEBUG: que faire si BUILD_ONLY_DEGRADATIONS  ????
 OPTION(BUILD_OTHER_PROGS "Build other programs than DocCreator" OFF)
-
 if (NOT BUILD_OTHER_PROGS)
   message(STATUS "Build other programs DISABLED (you can activate other programs build with '-DBUILD_OTHER_PROGS=ON' cmake option)")
 endif (NOT BUILD_OTHER_PROGS)
 
-
 OPTION(BUILD_OTHER_PROGS_3D "Build 3D programs" OFF)
+if (NOT BUILD_OTHER_PROGS_3D)
+  message(STATUS "Build other 3D programs DISABLED (you can activate other 3D programs build with '-DBUILD_OTHER_PROGS_3D=ON' cmake option)")
+endif (NOT BUILD_OTHER_PROGS_3D)
+
 
 OPTION(BUILD_TESTING "Build tests" OFF)
 

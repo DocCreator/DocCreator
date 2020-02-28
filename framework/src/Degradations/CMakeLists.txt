@@ -28,6 +28,10 @@ ENDIF()
 
 
 OPTION(BUILD_WITH_OSMESA "Build Distortion3D with OSMesa for offscreen OpenGL rendering" OFF)
+if (NOT BUILD_WITH_OSMESA)
+  message(STATUS "Build with OSMesa DISABLED (you can activate build with OSMesa for offscreen OpenGL rendering for 3D distortion with '-DBUILD_WITH_OSMESA=ON' cmake option)")
+endif (NOT BUILD_WITH_OSMESA)
+
 
 IF(BUILD_WITH_OSMESA OR NOT BUILD_ONLY_DEGRADATIONS)
   ADD_SUBDIRECTORY(Distortion3DModel)

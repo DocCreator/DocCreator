@@ -27,12 +27,12 @@ ENDIF()
 IF(BUILD_OTHER_PROGS_3D)
 
   ADD_EXECUTABLE(convertBRSOBJ WIN32 MACOSX_BUNDLE convertBRSOBJ.cpp)
-  TARGET_LINK_LIBRARIES(convertBRSOBJ DocCreatorDegradations)
+  TARGET_LINK_LIBRARIES(convertBRSOBJ Distortion3DCommon)
 
   ADD_EXECUTABLE(cleanMesh WIN32 MACOSX_BUNDLE cleanMesh.cpp)
-  TARGET_LINK_LIBRARIES(cleanMesh DocCreatorDegradations)
+  TARGET_LINK_LIBRARIES(cleanMesh Distortion3DCommon)
 
   ADD_EXECUTABLE(removeTexCoords WIN32 MACOSX_BUNDLE removeTexCoords.cpp)
-  TARGET_LINK_LIBRARIES(removeTexCoords DocCreatorDegradations)
+  TARGET_LINK_LIBRARIES(removeTexCoords Distortion3DCommon)
 
 ENDIF(BUILD_OTHER_PROGS_3D)
