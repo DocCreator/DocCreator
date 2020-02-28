@@ -229,7 +229,10 @@ OCRDialog::process()
 
   /* Tesseract processing */
 
+#ifdef TESSERACT_VERSION
   std::cerr<<"TESSERACT_VERSION="<<TESSERACT_VERSION<<"\n";
+#endif //TESSERACT_VERSION
+  //With tesseract 3.03.02-3 on Ubuntu 14.04, TESSERACT_VERSION is not defined
 
 #if TESSERACT_VERSION == 262144
 
@@ -408,7 +411,7 @@ OCRDialog::process()
   else {
 
     std::cerr<<"ERROR: tesseract initialization failed\n";
-    std::cerr <<" TESSERACT_VERSION="<<TESSERACT_VERSION<<"\n";
+    std::cerr <<" TESSERACT_VERSION="<<tesseract::TessBaseAPI::Version()<<"\n";
   }
 }
 
