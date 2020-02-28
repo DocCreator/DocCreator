@@ -24,12 +24,6 @@ PROJECT(DocCreatorSoftware)
 SET( CMAKE_COLOR_MAKEFILE ON )
 SET( CMAKE_VERBOSE_MAKEFILE ON )
 
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-ENDIF()
-
 
 FIND_PACKAGE(OpenGL REQUIRED)  #required ???
 
@@ -191,8 +185,22 @@ IF(BUILD_TESSERACT)
   #download tessdata
   SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata/raw/master)
   IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
-    FILE(DOWNLOAD ${TESSDATA_URL}/eng.traineddata ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
-    FILE(DOWNLOAD ${TESSDATA_URL}/fra.traineddata ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata)
+    SET(TESSDATA_ENG_URL "${TESSDATA_URL}/eng.traineddata")
+    FILE(DOWNLOAD ${TESSDATA_ENG_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata STATUS status LOG log)
+    LIST(GET status 0 status_code)
+    LIST(GET status 1 status_string)
+    IF(NOT status_code EQUAL 0)
+      MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_ENG_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+    ENDIF()
+
+    SET(TESSDATA_FRA_URL "${TESSDATA_URL}/fra.traineddata")
+    FILE(DOWNLOAD ${TESSDATA_FRA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata STATUS status LOG log)
+    LIST(GET status 0 status_code)
+    LIST(GET status 1 status_string)
+    IF(NOT status_code EQUAL 0)
+      MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_FRA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+    ENDIF()
+
   ENDIF()
   
   #install tessdata
@@ -495,12 +503,22 @@ SET(EXTRA_LIBS ${QT_LIBRARIES} ${Lipsum4Qt_LIBRARIES} ${DocCreator_LIBRARIES} ${
 ADD_LIBRARY(${LIBNAME} STATIC ${DocCreatorQ_sources} ${DocCreatorQ_headers} ${MOC_LIB})
 TARGET_INCLUDE_DIRECTORIES(${LIBNAME} PUBLIC ${FRAMEWORK_INCLUDE_DIRS} $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 TARGET_LINK_LIBRARIES(${LIBNAME} ${EXTRA_LIBS})
+TARGET_COMPILE_OPTIONS(${LIBNAME} PRIVATE ${WARNING_FLAGS})
+SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
 
 ADD_EXECUTABLE(${PROGNAME} ${DocCreator_sources} ${DocCreator_headers} ${MOC} ${RCS} ${UI} ${WIN_RESOURCE_FILE})
 TARGET_INCLUDE_DIRECTORIES(${PROGNAME} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${DOC3D_INCLUDE_DIRS} $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Lept_INCLUDE_DIRS} ${Tesseract_INCLUDE_DIRS})
 SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES INSTALL_RPATH "${PROG_RPATH}")
-
-
+TARGET_COMPILE_OPTIONS(${PROGNAME} PRIVATE ${WARNING_FLAGS})
+SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
 # Cf http://www.kitware.com/blog/home/post/510
 #As CMAKE_MACOSX_RPATH is defined to 1,
 # Cmake  will automatically add an RPATH to this executable which is the absolute location of libDocCreator in the build tree.
@@ -537,20 +555,6 @@ IF(BUILD_TESSERACT)
   add_dependencies(${PROGNAME} tesseractLib)  #B: to be able to compile with "make -j 9"
 ENDIF(BUILD_TESSERACT)
 
-
-#C++11 support (for all executables)
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
-  IF (GCC_VERSION VERSION_LESS 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  ELSE()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  ENDIF()
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  #libc++ is required both on mac and linux
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-ENDIF()
-#VS2013 supports c++11 without any additional flags
 
 
 IF(UNIX)

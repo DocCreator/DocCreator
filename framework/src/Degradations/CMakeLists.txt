@@ -1,32 +1,5 @@
 
 
-IF(CMAKE_BUILD_TOOL MATCHES "(msdev|devenv|nmake)")
-  # Force to always compile with W3
-  add_definitions(/W3)
-ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-ENDIF()
-
-
-#C++11 support
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
-  IF (GCC_VERSION VERSION_LESS 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  ELSE()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  ENDIF()
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-ENDIF()
-#VS2013 supports c++11 without any additional flags
-
-
-
-
-
 OPTION(BUILD_WITH_OSMESA "Build Distortion3D with OSMesa for offscreen OpenGL rendering" OFF)
 if (NOT BUILD_WITH_OSMESA)
   message(STATUS "Build with OSMesa DISABLED (you can activate build with OSMesa for offscreen OpenGL rendering for 3D distortion with '-DBUILD_WITH_OSMESA=ON' cmake option)")
@@ -72,6 +45,12 @@ ENDIF()
 ADD_LIBRARY(DocCreatorDegradations STATIC ${Degradations_sources} ${Degradations_headers})
 TARGET_INCLUDE_DIRECTORIES(DocCreatorDegradations PUBLIC ${OpenCV_INCLUDE_DIRS} ${FRAMEWORK_INCLUDE_DIRS}) #${FRAMEWORK_INCLUDE_DIRS} just for framework_global.h
 TARGET_LINK_LIBRARIES(DocCreatorDegradations ${ThirdParty_LIBS})
+SET_TARGET_PROPERTIES(DocCreatorDegradations 
+  PROPERTIES CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
+TARGET_COMPILE_OPTIONS(DocCreatorDegradations PRIVATE ${WARNING_FLAGS})
 SET_TARGET_PROPERTIES(DocCreatorDegradations PROPERTIES POSITION_INDEPENDENT_CODE ON) #ugly #for wrapper
 
 
