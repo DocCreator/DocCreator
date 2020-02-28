@@ -215,7 +215,12 @@ When configuring DocCreator with cmake, you can pass the option -DBUILD_ONLY_DEG
 #### -DBUILD_WITH_OSMESA=ON
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_WITH_OSMESA=ON to cmake. It will use OSMesa, through GLFW, to have OpenGL offscreeen rendering for the 3D distortion model. This way, the 3D distortion model could be used on a linux computer without any X11 server.
-GLFW will be downloaded if this option is enabled. OSMesa library must be already installed.
+GLFW will be downloaded if this option is enabled. OSMesa library must already be installed.
+On Ubuntu (16.04 and above), you can install OSMesa with the following command:
+`sudo apt-get install libosmesa6-dev`  
+On Fedora (30 and above), you can install OSMesa with the following command as root:
+`dnf install mesa-libOSMesa-devel`  
+
 
 #### -DBUILD_OTHER_PROGS=ON
 
