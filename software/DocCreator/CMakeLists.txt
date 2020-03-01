@@ -45,11 +45,70 @@ ENDIF(NOT BUILD_TESSERACT)
 
 IF(BUILD_TESSERACT)
   
-  message(STATUS "Will build leptonica and tesseract from sources")
+  message(STATUS "Will download and build leptonica and tesseract from sources")
+
+  SET(LEPTONICA_VERSION 1.79.0)
+  SET(TESSERACT_VERSION 411)
+  SET(TESSERACT_ARCHIVE_VERSION 4.1.1)
+  SET(LEPTONICA_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/leptonica-${LEPTONICA_VERSION}")
+  SET(TESSERACT_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/tesseract-${TESSERACT_ARCHIVE_VERSION}")
+  #TODO: check that directories exist
+
+  IF (NOT EXISTS ${LEPTONICA_SRC_DIR} OR NOT EXISTS ${TESSERACT_SRC_DIR} OR NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata) 
+
+    SET(LEPTONICA_URL "https://github.com/DanBloomberg/leptonica/archive/${LEPTONICA_VERSION}.tar.gz")
+    SET(TESSERACT_URL "https://github.com/tesseract-ocr/tesseract/archive/${TESSERACT_ARCHIVE_VERSION}.tar.gz")
+    SET(LEPTONICA_ARCHIVE "leptonica.tar.gz")
+    SET(TESSERACT_ARCHIVE "tesseract.tar.gz")
+    IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE})
+      MESSAGE(STATUS "  downloading leptonica & tesseract")
+      FILE(DOWNLOAD ${LEPTONICA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${LEPTONICA_ARCHIVE} STATUS status LOG log)
+      LIST(GET status 0 status_code)
+      LIST(GET status 1 status_string)
+      IF(NOT status_code EQUAL 0)
+        MESSAGE(FATAL_ERROR "error: downloading ${LEPTONICA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+      ENDIF()
+      
+      FILE(DOWNLOAD ${TESSERACT_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} STATUS status LOG log)
+      LIST(GET status 0 status_code)
+      LIST(GET status 1 status_string)
+      IF(NOT status_code EQUAL 0)
+        MESSAGE(FATAL_ERROR "error: downloading ${TESSERACT_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+      ENDIF()
+      MESSAGE(STATUS "  downloading done.")
+    ENDIF()
+    #download tessdata
+    SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/master)
+    IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
+      MESSAGE(STATUS "  downloading tesseract language models")
+      SET(TESSDATA_ENG_URL "${TESSDATA_URL}/eng.traineddata")
+      FILE(DOWNLOAD ${TESSDATA_ENG_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata STATUS status LOG log)
+      LIST(GET status 0 status_code)
+      LIST(GET status 1 status_string)
+      IF(NOT status_code EQUAL 0)
+        MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_ENG_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+      ENDIF()
+
+      SET(TESSDATA_FRA_URL "${TESSDATA_URL}/fra.traineddata")
+      FILE(DOWNLOAD ${TESSDATA_FRA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata STATUS status LOG log)
+      LIST(GET status 0 status_code)
+      LIST(GET status 1 status_string)
+      IF(NOT status_code EQUAL 0)
+        MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_FRA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+      ENDIF()
+      MESSAGE(STATUS "  downloading done.")
+    ENDIF()
+
+    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${LEPTONICA_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
+    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
+    MESSAGE(STATUS "  decompression done.")
+  ENDIF()
+
+
 
   IF(NOT MSVC AND NOT MINGW)
     SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}leptonica${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    SET(TESSERACT_LIBRARY "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}libtesseract${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    SET(TESSERACT_LIBRARY "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tesseract${CMAKE_STATIC_LIBRARY_SUFFIX}")
   ELSE(NOT MSVC AND NOT MINGW)
 
     SET(LEPTONICA_VERSION 1.74.4)
@@ -76,20 +135,19 @@ IF(BUILD_TESSERACT)
 
     SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}leptonica-${LEPTONICA_VERSION}${DEBUG_EXT}${CMAKE_STATIC_LIBRARY_SUFFIX}")
     SET(TESSERACT_LIBRARY "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tesseract${TESSERACT_VERSION}${DEBUG_EXT}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-  ENDIF(NOT MSVC AND NOT MINGW)
-  
-  include(ExternalProject)
 
+  ENDIF(NOT MSVC AND NOT MINGW)
+
+
+  include(ExternalProject)
 
   #build static library with -DSTATIC=ON
   ExternalProject_Add(leptonica
-    URL ${PROJECT_SOURCE_DIR}/thirdparty/leptonica
+    URL ${LEPTONICA_SRC_DIR}
     PREFIX ${PROJECT_BINARY_DIR}/leptonica
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DSTATIC=ON -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     BUILD_BYPRODUCTS ${LEPTONICA_LIBRARY}
     )
-  #The client does: #include<leptonica/allheaders.h>
-  #I had to modify leptonica CMakeLists.txt to correctly install headers, in leptonica directory
 
   #-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is to ensure that leptonica&tesseract are built with the same compiler than DocCreator
   # It is for example useful on Linux, when compiled with a non-default compiler.
@@ -119,7 +177,7 @@ IF(BUILD_TESSERACT)
 
   ExternalProject_Add(tesseract
     DEPENDS leptonica
-    URL ${PROJECT_SOURCE_DIR}/thirdparty/tesseract
+    URL ${TESSERACT_SRC_DIR}
     PREFIX ${PROJECT_BINARY_DIR}/tesseract
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${ADDITIONAL_FLAG}
     BUILD_BYPRODUCTS ${TESSERACT_LIBRARY}
@@ -182,27 +240,6 @@ IF(BUILD_TESSERACT)
     SET(Tesseract_LIBRARIES "${TESSERACT_LIBRARY};Ws2_32")
   ENDIF()
 
-  #download tessdata
-  SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata/raw/master)
-  IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
-    SET(TESSDATA_ENG_URL "${TESSDATA_URL}/eng.traineddata")
-    FILE(DOWNLOAD ${TESSDATA_ENG_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata STATUS status LOG log)
-    LIST(GET status 0 status_code)
-    LIST(GET status 1 status_string)
-    IF(NOT status_code EQUAL 0)
-      MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_ENG_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-    ENDIF()
-
-    SET(TESSDATA_FRA_URL "${TESSDATA_URL}/fra.traineddata")
-    FILE(DOWNLOAD ${TESSDATA_FRA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata STATUS status LOG log)
-    LIST(GET status 0 status_code)
-    LIST(GET status 1 status_string)
-    IF(NOT status_code EQUAL 0)
-      MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_FRA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-    ENDIF()
-
-  ENDIF()
-  
   #install tessdata
   install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/tessdata DESTINATION share/DocCreator)
 
