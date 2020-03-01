@@ -17,12 +17,7 @@ set_property(SOURCE src/Lipsum4Qt.hpp
   PROPERTY MACOSX_PACKAGE_LOCATION Headers
   )
 
-#QTX_ADD_RESOURCES(RCS ${Lipsum4Qt_resources} )
-#QTX_WRAP_UI(UI ${Lipsum4Qt_ui})
-QTX_WRAP_CPP(MOC ${Lipsum4Qt_headers})
-
-
-SET(EXTRA_LIBS  ${QT_LIBRARIES})
+SET(EXTRA_LIBS ${QT_LIBRARIES})
 
 
 # ADD_LIBRARY(${LIB_NAME} SHARED ${Lipsum4Qt_sources}  ${MOC} ${RCS} ${UI} ${Lipsum4Qt_headers})
@@ -48,7 +43,7 @@ SET(EXTRA_LIBS  ${QT_LIBRARIES})
 #       #COMMAND cp  application.ini ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/Resources
 #     #)
 # ENDIF( APPLE )
-ADD_LIBRARY(${LIB_NAME} STATIC ${Lipsum4Qt_sources} ${Lipsum4Qt_headers} ${MOC} )
+ADD_LIBRARY(${LIB_NAME} STATIC ${Lipsum4Qt_sources} ${Lipsum4Qt_headers})
 TARGET_INCLUDE_DIRECTORIES(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${QT_QTCORE_INCLUDE_DIR} )
 TARGET_LINK_LIBRARIES(${LIB_NAME} ${QT_LIBRARIES})
 SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES
