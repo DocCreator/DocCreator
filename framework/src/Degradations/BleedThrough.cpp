@@ -290,7 +290,7 @@ namespace dc {
     compute crop of @a img copied onto destination of image of size @a width x @a height, 
     such as origin of &a img is at position @a x, &a y onto destination image.
     (Origin/top left corner of dstImg is supposed at (0,0)).
-    If there is intersection betwen @a img and destination image, update @a roi, and returns true.
+    If there is intersection between @a img and destination image, update @a roi, and returns true.
     Otherwise, returns false.
   
     @param[in] stainImg stain image to insert. It must be of type CV_8UC3.

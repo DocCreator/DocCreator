@@ -161,7 +161,11 @@ void MainWindow::findSizes(const QFont &font)
   const QString currentSize = m_sizeCB->currentText();
 
   {
+#if QT_VERSION >= 0x050300
     const QSignalBlocker blocker(m_sizeCB);
+#else
+    const bool wasBlocked = m_sizeCB->blockSignals(true);
+#endif //QT_VERSION
     // m_sizeCB signals are now blocked until end of scope
     m_sizeCB->clear();
     
@@ -180,6 +184,10 @@ void MainWindow::findSizes(const QFont &font)
 	m_sizeCB->setEditable(false);
       }
     }
+
+#if QT_VERSION < 0x050300
+    m_sizeCB->blockSignals(wasBlocked);
+#endif //QT_VERSION
   }
 
     const int sizeIndex = m_sizeCB->findText(currentSize);
