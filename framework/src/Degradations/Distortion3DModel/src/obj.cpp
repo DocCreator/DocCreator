@@ -1,5 +1,6 @@
 #include "obj.hpp"
 
+#include <algorithm> //std::max
 #include <cassert>
 #include <fstream>
 #include <iomanip>

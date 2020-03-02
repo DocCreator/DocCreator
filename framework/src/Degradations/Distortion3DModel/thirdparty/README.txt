@@ -31,3 +31,8 @@
   https://www.glfw.org/
   zlib license
 
+- glad
+  Multi-Language GL/GLES/EGL/GLX/WGL Loader-Generator based on the official specs. 
+  https://github.com/Dav1dde/glad
+  MIT License
+  Loader for OpenGL 3.3 Core generated with webservice http://glad.dav1d.de/

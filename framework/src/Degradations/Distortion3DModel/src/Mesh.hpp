@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <vector>
 
-#include <Eigen/Dense> //DEBUG
 
 class Mesh
 {
@@ -78,9 +77,6 @@ public:
   void align0();
   void alignB();
   void alignC();
-
-  Eigen::MatrixXf getEigenVectors();
-  Eigen::MatrixXf getEigenVectors(const std::vector<uint32_t> &indices);
 
   /*
     Optimize indices of triangles to be more vertex cache friendly.

@@ -4,6 +4,7 @@
 
 #include <cmath> //M_PI
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>  //malloc
 #include <cstring>  //memset
@@ -614,7 +615,9 @@ Mesh::optimizeTriangleOrdering()
   this->swap(m);
 }
 
-  //-------------------------------------------
+//-------------------------------------------
+
+/*
 
 #include <Eigen/Dense>
 
@@ -769,16 +772,6 @@ Mesh::alignB()
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXf> es(covMat);
 
-  /*
-  {//DEBUG
-    std::cerr<<"eigen values: "<<es.eigenvalues().transpose()<<"\n";
-
-    Eigen::MatrixXf eigenVectors = es.eigenvectors();
-    std::cerr<<"eigen vec1 = "<<eigenVectors.col(0).transpose()<<"\n";
-    std::cerr<<"eigen vec2 = "<<eigenVectors.col(1).transpose()<<"\n";
-    std::cerr<<"eigen vec3 = "<<eigenVectors.col(2).transpose()<<"\n";
-  }
-  */
 
   free(vrtp);
 }
@@ -812,16 +805,7 @@ Mesh::alignC()
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXf> es(cov);
 
-  /*
-    {//DEBUG
-      std::cerr<<"eigen values: "<<es.eigenvalues().transpose()<<"\n";
-
-      Eigen::MatrixXf eigenVectors = es.eigenvectors();
-      std::cerr<<"eigen vec1 = "<<eigenVectors.col(0).transpose()<<"\n";
-      std::cerr<<"eigen vec2 = "<<eigenVectors.col(1).transpose()<<"\n";
-      std::cerr<<"eigen vec3 = "<<eigenVectors.col(2).transpose()<<"\n";
-    }
-    */
+  
 
 #if 0
   Eigen::MatrixXf Ry(3, 3);
@@ -852,7 +836,9 @@ Mesh::alignC()
   }
 #endif //1
 }
+*/
 
+/*
 Eigen::MatrixXf
 Mesh::getEigenVectors()
 {
@@ -905,6 +891,7 @@ Mesh::getEigenVectors(const std::vector<uint32_t> &indices)
 
   return es.eigenvectors();
 }
+*/
 
 //-------------------------------------------------------------------
 
@@ -1693,6 +1680,7 @@ compareEdges(std::vector<Edge> &edges1, std::vector<Edge> &edges2)
   }
 }
 
+/*
 #include <chrono>
 
 void
@@ -1725,7 +1713,7 @@ DEBUG_checkEdges(const Mesh &mesh)
 
   std::cerr << "getEdges OK !\n";
 }
-
+*/
 //B: it can probably be faster if we consider that we have closed contours
 // and no loops (no "8")
 
@@ -2094,6 +2082,7 @@ getBorderPointsB(const Mesh &mesh)
   return vertexIndices;
 }
 
+/*
 void
 check_getBorderPoints(const Mesh &mesh)
 {
@@ -2119,6 +2108,7 @@ check_getBorderPoints(const Mesh &mesh)
               << indices2.size() << " indices\n";
   }
 }
+*/
 
 std::vector<uint32_t>
 getLargestBorderPoints(const Mesh &mesh)

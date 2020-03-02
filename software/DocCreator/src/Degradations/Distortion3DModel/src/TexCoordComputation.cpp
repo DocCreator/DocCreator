@@ -5,6 +5,7 @@
 #include <cmath> //M_PI
 
 #include <algorithm>
+#include <cassert>
 #include <fstream>
 #include <iomanip> //DEBUG
 #include <iostream>

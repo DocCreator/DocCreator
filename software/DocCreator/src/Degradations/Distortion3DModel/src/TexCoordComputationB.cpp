@@ -1,6 +1,7 @@
 #include "TexCoordComputationB.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <deque>
 #include <fstream>
 #include <iomanip> //DEBUG
