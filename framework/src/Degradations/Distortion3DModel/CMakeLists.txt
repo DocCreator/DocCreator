@@ -113,8 +113,6 @@ IF(BUILD_WITH_OSMESA)
 
   ADD_SUBDIRECTORY(${GLFW_DIR})
 
-  MESSAGE("DEBUUUUUGGGG2")
-
   SET(GLAD_GL_SRCS "${GLFW_DIR}/deps/glad/gl.h"
             "${GLFW_DIR}/deps/glad_gl.c")
 
