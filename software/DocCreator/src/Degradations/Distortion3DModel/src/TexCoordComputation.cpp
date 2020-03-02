@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring> //memset
 #include <fstream>
 #include <iomanip> //DEBUG
 #include <iostream>
