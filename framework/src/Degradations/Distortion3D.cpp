@@ -16,7 +16,7 @@
 namespace dc {
   namespace Distortion3D {
 
-    cv::Mat degrade3D(cv::Mat &img, const std::string &meshFilename, bool random)
+    cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -45,7 +45,7 @@ namespace dc {
 #endif //USE_NATIVE_OSMESA
 
     
-    void degrade3D(cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
+    void degrade3D(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -75,7 +75,7 @@ namespace dc {
       
     }
 
-    cv::Mat degrade3DWithBackground(cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random)
+    cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -95,7 +95,7 @@ namespace dc {
 
     }
     
-    void degrade3DWithBackground(cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
+    void degrade3DWithBackground(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);

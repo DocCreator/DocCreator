@@ -23,7 +23,7 @@ namespace dc {
       @return modified image.
 
      */
-    extern FRAMEWORK_EXPORT cv::Mat degrade3D(cv::Mat &img, const std::string &meshFilename, bool random=true);
+    extern FRAMEWORK_EXPORT cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random=true);
 
     
     /*
@@ -41,7 +41,7 @@ namespace dc {
       @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
 
     */
-    extern FRAMEWORK_EXPORT void degrade3D(cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random=true);
+    extern FRAMEWORK_EXPORT void degrade3D(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random=true);
 
     //extern FRAMEWORK_EXPORT void degrade3D(cv::Mat &img, const std::string &meshDir, size_t numOutputImages, const std::string &prefix);
 
@@ -61,7 +61,7 @@ namespace dc {
       @return modified image.
 
      */
-    extern FRAMEWORK_EXPORT cv::Mat degrade3DWithBackground(cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random=true);
+    extern FRAMEWORK_EXPORT cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random=true);
     
     /*
       Apply different 3D distortions to an image, with another image in the background, and save them as png images.
@@ -77,7 +77,7 @@ namespace dc {
       @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
 
     */
-    extern FRAMEWORK_EXPORT void degrade3DWithBackground(cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random=true);
+    extern FRAMEWORK_EXPORT void degrade3DWithBackground(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random=true);
 
 
     //extern FRAMEWORK_EXPORT void degrade3DWithBackground(cv::Mat &img, const std::string &meshDir, const std::string &backgroundImageDir, size_t numOutputImages, const std::string &prefix);
