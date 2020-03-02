@@ -28,6 +28,16 @@ namespace dc {
       const cv::Mat out = w.render(random);
       return out;
 #else
+
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)meshFilename;
+      (void)random;
+      
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
       return img;
 #endif //USE_NATIVE_OSMESA
@@ -70,6 +80,17 @@ namespace dc {
 	}
       }
 #else
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)numOutputImages;
+      (void)meshFilename;
+      (void)outputPrefix;
+      (void)random;
+      
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
 #endif //USE_NATIVE_OSMESA
       
@@ -88,6 +109,16 @@ namespace dc {
       const cv::Mat out = w.render(random);
       return out;
 #else
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)meshFilename;
+      (void)backgroundImg;
+      (void)random;
+
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
       return img;
 #endif //USE_NATIVE_OSMESA
@@ -121,6 +152,18 @@ namespace dc {
 	}
       }
 #else
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)numOutputImages;
+      (void)meshFilename;
+      (void)backgroundImg;
+      (void)outputPrefix;
+      (void)random;
+      
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
 #endif //USE_NATIVE_OSMESA
     }
