@@ -239,7 +239,7 @@ Mesh::normalizeNormals()
 
     const float length2 = x * x + y * y + z * z;
     if (length2 > 0) {
-      const float length = sqrt(x * x + y * y + z * z);
+      const float length = std::sqrt(x * x + y * y + z * z);
 
       const float inv_length = 1.f / length;
 
@@ -452,8 +452,9 @@ Mesh::removeDuplicatedVertices()
         for (uint32_t j = i + 1; j < numVertices; ++j) {
           const float *v2 = &vertices[3 * j];
 
-          if (fabs(v1[0] - v2[0]) < eps && fabs(v1[1] - v2[1]) < eps &&
-              fabs(v1[2] - v2[2]) < eps) {
+          if (std::fabs(v1[0] - v2[0]) < eps &&
+	      std::fabs(v1[1] - v2[1]) < eps &&
+              std::fabs(v1[2] - v2[2]) < eps) {
 
 #if 0
 	    std::cerr<<"vertice["<<i<<"]=("<<v1[0]<<", "<<v1[1]<<", "<<v1[2]<<") == vertice["<<j<<"]=("<<v2[0]<<", "<<v2[1]<<", "<<v2[2]<<") \n";

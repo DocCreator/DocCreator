@@ -127,8 +127,6 @@ struct L3
 
 struct IndiceSorterE
 {
-  const std::vector<uint32_t> &m_bins;
-
   explicit IndiceSorterE(const std::vector<uint32_t> &bins)
     : m_bins(bins)
   {}
@@ -137,6 +135,9 @@ struct IndiceSorterE
   {
     return m_bins[a] < m_bins[b];
   }
+
+private:
+  const std::vector<uint32_t> &m_bins;
 };
 
 template<typename EDGE>
@@ -559,7 +560,7 @@ computeDist(float x0, float z0, float x1, float z1)
 {
   const float dx = x1 - x0;
   const float dz = z1 - z0;
-  const float dist = sqrt(dx * dx + dz * dz);
+  const float dist = std::sqrt(dx * dx + dz * dz);
   return dist;
 }
 
@@ -591,7 +592,7 @@ struct Segment
     constexpr float eps = std::numeric_limits<float>::epsilon();
     const float d = computeDist(startPt.x, startPt.z, endPt.x, endPt.z);
     if (length < d) {
-      if (fabs(length - d) > eps) {
+      if (std::fabs(length - d) > eps) {
         std::cerr << "ERROR: Segment: length=" << std::setprecision(9) << length
                   << " < " << std::setprecision(9) << d << "\n";
         return false;
@@ -857,7 +858,7 @@ struct Path : public Segment
     for (size_t i = 1; i < sz; ++i) { //start from 1
       if (lengths[i] <= lengths[i - 1]) {
         constexpr float eps = std::numeric_limits<float>::epsilon();
-        if (fabs(lengths[i] - lengths[i - 1]) > eps) {
+        if (std::fabs(lengths[i] - lengths[i - 1]) > eps) {
           std::cerr << "ERROR: lengths[" << i << "]=" << std::setprecision(9)
                     << lengths[i] << " <= lengths[" << i - 1
                     << "]=" << std::setprecision(9) << lengths[i - 1] << "\n";
@@ -868,12 +869,12 @@ struct Path : public Segment
     if (sz > 0) {
       if (lengths[sz - 1] > length) {
         constexpr float eps = 2 * std::numeric_limits<float>::epsilon();
-        if (fabs(lengths[sz - 1] - length) > eps) {
+        if (std::fabs(lengths[sz - 1] - length) > eps) {
           std::cerr << "ERROR: lengths[" << sz - 1
                     << "]=" << std::setprecision(9) << lengths[sz - 1]
                     << " > length=" << std::setprecision(9) << length << "\n";
           std::cerr << "   fabs(lengths[sz-1]-length)=" << std::setprecision(9)
-                    << fabs(lengths[sz - 1] - length)
+                    << std::fabs(lengths[sz - 1] - length)
                     << " > eps=" << std::setprecision(9) << eps << "\n";
           return false;
         }
@@ -884,7 +885,7 @@ struct Path : public Segment
       constexpr float eps = 2 * std::numeric_limits<float>::epsilon();
       const float d = computeDist(startPt.x, startPt.z, endPt.x, endPt.z);
       if (length < d) {
-        if (fabs(length - d) > eps) {
+        if (std::fabs(length - d) > eps) {
           std::cerr << "ERROR: length=" << std::setprecision(9) << length
                     << " < computeDist(startPt.x, startPt.z, endPt.x, endPt.z)="
                     << std::setprecision(9) << d << "\n";
@@ -921,7 +922,7 @@ struct Path : public Segment
       const float d = computeDist(
         startPt.x, startPt.z, vertices[3 * vIdx + 0], vertices[3 * vIdx + 2]);
       if (lengths[i] < d) {
-        if (fabs(lengths[i] - d) > eps) {
+        if (std::fabs(lengths[i] - d) > eps) {
           std::cerr << "ERROR: lengths[" << i << "]=" << std::setprecision(9)
                     << lengths[i] << " < computeDist(" << startPt.x << ", "
                     << startPt.z << ", " << vertices[3 * vIdx + 0] << ", "

@@ -325,7 +325,7 @@ normalizeTexCoordsB(Mesh &mesh)
   if (m0 > 0) {
     float inv_m0 = 1.f / m0;
     float mean = m1 * inv_m0;
-    float stdDev = sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
+    float stdDev = std::sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
     float xmax = mean + 1.2f * stdDev;
 #ifndef NDEBUG
     std::cerr << "#normalizeTexCoordsB: tex_max_x=" << tex_max_x
