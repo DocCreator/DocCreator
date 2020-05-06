@@ -53,7 +53,7 @@ namespace dc {
     */
     extern FRAMEWORK_EXPORT bool copyOnto(const cv::Mat &stainImg,
 					  cv::Mat &dstImg,
-					  cv::Point posCenter);
+					  const cv::Point &posCenter);
     
     
   } //namespace GradientDomainDegradation

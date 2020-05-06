@@ -116,7 +116,7 @@ testCrop(const cv::Mat &stainImg,
 bool
 copyOnto(const cv::Mat &stainImg,
 	 cv::Mat &dstImg,
-	 cv::Point posCenter)
+	 const cv::Point &posCenter)
 {
   bool inserted = false;
 
