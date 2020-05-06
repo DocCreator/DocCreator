@@ -59,9 +59,9 @@ public:
 
     bool operator()(const Vec3f& v0, const Vec3f& v1) const
     {
-        if (fabs(v0[0] - v1[0]) <= eps_)
+      if (std::fabs(v0[0] - v1[0]) <= eps_)
         {
-            if (fabs(v0[1] - v1[1]) <= eps_)
+	  if (std::fabs(v0[1] - v1[1]) <= eps_)
             {
                 return (v0[2] < v1[2] - eps_);
             }
