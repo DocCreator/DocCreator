@@ -17,21 +17,21 @@ public:
   explicit GraphicsComponentBlockItem(Mvc::IController *controller,
                                       QGraphicsItem *parent = nullptr);
 
-  virtual void clear() override;
-  virtual void setOffset(int value) override;
+  void clear() override;
+  void setOffset(int value) override;
 
-  virtual void setRect(const QRectF &rect) override;
+  void setRect(const QRectF &rect) override;
 
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void keyPressEvent(QKeyEvent * /*event*/) override {}
-  virtual void keyReleaseEvent(QKeyEvent * /*event*/) override {}
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void keyPressEvent(QKeyEvent * /*event*/) override {}
+  void keyReleaseEvent(QKeyEvent * /*event*/) override {}
 
 public slots:
-  virtual void updatePosition() override;
+  void updatePosition() override;
 
 protected:
-  virtual void load() override;
-  virtual void draw(bool complete) override;
+  void load() override;
+  void draw(bool complete) override;
 
 private:
   QPixmap _originalPixmap;

@@ -16,20 +16,20 @@ class TextView
 public:
   TextView(Mvc::IController *controller, DocumentView *parent);
 
-  virtual void clear() override;
-  virtual void setOffset(int value) override;
+  void clear() override;
+  void setOffset(int value) override;
 
   void removeCurrentBlock();
 
-  virtual void keyPressEvent(QKeyEvent *e) override;
-  virtual void keyReleaseEvent(QKeyEvent *e) override;
+  void keyPressEvent(QKeyEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
 
 public slots:
   void onCursorPositionChanged();
 
 protected:
-  virtual void load() override;
-  virtual void draw(bool complete) override;
+  void load() override;
+  void draw(bool complete) override;
 
 private:
   DocumentView *_parent;

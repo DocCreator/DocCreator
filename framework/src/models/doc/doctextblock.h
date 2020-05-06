@@ -21,16 +21,16 @@ namespace Doc
         DocTextBlock(Document* document, int w, int h, int x, int y);
         ~DocTextBlock() = default;
 
-        virtual DocTextBlock* clone() override;
+        DocTextBlock* clone() override;
 
-        virtual DocTextBlock* getSelection() override;
+        DocTextBlock* getSelection() override;
 
         void add(DocCharacter* e);
         void add(const QList<DocCharacter*> &l);
         void add(DocString* e);
         void add(const QList<DocString*> &l);
-        virtual void add(DocParagraph* e) override;
-        virtual void add(const QList<DocParagraph*> &l) override;
+        void add(DocParagraph* e) override;
+        void add(const QList<DocParagraph*> &l) override;
 
         //void removeBeforeCursor();
         //void removeAfterCursor();
@@ -41,12 +41,12 @@ namespace Doc
         void changeStyle(DocStyle* style);
         DocStyle* getStyle();
 
-        virtual QString content() const override;
+        QString content() const override;
 
     protected:
-        virtual void actionWhenElementIsEmpty(DocParagraph* empty) override;
-        virtual void removeBeforeAndCurrentAtBeginning() override;
-        virtual void removeAfterAndCurrentAtEnd() override;
+        void actionWhenElementIsEmpty(DocParagraph* empty) override;
+        void removeBeforeAndCurrentAtBeginning() override;
+        void removeAfterAndCurrentAtEnd() override;
     };
 }
 

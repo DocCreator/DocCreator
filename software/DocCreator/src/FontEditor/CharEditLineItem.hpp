@@ -23,16 +23,16 @@ public:
                    qreal position,
                    QGraphicsItem *parent = 0);
 
-  virtual QRectF boundingRect() const override;
+  QRectF boundingRect() const override;
 
-  virtual void keyPressEvent(QKeyEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
 
 protected:
-  virtual void paint(QPainter *painter,
-                     const QStyleOptionGraphicsItem *opt,
-                     QWidget *widget = 0) override;
+  void paint(QPainter *painter,
+             const QStyleOptionGraphicsItem *opt,
+             QWidget *widget = 0) override;
 
-  virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
 public slots:
   void setLinePos(int pos, bool emitSignal = true);

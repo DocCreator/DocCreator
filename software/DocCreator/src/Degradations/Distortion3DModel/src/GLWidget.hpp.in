@@ -88,17 +88,17 @@ signals:
   void hasImage(bool onoff);
 
 protected:
-  virtual void initializeGL() override;
+  void initializeGL() override;
 
-  virtual void resizeGL(int w, int h) override;
+  void resizeGL(int w, int h) override;
 
-  virtual void paintGL() override;
+  void paintGL() override;
 
-  virtual void keyPressEvent(QKeyEvent *event) override;
-  virtual void mousePressEvent(QMouseEvent *e) override;
-  virtual void mouseReleaseEvent(QMouseEvent *e) override;
-  virtual void mouseMoveEvent(QMouseEvent *e) override;
-  virtual void wheelEvent(QWheelEvent *e) override;
+  void keyPressEvent(QKeyEvent *event) override;
+  void mousePressEvent(QMouseEvent *e) override;
+  void mouseReleaseEvent(QMouseEvent *e) override;
+  void mouseMoveEvent(QMouseEvent *e) override;
+  void wheelEvent(QWheelEvent *e) override;
 
   void printGLInfos();
 

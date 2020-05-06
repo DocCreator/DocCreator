@@ -19,10 +19,10 @@ public:
   CharEditView(CharEditScene *scene, Mvc::IView *parent);
 
   //Take over the interaction
-  virtual void wheelEvent(QWheelEvent *event) override;
-  virtual void keyPressEvent(QKeyEvent *event) override;
-  virtual void keyReleaseEvent(QKeyEvent *event) override;
-  virtual Mvc::IController *getController() override;
+  void wheelEvent(QWheelEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
+  void keyReleaseEvent(QKeyEvent *event) override;
+  Mvc::IController *getController() override;
 
 public slots:
   void zoomIn();

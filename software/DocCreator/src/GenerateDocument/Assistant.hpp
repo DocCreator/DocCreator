@@ -31,10 +31,10 @@ public:
 
 protected:
   //enum{Choix_Methode};
-  virtual int nextId() const override;
-  //virtual bool isComplete() const override;
-  virtual void initializePage(int id) override;
-  virtual bool validateCurrentPage() override;
+  int nextId() const override;
+  //bool isComplete() const override;
+  void initializePage(int id) override;
+  bool validateCurrentPage() override;
 
   void updateListText(const QString &textPath);
   void updateListFont(const QString &fontPath);
@@ -131,7 +131,7 @@ signals:
 
 protected slots:
 
-  virtual void accept() override;
+  void accept() override;
 
   void updateTxtGenerationInfo();
 

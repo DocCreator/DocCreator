@@ -18,7 +18,7 @@ namespace Doc
     void setFilePath(const QString &filePath);
     QString filePath() const { return _filePath; }
 
-    virtual QString content() const override;
+    QString content() const override;
 
   private:
     QString _filePath;

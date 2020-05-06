@@ -19,25 +19,25 @@ namespace Doc
         explicit DocParagraph(Document* document);
         ~DocParagraph();
 
-        virtual DocParagraph* clone() override;
+        DocParagraph* clone() override;
 
-        virtual DocParagraph* getSelection() override;
+        DocParagraph* getSelection() override;
 
-        virtual QList<DocString*> getElements() const override;
+        QList<DocString*> getElements() const override;
 
         void add(DocCharacter* e);
         void add(const QList<DocCharacter*> &l);
-        virtual void add(DocString* e) override;
-        virtual void add(const QList<DocString*> &l) override;
+        void add(DocString* e) override;
+        void add(const QList<DocString*> &l) override;
 
         void setLineSpacing(int value);
         int lineSpacing() { return _lineSpacing; }
         void setTabulationSize(int value);
         int tabulationSize() { return _tabulationSize; }
 
-        virtual int length() const override;
-        virtual void setOffset(int value) override;
-        virtual int offset() const override;
+        int length() const override;
+        void setOffset(int value) override;
+        int offset() const override;
 
 	const DocString* currentString() const;
         DocString* currentString();
@@ -49,21 +49,20 @@ namespace Doc
 
         QList<DocParagraph*> splitAtPosition(int position);
 
-        virtual bool isEmpty() const override;
-        //virtual bool isAtBeginning() const override { return !_index; }
-        virtual bool isAtEnd() const override;
+        bool isEmpty() const override;
+        //bool isAtBeginning() const override { return !_index; }
+        bool isAtEnd() const override;
 
     protected:
-        virtual void setLength(int value) override;
-        virtual void actionWhenElementIsEmpty(DocString* empty) override;
-        virtual void removeBeforeAndCurrentAtBeginning() override;
-        virtual void removeAfterAndCurrentAtEnd() override;
+        void setLength(int value) override;
+        void actionWhenElementIsEmpty(DocString* empty) override;
+        void removeBeforeAndCurrentAtBeginning() override;
+        void removeAfterAndCurrentAtEnd() override;
 
     private:
 	DocParagraph(const DocParagraph &);
 	DocParagraph &operator=(const DocParagraph &);
 	
-
     private:
         DocStyle* _styleTMP; //B: ??? should be a shared_ptr ???
         DocString* _endOfParagraph; //B: why is it a DocString ? and not a DocCharacter ?

@@ -44,10 +44,10 @@ public:
   void drawKeyboard(Models::Font *font);
 
   /* Events */
-  virtual void keyPressEvent(QKeyEvent *e) override;
-  virtual void keyReleaseEvent(QKeyEvent *e) override;
+  void keyPressEvent(QKeyEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
 
-  virtual Mvc::IController *getController() override;
+  Mvc::IController *getController() override;
 
 public:
   void processCharButton(int keyboardCode, int fontCode, int id = -1);

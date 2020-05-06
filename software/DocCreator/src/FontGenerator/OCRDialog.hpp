@@ -31,7 +31,7 @@ public:
   void setBinarizedImage(const QImage &img);
   const QImage getResultImage() const { return m_originalImg; }
 
-  virtual bool eventFilter(QObject *watched, QEvent *event) override;
+  bool eventFilter(QObject *watched, QEvent *event) override;
 
   QString saveFont();
 

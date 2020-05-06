@@ -15,8 +15,8 @@ public:
   explicit GraphicsPageItem(Mvc::IController *controller,
                             QGraphicsItem *parent = nullptr);
 
-  virtual void clear() override;
-  virtual void setOffset(int value) override;
+  void clear() override;
+  void setOffset(int value) override;
   void setBackground(const QString &filepath, int w, int h);
 
   void selectBlockFromPosition(QPointF pos);
@@ -26,15 +26,15 @@ public:
     return _map.values();
   }
 
-  virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void keyPressEvent(QKeyEvent * /*event*/) override {}
-  virtual void keyReleaseEvent(QKeyEvent * /*event*/) override {}
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+  void keyPressEvent(QKeyEvent * /*event*/) override {}
+  void keyReleaseEvent(QKeyEvent * /*event*/) override {}
 
 protected:
-  virtual void load() override;
-  virtual void draw(bool complete) override;
+  void load() override;
+  void draw(bool complete) override;
 
 private:
   GraphicsBlockItem *currentBlockItem();

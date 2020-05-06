@@ -18,7 +18,7 @@ public:
                           int rows,
                           QObject *parent = nullptr);
 
-  virtual Doc::DocTextBlock *newTextBlock(const int blockNumber = -1) override;
+  Doc::DocTextBlock *newTextBlock(const int blockNumber = -1) override;
 
 private:
   using Grid = QVector<QVector<Doc::DocTextBlock *> *>;

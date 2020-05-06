@@ -24,13 +24,13 @@ public:
                                   QWidget *parent = nullptr);
 
   /* Events */
-  virtual void keyPressEvent(QKeyEvent *e) override;
-  virtual void keyReleaseEvent(QKeyEvent *e) override;
+  void keyPressEvent(QKeyEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
 
-  virtual Mvc::IController *getController() override;
+  Mvc::IController *getController() override;
 
   /* Observer method */
-  virtual void update() override;
+  void update() override;
 
 public slots:
   void changePageWidth();

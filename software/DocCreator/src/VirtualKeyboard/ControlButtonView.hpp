@@ -20,7 +20,7 @@ public:
   /* Events */
   void keyPressEvent(QKeyEvent *e) override;
   void keyReleaseEvent(QKeyEvent *e) override;
-  virtual Mvc::IController *getController() override;
+  Mvc::IController *getController() override;
 
 public slots:
   void buttonClicked();

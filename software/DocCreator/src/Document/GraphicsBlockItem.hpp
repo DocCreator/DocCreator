@@ -18,12 +18,12 @@ class GraphicsBlockItem
 public:
   explicit GraphicsBlockItem(QGraphicsItem *parent = nullptr);
 
-  virtual QRectF boundingRect() const override;
+  QRectF boundingRect() const override;
   virtual void hide(bool transparent = false);
   virtual void show();
 
   //Events
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
   virtual void setRect(const QRectF &rect);
 
 public slots:
