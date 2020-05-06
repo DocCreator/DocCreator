@@ -31,9 +31,6 @@ traverseFont(const Models::Font &f, Func &func)
 
 struct MeanCharacterHeightComputer
 {
-  unsigned int m_m0;
-  unsigned int m_m1;
-
   MeanCharacterHeightComputer()
     : m_m0(0)
     , m_m1(0)
@@ -52,6 +49,10 @@ struct MeanCharacterHeightComputer
     }
     return 0;
   }
+
+private:
+  unsigned int m_m0;
+  unsigned int m_m1;
 };
 
 float
@@ -64,8 +65,6 @@ getMeanCharacterHeight(const Models::Font &f)
 
 struct MedianCharacterHeightComputer
 {
-  std::vector<int> m_heights;
-
   MedianCharacterHeightComputer()
     : m_heights()
   {}
@@ -81,6 +80,9 @@ struct MedianCharacterHeightComputer
     }
     return 0;
   }
+
+private:
+    std::vector<int> m_heights;
 };
 
 float
@@ -93,8 +95,6 @@ getMedianCharacterHeight(const Models::Font &f)
 
 struct MaxCharacterHeightComputer
 {
-  int m_maxHeight;
-
   MaxCharacterHeightComputer()
     : m_maxHeight(0)
   {}
@@ -106,6 +106,9 @@ struct MaxCharacterHeightComputer
   }
 
   int getMax() const { return m_maxHeight; }
+
+private:
+    int m_maxHeight;
 };
 
 int
@@ -140,9 +143,6 @@ traverseFontChar(const Models::Font &f, Func &func)
 
 struct MaxCharacterHeightAndUnderBaselineComputer
 {
-  int m_maxHeight;
-  int m_maxUnderBaseline;
-
   MaxCharacterHeightAndUnderBaselineComputer()
     : m_maxHeight(0)
     , m_maxUnderBaseline(0)
@@ -161,6 +161,10 @@ struct MaxCharacterHeightAndUnderBaselineComputer
   }
 
   int getMax() const { return m_maxHeight + m_maxUnderBaseline; }
+
+private:
+  int m_maxHeight;
+  int m_maxUnderBaseline;
 };
 
 int
@@ -175,9 +179,6 @@ getMaxCharacterHeightAndUnderBaseline(const Models::Font &f)
 
 struct MaxHeightUnderAndAboveBaselineComputer
 {
-  int m_maxUnderBaseline;
-  int m_maxAboveBaseline;
-
   MaxHeightUnderAndAboveBaselineComputer()
     : m_maxUnderBaseline(0)
     , m_maxAboveBaseline(0)
@@ -200,6 +201,10 @@ struct MaxHeightUnderAndAboveBaselineComputer
   }
 
   int getMax() const { return m_maxUnderBaseline + m_maxAboveBaseline; }
+
+private:
+  int m_maxUnderBaseline;
+  int m_maxAboveBaseline;
 };
 
 int
@@ -237,9 +242,6 @@ meanFirst(std::vector<int> &values, size_t sz)
 
 struct MaxHeightUnderAndAboveBaselineComputerK
 {
-  std::vector<int> m_aboves;
-  std::vector<int> m_unders;
-
   void operator()(const Models::Character *c, const QImage &img)
   {
     const int h = img.height();
@@ -268,7 +270,10 @@ struct MaxHeightUnderAndAboveBaselineComputerK
 
     return meanAbove;
   }
-  
+
+private:
+  std::vector<int> m_aboves;
+  std::vector<int> m_unders;
 };
 
 int
