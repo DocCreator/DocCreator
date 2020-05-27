@@ -808,7 +808,7 @@ compute_vertex_normal(Vertex v) const
                 p2 -= p0;
 
                 // check whether we can robustly compute angle
-                denom = sqrt(dot(p1,p1)*dot(p2,p2));
+                denom = std::sqrt(dot(p1,p1)*dot(p2,p2));
                 if (denom > std::numeric_limits<Scalar>::min())
                 {
                     cosine = dot(p1,p2) / denom;

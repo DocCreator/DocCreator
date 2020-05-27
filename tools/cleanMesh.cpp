@@ -1,13 +1,14 @@
 
+#include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <iostream>
+#include <string>
+
 #include "Mesh.hpp"
 #include "brs.hpp"
 #include "obj.hpp"
-#include <cassert>
-#include <iostream>
 
-#include <algorithm>
-#include <cctype>
-#include <string>
 
 static std::string
 getExtension(const std::string &filename)

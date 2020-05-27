@@ -100,7 +100,6 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
         m_currentIndex = i;
         m_currentLetter = f;
 	
-	std::cerr<<"eventFilter() -> updateTableLetters\n";
 	updateView();
         return QObject::eventFilter(watched, event);
       }
@@ -112,12 +111,9 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
 void
 OCRDialog::init(const QImage &ori, const QImage &bin)
 {
-  std::cerr<<"OCRDialog::init()\n";
   setOriginalImage(ori);
   setBinarizedImage(bin);
-  std::cerr<<"OCRDialog::init() -> process()\n";
   process();
-  std::cerr<<"OCRDialog::init() -> updateAlphabet()\n";  
   updateAlphabet();
 }
 
@@ -214,7 +210,6 @@ OCRDialog::getQImageFromMask(const cv::Mat &original,
 void
 OCRDialog::process()
 {
-  std::cerr<<"OCRDialog::process()\n";
   m_font.clear();
   m_validatedFont.clear();
   updateOkButton(0);  
@@ -404,8 +399,6 @@ OCRDialog::process()
     m_currentIndex = 0;
     //B:TODO: no need to update m_currentLetter ???
 
-    std::cerr<<"process() -> updateView\n";
-    
     updateView();
   }
   else {
@@ -419,8 +412,6 @@ void
 OCRDialog::updateTableLetters()
 {
   //B:TODO: get current selection before update/clear !?
-
-  std::cerr<<"OCRDialog::updateTableLetters() ----------\n";
 
   const int row = ui->tableLetters->currentRow();
   
@@ -517,7 +508,6 @@ OCRDialog::updateAlphabet()
 {
   int row = ui->tableAlphabet->currentRow();
   int col = ui->tableAlphabet->currentColumn();
-  std::cerr<<"updateAlphabet() row="<<row<<" col="<<col<<"\n";
   
   ui->tableAlphabet->clear();
   ui->tableAlphabet->setRowCount(0);
@@ -604,7 +594,6 @@ OCRDialog::updateAlphabet()
 	col = 0;
       }
     }
-    std::cerr<<"  setCurrentCell row="<<row<<" col="<<col<<"\n";
     ui->tableAlphabet->setCurrentCell(row, col);
   }
   
@@ -691,11 +680,9 @@ OCRDialog::updateView()
 
   ui->smoothed->setChecked(m_currentLetter.checked);
 
-  std::cerr<<"updateView -> updateTableLetters\n";
   updateTableLetters();
   if (ui->tableLetters->currentRow()==-1 && ui->tableLetters->rowCount()>0)
     ui->tableLetters->setCurrentCell(0, 0);
-  std::cerr<<"updateView: tableLetters currentRow="<<ui->tableLetters->currentRow()<<" rowCount="<<ui->tableLetters->rowCount()<<"\n";
 
 
   //Set currentLetter as current cell in tableAlphabet
@@ -705,7 +692,6 @@ OCRDialog::updateView()
     const int row = indexA/NUM_COLUMNS;
     const int col = indexA-row*NUM_COLUMNS;
     ui->tableAlphabet->setCurrentCell(row, col);
-    std::cerr<<"updateView: tableAlphabet->setCurrentCell("<<row<<", "<<col<<") label="<<m_currentLetter.label<<"\n";
   }
 
   // Highlight the symbols in the image with the same label
@@ -770,7 +756,6 @@ OCRDialog::getSimilarLetters(const std::string &label) const
   for (int i = 0; i < sz; ++i) {
     const FontLetter f = m_font[i];
     if (f.label == label) {
-      std::cerr<<"** getSimilarLetters("<<label<<") push "<<i<<" (conf="<<f.confidence<<")\n";
       list.emplace_back(IndiceConfidence(i, f.confidence));
     }
   }
@@ -790,7 +775,6 @@ OCRDialog::getSimilarLetters(const std::string &label) const
   std::vector<int> croplist(size);
   for (size_t i = 0; i < size; ++i) {
     croplist[i] = list[i].indice;
-    std::cerr<<label<<": "<<list[i].confidence<<" (ind="<<list[i].indice<<")\n";
   }
   return croplist;
 }
@@ -849,7 +833,6 @@ OCRDialog::on_tableLetters_clicked(const QModelIndex &index)
     m_currentLetter = m_font[m_currentIndex];
   }
 
-  std::cerr<<"on_tableLetters_clicked -> updateView\n";
   updateView();
 }
 
@@ -858,7 +841,6 @@ OCRDialog::on_baselineSpinBox_valueChanged(int arg1)
 {
   // update baseline value
   m_currentLetter.baseline = arg1;
-  std::cerr<<"on_baselineSpinBox_valueChanged -> updateView\n";
   updateView();
 }
 
@@ -898,12 +880,10 @@ OCRDialog::on_apply_clicked()
   m_font[m_currentIndex] = m_currentLetter;
 
   m_validatedFont.push_back(m_currentLetter);
-  std::cerr<<"OCRDialog::on_apply_clicked() m_validatedFont.size()="<<m_validatedFont.size()<<"\n";
 
   const size_t indA = indexOfLetterInAlphabet(m_currentLetter.label);
   if (indA < m_alphabet.size()) {
     m_alphabet[indA].frequencyValidatedFont += 1;
-    std::cerr<<"OCRDialog::on_apply_clicked() m_alphabet["<<indA<<"] label="<<m_currentLetter.label<<" freqF="<<m_alphabet[indA].frequencyFont<<" freqVF="<<m_alphabet[indA].frequencyValidatedFont<<"\n";
 
     size_t numCharacters = countCharacters();
     ui->infoFont->setText(tr("%1 character(s) added to font").arg(numCharacters));
@@ -922,7 +902,6 @@ OCRDialog::on_apply_clicked()
     m_currentIndex = 0;
 #else
   const int row = ui->tableLetters->currentRow();
-  std::cerr<<"on_apply_clicked() row="<<row<<" rowCount="<<ui->tableLetters->rowCount()<<"\n";
   if (row+1 < ui->tableLetters->rowCount()) {
     //not on last row
     ui->tableLetters->setCurrentCell(row+1, 0);
@@ -931,20 +910,14 @@ OCRDialog::on_apply_clicked()
     const int newCurrentIndex = m_similarList[newRow];
     assert(newCurrentIndex < m_font.size());
     m_currentIndex = newCurrentIndex;
-    std::cerr<<"on_apply_clicked() set row="<<row+1<<"\n";
-    std::cerr<<"on_apply_clicked() set newCurrentIndex="<<newCurrentIndex<<"\n";
-    
   }
   else {
     //we go on the next letter in the alphabet
-    std::cerr<<"on_apply_clicked() got to the next letter\n";
     size_t ind = indexOfLetterInAlphabet(m_currentLetter.label);
-    std::cerr<<"on_apply_clicked() alphabetTable: currentRow="<<ui->tableAlphabet->currentRow()<<" currentCol="<<ui->tableAlphabet->currentColumn()<<"\n";
     if (ind < m_alphabet.size()) { //B:TODO: assert ???  //letter is in the font !
       assert(m_font[m_alphabet[ind].index].label == m_currentLetter.label);
       ind +=1;
       if (ind >= m_alphabet.size()) {
-	std::cerr<<"on_apply_clicked() ind="<<ind<<"\n";
 	ind = 0;
       }
       if (ind < m_alphabet.size()) {
@@ -955,9 +928,6 @@ OCRDialog::on_apply_clicked()
 	const int col = ind%NUM_COLUMNS;
 	ui->tableAlphabet->setCurrentCell(row, col);
 	ui->tableLetters->setCurrentCell(0, 0); //to have the right selection on the next updateView()/updateTableLetters()
-	std::cerr<<"on_apply_clicked() ind="<<ind<<"\n";
-	std::cerr<<"on_apply_clicked() alphabetTable: set currentRow="<<ui->tableAlphabet->currentRow()<<" currentCol="<<ui->tableAlphabet->currentColumn()<<"\n";
-	std::cerr<<"on_apply_clicked() newCurrentIndex="<<newCurrentIndex<<"\n";
       }
     }
     
@@ -965,11 +935,9 @@ OCRDialog::on_apply_clicked()
 #endif
   
   m_currentLetter = m_font[m_currentIndex];
-  std::cerr<<"on_apply_clicked() m_currentLetter.label="<<m_currentLetter.label<<"\n";
 
-  std::cerr<<"on_apply_clicked -> updateView\n";
   updateView();
-  std::cerr<<"on_apply_clicked -> updateAlphabet\n";
+
   updateAlphabet();
 }
 
@@ -1006,8 +974,6 @@ OCRDialog::on_deleteButton_clicked()
 
   m_currentLetter = m_font[m_currentIndex];
 
-  std::cerr<<"on_deleteButton_clicked -> updateView\n";
-
   updateView();
   updateAlphabet();
 }
@@ -1023,8 +989,6 @@ OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
   float best_confidence = -1;
   for (size_t i = 0; i < m_font.size(); ++i) {
     const FontLetter &f = m_font[i];
-    if (f.label == label)
-      std::cerr<<"** on_tableAlphabet_cellClicked i="<<i<<" confidence="<<f.confidence<<"\n"; 
     
     if (f.label == label && f.confidence > best_confidence) {
       m_currentIndex = i;
@@ -1035,10 +999,6 @@ OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
   //  and thus the first in tableLetters
   ui->tableLetters->setCurrentCell(0, 0);
 
-  std::cerr<<"** on_tableAlphabet_cellClicked m_currentIndex="<<m_currentIndex<<" (best confidence="<<best_confidence<<")\n";
-  
-  std::cerr<<"on_tableAlphabet_cellClicked -> updateView\n";
-  
   updateView();
 }
 
@@ -1046,7 +1006,7 @@ void
 OCRDialog::on_maxSymbol_valueChanged(int arg1)
 {
   m_maxNumberOfSymbols = arg1;
-  std::cerr<<"on_maxSymbol_valueChanged -> updateView\n";
+
   updateView();
 }
 
@@ -1067,7 +1027,7 @@ OCRDialog::rebinarizeCurrentLetter()
   if (m_currentLetter.checked)
     cv::medianBlur(img_bin, img_bin, 5);
   m_currentLetter.mask = img_bin;
-  std::cerr<<"rebinarizeCurrentLetter -> updateView\n";
+
   updateView();
 }
 

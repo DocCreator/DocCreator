@@ -1,11 +1,16 @@
 #include "GLObject.hpp"
 
+#include <cassert>
+
+#include <Eigen/Dense>
+
 #include "GLCamera.hpp"
 #include "GLMesh.hpp"
 #include "Shader.hpp"
-#include <cassert>
 
-#include <iostream> //DEBUG
+
+
+//#include <iostream> //DEBUG
 
 GLObject::GLObject()
   : m_shader(nullptr)

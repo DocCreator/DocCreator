@@ -14,26 +14,26 @@ namespace Doc
     public:
       explicit NodeOfNodes(Document* document);
 
-      virtual void setOffset(int value) override;
-      virtual int offset() const override;
+      void setOffset(int value) override;
+      int offset() const override;
       
-      virtual void add(T* element) override;
-      virtual void add(const QList<T*> &list) override;
+      void add(T* element) override;
+      void add(const QList<T*> &list) override;
       
-      virtual int removeBeforeCursor() override;
+      int removeBeforeCursor() override;
       virtual void removeBeforeAndCurrentAtBeginning() = 0;
-      virtual int removeAfterCursor() override;
+      int removeAfterCursor() override;
       virtual void removeAfterAndCurrentAtEnd() = 0;
       
-      virtual bool isAtBeginning() const override;
-      virtual bool isAtEnd() const override;
+      bool isAtBeginning() const override;
+      bool isAtEnd() const override;
       
       virtual void actionWhenElementIsEmpty(T* empty) = 0;
       
     protected:
       virtual void insertAtBeginning(T* element);
       virtual void insertAtEnd(T* element);
-      virtual void selectHandler(int from, int to) override;
+      void selectHandler(int from, int to) override;
     };
     
     template< class T >

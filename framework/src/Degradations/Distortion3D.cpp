@@ -16,7 +16,7 @@
 namespace dc {
   namespace Distortion3D {
 
-    cv::Mat degrade3D(cv::Mat &img, const std::string &meshFilename, bool random)
+    cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -28,6 +28,16 @@ namespace dc {
       const cv::Mat out = w.render(random);
       return out;
 #else
+
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)meshFilename;
+      (void)random;
+      
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
       return img;
 #endif //USE_NATIVE_OSMESA
@@ -45,7 +55,7 @@ namespace dc {
 #endif //USE_NATIVE_OSMESA
 
     
-    void degrade3D(cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
+    void degrade3D(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -70,12 +80,23 @@ namespace dc {
 	}
       }
 #else
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)numOutputImages;
+      (void)meshFilename;
+      (void)outputPrefix;
+      (void)random;
+      
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
 #endif //USE_NATIVE_OSMESA
       
     }
 
-    cv::Mat degrade3DWithBackground(cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random)
+    cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -88,6 +109,16 @@ namespace dc {
       const cv::Mat out = w.render(random);
       return out;
 #else
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)meshFilename;
+      (void)backgroundImg;
+      (void)random;
+
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
       return img;
 #endif //USE_NATIVE_OSMESA
@@ -95,7 +126,7 @@ namespace dc {
 
     }
     
-    void degrade3DWithBackground(cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
+    void degrade3DWithBackground(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -121,6 +152,18 @@ namespace dc {
 	}
       }
 #else
+#ifdef _MSC_VER
+#pragma message ( "Warning: Distortion3D not supported when not compiled with OSMesa" )
+#else
+#pragma message "Warning: Distortion3D not supported when not compiled with OSMesa"
+#endif
+      (void)img;
+      (void)numOutputImages;
+      (void)meshFilename;
+      (void)backgroundImg;
+      (void)outputPrefix;
+      (void)random;
+      
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
 #endif //USE_NATIVE_OSMESA
     }

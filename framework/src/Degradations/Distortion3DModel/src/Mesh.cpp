@@ -4,6 +4,7 @@
 
 #include <cmath> //M_PI
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>  //malloc
 #include <cstring>  //memset
@@ -238,7 +239,7 @@ Mesh::normalizeNormals()
 
     const float length2 = x * x + y * y + z * z;
     if (length2 > 0) {
-      const float length = sqrt(x * x + y * y + z * z);
+      const float length = std::sqrt(x * x + y * y + z * z);
 
       const float inv_length = 1.f / length;
 
@@ -451,8 +452,9 @@ Mesh::removeDuplicatedVertices()
         for (uint32_t j = i + 1; j < numVertices; ++j) {
           const float *v2 = &vertices[3 * j];
 
-          if (fabs(v1[0] - v2[0]) < eps && fabs(v1[1] - v2[1]) < eps &&
-              fabs(v1[2] - v2[2]) < eps) {
+          if (std::fabs(v1[0] - v2[0]) < eps &&
+	      std::fabs(v1[1] - v2[1]) < eps &&
+              std::fabs(v1[2] - v2[2]) < eps) {
 
 #if 0
 	    std::cerr<<"vertice["<<i<<"]=("<<v1[0]<<", "<<v1[1]<<", "<<v1[2]<<") == vertice["<<j<<"]=("<<v2[0]<<", "<<v2[1]<<", "<<v2[2]<<") \n";
@@ -614,7 +616,9 @@ Mesh::optimizeTriangleOrdering()
   this->swap(m);
 }
 
-  //-------------------------------------------
+//-------------------------------------------
+
+/*
 
 #include <Eigen/Dense>
 
@@ -769,16 +773,6 @@ Mesh::alignB()
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXf> es(covMat);
 
-  /*
-  {//DEBUG
-    std::cerr<<"eigen values: "<<es.eigenvalues().transpose()<<"\n";
-
-    Eigen::MatrixXf eigenVectors = es.eigenvectors();
-    std::cerr<<"eigen vec1 = "<<eigenVectors.col(0).transpose()<<"\n";
-    std::cerr<<"eigen vec2 = "<<eigenVectors.col(1).transpose()<<"\n";
-    std::cerr<<"eigen vec3 = "<<eigenVectors.col(2).transpose()<<"\n";
-  }
-  */
 
   free(vrtp);
 }
@@ -812,16 +806,7 @@ Mesh::alignC()
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXf> es(cov);
 
-  /*
-    {//DEBUG
-      std::cerr<<"eigen values: "<<es.eigenvalues().transpose()<<"\n";
-
-      Eigen::MatrixXf eigenVectors = es.eigenvectors();
-      std::cerr<<"eigen vec1 = "<<eigenVectors.col(0).transpose()<<"\n";
-      std::cerr<<"eigen vec2 = "<<eigenVectors.col(1).transpose()<<"\n";
-      std::cerr<<"eigen vec3 = "<<eigenVectors.col(2).transpose()<<"\n";
-    }
-    */
+  
 
 #if 0
   Eigen::MatrixXf Ry(3, 3);
@@ -852,7 +837,9 @@ Mesh::alignC()
   }
 #endif //1
 }
+*/
 
+/*
 Eigen::MatrixXf
 Mesh::getEigenVectors()
 {
@@ -905,6 +892,7 @@ Mesh::getEigenVectors(const std::vector<uint32_t> &indices)
 
   return es.eigenvectors();
 }
+*/
 
 //-------------------------------------------------------------------
 
@@ -1693,6 +1681,7 @@ compareEdges(std::vector<Edge> &edges1, std::vector<Edge> &edges2)
   }
 }
 
+/*
 #include <chrono>
 
 void
@@ -1725,7 +1714,7 @@ DEBUG_checkEdges(const Mesh &mesh)
 
   std::cerr << "getEdges OK !\n";
 }
-
+*/
 //B: it can probably be faster if we consider that we have closed contours
 // and no loops (no "8")
 
@@ -2094,6 +2083,7 @@ getBorderPointsB(const Mesh &mesh)
   return vertexIndices;
 }
 
+/*
 void
 check_getBorderPoints(const Mesh &mesh)
 {
@@ -2119,6 +2109,7 @@ check_getBorderPoints(const Mesh &mesh)
               << indices2.size() << " indices\n";
   }
 }
+*/
 
 std::vector<uint32_t>
 getLargestBorderPoints(const Mesh &mesh)

@@ -22,7 +22,7 @@ public:
   void keyReleaseEvent(QKeyEvent *e);
 
   /* Observer method */
-  virtual void update() override;
+  void update() override;
 
 private:
   KeyboardView *_view;

@@ -78,11 +78,11 @@ public:
   void openCharacterChoice();
 
   /* Events */
-  virtual void keyPressEvent(QKeyEvent *e) override;
-  virtual void keyReleaseEvent(QKeyEvent *e) override;
-  virtual void mousePressEvent(QMouseEvent *e) override;
+  void keyPressEvent(QKeyEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
+  void mousePressEvent(QMouseEvent *e) override;
 
-  virtual Mvc::IController *getController() override;
+  Mvc::IController *getController() override;
 
 public slots:
   void buttonClicked();

@@ -21,20 +21,20 @@ public:
 
   void setKeyboardController(KeyboardController *keyboardController);
 
-  virtual void clear() override;
+  void clear() override;
   void print(QPrinter *printer);
   void saveToImage(const QString &path);
   QImage toQImage(DocRenderFlags flags);
   QSize getImageSize();
 
-  virtual void setOffset(int value) override;
+  void setOffset(int value) override;
 
-  virtual void keyPressEvent(QKeyEvent *e) override;
-  virtual void keyReleaseEvent(QKeyEvent *e) override;
+  void keyPressEvent(QKeyEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
 
 protected:
-  virtual void load() override;
-  virtual void draw(bool complete) override;
+  void load() override;
+  void draw(bool complete) override;
 
 private:
   TextView *_textView;

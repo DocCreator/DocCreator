@@ -5,6 +5,8 @@
 #include <cmath> //M_PI
 
 #include <algorithm>
+#include <cassert>
+#include <cstring> //memset
 #include <fstream>
 #include <iomanip> //DEBUG
 #include <iostream>
@@ -35,7 +37,7 @@ public:
     : x(0)
     , y(0)
   {}
-  float length() const { return sqrt(x * x + y * y); }
+  float length() const { return std::sqrt(x * x + y * y); }
   float x;
   float y;
 };
@@ -108,12 +110,12 @@ public:
   float f(Vector3 v) const
   {
     float result = (a * v.x + b * v.y + c * v.z + d);
-    if (fabs(result) <= dEpsilon)
+    if (std::fabs(result) <= dEpsilon)
       result = 0;
 
     return result;
   }
-  float length() const { return sqrt(a * a + b * b + c * c); }
+  float length() const { return std::sqrt(a * a + b * b + c * c); }
   float a;
   float b;
   float c;
@@ -246,13 +248,13 @@ rotateAroundMean(Mesh &mesh)
   const uint32_t numvertices = mesh.numVertices;
   float *vertices = mesh.vertices;
 
-  Vector2 minX_p2(std::numeric_limits<uint32_t>::max(),
+  Vector2 minX_p2((float)std::numeric_limits<uint32_t>::max(),
                   -(float)std::numeric_limits<uint32_t>::max());
   Vector2 minY_p2(-(float)std::numeric_limits<uint32_t>::max(),
-                  std::numeric_limits<uint32_t>::max());
+                  (float)std::numeric_limits<uint32_t>::max());
   Vector2 maxX_p2(-(float)std::numeric_limits<uint32_t>::max(),
-                  std::numeric_limits<uint32_t>::max());
-  Vector2 maxY_p2(std::numeric_limits<uint32_t>::max(),
+                  (float)std::numeric_limits<uint32_t>::max());
+  Vector2 maxY_p2((float)std::numeric_limits<uint32_t>::max(),
                   -(float)std::numeric_limits<uint32_t>::max());
   uint32_t max_x_idx = std::numeric_limits<uint32_t>::min();
   float max_x = -std::numeric_limits<float>::max();
@@ -370,7 +372,7 @@ rotateAroundMean(Mesh &mesh)
             << "]\n";
   std::cerr << "p12: [" << p12.x << ", " << p12.y << "]\n";
 
-  std::cerr << "atan2(p12.y, p12.x)=" << atan2(p12.y, p12.x) << "\n";
+  std::cerr << "atan2(p12.y, p12.x)=" << std::atan2(p12.y, p12.x) << "\n";
   if (p12.x == p12.y)
     std::cerr << "*** NO ROTATION ***\n";
 
@@ -378,7 +380,7 @@ rotateAroundMean(Mesh &mesh)
 
   //if (p12.x != p12.y)
   {
-    const float angle = static_cast<float>(M_PI / 2 - atan2(p12.y, p12.x));
+    const float angle = static_cast<float>(M_PI / 2 - std::atan2(p12.y, p12.x));
     //const float angle = 0; //DEBUG
 
 #ifdef DEBUG_TEXCOORDS
@@ -960,7 +962,7 @@ computeDist(float x0, float z0, float x1, float z1)
 {
   const float dx = x1 - x0;
   const float dz = z1 - z0;
-  const float dist = sqrt(dx * dx + dz * dz);
+  const float dist = std::sqrt(dx * dx + dz * dz);
   return dist;
 }
 
@@ -2133,10 +2135,10 @@ sortZAccordingToNeighbours(std::vector<X_Z_Idx> &xzidxs)
         size_t next = last + 1;
         assert(xzidxs[prev].x < xzidxs[first].x);
         assert(xzidxs[last].x < xzidxs[next].x);
-        float distZ_prev_first = fabs(xzidxs[prev].z - xzidxs[first].z);
-        float distZ_prev_last = fabs(xzidxs[prev].z - xzidxs[last].z);
-        float distZ_next_last = fabs(xzidxs[next].z - xzidxs[last].z);
-        float distZ_next_first = fabs(xzidxs[next].z - xzidxs[first].z);
+        float distZ_prev_first = std::fabs(xzidxs[prev].z - xzidxs[first].z);
+        float distZ_prev_last = std::fabs(xzidxs[prev].z - xzidxs[last].z);
+        float distZ_next_last = std::fabs(xzidxs[next].z - xzidxs[last].z);
+        float distZ_next_first = std::fabs(xzidxs[next].z - xzidxs[first].z);
         if (distZ_prev_first > distZ_prev_last ||
             distZ_next_last > distZ_next_first) {
           for (size_t k = 0; k < (last - first) / 2; ++k) {
@@ -2882,7 +2884,7 @@ computeTexCoords0(Mesh &mesh)
     float min_dist_y = std::numeric_limits<float>::max();
     size_t min_dist_i = 0;
     for (size_t i = 1; i < ys.size(); ++i) {
-      float d = fabs(ys[i].y - ys[i - 1].y);
+      const float d = std::fabs(ys[i].y - ys[i - 1].y);
       if (d < min_dist_y) {
         min_dist_y = d;
         min_dist_i = i;
@@ -3121,7 +3123,7 @@ computeTexCoords0(Mesh &mesh)
         const float dx = x - prev_x;
         const float dz = z - prev_z;
         const float dist =
-          sqrt(dx * dx + dz * dz); // distance between the two vertices
+          std::sqrt(dx * dx + dz * dz); // distance between the two vertices
 
         //if (fabs(y-837.512) < 0.001)
         //std::cerr<<"idx="<<v_idx<<" x1="<<x<<" x2="<<prev_x<<" z1="<<z<<" z2="<<prev_z<<" dx"<<dx<<" dz="<<dz<<" ds="<<dist<<"\n";

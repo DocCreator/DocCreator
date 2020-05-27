@@ -561,7 +561,7 @@ P_bounded_rand(int minV, int maxV)
   int r = rand();
   r = (r != RAND_MAX ? r : 0);
   return static_cast<int>(minV +
-                          (static_cast<float>(r) / RAND_MAX * (maxV - minV)));
+                          (static_cast<float>(r) / static_cast<float>(RAND_MAX) * (maxV - minV)));
 }
 
 //Take a random part of the image (trying to avoid borders)
@@ -3478,8 +3478,6 @@ namespace {
 
 struct ImageAreaSorter
 {
-  const std::vector<size_t> &m_areas;
-
   explicit ImageAreaSorter(const std::vector<size_t> &areas)
     : m_areas(areas)
   {}
@@ -3491,6 +3489,9 @@ struct ImageAreaSorter
 
     return m_areas[i] < m_areas[j];
   }
+
+private:
+  const std::vector<size_t> &m_areas;
 };
 
 } //end anonymous namespace

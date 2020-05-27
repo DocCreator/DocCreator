@@ -19,7 +19,7 @@ class CharEditCursorItem
 public:
   explicit CharEditCursorItem(CursorPosition cursorPos = CENTER, int size = 20);
 
-  virtual QRectF boundingRect() const override;
+  QRectF boundingRect() const override;
 
   //Getters
   CursorPosition getCursorPosition() const { return _cursorPos; }

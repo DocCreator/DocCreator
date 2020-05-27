@@ -8,7 +8,12 @@ IF (NOT EXISTS ${EIGEN_SRC_DIR})
    SET(EIGEN_URL "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/${EIGEN_ARCHIVE}")
    IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${EIGEN_ARCHIVE})
       MESSAGE(STATUS "downloading eigen")
-      FILE(DOWNLOAD ${EIGEN_URL} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${EIGEN_ARCHIVE})
+      FILE(DOWNLOAD ${EIGEN_URL} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${EIGEN_ARCHIVE} STATUS status LOG log)
+      LIST(GET status 0 status_code)
+      LIST(GET status 1 status_string)
+      IF(NOT status_code EQUAL 0)
+	MESSAGE(FATAL_ERROR "error: downloading ${EIGEN_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+      ENDIF()
    ENDIF()
 
    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${EIGEN_ARCHIVE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty )
@@ -33,13 +38,23 @@ SET(IndexBufferCompression_SRCS
   thirdparty/IndexBufferCompression/indexbufferdecompression.cpp
   )
 ADD_LIBRARY(IndexBufferCompression STATIC ${IndexBufferCompression_SRCS} ${IndexBufferCompression_HDRS})
-SET_TARGET_PROPERTIES(IndexBufferCompression PROPERTIES COMPILE_FLAGS "-fPIC")
+SET_TARGET_PROPERTIES(IndexBufferCompression
+  PROPERTIES CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
+SET_TARGET_PROPERTIES(IndexBufferCompression PROPERTIES POSITION_INDEPENDENT_CODE ON) #COMPILE_FLAGS "-fPIC")
 #Build as static library to avoid visibility problems 
 
 
 #VertexCacheOptimizer library
 ADD_LIBRARY(VertexCacheOptimizer STATIC thirdparty/VertexCacheOptimizer/VertexCacheOptimizer.hpp thirdparty/VertexCacheOptimizer/VertexCacheOptimizer.cpp)
-SET_TARGET_PROPERTIES(VertexCacheOptimizer PROPERTIES COMPILE_FLAGS "-fPIC")
+SET_TARGET_PROPERTIES(VertexCacheOptimizer
+  PROPERTIES CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
+SET_TARGET_PROPERTIES(VertexCacheOptimizer PROPERTIES POSITION_INDEPENDENT_CODE ON) #COMPILE_FLAGS "-fPIC")
 #Build as static library to avoid visibility problems 
 
 
@@ -74,8 +89,13 @@ IF(BUILD_WITH_OSMESA)
      SET(GLFW_ARCHIVE "${GLFW_VERSION}.tar.gz")
      SET(GLFW_URL "https://github.com/glfw/glfw/archive/${GLFW_ARCHIVE}")
      IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE})
-        MESSAGE(STATUS "downloading eigen")
-        FILE(DOWNLOAD ${GLFW_URL} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE})
+        MESSAGE(STATUS "downloading GLFW")
+        FILE(DOWNLOAD ${GLFW_URL} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE} STATUS status LOG log)
+        LIST(GET status 0 status_code)
+        LIST(GET status 1 status_string)
+        IF(NOT status_code EQUAL 0)
+	  MESSAGE(FATAL_ERROR "error: downloading ${GLFW_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+        ENDIF()
      ENDIF()
 
      EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty )
@@ -93,17 +113,49 @@ IF(BUILD_WITH_OSMESA)
 
   ADD_SUBDIRECTORY(${GLFW_DIR})
 
-
   SET(GLAD_GL_SRCS "${GLFW_DIR}/deps/glad/gl.h"
             "${GLFW_DIR}/deps/glad_gl.c")
 
   ADD_LIBRARY(GLAD_GL STATIC ${GLFW_DIR}/deps/glad/gl.h ${GLFW_DIR}/deps/glad_gl.c)
   TARGET_INCLUDE_DIRECTORIES(GLAD_GL PUBLIC ${GLFW_DIR}/deps)
   
+ELSE()
+
+  #glad library
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    SET(glad_SRCS thirdparty/glad/src/glad.c)
+    ADD_LIBRARY(GLAD_GL STATIC ${glad_SRCS} ${glad_HDRS})
+    TARGET_INCLUDE_DIRECTORIES(GLAD_GL PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glad/include)
+    SET_TARGET_PROPERTIES(GLAD_GL PROPERTIES POSITION_INDEPENDENT_CODE ON) #COMPILE_FLAGS "-fPIC")
+    #Build as static library to avoid visibility problems 
+    SET(GLAD_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glad/include)
+    SET(GLAD_LIBRARIES "glad")
+    #SET(GLAD_LIBRARIES "${GLAD_LIBRARIES};dl") #On Linux, to use glad, we need to link to dl
+  ENDIF()
+
 ENDIF()
 
 
+SET(DISTORTION3D_MESH_HEADERS
+  ./src/Mesh.hpp
+  ./src/brs.hpp
+  ./src/obj.hpp
+)
+SET(DISTORTION3D_MESH_SOURCES
+  ./src/Mesh.cpp
+  ./src/brs.cpp
+  ./src/obj.cpp
+)
 
+ADD_LIBRARY(Distortion3DMesh STATIC ${DISTORTION3D_MESH_HEADERS} ${DISTORTION3D_MESH_SOURCES})
+TARGET_INCLUDE_DIRECTORIES(Distortion3DMesh PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src PRIVATE "${LZHAM_INCLUDE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/thirdparty")
+TARGET_LINK_LIBRARIES(Distortion3DMesh IndexBufferCompression VertexCacheOptimizer ${LZHAM_LIBRARY})
+TARGET_COMPILE_OPTIONS(Distortion3DMesh PRIVATE ${WARNING_FLAGS})
+SET_TARGET_PROPERTIES(Distortion3DMesh PROPERTIES POSITION_INDEPENDENT_CODE ON) #COMPILE_FLAGS "-fPIC")
+SET_TARGET_PROPERTIES(Distortion3DMesh PROPERTIES CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
 
 
 SET(DISTORTION3D_COMMON_HEADERS
@@ -113,9 +165,6 @@ SET(DISTORTION3D_COMMON_HEADERS
   ./src/GLObject.hpp
   ./src/OpenGL.hpp
   ./src/Shader.hpp
-  ./src/Mesh.hpp
-  ./src/brs.hpp
-  ./src/obj.hpp
   ./src/shader_simple.hpp
   ./src/shader_background.hpp
 )
@@ -125,26 +174,33 @@ SET(DISTORTION3D_COMMON_SOURCES
   ./src/GLObject.cpp
   ./src/GLMesh.cpp
   ./src/Shader.cpp
-  ./src/Mesh.cpp
-  ./src/brs.cpp
-  ./src/obj.cpp
 )
 
-SET(SRCS_COMMON ${DISTORTION3D_COMMON_HEADERS} ${DISTORTION3D_COMMON_SOURCES} )
+
 
 SET(DISTORTION3D_COMMON_INCLUDE_DIRS "${EIGEN_INCLUDE_DIR};${LZHAM_INCLUDE_DIR};${OpenCV_INCLUDE_DIRS};${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_SOURCE_DIR}/thirdparty")
 IF(BUILD_WITH_OSMESA)
   SET(DISTORTION3D_COMMON_INCLUDE_DIRS "${DISTORTION3D_COMMON_INCLUDE_DIRS};${GLFW_DIR}/include;${GLFW_DIR}/deps")
 ENDIF()
 
-ADD_LIBRARY(Distortion3DCommon STATIC ${SRCS_COMMON})
+ADD_LIBRARY(Distortion3DCommon STATIC ${DISTORTION3D_COMMON_HEADERS} ${DISTORTION3D_COMMON_SOURCES})
 TARGET_INCLUDE_DIRECTORIES(Distortion3DCommon PUBLIC ${DISTORTION3D_COMMON_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(Distortion3DCommon IndexBufferCompression VertexCacheOptimizer ${LZHAM_LIBRARY} ${OpenCV_LIBS})
-SET_TARGET_PROPERTIES(Distortion3DCommon PROPERTIES COMPILE_FLAGS "-fPIC")
+TARGET_LINK_LIBRARIES(Distortion3DCommon Distortion3DMesh ${OpenCV_LIBS})
+TARGET_COMPILE_OPTIONS(Distortion3DCommon PRIVATE ${WARNING_FLAGS})
+SET_TARGET_PROPERTIES(Distortion3DCommon PROPERTIES POSITION_INDEPENDENT_CODE ON) #COMPILE_FLAGS "-fPIC")
+SET_TARGET_PROPERTIES(Distortion3DCommon PROPERTIES CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
 IF(BUILD_WITH_OSMESA)
-  TARGET_LINK_LIBRARIES(Distortion3DCommon IndexBufferCompression VertexCacheOptimizer ${LZHAM_LIBRARY} ${OpenCV_LIBS})
+  TARGET_LINK_LIBRARIES(Distortion3DCommon Distortion3DMesh VertexCacheOptimizer ${OpenCV_LIBS})
   TARGET_COMPILE_DEFINITIONS(Distortion3DCommon PUBLIC USE_NATIVE_OSMESA=1)
   TARGET_LINK_LIBRARIES(Distortion3DCommon GLAD_GL)
+ELSE()
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    TARGET_LINK_LIBRARIES(Distortion3DCommon GLAD_GL)
+  ENDIF()
+
 ENDIF()
 
 
@@ -166,7 +222,12 @@ IF(BUILD_WITH_OSMESA)
 
   ADD_LIBRARY(Distortion3D STATIC ${SRCS})
   TARGET_INCLUDE_DIRECTORIES(Distortion3D PUBLIC ${DISTORTION3D_INCLUDE_DIRS})
+  TARGET_COMPILE_OPTIONS(Distortion3D PRIVATE ${WARNING_FLAGS})
   TARGET_LINK_LIBRARIES(Distortion3D glfw GLAD_GL Distortion3DCommon)
-  SET_TARGET_PROPERTIES(Distortion3D PROPERTIES COMPILE_FLAGS "-fPIC")
+  SET_TARGET_PROPERTIES(Distortion3D PROPERTIES CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+    )
+  SET_TARGET_PROPERTIES(Distortion3D PROPERTIES POSITION_INDEPENDENT_CODE ON) #COMPILE_FLAGS "-fPIC")
 
 ENDIF()

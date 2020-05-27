@@ -35,9 +35,9 @@ class FRAMEWORK_EXPORT DocZone : public NodeOfLeafs<DocComponent>
 public:
     explicit DocZone(Document* document);
 
-    virtual DocZone* clone() override;
+    DocZone* clone() override;
 
-    virtual DocZone* getSelection() override;
+    DocZone* getSelection() override;
 
     DocComponent* currentComponent();
 

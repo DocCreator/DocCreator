@@ -24,11 +24,14 @@ IF(BUILD_WITH_OSMESA)
 ENDIF()
 
 
-SET(LIBS DocCreatorDegradations)
 
 FOREACH(FILE ${TESTS_DEGRADATIONS_SRC})
   add_executable(${FILE} ${FILE})
   target_include_directories(${FILE} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${CATCH_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
-  target_link_libraries (${FILE} ${LIBS})
+  target_link_libraries (${FILE} DocCreatorDegradations)
+  set_target_properties(${FILE} PROPERTIES CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+    )
   add_test(${FILE} ${FILE})
 ENDFOREACH(FILE)

@@ -50,7 +50,7 @@ namespace dc {
 
   public slots :
 
-    virtual QImage apply() override;
+    QImage apply() override;
     virtual QImage apply(const QString &rectoPath);
     void setVersoAndApply(const QString &versoPath);
 

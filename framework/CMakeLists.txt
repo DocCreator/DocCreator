@@ -1,30 +1,4 @@
 
-IF(CMAKE_BUILD_TOOL MATCHES "(msdev|devenv|nmake)")
-  # Force to always compile with W3
-  add_definitions(/W3)
-ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-ENDIF()
-
-
-#C++11 support
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
-  IF (GCC_VERSION VERSION_LESS 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  ELSE()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  ENDIF()
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-ENDIF()
-#VS2013 supports c++11 without any additional flags
-
-
-
-
 
 SET(
   headers_context
@@ -181,7 +155,13 @@ SET(
 
 ADD_LIBRARY(DocCreatorFramework STATIC ${DocCreatorFramework_sources} ${MOC})
 TARGET_INCLUDE_DIRECTORIES(DocCreatorFramework PUBLIC src)
+TARGET_COMPILE_OPTIONS(DocCreatorFramework PRIVATE ${WARNING_FLAGS})
 TARGET_LINK_LIBRARIES(DocCreatorFramework ${QT_LIBRARIES} ${ThirdParty_LIBS} DocCreatorDegradations)
+SET_TARGET_PROPERTIES(DocCreatorFramework PROPERTIES
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
 
 
 

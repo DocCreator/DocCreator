@@ -11,20 +11,21 @@ class FRAMEWORK_EXPORT XMLDocumentLoader : public DocumentLoader
 public:
   explicit XMLDocumentLoader(const QString &input);
 
-  virtual void createNewDocument() override;
+  void createNewDocument() override;
 
-  virtual void buildStyles() override;
-  virtual void buildContent() override;
+  void buildStyles() override;
+  void buildContent() override;
 
 protected:
-  virtual Doc::DocStyle *buildStyle() override;
-  virtual Doc::Page *buildPage() override;
-  virtual Doc::DocImageBlock *buildImageBlock() override;
-  virtual Doc::DocTextBlock *buildTextBlock() override;
-  virtual Doc::DocParagraph *buildParagraph() override;
-  virtual Doc::DocString *buildString() override;
-  virtual Doc::DocCharacter *buildCharacter() override;
+  Doc::DocStyle *buildStyle() override;
+  Doc::Page *buildPage() override;
+  Doc::DocImageBlock *buildImageBlock() override;
+  Doc::DocTextBlock *buildTextBlock() override;
+  Doc::DocParagraph *buildParagraph() override;
+  Doc::DocString *buildString() override;
+  Doc::DocCharacter *buildCharacter() override;
 
+protected:
   //Attributes
   QXmlStreamReader *_reader;
 };

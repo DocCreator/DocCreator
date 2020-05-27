@@ -25,22 +25,22 @@ namespace IOManager
     TxtDocumentSaver(const TxtDocumentSaver &o) = delete;
     TxtDocumentSaver &operator=(const TxtDocumentSaver &o) = delete;
 
-    virtual void createNewDocumentOutput() override;
-	  
-    virtual void buildStartDocument() override;
-    virtual void buildEndDocument() override;
-    virtual void buildStyles() override;
-    virtual void buildContent() override;
+    void createNewDocumentOutput() override;
+
+    void buildStartDocument() override;
+    void buildEndDocument() override;
+    void buildStyles() override;
+    void buildContent() override;
 	  
   protected:
-    virtual void buildStyle(Doc::DocStyle *s) override;
-	  
-    virtual void buildPage(Doc::Page *p, int id) override;
-    virtual void buildImageBlock(Doc::DocImageBlock *ib, int id) override;
-    virtual void buildTextBlock(Doc::DocTextBlock *tb, int id) override;
-    virtual void buildParagraph(Doc::DocParagraph *p, int id) override;
-    virtual void buildString(Doc::DocString *s, int id) override;
-    virtual void buildCharacter(Doc::DocCharacter *c, int id) override;
+    void buildStyle(Doc::DocStyle *s) override;
+
+    void buildPage(Doc::Page *p, int id) override;
+    void buildImageBlock(Doc::DocImageBlock *ib, int id) override;
+    void buildTextBlock(Doc::DocTextBlock *tb, int id) override;
+    void buildParagraph(Doc::DocParagraph *p, int id) override;
+    void buildString(Doc::DocString *s, int id) override;
+    void buildCharacter(Doc::DocCharacter *c, int id) override;
 	  
   protected:
     QTextStream *_writer;

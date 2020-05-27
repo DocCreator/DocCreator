@@ -11,9 +11,9 @@ class KeyboardViewXmlBuilder : public KeyboardViewBuilder
 public:
   explicit KeyboardViewXmlBuilder(const QString &filepath);
 
-  virtual void buildGeometry() override;
-  virtual void buildCharButtons() override;
-  virtual void buildControlButtons() override;
+  void buildGeometry() override;
+  void buildCharButtons() override;
+  void buildControlButtons() override;
 
 protected:
   CharacterButtonView *charButtonFromXml(QXmlStreamReader &reader);

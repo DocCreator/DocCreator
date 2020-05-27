@@ -8,7 +8,7 @@ class GraphicsCursorItem : public QGraphicsLineItem
 public:
   explicit GraphicsCursorItem(int size = 20, QGraphicsItem *parent = nullptr);
 
-  virtual QRectF boundingRect() const override;
+  QRectF boundingRect() const override;
 
   virtual void hide();
   virtual void show();
