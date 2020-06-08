@@ -10,7 +10,7 @@ namespace dc {
   namespace HoleDegradation {
 
     //static const int INTENSITY_WHITE = 255;
-    static const uchar PIXEL_BLACK = 0;
+    static constexpr uchar PIXEL_BLACK = 0;
 
     static cv::Mat
     changeBorderPattern(const cv::Mat &pattern, Border side)
@@ -172,7 +172,7 @@ namespace dc {
 	       int width,
 	       float intensity)
     {
-      const float x1 = matOut.cols - 1 * cos(-1) - matOut.rows - 1 * sin(-1); //B: ???
+      const float x1 = matOut.cols - 1 * cosf(-1) - matOut.rows - 1 * sinf(-1); //B: ???
       float z1 = 3 * fabs(x1) / 30 + intensity;
       if (z1 == 0) {
 	z1 = 1;
@@ -269,7 +269,7 @@ namespace dc {
 #if CV_MAJOR_VERSION < 3
 	const int code = CV_StsUnsupportedFormat;
 #else
-	const int code = cv::Error::StsUnsupportedFormat;
+	constexpr int code = cv::Error::StsUnsupportedFormat;
 #endif
 	CV_Error(code, error_msg);
       }
@@ -349,7 +349,7 @@ namespace dc {
 #if CV_MAJOR_VERSION < 3
 	const int code = CV_StsUnsupportedFormat;
 #else
-	const int code = cv::Error::StsUnsupportedFormat;
+	constexpr int code = cv::Error::StsUnsupportedFormat;
 #endif
 	CV_Error(code, error_msg);
       }
@@ -520,8 +520,8 @@ namespace dc {
       }
       
 
-      int xOrigin = random_in_range(startX, endX-1);
-      int yOrigin = random_in_range(startY, endY-1);
+      const int xOrigin = random_in_range(startX, endX-1);
+      const int yOrigin = random_in_range(startY, endY-1);
       return cv::Point(xOrigin, yOrigin);
     }
     

@@ -13,11 +13,15 @@ namespace dc {
       Apply bleedthrough effect between @a imgRecto and @a imgVerso, with @a nbIter iterations. 
       @a imgVerso is positionned at (@a x, @a y) in @a imgRecto frame.
       
-      @warning @a imgVerso is not transformed. In particular, it is considered already mirrored.
+      @warning @a imgVerso is not transformed. 
+      In particular, it is considered already mirrored.
       
-      @a imgRecto and @a imgVerso must have the same type. Accepted type are CV_8UC3, CV_8UC3, CV_8UC4. Output image is of the same type than @a imgRecto.
+      @a imgRecto and @a imgVerso must have the same type. 
+      Accepted type are CV_8UC3, CV_8UC3, CV_8UC4.
+      Output image is of the same type than @a imgRecto.
       
-      Bleedthrough effect is applied only on the overlapping part betwen @a imgRecto and @a imgVerso.
+      Bleedthrough effect is applied only on the overlapping part 
+      between @a imgRecto and @a imgVerso.
       
       @param imgRecto  recto image.
       @param imgVerso  verso image.
@@ -34,10 +38,13 @@ namespace dc {
       
       Apply bleedthrough effect between @a imgRecto and @a imgVerso, with @a nbIter iterations, but considering @a originalRecto as the original recto image. It allows to apply the bleedthrough incrementally.
       
-      @a originalRecto, @a imgRecto and @a imgVerso must have the same type. Accepted type are CV_8UC3, CV_8UC3, CV_8UC4. Output image is of the same type than @a imgRecto.
+      @a originalRecto, @a imgRecto and @a imgVerso must have the same type. 
+      Accepted type are CV_8UC3, CV_8UC3, CV_8UC4.
+      Output image is of the same type than @a imgRecto.
       @a originalRecto and @a imgRecto must have the same size.
       
-      Bleedthrough effect is applied only on the overlapping part betwen @a imgRecto and @a imgVerso.
+      Bleedthrough effect is applied only on the overlapping part between 
+      @a imgRecto and @a imgVerso.
       
       
       @param originalRecto  original recto image.

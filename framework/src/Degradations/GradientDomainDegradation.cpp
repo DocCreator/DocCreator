@@ -53,7 +53,7 @@ drawIndices(size_t numToDraw, size_t rangeMin, size_t rangeMax)
 
 /*
   compute crop of @a stainImg copied onto @a dstImg at position @a pos.
-  If there is intersection betwen @a stainImg and @a dstImg, update @a roi and @a newPos.
+  If there is intersection between @a stainImg and @a dstImg, update @a roi and @a newPos.
   
   @param[in] stainImg stain image to insert. It must be of type CV_8UC3.
   @param[in] dstImg destination image to copy onto. It must be of type 8UC3.
@@ -143,7 +143,7 @@ copyOnto(const cv::Mat &stainImg,
     mask = cv::Scalar(255, 255, 255); //set white everywhere
 
     cv::Mat output2;
-    const int flags2 = cv::MIXED_CLONE;
+    constexpr int flags2 = cv::MIXED_CLONE;
     cv::seamlessClone(stainImgCrop, dstImg, mask, newPosCenter, output2, flags2);
     dstImg = output2;
     
@@ -308,7 +308,7 @@ degradation(const cv::Mat &in,
     }
 
     
-    cv::Point pos(distrX(eng), distrY(eng));
+    const cv::Point pos(distrX(eng), distrY(eng));
 
     assert(out.type() == CV_8UC3);
     assert(stain.type() == CV_8UC3);
@@ -329,7 +329,7 @@ degradation(const cv::Mat &in,
     //cv::extractChannel(in, alpha, 4); //suppose @a in in BGRA
     cv::Mat from[] = {out, in};
     cv::Mat out2(in.rows, in.cols, in.type());
-    int from_to[] = {0,0, 1,1, 2,2, 6,3};
+    const int from_to[] = {0,0, 1,1, 2,2, 6,3};
     cv::mixChannels(from, 2, &out2, 1, from_to, 4);
     out = out2;
   }

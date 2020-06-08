@@ -10,7 +10,7 @@ namespace dc {
 
   namespace ConnectedComponent {
 
-  static const uchar BACKGROUND = 255;
+  static constexpr uchar BACKGROUND = 255;
 
   /*
     Region growing from @a seed, according to @a connectivity.
@@ -43,7 +43,7 @@ namespace dc {
 
     while (!ptsQueue.empty()) {
 
-      cv::Point current = ptsQueue.front();
+      const cv::Point current = ptsQueue.front();
       ptsQueue.pop_front();
 
       cc.push_back(current);

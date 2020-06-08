@@ -9,17 +9,17 @@
 namespace dc {
   namespace BlurFilter {
   
-    static const int COEFF_PARABOLA = 4;
+    static constexpr int COEFF_PARABOLA = 4;
 
   
     void
     calcSolutions(float a, float b, float discr, float &y1, float &y2)
     {
-      y1 = (-b + sqrt(discr)) / (2 * a);
-      y2 = (-b - sqrt(discr)) / (2 * a);
+      y1 = (-b + sqrtf(discr)) / (2 * a);
+      y2 = (-b - sqrtf(discr)) / (2 * a);
     }
 
-    static int
+    static constexpr int
     fctLinear(int x, int rows, int coeff, int vertical)
     {
       return rows - (x * coeff + vertical);
@@ -31,7 +31,7 @@ namespace dc {
       return rows - (log(x) * coeff + vertical);
     }
 
-    static int
+    static constexpr int
     fctParabola(int x, int rows, int coeff, int vertical, int horizontal)
     {
       return rows - ((coeff * (x + horizontal) * (x + horizontal)) +
@@ -41,7 +41,7 @@ namespace dc {
     static int
     fctSinus(int x, int rows, int coeff, int vertical, int horizontal)
     {
-      return rows - (coeff * sin((x + horizontal) / 200.f) + vertical);
+      return rows - (coeff * sinf((x + horizontal) / 200.f) + vertical);
     }
 
     static void
@@ -54,10 +54,10 @@ namespace dc {
     {
       //Pattern : 0.2*x*x + 0.5*y*y + 0.27*x*y - 330.71*x - 554.29*y = -170351.99
       //others numbers are here to ajust the coefficient chosen to Resize the ellipse. (For example, the variable y is multiplied by 0.1 when the size is increased by one). These coefficients were computed for this pattern thanks to Geogebra
-      const float a = 0.5;
+      constexpr float a = 0.5f;
       const float b = (-554.29f - (coeff * 0.1f)) + (0.27f * (x + horizontal));
       const float c = (170351.99f - (coeff * 34.61f)) +
-	(0.2 * (x + horizontal) * (x + horizontal)) -
+	(0.2f * (x + horizontal) * (x + horizontal)) -
 	((330.71f - (coeff * 0.03f)) * (x + horizontal));
       const float discr = b * b - (4.f * a * c);
 
@@ -408,7 +408,7 @@ namespace dc {
 	rows = 1;
       }
 
-      const uchar BLACK = 0;
+      constexpr uchar BLACK = 0;
       
       for (int y = 0; y < rows; ++y) {
 	const uchar *p = patternMatS.ptr<uchar>(y);
@@ -464,7 +464,7 @@ namespace dc {
       cv::Mat resultMat =
 	cv::Mat::zeros(originalMat.rows, originalMat.cols, CV_8UC1);
 
-      const uchar WHITE = 255;
+      constexpr uchar WHITE = 255;
       const int rows = originalMat.rows;
       const int cols = originalMat.cols;
 
@@ -714,8 +714,8 @@ namespace dc {
 		  (((calcRayon.cols / 2) - pixelX) * ((calcRayon.cols / 2) - pixelX)));
     }
 
-    static const int MIN_BLUR_FOURIER = 1;
-    static const int MAX_BLUR_FOURIER = 21;
+    static constexpr int MIN_BLUR_FOURIER = 1;
+    static constexpr int MAX_BLUR_FOURIER = 21;
 
 
     /*

@@ -74,8 +74,8 @@ namespace dc {
    // _tprintf(TEXT("\nDEBUG dirname2=%s\n"), dirname2.c_str());
 
     size_t length_of_arg;
-    StringCchLength(dirname2.c_str(), MAX_PATH, &length_of_arg);
-    if (length_of_arg > (MAX_PATH - 1)) {
+    const HRESULT res = StringCchLength(dirname2.c_str(), MAX_PATH, &length_of_arg);
+    if (FAILED(res) || length_of_arg > (MAX_PATH - 1)) {
       _tprintf(TEXT("\nDirectory path is too long.\n"));
       return entries;
     }
@@ -83,7 +83,7 @@ namespace dc {
     WIN32_FIND_DATA FindFileData;
     HANDLE hFind = FindFirstFile(dirname2.c_str(), &FindFileData);
     if (hFind == INVALID_HANDLE_VALUE) {
-      _tprintf(TEXT("FindFirstFile failed (%d)\n"), GetLastError());
+      _tprintf(TEXT("FindFirstFile failed (%lu)\n"), GetLastError());
       return entries;
     }
 

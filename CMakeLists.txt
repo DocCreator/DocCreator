@@ -38,7 +38,7 @@ SET(CMAKE_MACOSX_RPATH 1)
 
 
 SET(DocCreatorMajorVersion 1)
-SET(DocCreatorMinorVersion 0)
+SET(DocCreatorMinorVersion 2)
 SET(DocCreatorVersion "${DocCreatorMajorVersion}.${DocCreatorMinorVersion}")
 
 

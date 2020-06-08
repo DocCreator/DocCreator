@@ -87,7 +87,7 @@ RandomDocumentCreator::create_aux(
 
   auto style = new Doc::DocStyle(fontName, fontName);
   document->addStyle(style);
-  //B:TODO: change style for each paragraph ? each page ? or only each document ? It coule be a parameter
+  //B:TODO: change style for each paragraph ? each page ? or only each document ? It could be a parameter
   auto p = new Doc::Page(document);
 
   document->add(p);
@@ -122,7 +122,7 @@ RandomDocumentCreator::create_aux(
   PageLayout *layout = new GridPageLayout(currentDoc, col, row);
   layout->setLeftMargin(leftMargin);
   randDoc->addProperty(QStringLiteral("leftMargin"),
-                       QString::number(leftMargin)); //B: why french ?
+                       QString::number(leftMargin));
   layout->setRightMargin(rightMargin);
   randDoc->addProperty(QStringLiteral("rightMargin"),
                        QString::number(rightMargin));
@@ -141,7 +141,8 @@ RandomDocumentCreator::create_aux(
     //always same text would be chosen (the first in the list), so we load it only once
     text = loadText(_params.textList.at(0));
     textLoaded = true;
-  } else if (!useRandomTextFile && !_params.textList.empty() && nbBlocks == 1) {
+  }
+  else if (!useRandomTextFile && !_params.textList.empty() && nbBlocks == 1) {
     text = loadText(_params.textList.at(textIndex));
     textLoaded = true;
   }
@@ -411,7 +412,8 @@ RandomDocumentCreator::create()
 /*
   Create 1*1*T documents with the 1 random font, 1 random background and T texts available in _params.
 
-  _params.nbPages is not used.
+  If @a _params.textList is not empty, these text files will be used.
+  Otherwise, @a _params.nbPages random text will used.
  */
 void
 RandomDocumentCreator::createAllTextsOneFontBackground()
@@ -461,7 +463,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
       Context::FontContext::instance()->setCurrentFont(fontList.back());
 
 
-    //std::cerr<<"++++ fontList.size()="<<fontList.size()<<"\n";
+    //std::cerr<<"++@++ _params.fontList.size()="<<_params.fontList.size()<<"\n";
+    //std::cerr<<"++@++ fontList.size()="<<fontList.size()<<"\n";
     //std::cerr<<"_params.backgroundList.size()="<<_params.backgroundList.size()<<"\n";
     //std::cerr<<"++++ currentFont="<<Context::FontContext::instance()->getCurrentFont()<<"\n";
 
@@ -477,16 +480,18 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
       }
     }
 
-    assert(!_params.fontList.isEmpty());
+    assert(!fontList.isEmpty());
     QString fontName = fontList.at(0);
 
     if (!_params.textList.empty()) {
+      //we use texts from _params.textList
+
       for (int textIndex = 0; textIndex < _params.textList.size();
            ++textIndex) {
 
-        if (_params.fontList.size() > 1) {
+        if (fontList.size() > 1) {
           const int fontIndex =
-            RandomElement().randomInt(0, _params.fontList.size() - 1);
+            RandomElement().randomInt(0, fontList.size() - 1);
           fontName = fontList.at(fontIndex);
         }
         if (_params.backgroundList.size() > 1) {
@@ -506,7 +511,10 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
         create_aux(
           randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
       }
-    } else {
+    }
+    else {
+      //we generate N random texts
+
       if (_params.fontList.size() > 1) {
         const int fontIndex =
           RandomElement().randomInt(0, _params.fontList.size() - 1);
@@ -526,7 +534,9 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
       }
 
       const bool useRandomTextFile = true;
-      create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+      for (int i=0; i<_params.nbPages; ++i) {
+		create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+      }
     }
 
     Context::DocumentContext::instance()->setCurrentDocument(nullptr);
@@ -550,7 +560,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
 /*
   Create F*B*T documents with the F fonts, B backgrounds and T texts available in _params.
 
-  _params.nbPages is not used.
+ If @a _params.textList is not empty, these text files will be used.
+  Otherwise, @a _params.nbPages random text will used.
  */
 void
 RandomDocumentCreator::createAllTexts()
@@ -632,6 +643,7 @@ RandomDocumentCreator::createAllTexts()
           const QString &fontName = fontList.at(fontIndex);
 
           if (!_params.textList.empty()) {
+			//we use texts from _params.textList
             for (int textIndex = 0; textIndex < _params.textList.size();
                  ++textIndex) {
 
@@ -639,10 +651,13 @@ RandomDocumentCreator::createAllTexts()
               create_aux(
                 randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
             }
-          } else {
-            //must generate one random text with Lipsum4Qt
+          }
+		  else {
+            //we generate _params.nbPages random texts
             const bool useRandomTextFile = true;
-            create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+            for (int i=0; i<_params.nbPages; ++i) {
+	            create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+			}
           }
         }
       }
@@ -654,6 +669,7 @@ RandomDocumentCreator::createAllTexts()
         const QString &fontName = fontList.at(fontIndex);
 
         if (!_params.textList.empty()) {
+		  //we use texts from _params.textList
           for (int textIndex = 0; textIndex < _params.textList.size();
                ++textIndex) {
 
@@ -661,10 +677,13 @@ RandomDocumentCreator::createAllTexts()
             create_aux(
               randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
           }
-        } else {
-          //must generate one random text with Lipsum4Qt
+        }
+		else {
+          //we generate _params.nbPages random texts
           const bool useRandomTextFile = true;
-          create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+          for (int i = 0; i < _params.nbPages; ++i) {
+	          create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+		  }
         }
       }
     }

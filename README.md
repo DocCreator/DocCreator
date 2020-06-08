@@ -213,7 +213,7 @@ You can then launch the executable:
 When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PROGS=ON to cmake. It will be build other example programs using DocCreator framework.  
 In particular, it will build:  
 	* **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*  
-	* **MakeFont** that allows to create DocCreator *old-fonts* from existing (TrueType) fonts. You can save the produced files in *data/font* to use these fonts in DocCreator.  
+	* **DocCreatorMakeFont** that allows to create DocCreator *old-fonts* from existing (TrueType) fonts. You can save the produced files in *data/font* to use these fonts in DocCreator.  
 
 #### -DBUILD_OTHER_PROGS_3D=ON
 
@@ -254,6 +254,16 @@ When configuring DocCreator with cmake, you can pass the option -DBUILD_TESTING=
   it may indicate that you have a mismatch between the architectures of OpenCV libs and your compiler.  
   For example, OpenCV libs may have been build for 64-bit architecture but your are trying to compile for 32-bit.
   On Windows with Visual Studio in particular, if you use a "Native Tools Command Prompt", check that it is for the correct architecture. For example "x64 Native Command Prompt" and not "x86 Native Command Prompt" for x86_64. 
+
+* If CMake fails to download one of the dependencies and prints this kind of error:  
+```
+  error: downloading
+  https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
+  failed: status code=1 string="Unsupported protocol", log=Protocol "https"
+  not supported or disabled in libcurl
+```
+ the problem seems to be that the CURL library shipped with CMake is not build with SSL support.
+ You may have to compile CMake from sources enabling using a CURL library with SSL support.
 
 * If you encounter a problem during the make process, it may be related to the C++11 detection
   edit CMakeLists.txt and add (or remove) the following line before the first "AD_SUBDIRECTORY" line  

@@ -77,15 +77,15 @@ namespace dc {
       
       cv::Rect rec;
 
-      const float theta = angle * M_PI / 180.f;
-      const float radius = distance;
+      const float theta = angle * static_cast<float>(M_PI) / 180.f;
+      const float radius = static_cast<float>(distance);
 
       assert(fabs(intensity) <= 1.f);
 
       const float l0 = intensity * 100 + 1;
 
       for (int i = 0; i < distance; ++i) {
-	const float step = 1;
+	constexpr float step = 1;
 	switch (border) {
 	case Border::LEFT:
 	  rec = cv::Rect(i, 0, step, matOut.rows);
@@ -104,7 +104,7 @@ namespace dc {
 
 	//transform i from [0; distance[ to [theta; 0[
 	const float phi = theta * (1 - i / static_cast<float>(distance));
-	const float c = (l0 / (l0 + radius * (1 - cos(phi))));
+	const float c = (l0 / (l0 + radius * (1 - cosf(phi))));
 	const float coeff = c * c;
 
 	//std::cerr<<"distance="<<distance<<" intensity="<<intensity<<" angle="<<angle<<" i="<<i<<" => c="<<coeff<<"\n";
@@ -115,8 +115,9 @@ namespace dc {
       return matOut;
     }
 
-    static inline int
-    getDistance(Border border, float distanceRatio, int w, int h)
+	//B: float casted to int ? Is it really what we want ?
+    static inline constexpr int
+    getDistance(Border border, float distanceRatio, int w, int h) noexcept
     {
       return (border == Border::LEFT || border == Border::RIGHT)
 	? distanceRatio * w

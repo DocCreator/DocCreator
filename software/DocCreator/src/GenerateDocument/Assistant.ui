@@ -209,68 +209,106 @@
    <property name="subTitle">
     <string>DocCreator</string>
    </property>
-   <widget class="QGroupBox" name="groupBox_2">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>170</y>
-      <width>451</width>
-      <height>111</height>
+      <x>20</x>
+      <y>10</y>
+      <width>471</width>
+      <height>471</height>
      </rect>
     </property>
-    <property name="title">
-     <string/>
-    </property>
-    <widget class="QWidget" name="layoutWidget_3">
-     <property name="geometry">
-      <rect>
-       <x>2</x>
-       <y>1</y>
-       <width>350</width>
-       <height>92</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_16">
-      <item>
-       <widget class="QLabel" name="label_17">
-        <property name="text">
-         <string>Choose a directory with text files (in UTF-8 format):</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_17">
-        <item>
-         <widget class="QLineEdit" name="txtFilePath">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnChooseTxtDir">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_nbTextFiles">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>0 text files</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout_16">
+     <item>
+      <widget class="QLabel" name="label_17">
+       <property name="text">
+        <string>Choose a directory with text files (in UTF-8 format):</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_17">
+       <item>
+        <widget class="QLineEdit" name="txtFilePath">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnChooseTxtDir">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="labelST">
+       <property name="text">
+        <string>Select text(s) to use:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListView" name="listTextView">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_31">
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="btnSelectTxt">
+         <property name="text">
+          <string>Select all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDeselectTxt">
+         <property name="text">
+          <string>Deselect all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_nbTextFiles">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>0 selected text file(s)</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QWizardPage" name="NbRandomTexts">
@@ -318,9 +356,9 @@
     <property name="geometry">
      <rect>
       <x>21</x>
-      <y>90</y>
-      <width>471</width>
-      <height>262</height>
+      <y>40</y>
+      <width>541</width>
+      <height>441</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_17">
@@ -367,9 +405,46 @@
       </widget>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_32">
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="btnSelectFont">
+         <property name="text">
+          <string>Select all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDeselectFont">
+         <property name="text">
+          <string>Deselect all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
       <widget class="QLabel" name="label_nbFonts">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>0 selected font(s)</string>
@@ -436,9 +511,46 @@
       </widget>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_33">
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="btnSelectBckgd">
+         <property name="text">
+          <string>Select all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDeselectBckgd">
+         <property name="text">
+          <string>Deselect all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
       <widget class="QLabel" name="label_nbBackgrounds">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>0 selected background image(s)</string>
@@ -1240,7 +1352,7 @@
         <string>Add leading zeros to numbers to have correct lexicographic order</string>
        </property>
        <property name="text">
-        <string>Add zero padding for numbers</string>
+        <string>Add zero padding for numbers (e.g., &quot;image_009&quot; instead of &quot;image_9&quot;)</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -1255,7 +1367,7 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>40</height>
+         <height>30</height>
         </size>
        </property>
       </spacer>
@@ -1265,7 +1377,7 @@
        <property name="minimumSize">
         <size>
          <width>40</width>
-         <height>20</height>
+         <height>44</height>
         </size>
        </property>
        <property name="text">
@@ -1286,6 +1398,54 @@
         </size>
        </property>
       </spacer>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="ConfirmDegradations">
+   <property name="title">
+    <string/>
+   </property>
+   <property name="subTitle">
+    <string>DocCreator </string>
+   </property>
+   <widget class="QWidget" name="layoutWidgetC">
+    <property name="geometry">
+     <rect>
+      <x>1</x>
+      <y>1</y>
+      <width>521</width>
+      <height>461</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayoutC">
+     <item>
+      <widget class="QLabel" name="ConfirmText">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>400</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Text images have been generated.
+
+Click Next to continue and apply degradation models to these images.
+Click Cancel otherwise.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -2402,7 +2562,7 @@
        <x>0</x>
        <y>0</y>
        <width>799</width>
-       <height>28</height>
+       <height>185</height>
       </rect>
      </property>
      <property name="minimumSize">
@@ -3800,16 +3960,16 @@ completePathToOutputDirectory </string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupParamsTopMargin"/>
-  <buttongroup name="buttonGroupText"/>
-  <buttongroup name="buttonGroupParamsRightMargin"/>
-  <buttongroup name="buttonGroupParamsImageSize"/>
-  <buttongroup name="buttonGroupParamsLeftMargin"/>
-  <buttongroup name="buttonGroupParamsBlockX"/>
   <buttongroup name="buttonGroupParamsLineSpacing"/>
-  <buttongroup name="buttonGroupTextGeneration"/>
-  <buttongroup name="buttonGroupParamsBottomMargin"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroupParamsRightMargin"/>
+  <buttongroup name="buttonGroupParamsLeftMargin"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroupParamsTopMargin"/>
+  <buttongroup name="buttonGroupParamsBottomMargin"/>
+  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupTextGeneration"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroupText"/>
+  <buttongroup name="buttonGroupParamsBlockX"/>
  </buttongroups>
 </ui>
