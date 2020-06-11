@@ -49,7 +49,7 @@ testSimple0(int imageType)
 TEST_CASE( "Testing PhantomCharacter" )
 { 
 
-  SECTION("Testing PhantomCharacter produces output image of same type and size")
+  SECTION("Testing PhantomCharacter produces output image of same type and size than input image")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

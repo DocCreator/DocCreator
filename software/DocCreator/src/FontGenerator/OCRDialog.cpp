@@ -538,8 +538,8 @@ OCRDialog::updateAlphabet()
 	    m_alphabet.end(),
 	    [this](const AlphabetInfo &c1, const AlphabetInfo &c2) {
 	      //return c1.frequencyFont > c2.frequencyFont; //sort by frequency of letter
-	      assert(c1.index < m_font.size());
-	      assert(c2.index < m_font.size());
+	      assert((size_t)(c1.index) < m_font.size());
+	      assert((size_t)(c2.index) < m_font.size());
 	      return m_font[c1.index].label < m_font[c2.index].label; //sort by alphabetical order
 	    });
 
@@ -906,9 +906,9 @@ OCRDialog::on_apply_clicked()
     //not on last row
     ui->tableLetters->setCurrentCell(row+1, 0);
     const int newRow = ui->tableLetters->currentRow();
-    assert(newRow < m_similarList.size());
+    assert((size_t)(newRow) < m_similarList.size());
     const int newCurrentIndex = m_similarList[newRow];
-    assert(newCurrentIndex < m_font.size());
+    assert((size_t)(newCurrentIndex) < m_font.size());
     m_currentIndex = newCurrentIndex;
   }
   else {
@@ -922,11 +922,11 @@ OCRDialog::on_apply_clicked()
       }
       if (ind < m_alphabet.size()) {
 	const int newCurrentIndex = m_alphabet[ind].index;
-	assert(newCurrentIndex < m_font.size());
+	assert((size_t)(newCurrentIndex) < m_font.size());
 	m_currentIndex = newCurrentIndex;
-	const int row = ind/NUM_COLUMNS;
-	const int col = ind%NUM_COLUMNS;
-	ui->tableAlphabet->setCurrentCell(row, col);
+	const int lrow = ind/NUM_COLUMNS;
+	const int lcol = ind%NUM_COLUMNS;
+	ui->tableAlphabet->setCurrentCell(lrow, lcol);
 	ui->tableLetters->setCurrentCell(0, 0); //to have the right selection on the next updateView()/updateTableLetters()
       }
     }

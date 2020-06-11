@@ -78,7 +78,7 @@ testSimple2(int imageType)
 TEST_CASE( "Testing CharactersDegradation" )
 { 
 
-  SECTION("Testing Characters Degradation produces output image of same type and size")
+  SECTION("Testing Characters Degradation produces output image of same type and size than input image")
   {
     testSimple(CV_8UC1);
     testSimple(CV_8UC3);

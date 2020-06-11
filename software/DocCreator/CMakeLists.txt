@@ -261,6 +261,7 @@ SET(
   src/Degradations/GrayCharacterDegradationModelQ.cpp
   src/Degradations/HoleDegradationQ.hpp
   src/Degradations/PhantomCharacterQ.hpp
+  src/Degradations/RotationDegradationQ.hpp
   src/Degradations/ShadowBindingQ.hpp
 )
 
@@ -272,6 +273,7 @@ SET(
   src/Degradations/GrayCharacterDegradationModelQ.cpp
   src/Degradations/HoleDegradationQ.cpp
   src/Degradations/PhantomCharacterQ.cpp
+  src/Degradations/RotationDegradationQ.cpp
   src/Degradations/ShadowBindingQ.cpp
 )
 

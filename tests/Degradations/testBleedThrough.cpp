@@ -394,7 +394,7 @@ testEqualToGT4(int nbThreads)
 TEST_CASE( "Testing BleedThrough" )
 { 
 
-  SECTION("Testing BleedThrough produces output of same type and size")
+  SECTION("Testing BleedThrough produces output of same type and size than input image")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

@@ -16,6 +16,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testHoleDegradation
   testGradientDomainDegradation
   testPhantomCharacter
+  testRotationDegradation
   testShadowBinding
   )
 
