@@ -54,7 +54,7 @@ namespace dc {
     bool _doRotations;
   };
 					
-}
+} //namespace dc
 
 
 #endif /* ! GRADIENTDOMAINDEGRADATIONQ_HPP */

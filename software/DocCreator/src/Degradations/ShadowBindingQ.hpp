@@ -68,7 +68,7 @@ namespace dc {
   };
 
 
-}
+} //namespace dc
 
 
 #endif /* ! SHADOWBINDINGQ_HPP */
