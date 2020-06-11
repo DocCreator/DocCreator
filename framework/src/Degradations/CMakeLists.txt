@@ -18,6 +18,7 @@ SET(
   GrayscaleCharsDegradationModel.hpp
   HoleDegradation.hpp
   PhantomCharacter.hpp
+  RotationDegradation.hpp
   ShadowBinding.hpp
   ConnectedComponent.hpp
   FileUtils.hpp
@@ -32,6 +33,7 @@ SET(
   GrayscaleCharsDegradationModel.cpp
   HoleDegradation.cpp
   PhantomCharacter.cpp
+  RotationDegradation.cpp
   ShadowBinding.cpp
   ConnectedComponent.cpp
   FileUtils.cpp
