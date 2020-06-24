@@ -331,6 +331,7 @@ SET(
   src/Document/DocRenderFlags.hpp
   src/Document/ImageExporter.hpp
   src/GenerateDocument/Assistant.hpp
+  src/GenerateDocument/ColorButton.hpp
   src/FontGenerator/BinarizationDialog.hpp
   src/FontGenerator/Binarization.hpp
   src/FontGenerator/LineDetectionDialog.hpp
@@ -404,6 +405,7 @@ SET(
   src/Document/BackGroundChanger.cpp
   src/Document/GraphicsCursorItem.cpp
   src/GenerateDocument/Assistant.cpp
+  src/GenerateDocument/ColorButton.cpp
   src/FontGenerator/BinarizationDialog.cpp
   src/FontGenerator/Binarization.cpp
   src/FontGenerator/LineDetectionDialog.cpp
@@ -540,7 +542,7 @@ SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES
   )
 
 ADD_EXECUTABLE(${PROGNAME} ${DocCreator_sources} ${DocCreator_headers} ${DocCreator_rcs} ${WIN_RESOURCE_FILE})
-TARGET_INCLUDE_DIRECTORIES(${PROGNAME} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${DOC3D_INCLUDE_DIRS} $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Lept_INCLUDE_DIRS} ${Tesseract_INCLUDE_DIRS})
+TARGET_INCLUDE_DIRECTORIES(${PROGNAME} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${DOC3D_INCLUDE_DIRS} $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/GenerateDocument> ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Lept_INCLUDE_DIRS} ${Tesseract_INCLUDE_DIRS})
 SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES INSTALL_RPATH "${PROG_RPATH}")
 TARGET_COMPILE_OPTIONS(${PROGNAME} PRIVATE ${WARNING_FLAGS})
 SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES

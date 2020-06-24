@@ -59,6 +59,9 @@ protected:
   void CharDeg_updateCharImageMin(int level);
   void CharDeg_updateCharImageMax(int level);
 
+  //Rotation Degradation
+  void Rotation_setupGUIImages();
+  
   //Shadow
   void Shadow_setupGUIImages();
 
@@ -80,6 +83,7 @@ protected:
   int charMax() const;
   int nbTirageChar() const;
   bool charEnable() const;
+  bool rotationEnable() const;
   bool shadEnable() const;
   bool gddEnable() const;
   bool phantEnable() const;
@@ -185,6 +189,15 @@ protected slots:
   void CharDeg_nbIterationsMaxChangedChar();
   void CharDeg_tirageCharChanged(int nbTirage);
 
+  //Rotation Degradation slots
+  void Rotation_EnableRotationOption();
+  void Rotation_FillMethodChanged();
+  void Rotation_tirageRotationChanged(int nbTirage);
+  void Rotation_changeMinAngle(double);
+  void Rotation_changeMaxAngle(double);
+  void Rotation_changeMinRepeats(int);
+  void Rotation_changeMaxRepeats(int);
+  
   //ShadowBinding slots
   void Shadow_LoadPrevImgShad();
   void Shadow_EnableShadOption();
@@ -203,7 +216,7 @@ protected slots:
   void Phantom_OptionCheckedPhant();
   void Phantom_EnablePhantOption();
   void Phantom_LoadPrevImgPhant();
-  void Phantom_tiragePhantomChanged(int value);
+  void Phantom_tiragePhantomChanged(int nbTirage);
 
   //Blur slots
   void Blur_OptionCheckedBlur();
@@ -264,6 +277,10 @@ protected:
 
   void CharDeg_updateTirageAndTotal();
 
+  int Rotation_nbDegradations() const;
+  void Rotation_updateTirageAndTotal();
+
+  
   void Shadow_setPreview(dc::ShadowBinding::Border border);
   void Shadow_updatePreviewAll();
   void Shadow_updateTirageAndTotal();
@@ -330,6 +347,11 @@ protected:
              const QImage &recto,
              const QString &outputImageDir) const;
 
+  void do_Rotation(const QString &imageBasename,
+		   const QImage &recto,
+		   const QString &inputImageDir,
+		   const QString &outputImageDir) const;
+
 
   void updateProgress() const;
 
@@ -348,12 +370,13 @@ private:
     Page_FinalText,
     Page_ConfirmDegradations,
     Page_ImageAndGtDirs,
-    Page_Bleed,
     Page_CharDeg,
-    Page_GDD,
-    Page_Shadow,
     Page_Phantom,
+    Page_GDD,
+    Page_Bleed,
+    Page_Rotation,
     Page_Blur,
+    Page_Shadow,
     Page_Hole,
     Page_Dist3D,
     Page_FinalDegradations,
@@ -421,6 +444,8 @@ private:
   //int _CharDeg_nbTirageChar = 0;
   bool _CharDeg_charEnable;
 
+  bool _Rotation_rotationEnable;
+  
   bool _Shadow_shadEnable;
 
   
