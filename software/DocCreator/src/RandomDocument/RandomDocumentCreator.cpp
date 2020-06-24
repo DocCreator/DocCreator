@@ -119,7 +119,10 @@ RandomDocumentCreator::create_aux(
   const int bottomMargin =
     RandomElement().randomInt(_params.bottomMarginMin, _params.bottomMarginMax);
 
-  PageLayout *layout = new GridPageLayout(currentDoc, col, row);
+  const int blockSpacing = static_cast<int>(lineSpacing*1.5f); //arbitrary
+  //TODO: we should be able to set blockSpacing in _params !
+
+  PageLayout *layout = new GridPageLayout(currentDoc, col, row, blockSpacing);
   layout->setLeftMargin(leftMargin);
   randDoc->addProperty(QStringLiteral("leftMargin"),
                        QString::number(leftMargin));
