@@ -2,7 +2,7 @@ Before 1.2
 
  - CMake
    - BUILD_ONLY_DEGRADATIONS
-   - ENABLE_OSMESA : for 3D degradation in Degradatop,s
+   - ENABLE_OSMESA : for 3D degradation in Degradations
    - ENABLE_EGL : needs GLFW git PR ?
 
  - 3D degradation
