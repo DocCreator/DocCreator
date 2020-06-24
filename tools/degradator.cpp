@@ -19,12 +19,13 @@
 
 #include "Degradations/BleedThrough.hpp"
 #include "Degradations/BlurFilter.hpp"
+#include "Degradations/Distortion3D.hpp"
+#include "Degradations/GradientDomainDegradation.hpp"
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
 #include "Degradations/HoleDegradation.hpp"
 #include "Degradations/PhantomCharacter.hpp"
+#include "Degradations/RotationDegradation.hpp"
 #include "Degradations/ShadowBinding.hpp"
-#include "Degradations/GradientDomainDegradation.hpp"
-#include "Degradations/Distortion3D.hpp"
 
 #include "Degradations/FileUtils.hpp"
 
@@ -50,6 +51,11 @@ const bool do_blur = true;
 const int blur_minIntensity = 1;
 const int blur_maxIntensity = 3;
 
+const bool do_rotation = true;
+const float rotation_minAngle = -7.f;
+const float rotation_maxAngle = 7.f;
+const int rotation_minRepeats = 0;
+const int rotation_maxRepeats = 3;
 
 const bool do_shadow = true;
 
@@ -76,6 +82,14 @@ int
 random_in_range(int rMin, int rMax)
 {
   std::uniform_int_distribution<int> dist(rMin, rMax);
+  return dist(mt);
+}
+
+static
+float
+random_in_range(float rMin, float rMax)
+{
+  std::uniform_real_distribution<float> dist(rMin,rMax);
   return dist(mt);
 }
 
@@ -166,7 +180,7 @@ main(int argc, char *argv[])
 	  suffixe += "_bt";
 	}
 	else {
-	  saveImage(currImg, outputImageDirectory, imageList[i], "_bt");
+	  saveImage(imgBleed, outputImageDirectory, imageList[i], "_bt");
 	}
       }
     }
@@ -183,7 +197,7 @@ main(int argc, char *argv[])
 	suffixe += "_cd";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_cd");
+	saveImage(imgCharDeg, outputImageDirectory, imageList[i], "_cd");
       }	
     }
 
@@ -196,7 +210,7 @@ main(int argc, char *argv[])
 	suffixe += "_ph";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_ph");
+	saveImage(imgPhant, outputImageDirectory, imageList[i], "_ph");
       }	
     }
 
@@ -211,7 +225,7 @@ main(int argc, char *argv[])
 	suffixe += "_gdd";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_gdd");	
+	saveImage(imgGDD, outputImageDirectory, imageList[i], "_gdd");	
       }
     }
 
@@ -225,10 +239,33 @@ main(int argc, char *argv[])
 	suffixe += "_bl";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_bl");
+	saveImage(imgBlur, outputImageDirectory, imageList[i], "_bl");
       }
     }
 
+    if (do_rotation) {
+      const float angle = random_in_range(rotation_minAngle, rotation_maxAngle);
+      const int backgroundIndex = random_in_range(0, numImages-1);
+      const std::string backgroundFilename = dc::makePath(inputImageDirectory, imageList[backgroundIndex]);
+      cv::Mat backgroundImg = cv::imread(backgroundFilename);
+      cv::Mat rotatedImg;
+      if (backgroundImg.empty()) {
+	std::cerr<<"Warning: unable to load background image file: "<<backgroundFilename<<"\n";
+	rotatedImg = dc::RotationDegradation::rotateFillColor(currImg, angle, cv::Scalar(0, 0, 0));
+      }
+      else {
+	const int repeats = random_in_range(rotation_minRepeats, rotation_maxRepeats);
+	rotatedImg = dc::RotationDegradation::rotateFillImage(currImg, angle, backgroundImg, repeats);
+      }
+      if (cumulate) {
+	currImg = rotatedImg;
+	suffixe += "_rt";
+      }
+      else {
+	saveImage(rotatedImg, outputImageDirectory, imageList[i], "_rt");
+      }
+    }
+    
     
     if (do_shadow) {
       const dc::ShadowBinding::Border border = (dc::ShadowBinding::Border)random_in_range(0, 3);
@@ -241,7 +278,7 @@ main(int argc, char *argv[])
 	suffixe += "_sh";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_sh");
+	saveImage(imgShad, outputImageDirectory, imageList[i], "_sh");
       }
     }
 
@@ -274,7 +311,7 @@ main(int argc, char *argv[])
 	suffixe += "_ho";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_ho");
+	saveImage(imgHole, outputImageDirectory, imageList[i], "_ho");
       }
 	
     }
@@ -292,7 +329,7 @@ main(int argc, char *argv[])
 	suffixe += "_td";
       }
       else {
-	saveImage(currImg, outputImageDirectory, imageList[i], "_td");
+	saveImage(img3D, outputImageDirectory, imageList[i], "_td");
       }
       
     }
