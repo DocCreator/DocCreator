@@ -52,6 +52,7 @@ namespace dc {
        @param img input image to degrade
        @param angle rotation angle in degrees.
        @param backgroundImage background image (rescaled if necessary).
+       @param repeats number of intermediary images between the background image and the foreground image.
      */    
     extern FRAMEWORK_EXPORT cv::Mat rotateFillImage(const cv::Mat &img,
 						    float angle,
