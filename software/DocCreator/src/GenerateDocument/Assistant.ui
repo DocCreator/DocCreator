@@ -2552,6 +2552,9 @@ Click &quot;Cancel&quot; otherwise.</string>
        </item>
        <item>
         <widget class="QLabel" name="RotationFillImageRepeatsL">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of intermediary images between the background and foreground images&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Repeats: </string>
          </property>
@@ -4622,14 +4625,14 @@ completePathToOutputDirectory </string>
  <buttongroups>
   <buttongroup name="buttonGroupParamsBlockX"/>
   <buttongroup name="buttonGroupParamsBottomMargin"/>
-  <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroupParamsTopMargin"/>
-  <buttongroup name="buttonGroupParamsLineSpacing"/>
   <buttongroup name="buttonGroupParamsRightMargin"/>
+  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroupParamsLineSpacing"/>
+  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroupText"/>
   <buttongroup name="buttonGroupParamsLeftMargin"/>
-  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupParamsTopMargin"/>
   <buttongroup name="buttonGroupTextGeneration"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
  </buttongroups>
 </ui>
