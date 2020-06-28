@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QDebug>
 #include <QXmlSchema>
 #include <QXmlSchemaValidator>
 
@@ -18,8 +19,6 @@
 #include "DocumentView.hpp"
 #include "appconstants.h"
 
-#include "GridPageLayout.hpp"
-#include <Lipsum4Qt.hpp>
 #include <Utils/connectedcomponentextraction.h>
 
 DocumentController::DocumentController()
