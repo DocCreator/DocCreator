@@ -30,7 +30,12 @@ CharEditView::CharEditView(CharEditScene *scene, Mvc::IView *parent)
 void
 CharEditView::wheelEvent(QWheelEvent *event)
 {
-  if (event->delta() > 0) {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+  const int delta = event->delta();
+#else
+  const int delta = event->angleDelta().y();
+#endif
+  if (delta > 0) {
     if (zoomScaleIndex < MAX_ZOOM) {
       zoomIn();
     }
