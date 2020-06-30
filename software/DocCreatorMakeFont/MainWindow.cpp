@@ -161,7 +161,7 @@ void MainWindow::findSizes(const QFont &font)
   const QString currentSize = m_sizeCB->currentText();
 
   {
-#if QT_VERSION >= 0x050300
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 3, 0))
     const QSignalBlocker blocker(m_sizeCB);
 #else
     const bool wasBlocked = m_sizeCB->blockSignals(true);
@@ -185,7 +185,7 @@ void MainWindow::findSizes(const QFont &font)
       }
     }
 
-#if QT_VERSION < 0x050300
+#if (QT_VERSION < QT_VERSION_CHECK(5, 3, 0))
     m_sizeCB->blockSignals(wasBlocked);
 #endif //QT_VERSION
   }
