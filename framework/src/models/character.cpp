@@ -2,6 +2,9 @@
 
 #include "characterdata.h"
 #include <QDateTime>
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+#include <QRandomGenerator>
+#endif
 
 namespace Models {
 Character::Character()
@@ -110,8 +113,11 @@ Character::getRandomCharacterData() const
   if (_dataList.isEmpty())
     return nullptr;
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
   const int randomIndex = qrand() % _dataList.size();
-
+#else
+  const int randomIndex = QRandomGenerator::global()->bounded(_dataList.size());
+#endif
   return _dataList.at(randomIndex);
 }
 

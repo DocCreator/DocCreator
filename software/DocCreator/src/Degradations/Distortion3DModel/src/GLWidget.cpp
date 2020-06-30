@@ -1153,7 +1153,12 @@ GLWidget::mouseMoveEvent(QMouseEvent *e)
 void
 GLWidget::wheelEvent(QWheelEvent *e)
 {
-  m_camDist *= (e->delta() > 0) ? 1. / 1.02 : 1.02;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+  const int delta = e->delta();
+#else
+  const int delta = e->angleDelta().y();
+#endif
+  m_camDist *= (delta > 0) ? 1. / 1.02 : 1.02;
   updateCameraLookAt();
   e->accept();
   update();
