@@ -13,13 +13,23 @@ class GridPageLayout : public PageLayout
 {
 
 public:
-  explicit GridPageLayout(Doc::Document *doc,
-                          int columns,
-                          int rows,
-			  int blockSpcing = 50,
-                          QObject *parent = nullptr);
+  GridPageLayout(Doc::Document *doc,
+		 int columns, int rows, int blockSpcing = 50,
+		 int leftMargin = 0, int rightMargin = 0,
+		 int topMargin = 0, int bottomMargin = 0,
+		 QObject *parent = nullptr);
 
-  Doc::DocTextBlock *newTextBlock(const int blockNumber = -1) override;
+  GridPageLayout(Doc::Document *doc,
+		 const QVector<QRect> &blocks,
+		 QObject *parent = nullptr);
+
+  ~GridPageLayout();
+
+  /*
+    Get @a i-th DocTextBlock.
+    Take ownership of returned DocTextBlock
+   */
+  Doc::DocTextBlock *takeTextBlock(int blockNumber) override;
 
 private:
   //using Grid = QVector<QVector<Doc::DocTextBlock *> *>;
@@ -27,11 +37,6 @@ private:
 
   using Grid = QVector<Doc::DocTextBlock *>;
   Grid _blocks;
-  int _columns;
-  int _rows;
-  int _blockSpacing;
-  int _blockWidth;
-  int _blockHeight;
 };
 
 #endif // GRIDPAGELAYOUT_HPP

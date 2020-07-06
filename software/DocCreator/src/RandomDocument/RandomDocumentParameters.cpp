@@ -17,10 +17,10 @@ RandomDocumentParameters::RandomDocumentParameters(QObject *parent)
   , nbBlocksPerColMax(3)
   , nbBlocksPerRowMin(3)
   , nbBlocksPerRowMax(3)
-  ,
-  //nbDocs(20),
-  nbPages(1)
+  , blocks()
+  , useRandomBlocks(true)
   , percentOfEmptyBlocks(5)
+  , nbPages(1)
   , imageWidth(1006)
   , imageHeight(1554)
   , imageSizeUniform(true)

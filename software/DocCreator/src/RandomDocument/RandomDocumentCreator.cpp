@@ -60,6 +60,7 @@ loadText(const QString &filename)
 
   if (! _params.textList.empty() && useRandomTextFile), @a textIndex will not be used.
 
+  @param backgroundIndex is used only if ! _params.useRandomBlocks
  */
 
 void
@@ -68,7 +69,8 @@ RandomDocumentCreator::create_aux(
   const QString &fontName,
   int lineSpacing,
   int textIndex,
-  bool useRandomTextFile)
+  bool useRandomTextFile,
+  int backgroundIndex)
 {
 #ifdef TIMING
   auto t0 = std::chrono::steady_clock::now();
@@ -102,40 +104,65 @@ RandomDocumentCreator::create_aux(
   Doc::Page *currentPage = currentDoc->currentPage();
   assert(currentPage == p);
 
-  const int col = RandomElement().randomInt(_params.nbBlocksPerColMin,
-                                            _params.nbBlocksPerColMax);
-  const int row = RandomElement().randomInt(_params.nbBlocksPerRowMin,
-                                            _params.nbBlocksPerRowMax);
+  PageLayout *layout = nullptr;
+  int nbBlocks = 0;
 
-  randDoc->addProperty(QStringLiteral("nbColumn"), QString::number(col));
-  randDoc->addProperty(QStringLiteral("nbRow"), QString::number(row));
+  if (_params.useRandomBlocks) {
 
-  const int leftMargin =
-    RandomElement().randomInt(_params.leftMarginMin, _params.leftMarginMax);
-  const int rightMargin =
-    RandomElement().randomInt(_params.rightMarginMin, _params.rightMarginMax);
-  const int topMargin =
-    RandomElement().randomInt(_params.topMarginMin, _params.topMarginMax);
-  const int bottomMargin =
-    RandomElement().randomInt(_params.bottomMarginMin, _params.bottomMarginMax);
+    const int col = RandomElement().randomInt(_params.nbBlocksPerColMin,
+					      _params.nbBlocksPerColMax);
+    const int row = RandomElement().randomInt(_params.nbBlocksPerRowMin,
+					      _params.nbBlocksPerRowMax);
 
-  const int blockSpacing = static_cast<int>(lineSpacing*1.5f); //arbitrary
-  //TODO: we should be able to set blockSpacing in _params !
+    randDoc->addProperty(QStringLiteral("nbColumn"), QString::number(col));
+    randDoc->addProperty(QStringLiteral("nbRow"), QString::number(row));
 
-  PageLayout *layout = new GridPageLayout(currentDoc, col, row, blockSpacing);
-  layout->setLeftMargin(leftMargin);
-  randDoc->addProperty(QStringLiteral("leftMargin"),
-                       QString::number(leftMargin));
-  layout->setRightMargin(rightMargin);
-  randDoc->addProperty(QStringLiteral("rightMargin"),
-                       QString::number(rightMargin));
-  layout->setTopMargin(topMargin);
-  randDoc->addProperty(QStringLiteral("topMargin"), QString::number(topMargin));
-  layout->setBottomMargin(bottomMargin);
-  randDoc->addProperty(QStringLiteral("bottomMargin"),
-                       QString::number(bottomMargin));
+    const int leftMargin =
+      RandomElement().randomInt(_params.leftMarginMin, _params.leftMarginMax);
+    const int rightMargin =
+      RandomElement().randomInt(_params.rightMarginMin, _params.rightMarginMax);
+    const int topMargin =
+      RandomElement().randomInt(_params.topMarginMin, _params.topMarginMax);
+    const int bottomMargin =
+      RandomElement().randomInt(_params.bottomMarginMin, _params.bottomMarginMax);
 
-  const int nbBlocks = col * row;
+    const int blockSpacing = static_cast<int>(lineSpacing*1.5f); //arbitrary
+    //TODO: we should be able to set blockSpacing in _params !
+
+    layout = new GridPageLayout(currentDoc, col, row, blockSpacing,
+				leftMargin, rightMargin, topMargin, bottomMargin);
+
+    randDoc->addProperty(QStringLiteral("leftMargin"),
+			 QString::number(leftMargin));
+    randDoc->addProperty(QStringLiteral("rightMargin"),
+			 QString::number(rightMargin));
+    randDoc->addProperty(QStringLiteral("topMargin"),
+			 QString::number(topMargin));
+    randDoc->addProperty(QStringLiteral("bottomMargin"),
+			 QString::number(bottomMargin));
+
+    nbBlocks = col * row;
+
+  }
+  else {
+    //use predefined blocs
+
+    //_params.blocks should be of size 1 (in this case, the same blocks are used for all backgrounds)
+    // or of the same size than the number of backgrounds (in this case, we have blocks specific for each background)
+
+    assert(backgroundIndex < _params.blocks.size()
+	   || _params.blocks.size() == 1);
+
+    QVector<QRect> blocks;
+    if (_params.blocks.size() == 1)
+      blocks = _params.blocks[0];
+    else if (backgroundIndex < _params.blocks.size()) {
+      blocks = _params.blocks[backgroundIndex];
+    }
+    layout = new GridPageLayout(currentDoc, blocks);
+
+    nbBlocks = blocks.size();
+  }
 
   QString text;
   //If possible, we load the text here to avoid to have to load it for every block
@@ -152,7 +179,7 @@ RandomDocumentCreator::create_aux(
 
   for (int i = 0; i < nbBlocks; ++i) {
 
-    Doc::DocTextBlock *textBlock = layout->newTextBlock(i);
+    Doc::DocTextBlock *textBlock = layout->takeTextBlock(i);
     assert(textBlock != nullptr);
 
     //std::cerr<<"RDC: block "<<i<<": x="<<textBlock->x()<<" y="<<textBlock->y()<<" w="<<textBlock->width()<<" h="<<textBlock->height()<<"\n";
@@ -170,7 +197,7 @@ RandomDocumentCreator::create_aux(
     currentDoc->add(para);
     Doc::DocParagraph *currentParagraph =
       currentDoc
-        ->currentParagraph(); //B:TODO: why call currentParagraph() when we alreay have para ?
+        ->currentParagraph(); //B:TODO: why call currentParagraph() when we already have para ?
     currentParagraph->setLineSpacing(lineSpacing);
 
     if (RandomElement().randomInt(1, 100) <=
@@ -183,13 +210,15 @@ RandomDocumentCreator::create_aux(
             Lipsum4Qt::
               SYNC); //B: we have to recreate this objet each time to get a new text !
           text = lipsumGenerator.Lipsum;
-        } else {
+        }
+	else {
           if (useRandomTextFile) {
             const int index =
               RandomElement().randomInt(0, _params.textList.size() - 1);
             assert(index >= 0 && index < _params.textList.size());
             text = loadText(_params.textList.at(index));
-          } else {
+          }
+	  else {
             const int index =
               (textIndex + i) %
               _params.textList
@@ -367,10 +396,11 @@ RandomDocumentCreator::create()
       //auto document = new Doc::Document();
 
       //set random background if available
+      int backgroundIndex = _params.backgroundList.size();
       if (!_params.backgroundList.empty()) {
-        const int index =
+        backgroundIndex =
           RandomElement().randomInt(0, _params.backgroundList.size() - 1);
-        const QString &backgroundName = _params.backgroundList.at(index);
+        const QString &backgroundName = _params.backgroundList.at(backgroundIndex);
         Context::BackgroundContext::instance()->setCurrentBackground(
           backgroundName);
 
@@ -387,7 +417,8 @@ RandomDocumentCreator::create()
       const QString &fontName = fontList.at(fontIndex);
       //std::cout << "FONT LOAD: " << fontName.toStdString() << std::endl;
 
-      create_aux(randDoc, fontName, lineSpacing, unused, useRandomTextFile);
+      create_aux(randDoc, fontName, lineSpacing,
+		 unused, useRandomTextFile, backgroundIndex);
     }
 
     //QString fontpath = Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigFontFolderKey).toString();
@@ -497,10 +528,11 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
             RandomElement().randomInt(0, fontList.size() - 1);
           fontName = fontList.at(fontIndex);
         }
+	int backgroundIndex = 0;
         if (_params.backgroundList.size() > 1) {
-          const int index =
+          backgroundIndex =
             RandomElement().randomInt(0, _params.backgroundList.size() - 1);
-          const QString &backgroundName = _params.backgroundList.at(index);
+          const QString &backgroundName = _params.backgroundList.at(backgroundIndex);
           Context::BackgroundContext::instance()->setCurrentBackground(
             backgroundName);
           randDoc->addProperty(QStringLiteral("background"), backgroundName);
@@ -511,8 +543,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
         }
 
         const bool useRandomTextFile = false;
-        create_aux(
-          randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+        create_aux(randDoc, fontName, lineSpacing,
+		   textIndex, useRandomTextFile, backgroundIndex);
       }
     }
     else {
@@ -523,10 +555,11 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
           RandomElement().randomInt(0, _params.fontList.size() - 1);
         fontName = fontList.at(fontIndex);
       }
+      int backgroundIndex = 0;
       if (_params.backgroundList.size() > 1) {
-        const int index =
+        backgroundIndex =
           RandomElement().randomInt(0, _params.backgroundList.size() - 1);
-        const QString &backgroundName = _params.backgroundList.at(index);
+        const QString &backgroundName = _params.backgroundList.at(backgroundIndex);
         Context::BackgroundContext::instance()->setCurrentBackground(
           backgroundName);
         randDoc->addProperty(QStringLiteral("background"), backgroundName);
@@ -538,7 +571,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
 
       const bool useRandomTextFile = true;
       for (int i=0; i<_params.nbPages; ++i) {
-		create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
+	create_aux(randDoc, fontName, lineSpacing,
+		   0, useRandomTextFile, backgroundIndex);
       }
     }
 
@@ -646,27 +680,29 @@ RandomDocumentCreator::createAllTexts()
           const QString &fontName = fontList.at(fontIndex);
 
           if (!_params.textList.empty()) {
-			//we use texts from _params.textList
+	    //we use texts from _params.textList
             for (int textIndex = 0; textIndex < _params.textList.size();
                  ++textIndex) {
 
               const bool useRandomTextFile = false;
-              create_aux(
-                randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+              create_aux(randDoc, fontName, lineSpacing,
+			 textIndex, useRandomTextFile, backgroundIndex);
             }
           }
-		  else {
+	  else {
             //we generate _params.nbPages random texts
             const bool useRandomTextFile = true;
             for (int i=0; i<_params.nbPages; ++i) {
-	            create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
-			}
+	      create_aux(randDoc, fontName, lineSpacing,
+			 0, useRandomTextFile, backgroundIndex);
+	    }
           }
         }
       }
     } else {
       //background not changed
 
+      const int backgroundIndex = 0;
       for (int fontIndex = 0; fontIndex < fontList.size(); ++fontIndex) {
 
         const QString &fontName = fontList.at(fontIndex);
@@ -677,16 +713,17 @@ RandomDocumentCreator::createAllTexts()
                ++textIndex) {
 
             const bool useRandomTextFile = false;
-            create_aux(
-              randDoc, fontName, lineSpacing, textIndex, useRandomTextFile);
+            create_aux(randDoc, fontName, lineSpacing,
+		       textIndex, useRandomTextFile, backgroundIndex);
           }
         }
-		else {
+	else {
           //we generate _params.nbPages random texts
           const bool useRandomTextFile = true;
           for (int i = 0; i < _params.nbPages; ++i) {
-	          create_aux(randDoc, fontName, lineSpacing, 0, useRandomTextFile);
-		  }
+	    create_aux(randDoc, fontName, lineSpacing,
+		       0, useRandomTextFile, backgroundIndex);
+	  }
         }
       }
     }

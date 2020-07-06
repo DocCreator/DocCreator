@@ -209,15 +209,32 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(clicked(QModelIndex)),
                    this,
                    SLOT(backgroundSelectionChanges()));
-  QObject::connect(
-    ui->btnSelectBckgd, SIGNAL(clicked()), this, SLOT(bckgdSelectAll()));
-  QObject::connect(
-    ui->btnDeselectBckgd, SIGNAL(clicked()), this, SLOT(bckgdDeselectAll()));
+  QObject::connect(ui->btnSelectBckgd, SIGNAL(clicked()),
+		   this, SLOT(bckgdSelectAll()));
+  QObject::connect(ui->btnDeselectBckgd, SIGNAL(clicked()),
+		   this, SLOT(bckgdDeselectAll()));
+
+
+  QObject::connect(ui->btnChooseBackgroundDirForms,
+                   SIGNAL(clicked()),
+                   this,
+                   SLOT(chooseBackgroundDirectoryForms()));
+  QObject::connect(ui->listBackgroundViewForms,
+                   SIGNAL(clicked(QModelIndex)),
+                   this,
+                   SLOT(backgroundSelectionChangesForms()));
+  QObject::connect(ui->btnSelectBckgdForms, SIGNAL(clicked()),
+		   this, SLOT(bckgdSelectAllForms()));
+  QObject::connect(ui->btnDeselectBckgdForms, SIGNAL(clicked()),
+		   this, SLOT(bckgdDeselectAllForms()));
+
 
   //QObject::connect(ui->LoremIpsum, SIGNAL(clicked()),this, SLOT(changeLoremIpsum()));
   //QObject::connect(ui->FolderText, SIGNAL(clicked()), this, SLOT(changeLoremIpsum()));
 
   PageParams_connect();
+
+  PageParamsForms_connect();
 
   QObject::connect(ui->FontBackgroundRandomRB,
                    SIGNAL(toggled(bool)),
@@ -352,10 +369,6 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(stateChanged(int)),
                    this,
                    SLOT(Rotation_FillMethodChanged()));
-  QObject::connect(ui->RotationColorSelectionPB,
-                   SIGNAL(clicked()),
-                   this,
-                   SLOT(Rotation_ColorChoice()));
   QObject::connect(ui->RotationAngleMinSB,
                    SIGNAL(valueChanged(double)),
                    this,
@@ -851,7 +864,6 @@ A lot of checks are done in nextId() or validateCurrentPage().
 One problem is that the next button, that should be disabled when these checks are invalid, always appears enabled.
 According to Qt documentation, the solution would be to have one individual class inheriting from QWizardPage for each page,
 and override isComplete() (and emit completeChange() when necessary).
-But as we have all the GUI defined in Assistant.ui, it probably entails that we have to do one .ui per page !?
 
 */
 
@@ -868,13 +880,25 @@ Assistant::nextId() const
   switch (currentId()) {
     case Page_SyntheticOrSemiChoice:
       if (ui->Synthetic->isChecked()) {
-        return Page_TextType;
-      } else if (ui->Semi->isChecked()) {
+        return Page_TextDocument;
+      }
+      else if (ui->Semi->isChecked()) {
         return Page_ImageAndGtDirs;
       }
+      return currentId();
       break;
 
-    case Page_TextType:
+  case Page_TextDocument:
+    if (ui->ClassicTextDocument->isChecked()) {
+      return Page_TextType;
+    }
+    else if (ui->FormTextDocument->isChecked()) {
+      return Page_TextType;
+    }
+    return currentId();
+    break;
+
+  case Page_TextType:
       if (ui->FolderText->isChecked())
         return Page_TextDirs;
       return Page_TextRandomNb;
@@ -895,7 +919,12 @@ Assistant::nextId() const
     case Page_FontFiles:
       if (_fontListChoice.isEmpty())
         return currentId();
-      return Page_BackgroundFiles;
+      if (ui->ClassicTextDocument->isChecked()) {
+	return Page_BackgroundFiles;
+      }
+      else if (ui->FormTextDocument->isChecked()) {
+	return Page_BackgroundFilesForms;
+      }
       break;
 
     case Page_BackgroundFiles:
@@ -904,8 +933,20 @@ Assistant::nextId() const
       return Page_PageParams;
       break;
 
+    case Page_BackgroundFilesForms:
+      if (_backgroundListChoice.isEmpty() && _blocks.isEmpty())
+        return currentId();
+      return Page_PageParamsForms;
+      break;
+
     case Page_PageParams:
       if (!PageParams_isComplete())
+        return currentId();
+      return Page_FinalText;
+      break;
+
+    case Page_PageParamsForms:
+      if (!PageParamsForms_isComplete())
         return currentId();
       return Page_FinalText;
       break;
@@ -1148,6 +1189,7 @@ Assistant::fontDeselectAll()
   fontSelectionChanges();
 }
 
+
 void
 Assistant::chooseBackgroundDirectory()
 {
@@ -1223,6 +1265,198 @@ Assistant::bckgdDeselectAll()
   ui->listBackgroundView->clearSelection();
   backgroundSelectionChanges();
 }
+
+
+void
+Assistant::chooseBackgroundDirectoryForms()
+{
+  const QString path =
+    QFileDialog::getExistingDirectory(this,
+                                      tr("Choose background images directory"),
+                                      QStringLiteral("./"),
+                                      QFileDialog::ShowDirsOnly);
+  if (!path.isEmpty()) {
+    this->updateListBackgroundForms(path);
+  }
+}
+
+void
+Assistant::updateListBackgroundForms(const QString &pathBack)
+{
+  ui->backgroundPathForms->setText(pathBack);
+
+  //ui->listBackViewForms->selectAll();
+  ui->listBackgroundViewForms->clearSelection();
+
+  //B: here we modify global BackgroundContext
+  // (see updateListFont comment)
+  // We should populate global BackgroundContext only once selected list of
+  // backgrounds is finalized.
+
+  const QString &backgroundPath = pathBack;
+  Context::BackgroundContext::instance()->clear();
+  Context::BackgroundContext::instance()->initialize(backgroundPath);
+  //B:TODO:DESIGN: why do we modify global BackgroundContext ?
+  //If this function is called just to populate view (?),
+
+  Context::BackgroundList backgroundList =
+    Context::BackgroundContext::instance()->getBackgrounds();
+  QStringList listBack(backgroundList);
+  listBack.sort();
+  _backgroundListModel.setStringList(listBack);
+  ui->listBackgroundViewForms->setModel(&_backgroundListModel);
+  ui->listBackgroundViewForms->selectAll();
+
+  backgroundSelectionChangesForms(); //B: useful ?
+}
+
+
+static
+QString
+changeExtension(const QString &filename, const QString &newExtension)
+{
+  QString outputFilename;
+  const int pos = filename.lastIndexOf('.');
+  if (pos != -1) {
+    outputFilename = filename;
+    outputFilename.replace(pos, filename.length()-pos, newExtension);
+  }
+  else {
+    qDebug()<<"Warning: no extension found for file: "<<filename<<"\n";
+  }
+
+  return outputFilename;
+}
+
+static
+bool readBlocksCSV(const QString &filename,
+	     QVector<QRect> &blocks)
+{
+  blocks.clear();
+
+  QFile file(filename);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    return false;
+
+  int v[4];
+  QStringList words;
+  while (!file.atEnd()) {
+    QString line = file.readLine();
+    if (! line.startsWith("#") && !line.isEmpty() && line !="\n") {
+      words = line.split(',');
+      if (words.size() == 1) {
+	words = line.split(';');
+      }
+      if (words.size() != 4) {
+	qDebug()<<"ERROR: unable to parse line: "<<line<<" from csv file: "<<filename<<"\n";
+	return false;
+      }
+
+      for (int i=0; i<4; ++i) {
+	bool ok = false;
+	v[i] = words[i].toUInt(&ok);
+	if (! ok) {
+	  qDebug()<<"ERROR: invalid value: "<<words[i]<<" in line: "<<line<<" from csv file: "<<filename<<"\n";
+	  return false;
+	}
+      }
+      blocks.push_back(QRect(v[0], v[1], v[2], v[3])); //x, y, w, h
+    }
+  }
+
+  if (blocks.size() == 0) {
+    qDebug()<<"WARNING: no block were read from csv file: "<<filename<<"\n";
+  }
+  return true;
+}
+
+QString
+makePath(const QString &dir, const QString &file)
+{
+  QString res = dir;
+  const QChar sep = '/';
+  if (!dir.isEmpty() && dir[dir.size() - 1] != sep)
+    res += sep;
+  res += file;
+  return res;
+  //TODO: Does it work on Windows ????
+}
+
+void
+Assistant::backgroundSelectionChangesForms()
+{
+  QModelIndexList listSelectionBack =
+    ui->listBackgroundViewForms->selectionModel()->selectedIndexes();
+  _backgroundListChoice.clear();
+  _backgroundListChoice.reserve(listSelectionBack.count());
+
+  _blocks.clear();
+
+  const QString backgroundPath = ui->backgroundPathForms->text();
+  const QString uniqueBlockCSVFilename = makePath(backgroundPath, "blocks.csv");
+  bool useOneBlocksFile = false;
+  if (QFileInfo(uniqueBlockCSVFilename).exists()) {
+    QVector<QRect> blocks;
+    const bool readOk = readBlocksCSV(uniqueBlockCSVFilename, blocks);
+    if (readOk) {
+      useOneBlocksFile = true;
+      _blocks.push_back(blocks);
+      assert(_blocks.size() == 1);
+    }
+  }
+  for (const auto &sb : listSelectionBack) {
+    const QString selectedBack =
+      _backgroundListModel.data(sb, Qt::DisplayRole).toString();
+
+    std::cerr<<"  "<<selectedBack.toStdString()<<"\n";
+    if (! useOneBlocksFile) {
+      const QString blocksCSVFilename = makePath(backgroundPath, changeExtension(selectedBack, ".csv"));
+      qDebug()<<"search csv file: "<<blocksCSVFilename;
+      if (QFileInfo(blocksCSVFilename).exists()) {
+	QVector<QRect> blocks;
+	const bool readOk = readBlocksCSV(blocksCSVFilename, blocks);
+	if (readOk) {
+	  qDebug()<<"read "<<blocks.size()<<" blocks from "<<blocksCSVFilename;
+	  _blocks.push_back(blocks);
+	  _backgroundListChoice.append(selectedBack);
+	}
+	else {
+	  qDebug()<<"unable to read csv file: "<<blocksCSVFilename<<"\n";
+	}
+      }
+      else {
+	std::cerr<<"csv file does not exist: "<<blocksCSVFilename.toStdString()<<"\n";
+      }
+    }
+    else {
+      _backgroundListChoice.append(selectedBack);
+    }
+  }
+
+  ui->label_nbBackgroundsForms->setText(
+    tr("%n selected background image(s)", "", _backgroundListChoice.size())
+    +tr("[with %n blocks file(s)]", "", _blocks.size())
+					);
+
+  //emit completeChanged();
+}
+
+void
+Assistant::bckgdSelectAllForms()
+{
+  ui->listBackgroundViewForms->selectAll();
+  backgroundSelectionChangesForms();
+}
+
+void
+Assistant::bckgdDeselectAllForms()
+{
+  ui->listBackgroundViewForms->clearSelection();
+  backgroundSelectionChangesForms();
+}
+
+
+
 
 void
 Assistant::PageParams_connect()
@@ -1466,6 +1700,143 @@ Assistant::PageParams_getParams(RandomDocumentParameters &params) const
     params.imageHeight = 0;
   }
 }
+
+
+
+void
+Assistant::PageParamsForms_connect()
+{
+  connect(ui->radioButton_lineSpacingRandomForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateLineSpacing()));
+  connect(ui->radioButton_lineSpacingFontHeightForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateLineSpacing()));
+  connect(ui->spinBox_lineSpacingMinForms,
+          SIGNAL(valueChanged(int)),
+          this,
+          SLOT(PageParamsForms_updateMin()));
+  connect(ui->spinBox_lineSpacingMaxForms,
+          SIGNAL(valueChanged(int)),
+          this,
+          SLOT(PageParamsForms_updateMax()));
+
+  connect(ui->radioButton_ImageSizeUniformForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateImageSize()));
+  connect(ui->radioButton_ImageSizeAdaptiveForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateImageSize()));
+}
+
+void
+Assistant::PageParamsForms_updateLineSpacing()
+{
+  bool enable1 = false;
+  if (ui->radioButton_lineSpacingRandomForms->isChecked()) {
+    enable1 = true;
+  } else if (ui->radioButton_lineSpacingFontHeightForms->isChecked()) {
+    enable1 = false;
+  }
+
+  ui->label_lineSpacingBetweenForms->setEnabled(enable1);
+  ui->label_lineSpacingAndForms->setEnabled(enable1);
+  ui->spinBox_lineSpacingMinForms->setEnabled(enable1);
+  ui->spinBox_lineSpacingMaxForms->setEnabled(enable1);
+
+  //emit completeChanged();
+}
+
+void
+Assistant::PageParamsForms_updateImageSize()
+{
+  bool enable1 = false;
+  if (ui->radioButton_ImageSizeUniformForms->isChecked()) {
+    enable1 = true;
+  } else if (ui->radioButton_ImageSizeAdaptiveForms->isChecked()) {
+    enable1 = false;
+  }
+
+  ui->label_ImageSizeBetweenForms->setEnabled(enable1);
+  ui->label_ImageSizeAndForms->setEnabled(enable1);
+  ui->spinBox_ImageSizeWidthForms->setEnabled(enable1);
+  ui->spinBox_ImageSizeHeightForms->setEnabled(enable1);
+
+  //emit completeChanged();
+}
+
+void
+Assistant::PageParamsForms_updateMin()
+{
+  if (ui->spinBox_lineSpacingMinForms->value() >
+      ui->spinBox_lineSpacingMaxForms->value()) {
+    ui->spinBox_lineSpacingMaxForms->setValue(ui->spinBox_lineSpacingMinForms->value());
+  }
+
+  //emit completeChanged();
+}
+
+void
+Assistant::PageParamsForms_updateMax()
+{
+  //spinBox_YYYMax was updated, we change spinBox_YYYMin
+
+  if (ui->spinBox_lineSpacingMaxForms->value() <
+      ui->spinBox_lineSpacingMinForms->value()) {
+    ui->spinBox_lineSpacingMinForms->setValue(ui->spinBox_lineSpacingMaxForms->value());
+  }
+
+  //emit completeChanged();
+}
+
+bool
+Assistant::PageParamsForms_isComplete() const
+{
+  return (
+    (!ui->radioButton_lineSpacingRandomForms->isChecked() ||
+     ui->spinBox_lineSpacingMinForms->value() <=
+       ui->spinBox_lineSpacingMaxForms->value()));
+}
+
+void
+Assistant::PageParamsForms_getParams(RandomDocumentParameters &params) const
+{
+  if (ui->radioButton_lineSpacingRandomForms->isChecked()) {
+    params.setLineSpacingType(RandomDocumentParameters::RandomLineSpacing);
+    params.setLineSpacingMinMax(ui->spinBox_lineSpacingMinForms->value(),
+                                ui->spinBox_lineSpacingMaxForms->value());
+  }
+  else if (ui->radioButton_lineSpacingFontHeightForms->isChecked()) {
+    params.setLineSpacingType(
+      RandomDocumentParameters::FontHeightAdaptedLineSpacing);
+  }
+  params.setPercentOfEmptyBlocks(ui->spinBox_percentEmptyBlocksForms->value());
+
+  //if (ui->FolderText->isChecked())
+  //params.setNbPages(1);
+  //else
+  params.setNbPages(ui->pageNumber->value());
+
+  if (ui->radioButton_ImageSizeUniformForms->isChecked()) {
+    params.imageSizeUniform = true;
+    params.imageWidth = ui->spinBox_ImageSizeWidthForms->value();
+    params.imageHeight = ui->spinBox_ImageSizeHeightForms->value();
+  }
+  else if (ui->radioButton_ImageSizeAdaptiveForms->isChecked()) {
+    params.imageSizeUniform = false;
+    params.imageWidth = 0;
+    params.imageHeight = 0;
+  }
+
+  params.useRandomBlocks = false;
+  params.blocks = _blocks;
+}
+
+
 
 void
 Assistant::chooseOutputTxtImageDir()
@@ -1740,16 +2111,6 @@ computeNumberWidth(int n)
 #include <chrono> //DEBUG
 #endif            //TIMING
 
-QString
-makePath(const QString &dir, const QString &file)
-{
-  QString res = dir;
-  const QChar sep = '/';
-  if (!dir.isEmpty() && dir[dir.size() - 1] != sep)
-    res += sep;
-  res += file;
-  return res;
-}
 
 void
 Assistant::generateTxtImages()
@@ -1846,7 +2207,13 @@ Assistant::generateTxtImages()
   }
 
   RandomDocumentParameters params;
-  PageParams_getParams(params);
+  if (ui->ClassicTextDocument->isChecked()) {
+    PageParams_getParams(params);
+  }
+  else {
+    assert(ui->FormTextDocument->isChecked());
+    PageParamsForms_getParams(params);
+  }
 
   params.outputFolderPath = _outputTxtImageDir;
 
@@ -1859,7 +2226,8 @@ Assistant::generateTxtImages()
       params.textList.append(txtPath);
     }
     params.nbPages = 1;
-  } else {
+  }
+  else {
     const int nbTexts = ui->pageNumber->value();
     params.nbPages = nbTexts;
   }
@@ -1886,7 +2254,8 @@ Assistant::generateTxtImages()
     ui->FontBackgroundRandomRB->isChecked();
   if (oneRandomFontAndBackground) {
     random.createAllTextsOneFontBackground();
-  } else { //all combinations
+  }
+  else { //all combinations
     random.createAllTexts();
   }
 

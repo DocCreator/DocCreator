@@ -39,6 +39,7 @@ protected:
   void updateListText(const QString &textPath);
   void updateListFont(const QString &fontPath);
   void updateListBackground(const QString &pathBack);
+  void updateListBackgroundForms(const QString &pathBack);
   void loadInputDegradationImageList();
 
   bool semi() const;
@@ -142,6 +143,7 @@ protected slots:
   void RadioButtons();
   void chooseTextDirectory();
   void chooseBackgroundDirectory();
+  void chooseBackgroundDirectoryForms();
   void chooseFontDirectory();
   void chooseInputImageDir();
   void chooseGTDirectory();
@@ -153,14 +155,23 @@ protected slots:
   void fontDeselectAll();
   void bckgdSelectAll();
   void bckgdDeselectAll();
+  void bckgdSelectAllForms();
+  void bckgdDeselectAllForms();
 
   void textSelectionChanges();
   void fontSelectionChanges();
+
   void backgroundSelectionChanges();
   void PageParams_updateMin();
   void PageParams_updateMax();
   void PageParams_updateLineSpacing();
   void PageParams_updateImageSize();
+
+  void backgroundSelectionChangesForms();
+  void PageParamsForms_updateMin();
+  void PageParamsForms_updateMax();
+  void PageParamsForms_updateLineSpacing();
+  void PageParamsForms_updateImageSize();
 
   void addInputImage(const QString &imageFilename);
 
@@ -273,6 +284,10 @@ protected:
   bool PageParams_isComplete() const;
   void PageParams_getParams(RandomDocumentParameters &) const;
 
+  void PageParamsForms_connect();
+  bool PageParamsForms_isComplete() const;
+  void PageParamsForms_getParams(RandomDocumentParameters &) const;
+
   int computeNbGeneratedTexts() const;
 
   void CharDeg_updateTirageAndTotal();
@@ -361,12 +376,15 @@ private:
   enum
   {
     Page_SyntheticOrSemiChoice,
+    Page_TextDocument,
     Page_TextType,
     Page_TextDirs,
     Page_TextRandomNb,
     Page_FontFiles,
     Page_BackgroundFiles,
+    Page_BackgroundFilesForms,
     Page_PageParams,
+    Page_PageParamsForms,
     Page_FinalText,
     Page_ConfirmDegradations,
     Page_ImageAndGtDirs,
@@ -506,6 +524,7 @@ private:
   QStringList _backgroundListChoice;
   QStringList _inputImageList;
   DocumentController *_DocController;
+  QVector<QVector<QRect> > _blocks;
 
   mutable QProgressDialog *_progressDialog;
   mutable size_t _numGeneratedImages;
