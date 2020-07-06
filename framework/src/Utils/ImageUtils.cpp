@@ -40,7 +40,7 @@ toGray(const QImage &img)
     }
 
   }
-#if QT_VERSION >= 0x050500 //Qt 5.5
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
   else if (depth == 8 && img.format() == QImage::Format_Grayscale8) {
 
     for (int i = 0; i < h; ++i) {

@@ -271,7 +271,7 @@ BlurFilterDialog::fileExists(const QString &path, const QString &name)
   return false;
 #else
 
-#if QT_VERSION >= 0x050200 //Qt 5.2
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)) //Qt 5.2
   return QFileInfo::exists(QDir(path).absoluteFilePath(filename));
 #else
   return QFileInfo(QDir(path).absoluteFilePath(filename)).exists();

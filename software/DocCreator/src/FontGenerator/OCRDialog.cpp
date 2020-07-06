@@ -83,11 +83,21 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
   if (label != nullptr && event->type() == QEvent::MouseButtonPress) {
     const QMouseEvent *k = (QMouseEvent *)event;
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
+
+    const int pixmapWidth = ui->originalLabel->pixmap()->width();
+    const int pixmapHeight = ui->originalLabel->pixmap()->height();
+#else
+    const QPixmap p = ui->originalLabel->pixmap(Qt::ReturnByValueConstant());
+    const int pixmapWidth = p.width();
+    const int pixmapHeight = p.height();
+#endif
+    
     const double xmouse =
-      static_cast<int>((static_cast<double>(k->pos().x()) / ui->originalLabel->pixmap()->width()) *
+      static_cast<int>((static_cast<double>(k->pos().x()) / pixmapWidth) *
             m_originalImg.width());
     const double ymouse =
-      static_cast<int>((static_cast<double>(k->pos().y()) / ui->originalLabel->pixmap()->height()) *
+      static_cast<int>((static_cast<double>(k->pos().y()) / pixmapHeight) *
             m_originalImg.height());
 
     //B:TODO:OPTIM: check if the click is in the global bounding box of all letters ? It would avoid to search each letter.
