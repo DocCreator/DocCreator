@@ -109,7 +109,12 @@ endif (NOT BUILD_ONLY_DEGRADATIONS)
 
 
 IF(NOT BUILD_ONLY_DEGRADATIONS)
-  FIND_PACKAGE(QtX REQUIRED) #TODO:DEBUG: supprimer QtX ! Ne chercher OpenGL que si ! BUILD_ONLY_DEGRADATIONS ?
+  set(CMAKE_AUTOMOC ON)
+  set(CMAKE_AUTORCC ON)
+  set(CMAKE_AUTOUIC ON)
+  FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Xml XmlPatterns PrintSupport OpenGL Network)
+  SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network)
+  SET(USE_QT5 TRUE)
 ENDIF()
 
 OPTION(BUILD_OTHER_PROGS "Build other programs than DocCreator" OFF)
