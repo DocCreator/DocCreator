@@ -214,7 +214,7 @@ testSimple0d(int imageType)
   cv::Mat imgClone = img.clone();
   
   const float angle = 11;
-  const float inpaintingRatio = 0.1;
+  const float inpaintingRatio = 0.1f;
   const cv::Mat out = dc::RotationDegradation::rotateFillInpaint1(img, angle, inpaintingRatio);
 
   REQUIRE( out.type() == imageType );
