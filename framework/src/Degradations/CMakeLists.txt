@@ -56,6 +56,8 @@ TARGET_COMPILE_OPTIONS(DocCreatorDegradations PRIVATE ${WARNING_FLAGS})
 SET_TARGET_PROPERTIES(DocCreatorDegradations PROPERTIES POSITION_INDEPENDENT_CODE ON) #ugly #for wrapper
 
 
+INSTALL(FILES ${Degradations_headers} DESTINATION include/DocCreatorFramework/Degradations)
+
 INSTALL(TARGETS DocCreatorDegradations
         #FRAMEWORK DESTINATION /Library/Frameworks
         RUNTIME DESTINATION bin

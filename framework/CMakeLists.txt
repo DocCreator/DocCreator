@@ -174,7 +174,6 @@ INSTALL(FILES ${headers_models} DESTINATION include/DocCreatorFramework/models)
 INSTALL(FILES ${headers_models_doc} DESTINATION include/DocCreatorFramework/models/doc)
 INSTALL(FILES ${headers_mvc} DESTINATION include/DocCreatorFramework/mvc)
 INSTALL(FILES ${headers_patterns} DESTINATION include/DocCreatorFramework/patterns)
-INSTALL(FILES ${Degradations_headers} DESTINATION include/DocCreatorFramework/Degradations)
 INSTALL(FILES ${Utils_headers} DESTINATION include/DocCreatorFramework/Utils)
 
 INSTALL(TARGETS DocCreatorFramework
