@@ -65,7 +65,7 @@ testSimple1(int imageType)
   cv::Mat imgClone = img.clone();
   
   const dc::ShadowBinding::Border border = dc::ShadowBinding::Border::RIGHT;
-  const int distanceRatio = 1.f/5.f;
+  const float distanceRatio = 1.f/5.f;
   const float intensity = 0.5;
   const float angle = 45;
   
