@@ -41,7 +41,7 @@ namespace dc {
     extern FRAMEWORK_EXPORT QImage rotateFillInpaint3(const QImage &img,
 						       float angle,
 						       const QImage &backgroundImg = QImage());
-  } //namespace ShadowBinding
+  } //namespace RotationDegradation
   
 
 } //namespace dc
