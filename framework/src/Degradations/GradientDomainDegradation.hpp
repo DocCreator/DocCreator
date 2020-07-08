@@ -27,11 +27,14 @@ namespace dc {
 
        @warning This implementation is rather slow.
 
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       Output image will be of the same type and size than the input img.
+
        @param img input image to degrade.
        @param stainImageDir directory to load stain images from.
        @param numStainsToInsert number of stain images to insert. 
+       @param insertType tells whether stain images must be converted to gray.
        @param doRotations indicates whether stain images are rotated before insertion.
-
        @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img,
