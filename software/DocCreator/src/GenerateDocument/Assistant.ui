@@ -1519,7 +1519,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="hl21">
+        <layout class="QHBoxLayout" name="hl21F">
          <item>
           <widget class="QRadioButton" name="radioButton_percentEmptyBlocksForms">
            <property name="sizePolicy">
@@ -2767,6 +2767,706 @@ Click &quot;Cancel&quot; otherwise.</string>
     </layout>
    </widget>
   </widget>
+  <widget class="QWizardPage" name="NoiseDegradation">
+   <property name="subTitle">
+    <string>DocCreator: Noise Degradation</string>
+   </property>
+   <widget class="QCheckBox" name="CheckNoise">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>281</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="OptionNoise" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>751</width>
+      <height>441</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget_4N">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>681</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_37N">
+      <item>
+       <widget class="QLabel" name="label_5N">
+        <property name="text">
+         <string>Add noise with the following methods: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_10N">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QGroupBox" name="GaussianNoiseGB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>731</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="GaussianNoiseCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>131</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Gaussian noise</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_6N">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>731</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5N">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_38N">
+         <item>
+          <spacer name="horizontalSpacer_15N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="AverageGaussianNoiseL">
+           <property name="text">
+            <string>Average: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAverageGaussianNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAverageGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAverageGaussianNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAverageGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="StdDevGaussianNoiseL">
+           <property name="text">
+            <string>Std Dev: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinStdDevGaussianNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinStdDevGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxStdDevGaussianNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxStdDevGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35N">
+         <item>
+          <spacer name="horizontalSpacer_15N_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="GaussianNoiseAddTypeLabel">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>310</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Grayscale transformation of inserted noise: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="GaussianNoiseAddTypeCB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122N_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="SpeckleNoiseGB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>731</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="SpeckleNoiseCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>221</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Speckle noise</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_8N">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>731</width>
+        <height>64</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5N2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_39N">
+         <item>
+          <spacer name="horizontalSpacer_16N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="AverageSpeckleNoiseL">
+           <property name="text">
+            <string>Average: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAverageSpeckleNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAverageSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAverageSpeckleNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAverageSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12N2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="StdDevSpeckleNoiseL">
+           <property name="text">
+            <string>Std Dev: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinStdDevSpeckleNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinStdDevSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxStdDevSpeckleNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxStdDevSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_132N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35N2">
+         <item>
+          <spacer name="horizontalSpacer_15N_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="SpeckleNoiseAddTypeLabel">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>310</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Grayscale transformation of inserted noise: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="SpeckleNoiseAddTypeCB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122N_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="SaltAndPepperNoiseGB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>731</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="SaltAndPepperNoiseCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Salt and Pepper noise</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_13N">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>731</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_40N">
+       <item>
+        <spacer name="horizontalSpacer_17N">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="AmountSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Amount: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MinAmountSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Min</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MinAmountSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.150000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MaxAmountSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Max</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MaxAmountSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.150000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_12SN">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>68</width>
+           <height>26</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="RatioSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Std Dev: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MinRatioSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Min</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MinRatioSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MaxRatioSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Max</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MaxRatioSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_132SPN">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>68</width>
+           <height>26</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
   <widget class="QWizardPage" name="RotationDegradation">
    <property name="subTitle">
     <string>DocCreator: Rotation Degradation</string>
@@ -3493,7 +4193,7 @@ Click &quot;Cancel&quot; otherwise.</string>
        <x>0</x>
        <y>0</y>
        <width>799</width>
-       <height>185</height>
+       <height>28</height>
       </rect>
      </property>
      <property name="minimumSize">
@@ -4806,14 +5506,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_12R">
+        <widget class="QLabel" name="label_12N">
          <property name="text">
-          <string>Rotation</string>
+          <string>Noise</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLineEdit" name="NbDegRotation">
+        <widget class="QLineEdit" name="NbDegNoise">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4829,14 +5529,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="6" column="2">
-        <widget class="QSpinBox" name="TirageRotation">
+        <widget class="QSpinBox" name="TirageNoise">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="6" column="3">
-        <widget class="QLineEdit" name="TotalRotation">
+        <widget class="QLineEdit" name="TotalNoise">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4852,14 +5552,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="label_12R">
          <property name="text">
-          <string>Blur</string>
+          <string>Rotation</string>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QLineEdit" name="NbDegBlur">
+        <widget class="QLineEdit" name="NbDegRotation">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4875,14 +5575,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="7" column="2">
-        <widget class="QSpinBox" name="TirageBlur">
+        <widget class="QSpinBox" name="TirageRotation">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="7" column="3">
-        <widget class="QLineEdit" name="TotalBlur">
+        <widget class="QLineEdit" name="TotalRotation">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4898,14 +5598,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="8" column="0">
-        <widget class="QLabel" name="label_14">
+        <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>Shadow Binding</string>
+          <string>Blur</string>
          </property>
         </widget>
        </item>
        <item row="8" column="1">
-        <widget class="QLineEdit" name="NbDegShadow">
+        <widget class="QLineEdit" name="NbDegBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4921,17 +5621,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="8" column="2">
-        <widget class="QSpinBox" name="TirageShadow">
+        <widget class="QSpinBox" name="TirageBlur">
          <property name="enabled">
           <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <number>1</number>
          </property>
         </widget>
        </item>
        <item row="8" column="3">
-        <widget class="QLineEdit" name="TotalShadow">
+        <widget class="QLineEdit" name="TotalBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4947,14 +5644,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="9" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>Hole</string>
+          <string>Shadow Binding</string>
          </property>
         </widget>
        </item>
        <item row="9" column="1">
-        <widget class="QLineEdit" name="NbDegHole">
+        <widget class="QLineEdit" name="NbDegShadow">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4970,14 +5667,17 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="9" column="2">
-        <widget class="QSpinBox" name="TirageHole">
+        <widget class="QSpinBox" name="TirageShadow">
          <property name="enabled">
           <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>1</number>
          </property>
         </widget>
        </item>
        <item row="9" column="3">
-        <widget class="QLineEdit" name="TotalHole">
+        <widget class="QLineEdit" name="TotalShadow">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -4993,14 +5693,14 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="10" column="0">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="label_10">
          <property name="text">
-          <string>3D distortion</string>
+          <string>Hole</string>
          </property>
         </widget>
        </item>
        <item row="10" column="1">
-        <widget class="QLineEdit" name="NbDegDist3D">
+        <widget class="QLineEdit" name="NbDegHole">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -5016,17 +5716,37 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="10" column="2">
-        <widget class="QSpinBox" name="TirageDist3D">
+        <widget class="QSpinBox" name="TirageHole">
          <property name="enabled">
           <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <number>1</number>
          </property>
         </widget>
        </item>
        <item row="10" column="3">
-        <widget class="QLineEdit" name="TotalDist3D">
+        <widget class="QLineEdit" name="TotalHole">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>3D distortion</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QLineEdit" name="NbDegDist3D">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -5042,6 +5762,32 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="11" column="2">
+        <widget class="QSpinBox" name="TirageDist3D">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="3">
+        <widget class="QLineEdit" name="TotalDist3D">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="2">
         <widget class="QLabel" name="label_19">
          <property name="text">
           <string>Total number of images that will be generated</string>
@@ -5051,7 +5797,7 @@ Click &quot;Cancel&quot; otherwise.</string>
          </property>
         </widget>
        </item>
-       <item row="11" column="3">
+       <item row="12" column="3">
         <widget class="QLineEdit" name="TotalPic">
          <property name="enabled">
           <bool>true</bool>
@@ -5152,16 +5898,16 @@ completePathToOutputDirectory </string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupParamsBlockX"/>
-  <buttongroup name="buttonGroupParamsImageSize"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
-  <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroupText"/>
-  <buttongroup name="buttonGroupTextGeneration"/>
-  <buttongroup name="buttonGroupParamsBottomMargin"/>
-  <buttongroup name="buttonGroupParamsRightMargin"/>
   <buttongroup name="buttonGroupParamsTopMargin"/>
-  <buttongroup name="buttonGroupParamsLineSpacing"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroupParamsBottomMargin"/>
   <buttongroup name="buttonGroupParamsLeftMargin"/>
+  <buttongroup name="buttonGroupTextGeneration"/>
+  <buttongroup name="buttonGroupParamsBlockX"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupText"/>
+  <buttongroup name="buttonGroupParamsRightMargin"/>
+  <buttongroup name="buttonGroupParamsLineSpacing"/>
  </buttongroups>
 </ui>

@@ -60,6 +60,9 @@ protected:
   void CharDeg_updateCharImageMin(int level);
   void CharDeg_updateCharImageMax(int level);
 
+  //Noise Degradation
+  void Noise_setupGUIImages();
+
   //Rotation Degradation
   void Rotation_setupGUIImages();
   
@@ -84,6 +87,7 @@ protected:
   int charMax() const;
   int nbTirageChar() const;
   bool charEnable() const;
+  bool noiseEnable() const;
   bool rotationEnable() const;
   bool shadEnable() const;
   bool gddEnable() const;
@@ -200,6 +204,23 @@ protected slots:
   void CharDeg_nbIterationsMaxChangedChar();
   void CharDeg_tirageCharChanged(int nbTirage);
 
+  //Noise Degradation slots
+  void Noise_EnableNoiseOption();
+  void Noise_MethodsChanged();
+  void Noise_tirageNoiseChanged(int nbTirage);
+  void Noise_changeMinAverageGaussian(double);
+  void Noise_changeMaxAverageGaussian(double);
+  void Noise_changeMinStdDevGaussian(double);
+  void Noise_changeMaxStdDevGaussian(double);
+  void Noise_changeMinAverageSpeckle(double);
+  void Noise_changeMaxAverageSpeckle(double);
+  void Noise_changeMinStdDevSpeckle(double);
+  void Noise_changeMaxStdDevSpeckle(double);
+  void Noise_changeMinAmountSaltAndPepper(double);
+  void Noise_changeMaxAmountSaltAndPepper(double);
+  void Noise_changeMinRatioSaltAndPepper(double);
+  void Noise_changeMaxRatioSaltAndPepper(double);
+
   //Rotation Degradation slots
   void Rotation_EnableRotationOption();
   void Rotation_FillMethodChanged();
@@ -292,6 +313,9 @@ protected:
 
   void CharDeg_updateTirageAndTotal();
 
+  int Noise_nbDegradations() const;
+  void Noise_updateTirageAndTotal();
+
   int Rotation_nbDegradations() const;
   void Rotation_updateTirageAndTotal();
 
@@ -362,6 +386,10 @@ protected:
              const QImage &recto,
              const QString &outputImageDir) const;
 
+  void do_Noise(const QString &imageBasename,
+		const QImage &recto,
+		const QString &outputImageDir) const;
+
   void do_Rotation(const QString &imageBasename,
 		   const QImage &recto,
 		   const QString &inputImageDir,
@@ -392,6 +420,7 @@ private:
     Page_Phantom,
     Page_GDD,
     Page_Bleed,
+    Page_Noise,
     Page_Rotation,
     Page_Blur,
     Page_Shadow,
@@ -461,6 +490,8 @@ private:
   int _CharDeg_charMax = 3;
   //int _CharDeg_nbTirageChar = 0;
   bool _CharDeg_charEnable;
+
+  bool _Noise_noiseEnable;
 
   bool _Rotation_rotationEnable;
   

@@ -23,6 +23,7 @@
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationQ.hpp"
 #include "Degradations/PhantomCharacterQ.hpp"
+#include "Degradations/NoiseDegradationQ.hpp"
 #include "Degradations/RotationDegradationQ.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
 #include "Document/DocumentController.hpp"
@@ -125,6 +126,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
 
   BleedThrough_setupGUIImages();
   CharDeg_setupGUIImages();
+  Noise_setupGUIImages();
   Rotation_setupGUIImages();
   Shadow_setupGUIImages();
   Phantom_setupGUIImages();
@@ -135,6 +137,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
 
   _BleedThrough_bleedEnable = false;
   _CharDeg_charEnable = false;
+  _Noise_noiseEnable = false;
   _Rotation_rotationEnable = false;
   _Shadow_shadEnable = false;
   _Phantom_phantEnable = false;
@@ -320,7 +323,75 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    this,
                    SLOT(CharDeg_tirageCharChanged(int)));
 
-  
+
+  QObject::connect(ui->CheckNoise,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_EnableNoiseOption()));
+  QObject::connect(ui->GaussianNoiseCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_MethodsChanged()));
+  QObject::connect(ui->SpeckleNoiseCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_MethodsChanged()));
+  QObject::connect(ui->SaltAndPepperNoiseCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_MethodsChanged()));
+  QObject::connect(ui->MinAverageGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinAverageGaussian(double)));
+  QObject::connect(ui->MaxAverageGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxAverageGaussian(double)));
+  QObject::connect(ui->MinStdDevGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinStdDevGaussian(double)));
+  QObject::connect(ui->MaxStdDevGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxStdDevGaussian(double)));
+  QObject::connect(ui->MinAverageSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinAverageSpeckle(double)));
+  QObject::connect(ui->MaxAverageSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxAverageSpeckle(double)));
+  QObject::connect(ui->MinStdDevSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinStdDevSpeckle(double)));
+  QObject::connect(ui->MaxStdDevSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxStdDevSpeckle(double)));
+  QObject::connect(ui->MinAmountSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinAmountSaltAndPepper(double)));
+  QObject::connect(ui->MaxAmountSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxAmountSaltAndPepper(double)));
+  QObject::connect(ui->MinRatioSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinRatioSaltAndPepper(double)));
+  QObject::connect(ui->MaxRatioSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxRatioSaltAndPepper(double)));
+
+
+
+
   QObject::connect(ui->CheckRotation,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -976,6 +1047,9 @@ Assistant::nextId() const
       return Page_Bleed;
       break;
     case Page_Bleed:
+      return Page_Noise;
+      break;
+    case Page_Noise:
       return Page_Rotation;
       break;
     case Page_Rotation:
@@ -2050,6 +2124,9 @@ Assistant::nbOfDegradedImages() const
   if (_GDD_gddEnable)
     totalPic += 1 * ui->TirageGDD->value() * nbPic;
 
+  if (_Noise_noiseEnable)
+    totalPic += Noise_nbDegradations() * ui->TirageNoise->value() * nbPic;
+
   if (_Rotation_rotationEnable)
     totalPic += Rotation_nbDegradations() * ui->TirageRotation->value() * nbPic;
   
@@ -2747,6 +2824,217 @@ Assistant::CharDeg_tirageCharChanged(int /*value*/)
   updateTotalPic();
 }
 
+
+void
+Assistant::Noise_setupGUIImages()
+{
+  if (ui->GaussianNoiseAddTypeCB->count() == 0) {
+    ui->GaussianNoiseAddTypeCB->addItem(tr("None"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS)));
+    ui->GaussianNoiseAddTypeCB->addItem(tr("To gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY)));
+    ui->GaussianNoiseAddTypeCB->addItem(tr("To gray if image is gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY)));
+    assert(ui->GaussianNoiseAddTypeCB->count() == 3);
+    ui->GaussianNoiseAddTypeCB->setCurrentIndex(2);
+  }
+
+  if (ui->SpeckleNoiseAddTypeCB->count() == 0) {
+    ui->SpeckleNoiseAddTypeCB->addItem(tr("None"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS)));
+    ui->SpeckleNoiseAddTypeCB->addItem(tr("To gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY)));
+    ui->SpeckleNoiseAddTypeCB->addItem(tr("To gray if image is gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY)));
+    assert(ui->SpeckleNoiseAddTypeCB->count() == 3);
+    ui->SpeckleNoiseAddTypeCB->setCurrentIndex(2);
+  }
+
+}
+
+int
+Assistant::Noise_nbDegradations() const
+{
+  int nbDegs = 0;
+  if (ui->GaussianNoiseCB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->SpeckleNoiseCB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->SaltAndPepperNoiseCB->isChecked()) {
+    nbDegs += 1;
+  }
+  return nbDegs;
+}
+
+void
+Assistant::Noise_updateTirageAndTotal()
+{
+  const int nbDegs = Noise_nbDegradations();
+  ui->NbDegNoise->setText(QString::number(nbDegs));
+
+  const bool enabled = (nbDegs > 0);
+  ui->NbDegNoise->setEnabled(enabled);
+  ui->TirageNoise->setEnabled(enabled);
+  ui->TotalNoise->setEnabled(enabled);
+  if (nbDegs == 0)
+    ui->TirageNoise->setValue(0);
+
+  if (nbDegs > 0 &&
+      ui->TirageNoise->value() == 0) {
+    //set TirageNoise value to 1 once we have some degradations selected
+    ui->TirageNoise->setValue(1);
+  }
+
+  const int total =
+    nbDegs * _inputImageList.size() * ui->TirageNoise->value();
+  ui->TotalNoise->setText(QString::number(total));
+
+  updateTotalPic();
+}
+
+void
+Assistant::Noise_EnableNoiseOption()
+{
+  bool enabled = false;
+  if (ui->CheckNoise->isChecked()) {
+    enabled = true;
+    _Noise_noiseEnable = enabled;
+    Noise_updateTirageAndTotal();
+  }
+  else {
+    _Noise_noiseEnable = enabled;
+    ui->NbDegNoise->setEnabled(enabled);
+    ui->TirageNoise->setEnabled(enabled);
+    ui->TotalNoise->setEnabled(enabled);
+
+    ui->TirageNoise->setValue(0);
+    //signal/slot will call Noise_tirageNoiseChanged(0)
+  }
+
+  ui->OptionNoise->setEnabled(enabled);
+  ui->GaussianNoiseCB->setEnabled(enabled);
+  ui->SpeckleNoiseCB->setEnabled(enabled);
+  ui->SaltAndPepperNoiseCB->setEnabled(enabled);
+
+  ui->MinAverageGaussianNoiseSB->setEnabled(enabled);
+  ui->MaxAverageGaussianNoiseSB->setEnabled(enabled);
+  ui->MinStdDevGaussianNoiseSB->setEnabled(enabled);
+  ui->MaxStdDevGaussianNoiseSB->setEnabled(enabled);
+  ui->MinAverageSpeckleNoiseSB->setEnabled(enabled);
+  ui->MaxAverageSpeckleNoiseSB->setEnabled(enabled);
+  ui->MinStdDevSpeckleNoiseSB->setEnabled(enabled);
+  ui->MaxStdDevSpeckleNoiseSB->setEnabled(enabled);
+  ui->MinAmountSaltAndPepperNoiseSB->setEnabled(enabled);
+  ui->MaxAmountSaltAndPepperNoiseSB->setEnabled(enabled);
+  ui->MinRatioSaltAndPepperNoiseSB->setEnabled(enabled);
+  ui->MaxRatioSaltAndPepperNoiseSB->setEnabled(enabled);
+}
+
+void
+Assistant::Noise_MethodsChanged()
+{
+  Noise_updateTirageAndTotal();
+}
+
+void
+Assistant::Noise_tirageNoiseChanged(int /*nbTirage*/)
+{
+  const int nbDegs = Noise_nbDegradations();
+  ui->NbDegNoise->setText(QString::number(nbDegs));
+  const int total = nbDegs * _inputImageList.size() *
+                    ui->TirageNoise->value(); //_Noise_nbTirageNoise;
+  ui->TotalNoise->setText(QString::number(total));
+  updateTotalPic();
+}
+
+void
+Assistant::Noise_changeMinAverageGaussian(double value)
+{
+  if (ui->MaxAverageGaussianNoiseSB->value() < value)
+    ui->MaxAverageGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxAverageGaussian(double value)
+{
+  if (ui->MinAverageGaussianNoiseSB->value() > value)
+    ui->MinAverageGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinStdDevGaussian(double value)
+{
+  if (ui->MaxStdDevGaussianNoiseSB->value() < value)
+    ui->MaxStdDevGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxStdDevGaussian(double value)
+{
+  if (ui->MinStdDevGaussianNoiseSB->value() > value)
+    ui->MinStdDevGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinAverageSpeckle(double value)
+{
+  if (ui->MaxAverageSpeckleNoiseSB->value() < value)
+    ui->MaxAverageSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxAverageSpeckle(double value)
+{
+  if (ui->MinAverageSpeckleNoiseSB->value() > value)
+    ui->MinAverageSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinStdDevSpeckle(double value)
+{
+  if (ui->MaxStdDevSpeckleNoiseSB->value() < value)
+    ui->MaxStdDevSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxStdDevSpeckle(double value)
+{
+  if (ui->MinStdDevSpeckleNoiseSB->value() > value)
+    ui->MinStdDevSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinAmountSaltAndPepper(double value)
+{
+  if (ui->MaxAmountSaltAndPepperNoiseSB->value() < value)
+    ui->MaxAmountSaltAndPepperNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxAmountSaltAndPepper(double value)
+{
+  if (ui->MinAmountSaltAndPepperNoiseSB->value() > value)
+    ui->MinAmountSaltAndPepperNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinRatioSaltAndPepper(double value)
+{
+  if (ui->MaxRatioSaltAndPepperNoiseSB->value() < value)
+    ui->MaxRatioSaltAndPepperNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxRatioSaltAndPepper(double value)
+{
+  if (ui->MinRatioSaltAndPepperNoiseSB->value() > value)
+    ui->MinRatioSaltAndPepperNoiseSB->setValue(value);
+}
+
+
+
 void
 Assistant::Rotation_setupGUIImages()
 {
@@ -2837,7 +3125,6 @@ Assistant::Rotation_EnableRotationOption()
     //signal/slot will call Rotation_tirageRotationChanged(0)
   }
 
-  std::cerr<<"Rotation_EnableRotationOption() enabled="<<enabled<<"\n";
   ui->OptionRotation->setEnabled(enabled);
   ui->RotationAngleMinSB->setEnabled(enabled);
   ui->RotationAngleMinSB->setEnabled(enabled);
@@ -2846,9 +3133,9 @@ Assistant::Rotation_EnableRotationOption()
   ui->RotationSpecificColorRB->setEnabled(enabled);
   ui->RotationColorSelectionPB->setEnabled(enabled);
   ui->RotationRandomColorRB->setEnabled(enabled);
-  std::cerr<<"Rotation_EnableRotationOption() ui->RotationFillImageCB->isEnabled()="<<ui->RotationFillImageCB->isEnabled()<<"\n";
+
   ui->RotationFillImageCB->setEnabled(enabled);
-  std::cerr<<"Rotation_EnableRotationOption() ui->RotationFillImageCB->isEnabled()="<<ui->RotationFillImageCB->isEnabled()<<"\n";
+
   ui->RotationImageRepeatsMinSB->setEnabled(enabled);
   ui->RotationImageRepeatsMaxSB->setEnabled(enabled);
   ui->RotationFillBorderCB->setEnabled(enabled);
@@ -2898,7 +3185,7 @@ Assistant::Rotation_tirageRotationChanged(int /*nbTirage*/)
   const int total = nbDegs * _inputImageList.size() *
                     ui->TirageRotation->value(); //_Rotation_nbTirageRotation;
   ui->TotalRotation->setText(QString::number(total));
-  updateTotalPic();  
+  updateTotalPic();
 }
 
 void
@@ -3082,8 +3369,6 @@ Assistant::Shadow_updateTirageAndTotal()
 
   const int total = nbDegs * _inputImageList.size() * ui->TirageShadow->value();
   ui->TotalShadow->setText(QString::number(total));
-
-  //std::cerr<<"DEBUG Shadow_updateTirageAndTotal() nbDegs="<<nbDegs<<" total="<<total<<"\n";
 
   updateTotalPic();
 }
@@ -4309,8 +4594,6 @@ Hole_degradateImageRandom(QImage &degImg,
 
   if (!holePattern.isNull()) {
 
-    //std::cerr << "   filename=" << filename.toStdString() << "\n";
-
     if (scaleW != 1.f && scaleH != 1.f) {
       const int holeWidth = static_cast<int>(holePattern.width() * scaleW);
       const int holeHeight = static_cast<int>(holePattern.height() * scaleH);
@@ -5165,6 +5448,12 @@ Assistant::charMin() const
 }
 
 bool
+Assistant::noiseEnable() const
+{
+  return _Noise_noiseEnable;
+}
+
+bool
 Assistant::rotationEnable() const
 {
   return _Rotation_rotationEnable;
@@ -5896,7 +6185,7 @@ Rotation_saveFillImageXml(const QString &outputXmlFilename,
   QString xml = Rotation_makePrefixXml(imageFilename, "Image", angle);  
   xml += "\t\t<Background>" + backgroundImgPath + "</Background>\n";
   xml += Rotation_makeSuffixeXml();
-  return saveXml(xml, outputXmlFilename);  
+  return saveXml(xml, outputXmlFilename);
 }
 
 static
@@ -5909,7 +6198,7 @@ Rotation_saveFillBorderXml(const QString &outputXmlFilename,
   QString xml = Rotation_makePrefixXml(imageFilename, "Border", angle);  
   xml += "\t\t<Replication>" + borderModeStr + "</Replication>\n";
   xml += Rotation_makeSuffixeXml();
-  return saveXml(xml, outputXmlFilename);  
+  return saveXml(xml, outputXmlFilename);
 }
 
 static
@@ -5939,7 +6228,7 @@ Rotation_saveFillBorder(const QImage &recto, float angle,
   
   const QString prefixFilename = imageBasename + "Rot_" + modeStr + "_" + QString::number(i);
   const QString filename = prefixFilename + ".png";
-  imgRot.save(outputImageDir + filename);      
+  imgRot.save(outputImageDir + filename);
   return Rotation_saveFillBorderXml(outputImageDir + prefixFilename + ".xml",
 				    filename, angle, modeStr);
 }
@@ -5980,7 +6269,7 @@ Rotation_saveFillInpaint(const QImage &recto, float angle,
 
   const QString prefixFilename = imageBasename + "Rot_" + "Inpaint"+ methodStr + "_" + QString::number(i);
   const QString filename = prefixFilename + ".png";
-  imgRot.save(outputImageDir + filename);      
+  imgRot.save(outputImageDir + filename);
   return Rotation_saveFillInpaintXml(outputImageDir + prefixFilename + ".xml",
 				    filename, angle, methodStr);
 }
@@ -5996,11 +6285,8 @@ Assistant::do_Rotation(const QString &imageBasename,
   const float angleMax = ui->RotationAngleMaxSB->value();
   assert(angleMin<=angleMax);
   
-    std::cerr<<"do_Rotation numDraws="<<numDraws<<"\n";
   for (int i = 0; i < numDraws; ++i) {
 
-    std::cerr<<"do_Rotation  "<<i<<"/"<<numDraws<<"\n";
-    
     const float angle = random_in_range(angleMin, angleMax);
 
     if (ui->RotationFillColorCB->isChecked()) {
@@ -6017,10 +6303,9 @@ Assistant::do_Rotation(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Rot_color_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgRot.save(outputImageDir + filename);      
+      imgRot.save(outputImageDir + filename);
       Rotation_saveFillColorXml(outputImageDir + prefixFilename + ".xml",
 				filename, angle, color);
-      std::cerr<<"do_Rotation  "<<i<<"/"<<numDraws<<" COLOR\n";
       updateProgress();
     }
 
@@ -6033,7 +6318,7 @@ Assistant::do_Rotation(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Rot_bckgrd_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgRot.save(outputImageDir + filename);      
+      imgRot.save(outputImageDir + filename);
       Rotation_saveFillImageXml(outputImageDir + prefixFilename + ".xml",
 				filename, angle, backgroundImgPath);
       updateProgress();
@@ -6082,6 +6367,178 @@ Assistant::do_Rotation(const QString &imageBasename,
      
     }
     
+  }
+}
+
+
+static
+QString
+Noise_makePrefixXml(const QString &imageFilename,
+		    const QString &noiseMethod)
+{
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<DegradationName>Noise</DegradationName>\n";
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Type>" + noiseMethod + "</Type>\n";
+  return xml;
+}
+
+static
+QString
+Noise_makeSuffixeXml()
+{
+  QString xml;
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
+}
+
+static
+bool
+Noise_saveNoiseXml(const QString &outputXmlFilename,
+		   const QString &imageFilename,
+		   const QString &method,
+		   float average,
+		   float stddev,
+		   dc::NoiseDegradation::AddNoiseType addType)
+{
+  QString xml = Noise_makePrefixXml(imageFilename, method);
+  xml += "\t\t<Average>" + QString::number(average) + "</Average>\n";
+  xml += "\t\t<StdDev>" + QString::number(stddev) + "</StdDev>\n";
+  switch (addType) {
+  case dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS:
+    xml += "\t\t<Add>ADD_NOISE_AS_IS</Add>\n";
+    break;
+  case dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY:
+    xml += "\t\t<Add>ADD_NOISE_AS_GRAY</Add>\n";
+    break;
+  case dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY:
+    xml += "\t\t<Add>ADD_NOISE_AS_GRAY_IF_GRAY</Add>\n";
+    break;
+  }
+  xml += Noise_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+static
+bool
+Noise_saveGaussianNoiseXml(const QString &outputXmlFilename,
+			   const QString &imageFilename,
+			   float average,
+			   float stddev,
+			   dc::NoiseDegradation::AddNoiseType addType)
+{
+  return Noise_saveNoiseXml(outputXmlFilename,
+			    imageFilename,
+			    "Gaussian",
+			    average, stddev, addType);
+}
+
+static
+bool
+Noise_saveSpeckleNoiseXml(const QString &outputXmlFilename,
+			  const QString &imageFilename,
+			  float average,
+			  float stddev,
+			  dc::NoiseDegradation::AddNoiseType addType)
+{
+  return Noise_saveNoiseXml(outputXmlFilename,
+			    imageFilename,
+			    "Speckle",
+			    average, stddev, addType);
+}
+
+static
+bool
+Noise_saveSaltAndPepperNoiseXml(const QString &outputXmlFilename,
+				const QString &imageFilename,
+				float amount, float ratio)
+{
+  QString xml = Noise_makePrefixXml(imageFilename, "SaltAndPepper");
+  xml += "\t\t<Amount>" + QString::number(amount) + "</Amount>\n";
+  xml += "\t\t<Ratio>" + QString::number(ratio) + "</Ratio>\n";
+  xml += Noise_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+void
+Assistant::do_Noise(const QString &imageBasename,
+		    const QImage &recto,
+		    const QString &outputImageDir) const
+{
+  const int numDraws = ui->TirageNoise->value();
+  for (int i = 0; i < numDraws; ++i) {
+
+    if (ui->GaussianNoiseCB->isChecked()) {
+
+      const float averageMin = ui->MinAverageGaussianNoiseSB->value();
+      const float averageMax = ui->MaxAverageGaussianNoiseSB->value();
+      const float average = random_in_range(averageMin, averageMax);
+
+      const float stdDevMin = ui->MinStdDevGaussianNoiseSB->value();
+      const float stdDevMax = ui->MaxStdDevGaussianNoiseSB->value();
+      const float stdDev = random_in_range(stdDevMin, stdDevMax);
+
+      dc::NoiseDegradation::AddNoiseType addType =
+	static_cast<dc::NoiseDegradation::AddNoiseType>(ui->GaussianNoiseAddTypeCB->currentData().toInt());
+
+      QImage imgN;
+      imgN = dc::NoiseDegradation::addGaussianNoise(recto, average, stdDev, addType);
+
+      const QString prefixFilename = imageBasename + "Noise_Gaussian_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      Noise_saveGaussianNoiseXml(outputImageDir + prefixFilename + ".xml",
+				 filename, average, stdDev, addType);
+      updateProgress();
+    }
+
+    if (ui->SpeckleNoiseCB->isChecked()) {
+
+      const float averageMin = ui->MinAverageSpeckleNoiseSB->value();
+      const float averageMax = ui->MaxAverageSpeckleNoiseSB->value();
+      const float average = random_in_range(averageMin, averageMax);
+
+      const float stdDevMin = ui->MinStdDevSpeckleNoiseSB->value();
+      const float stdDevMax = ui->MaxStdDevSpeckleNoiseSB->value();
+      const float stdDev = random_in_range(stdDevMin, stdDevMax);
+
+      dc::NoiseDegradation::AddNoiseType addType =
+	static_cast<dc::NoiseDegradation::AddNoiseType>(ui->SpeckleNoiseAddTypeCB->currentData().toInt());
+
+      QImage imgN;
+      imgN = dc::NoiseDegradation::addSpeckleNoise(recto, average, stdDev, addType);
+
+      const QString prefixFilename = imageBasename + "Noise_Speckle_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      Noise_saveSpeckleNoiseXml(outputImageDir + prefixFilename + ".xml",
+				filename, average, stdDev, addType);
+      updateProgress();
+    }
+
+    if (ui->SaltAndPepperNoiseCB->isChecked()) {
+
+      const float amountMin = ui->MinAmountSaltAndPepperNoiseSB->value();
+      const float amountMax = ui->MaxAmountSaltAndPepperNoiseSB->value();
+      const float amount = random_in_range(amountMin, amountMax);
+
+      const float ratioMin = ui->MinRatioSaltAndPepperNoiseSB->value();
+      const float ratioMax = ui->MaxRatioSaltAndPepperNoiseSB->value();
+      const float ratio = random_in_range(ratioMin, ratioMax);
+
+      QImage imgN;
+      imgN = dc::NoiseDegradation::addSaltAndPepperNoise(recto, amount, ratio);
+
+      const QString prefixFilename = imageBasename + "Noise_SaltAndPepper_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      Noise_saveSaltAndPepperNoiseXml(outputImageDir + prefixFilename + ".xml",
+				      filename, amount, ratio);
+      updateProgress();
+    }
+
   }
 }
 
@@ -6798,6 +7255,14 @@ Assistant::generateDegradedImages() const
         }
       }
 
+      //Apply NoiseDegradation if enabled
+      if (this->noiseEnable()) {
+        do_Noise(imageBasename, recto, savePath);
+        if (_progressDialog->wasCanceled()) {
+          break;
+        }
+      }
+
       //Apply RotationDegradation if enabled
       if (this->rotationEnable()) {
         do_Rotation(imageBasename, recto, inputImageDir, savePath);
@@ -6805,7 +7270,6 @@ Assistant::generateDegradedImages() const
           break;
         }
       }
-      
 
     }
   }
