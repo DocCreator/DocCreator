@@ -260,6 +260,7 @@ SET(
   src/Degradations/GradientDomainDegradationQ.hpp
   src/Degradations/GrayCharacterDegradationModelQ.cpp
   src/Degradations/HoleDegradationQ.hpp
+  src/Degradations/NoiseDegradationQ.hpp
   src/Degradations/PhantomCharacterQ.hpp
   src/Degradations/RotationDegradationQ.hpp
   src/Degradations/ShadowBindingQ.hpp
@@ -272,6 +273,7 @@ SET(
   src/Degradations/GradientDomainDegradationQ.cpp
   src/Degradations/GrayCharacterDegradationModelQ.cpp
   src/Degradations/HoleDegradationQ.cpp
+  src/Degradations/NoiseDegradationQ.cpp
   src/Degradations/PhantomCharacterQ.cpp
   src/Degradations/RotationDegradationQ.cpp
   src/Degradations/ShadowBindingQ.cpp
