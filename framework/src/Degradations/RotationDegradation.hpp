@@ -10,6 +10,7 @@ namespace dc {
     /**
        Rotate in image and fill appearing background pixels with uniform color.
        
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade
@@ -90,6 +91,7 @@ namespace dc {
     /**
        Rotate in image and fill appearing background pixels replicating input image.
        
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade
@@ -106,6 +108,7 @@ namespace dc {
 
        @a img pixels are used for inpainting, according to @a inpaintingRatio.
 
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade
