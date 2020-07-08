@@ -17,10 +17,12 @@ SET(
   GradientDomainDegradation.hpp
   GrayscaleCharsDegradationModel.hpp
   HoleDegradation.hpp
+  NoiseDegradation.hpp
   PhantomCharacter.hpp
   RotationDegradation.hpp
   ShadowBinding.hpp
   ConnectedComponent.hpp
+  ColorUtils.hpp
   FileUtils.hpp
   )
 
@@ -32,10 +34,12 @@ SET(
   GradientDomainDegradation.cpp
   GrayscaleCharsDegradationModel.cpp
   HoleDegradation.cpp
+  NoiseDegradation.cpp
   PhantomCharacter.cpp
   RotationDegradation.cpp
   ShadowBinding.cpp
   ConnectedComponent.cpp
+  ColorUtils.cpp
   FileUtils.cpp
   )
 
