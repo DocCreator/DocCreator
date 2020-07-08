@@ -23,6 +23,7 @@
 #include "Degradations/GradientDomainDegradation.hpp"
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
 #include "Degradations/HoleDegradation.hpp"
+#include "Degradations/NoiseDegradation.hpp"
 #include "Degradations/PhantomCharacter.hpp"
 #include "Degradations/RotationDegradation.hpp"
 #include "Degradations/ShadowBinding.hpp"
@@ -46,6 +47,9 @@ const std::string phantom_patternsPath = PHANTOM_PATTERNS_PATH;
 const bool do_gradientDomain = true;
 const std::string gradientDomain_stainImagesPath = STAIN_IMAGES_PATH;
 
+const bool do_gaussianNoise = true;
+const float gaussianNoise_average = 0.0f;
+const float gaussianNoise_stddev = 13.0f;
 
 const bool do_blur = true;
 const int blur_minIntensity = 1;
@@ -226,6 +230,19 @@ main(int argc, char *argv[])
       }
       else {
 	saveImage(imgGDD, outputImageDirectory, imageList[i], "_gdd");	
+      }
+    }
+
+    if (do_gaussianNoise) {
+      const dc::NoiseDegradation::AddNoiseType addType = dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY;
+
+      cv::Mat imgND = dc::NoiseDegradation::addGaussianNoise(currImg, gaussianNoise_average, gaussianNoise_stddev, addType);
+      if (cumulate) {
+	currImg = imgND;
+	suffixe += "_nd";
+      }
+      else {
+	saveImage(imgND, outputImageDirectory, imageList[i], "_nd");
       }
     }
 
