@@ -14,6 +14,7 @@ SET(
   BleedThrough.hpp
   BlurFilter.hpp
   Distortion3D.hpp
+  ElasticDeformation.hpp
   GradientDomainDegradation.hpp
   GrayscaleCharsDegradationModel.hpp
   HoleDegradation.hpp
@@ -31,6 +32,7 @@ SET(
   BleedThrough.cpp
   BlurFilter.cpp
   Distortion3D.cpp
+  ElasticDeformation.cpp
   GradientDomainDegradation.cpp
   GrayscaleCharsDegradationModel.cpp
   HoleDegradation.cpp
