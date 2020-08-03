@@ -257,6 +257,7 @@ SET(
   src/Degradations/BleedThroughQ.hpp
   src/Degradations/BlurFilterQ.hpp
   src/Degradations/DocumentDegradation.hpp
+  src/Degradations/ElasticDeformationQ.hpp
   src/Degradations/GradientDomainDegradationQ.hpp
   src/Degradations/GrayCharacterDegradationModelQ.cpp
   src/Degradations/HoleDegradationQ.hpp
@@ -270,6 +271,7 @@ SET(
   DocCreatorQ_sources
   src/Degradations/BleedThroughQ.cpp
   src/Degradations/BlurFilterQ.cpp
+  src/Degradations/ElasticDeformationQ.cpp
   src/Degradations/GradientDomainDegradationQ.cpp
   src/Degradations/GrayCharacterDegradationModelQ.cpp
   src/Degradations/HoleDegradationQ.cpp
