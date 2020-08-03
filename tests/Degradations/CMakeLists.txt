@@ -13,6 +13,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testBleedThrough
   testBlurDegradation
   testCharactersDegradation
+  testElasticDeformation
   testHoleDegradation
   testGradientDomainDegradation
   testNoiseDegradation
