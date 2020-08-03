@@ -19,6 +19,7 @@
 #include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
+#include "Degradations/ElasticDeformationQ.hpp"
 #include "Degradations/GradientDomainDegradationQ.hpp"
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationQ.hpp"
@@ -133,6 +134,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   GDD_setupGUIImages();
   Blur_setupGUIImages();
   Hole_setupGUIImages();
+  ElasticDeformation_setupGUIImages();
   Dist3D_setupGUIImages();
 
   _BleedThrough_bleedEnable = false;
@@ -146,6 +148,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   _Blur_PageEnable = false;
   _Blur_ZoneEnable = false;
   _Hole_holeEnable = false;
+  _ElasticDeformation_elasticEnable = false;
   _Dist3D_dist3DEnable = false;
 
   //_BleedThrough_nbTirageBleed = 0;
@@ -667,6 +670,63 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    this,
                    SLOT(Hole_tirageHoleChanged(int)));
 
+
+  //- Elastic Deformation
+  QObject::connect(ui->CheckElastic,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(ElasticDeformation_EnableElasticOption()));
+  QObject::connect(ui->ElasticDeformation1CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(ElasticDeformation_MethodsChanged()));
+  QObject::connect(ui->ElasticDeformation2CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(ElasticDeformation_MethodsChanged()));
+  QObject::connect(ui->MinAlphaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinAlphaTransform1(double)));
+  QObject::connect(ui->MaxAlphaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxAlphaTransform1(double)));
+  QObject::connect(ui->MinSigmaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinSigmaTransform1(double)));
+  QObject::connect(ui->MaxSigmaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxSigmaTransform1(double)));
+  QObject::connect(ui->MinAlphaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinAlphaTransform2(double)));
+  QObject::connect(ui->MaxAlphaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxAlphaTransform2(double)));
+  QObject::connect(ui->MinSigmaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinSigmaTransform2(double)));
+  QObject::connect(ui->MaxSigmaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxSigmaTransform2(double)));
+  QObject::connect(ui->MinAlphaAffineElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinAlphaAffineTransform2(double)));
+  QObject::connect(ui->MaxAlphaAffineElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxAlphaAffineTransform2(double)));
+  
+
+  
   //- Distortion 3D
 
   QObject::connect(ui->CheckDist3D,
@@ -1062,6 +1122,9 @@ Assistant::nextId() const
       return Page_Hole;
       break;
     case Page_Hole:
+      return Page_ElasticDeformation;
+      break;
+    case Page_ElasticDeformation:
       return Page_Dist3D;
       break;
     case Page_Dist3D:
@@ -2138,6 +2201,9 @@ Assistant::nbOfDegradedImages() const
 
   if (_Hole_holeEnable)
     totalPic += 1 * ui->TirageHole->value() * nbPic;
+
+  if (_ElasticDeformation_elasticEnable)
+    totalPic += ElasticDeformation_nbDegradations() * ui->TirageElasticDeformation->value() * nbPic;
 
   if (_Dist3D_dist3DEnable)
     totalPic += _Dist3D_meshesList.size() * ui->TirageDist3D->value() * nbPic;
@@ -5022,6 +5088,233 @@ Assistant::Hole_updatePreview()
   ui->HolePreviewLabel->setMinimumSize(imgDeg.size());
 }
 
+
+
+void
+Assistant::ElasticDeformation_setupGUIImages()
+{
+  if (ui->BorderElasticDeformation1CB->count() == 0) {
+    ui->BorderElasticDeformation1CB->addItem(tr("Constant"),
+					   QVariant(static_cast<int>(cv::BORDER_CONSTANT)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Replicate"),
+					   QVariant(static_cast<int>(cv::BORDER_REPLICATE)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Reflect"),
+					   QVariant(static_cast<int>(cv::BORDER_REFLECT)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Wrap"),
+					   QVariant(static_cast<int>(cv::BORDER_WRAP)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Reflect101"),
+					   QVariant(static_cast<int>(cv::BORDER_REFLECT_101)));
+    ui->BorderElasticDeformation1CB->setCurrentIndex(0);
+  }
+
+  if (ui->InterpolationElasticDeformation1CB->count() == 0) {
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Nearest"),
+						  QVariant(static_cast<int>(cv::INTER_NEAREST)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Linear"),
+						  QVariant(static_cast<int>(cv::INTER_LINEAR)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Area"),
+					   QVariant(static_cast<int>(cv::INTER_AREA)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Cubic"),
+					   QVariant(static_cast<int>(cv::INTER_CUBIC)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Lanczos4"),
+					   QVariant(static_cast<int>(cv::INTER_LANCZOS4)));
+    ui->InterpolationElasticDeformation1CB->setCurrentIndex(1);
+  }
+
+  if (ui->BorderElasticDeformation2CB->count() == 0) {
+    ui->BorderElasticDeformation2CB->addItem(tr("Constant"),
+					   QVariant(static_cast<int>(cv::BORDER_CONSTANT)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Replicate"),
+					   QVariant(static_cast<int>(cv::BORDER_REPLICATE)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Reflect"),
+					   QVariant(static_cast<int>(cv::BORDER_REFLECT)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Wrap"),
+					   QVariant(static_cast<int>(cv::BORDER_WRAP)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Reflect101"),
+					   QVariant(static_cast<int>(cv::BORDER_REFLECT_101)));
+    ui->BorderElasticDeformation2CB->setCurrentIndex(0);
+  }
+
+  if (ui->InterpolationElasticDeformation2CB->count() == 0) {
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Nearest"),
+						  QVariant(static_cast<int>(cv::INTER_NEAREST)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Linear"),
+						  QVariant(static_cast<int>(cv::INTER_LINEAR)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Area"),
+					   QVariant(static_cast<int>(cv::INTER_AREA)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Cubic"),
+					   QVariant(static_cast<int>(cv::INTER_CUBIC)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Lanczos4"),
+					   QVariant(static_cast<int>(cv::INTER_LANCZOS4)));
+    ui->InterpolationElasticDeformation2CB->setCurrentIndex(1);
+  }
+
+}
+
+int
+Assistant::ElasticDeformation_nbDegradations() const
+{
+  int nbDegs = 0;
+  if (ui->ElasticDeformation1CB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->ElasticDeformation2CB->isChecked()) {
+    nbDegs += 1;
+  }
+  return nbDegs;
+}
+
+void
+Assistant::ElasticDeformation_updateTirageAndTotal()
+{
+  const int nbDegs = ElasticDeformation_nbDegradations();
+  ui->NbDegElasticDeformation->setText(QString::number(nbDegs));
+
+  const bool enabled = (nbDegs > 0);
+  ui->NbDegElasticDeformation->setEnabled(enabled);
+  ui->TirageElasticDeformation->setEnabled(enabled);
+  ui->TotalElasticDeformation->setEnabled(enabled);
+  if (nbDegs == 0)
+    ui->TirageElasticDeformation->setValue(0);
+
+  if (nbDegs > 0 &&
+      ui->TirageElasticDeformation->value() == 0) {
+    //set TirageElasticDeformation value to 1 once we have some degradations selected
+    ui->TirageElasticDeformation->setValue(1);
+  }
+
+  const int total =
+    nbDegs * _inputImageList.size() * ui->TirageElasticDeformation->value();
+  ui->TotalElasticDeformation->setText(QString::number(total));
+
+  updateTotalPic();
+}
+
+void
+Assistant::ElasticDeformation_EnableElasticOption()
+{
+  bool enabled = false;
+  if (ui->CheckElastic->isChecked()) {
+    enabled = true;
+    _ElasticDeformation_elasticEnable = enabled;
+    ElasticDeformation_updateTirageAndTotal();
+  }
+  else {
+    _ElasticDeformation_elasticEnable = enabled;
+    ui->NbDegElasticDeformation->setEnabled(enabled);
+    ui->TirageElasticDeformation->setEnabled(enabled);
+    ui->TotalElasticDeformation->setEnabled(enabled);
+
+    ui->TirageElasticDeformation->setValue(0);
+    //signal/slot will call ElasticDeformation_tirageElasticDeformationChanged(0)
+  }
+
+  ui->OptionElastic->setEnabled(enabled);
+  ui->ElasticDeformation1CB->setEnabled(enabled);
+  ui->ElasticDeformation2CB->setEnabled(enabled);
+
+  ui->MinAlphaElasticDeformation1SB->setEnabled(enabled);
+  ui->MaxAlphaElasticDeformation1SB->setEnabled(enabled);
+  ui->MinSigmaElasticDeformation1SB->setEnabled(enabled);
+  ui->MaxSigmaElasticDeformation1SB->setEnabled(enabled);
+  ui->MinAlphaElasticDeformation2SB->setEnabled(enabled);
+  ui->MaxAlphaElasticDeformation2SB->setEnabled(enabled);
+  ui->MinSigmaElasticDeformation2SB->setEnabled(enabled);
+  ui->MaxSigmaElasticDeformation2SB->setEnabled(enabled);  
+  ui->MinAlphaAffineElasticDeformation2SB->setEnabled(enabled);
+  ui->MaxAlphaAffineElasticDeformation2SB->setEnabled(enabled);
+}
+
+void
+Assistant::ElasticDeformation_MethodsChanged()
+{
+  ElasticDeformation_updateTirageAndTotal();
+}
+
+void
+Assistant::ElasticDeformation_tirageElasticChanged(int /*nbTirage*/)
+{
+  const int nbDegs = ElasticDeformation_nbDegradations();
+  ui->NbDegElasticDeformation->setText(QString::number(nbDegs));
+  const int total = nbDegs * _inputImageList.size() *
+                    ui->TirageElasticDeformation->value(); //_ElasticDeformation_nbTirageElasticDeformation;
+  ui->TotalElasticDeformation->setText(QString::number(total));
+  updateTotalPic();
+}
+
+void
+Assistant::ElasticDeformation_changeMinAlphaTransform1(double value)
+{
+  if (ui->MaxAlphaElasticDeformation1SB->value() < value)
+    ui->MaxAlphaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxAlphaTransform1(double value)
+{
+  if (ui->MinAlphaElasticDeformation1SB->value() > value)
+    ui->MinAlphaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinSigmaTransform1(double value)
+{
+  if (ui->MaxSigmaElasticDeformation1SB->value() < value)
+    ui->MaxSigmaElasticDeformation1SB->setValue(value);
+}
+
+  void
+Assistant::ElasticDeformation_changeMaxSigmaTransform1(double value)
+{
+  if (ui->MinSigmaElasticDeformation1SB->value() > value)
+    ui->MinSigmaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinAlphaTransform2(double value)
+{
+  if (ui->MaxAlphaElasticDeformation2SB->value() < value)
+    ui->MaxAlphaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxAlphaTransform2(double value)
+{
+  if (ui->MinAlphaElasticDeformation2SB->value() > value)
+    ui->MinAlphaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinSigmaTransform2(double value)
+{
+  if (ui->MaxSigmaElasticDeformation2SB->value() < value)
+    ui->MaxSigmaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxSigmaTransform2(double value)
+{
+  if (ui->MinSigmaElasticDeformation2SB->value() > value)
+    ui->MinSigmaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinAlphaAffineTransform2(double value)
+{
+  if (ui->MaxAlphaAffineElasticDeformation2SB->value() < value)
+    ui->MaxAlphaAffineElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxAlphaAffineTransform2(double value)
+{
+  if (ui->MinAlphaAffineElasticDeformation2SB->value() > value)
+    ui->MinAlphaAffineElasticDeformation2SB->setValue(value);
+}
+
+
+
+
 void
 Assistant::Dist3D_updateTirageAndTotal()
 {
@@ -5475,6 +5768,12 @@ bool
 Assistant::gddEnable() const
 {
   return _GDD_gddEnable;
+}
+
+bool
+Assistant::elasticDeformationEnable() const
+{
+  return _ElasticDeformation_elasticEnable;
 }
 
 int
@@ -7059,6 +7358,125 @@ Assistant::do_hole(const QString &imageBasename,
     updateProgress();
   }
 }
+
+
+
+static
+QString
+ElasticDeformation_makePrefixXml(const QString &imageFilename,
+				 const QString &method)
+{
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<DegradationName>ElasticDeformation</DegradationName>\n";
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Type>" + method + "</Type>\n";
+  return xml;
+}
+
+static
+QString
+ElasticDeformation_makeSuffixeXml()
+{
+  QString xml;
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
+}
+
+static
+bool
+ElasticDeformation_saveXml(const QString &outputXmlFilename,
+			   const QString &imageFilename,
+			   int method,
+			   float alpha,
+			   float sigma,
+			   float alpha_affine,
+			   int borderMode,
+			   int interpolation)
+{
+  QString xml = ElasticDeformation_makePrefixXml(imageFilename, QString::number(method));
+  xml += "\t\t<Alpha>" + QString::number(alpha) + "</Alpha>\n";
+  xml += "\t\t<Sigma>" + QString::number(sigma) + "</Sigma>\n";
+  if (method == 2) {
+    xml += "\t\t<AlphaAffine>" + QString::number(alpha_affine) + "</AlphaAffine>\n";
+  }
+  xml += "\t\t<BorderMode>" + QString::number(borderMode) + "</BorderMode>\n";
+  xml += "\t\t<Interpolation>" + QString::number(interpolation) + "</Interpolation>\n";
+  xml += ElasticDeformation_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+void
+Assistant::do_ElasticDeformation(const QString &imageBasename,
+				 const QImage &recto,
+				 const QString &outputImageDir) const
+{
+  const int numDraws = ui->TirageElasticDeformation->value();
+  for (int i = 0; i < numDraws; ++i) {
+
+    if (ui->ElasticDeformation1CB->isChecked()) {
+
+      const float alphaMin = ui->MinAlphaElasticDeformation1SB->value();
+      const float alphaMax = ui->MaxAlphaElasticDeformation1SB->value();
+      const float alpha = random_in_range(alphaMin, alphaMax);
+
+      const float sigmaMin = ui->MinSigmaElasticDeformation1SB->value();
+      const float sigmaMax = ui->MaxSigmaElasticDeformation1SB->value();
+      const float sigma = random_in_range(sigmaMin, sigmaMax);
+
+      const int borderMode = ui->BorderElasticDeformation1CB->currentData().toInt();
+      const int interpolation = ui->InterpolationElasticDeformation1CB->currentData().toInt();
+
+      QImage imgN;
+      imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
+
+      const QString prefixFilename = imageBasename + "ElasticDeformation_1_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      ElasticDeformation_saveXml(outputImageDir + prefixFilename + ".xml",
+				 filename,
+				 1,
+				 alpha, sigma, 0, borderMode, interpolation);
+      updateProgress();
+    }
+
+    if (ui->ElasticDeformation2CB->isChecked()) {
+
+      const float alphaMin = ui->MinAlphaElasticDeformation2SB->value();
+      const float alphaMax = ui->MaxAlphaElasticDeformation2SB->value();
+      const float alpha = random_in_range(alphaMin, alphaMax);
+
+      const float sigmaMin = ui->MinSigmaElasticDeformation2SB->value();
+      const float sigmaMax = ui->MaxSigmaElasticDeformation2SB->value();
+      const float sigma = random_in_range(sigmaMin, sigmaMax);
+
+      const float alphaAffineMin = ui->MinAlphaAffineElasticDeformation2SB->value();
+      const float alphaAffineMax = ui->MaxAlphaAffineElasticDeformation2SB->value();
+      const float alphaAffine = random_in_range(alphaAffineMin, alphaAffineMax);
+
+      
+      const int borderMode = ui->BorderElasticDeformation2CB->currentData().toInt();
+      const int interpolation = ui->InterpolationElasticDeformation2CB->currentData().toInt();
+
+      QImage imgN;
+      imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
+
+      const QString prefixFilename = imageBasename + "ElasticDeformation_2_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      ElasticDeformation_saveXml(outputImageDir + prefixFilename + ".xml",
+				 filename,
+				 2,
+				 alpha, sigma, alphaAffine, borderMode, interpolation);
+      updateProgress();
+    }
+    
+  }
+}
+
+
+
 
 void
 Assistant::do_3D(const QString &imageBasename,

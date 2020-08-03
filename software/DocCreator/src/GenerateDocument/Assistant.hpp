@@ -54,58 +54,63 @@ protected:
   void BleedThrough_updateBleedImageMax(int nbIter, bool fromZero);
   void BleedThrough_updateVersoImage();
   void BleedThrough_setupGUIImages();
+  bool bleedEnable() const;
+  int bleedMax() const;
+  int bleedMin() const;
+  int nbTirageBleed() const;
 
   //Char Deg
   void CharDeg_setupGUIImages();
+  bool charEnable() const;
   void CharDeg_updateCharImageMin(int level);
   void CharDeg_updateCharImageMax(int level);
-
-  //Noise Degradation
-  void Noise_setupGUIImages();
-
-  //Rotation Degradation
-  void Rotation_setupGUIImages();
-  
-  //Shadow
-  void Shadow_setupGUIImages();
-
-  //Phantom Functions
-  void Phantom_setupGUIImages();
-
-  //GDD
-  void GDD_setupGUIImages();
-  
-  //Blur Functions
-  void Blur_setupGUIImages();
-  void Blur_LoadPattern();
-
-  //hole functions
-  void Hole_LoadHolePattern();
-  void Hole_setupGUIImages();
-
   int charMin() const;
   int charMax() const;
   int nbTirageChar() const;
-  bool charEnable() const;
+
+  //Noise Degradation
+  void Noise_setupGUIImages();
   bool noiseEnable() const;
+
+  //Rotation Degradation
+  void Rotation_setupGUIImages();
   bool rotationEnable() const;
+  
+  //Shadow
+  void Shadow_setupGUIImages();
   bool shadEnable() const;
-  bool gddEnable() const;
+
+  //Phantom Functions
+  void Phantom_setupGUIImages();
   bool phantEnable() const;
+
+  //GDD
+  void GDD_setupGUIImages();
+  bool gddEnable() const;
+  
+  //Blur 
+  void Blur_setupGUIImages();
+  bool blurEnable() const;
+  void Blur_LoadPattern();
   bool pattern1() const;
   bool pattern2() const;
   bool pattern3() const;
   bool pattern4() const;
   bool pattern5() const;
   bool pattern6() const;
-  bool blurEnable() const;
   int nbTirageBlur() const;
   int blurMin() const;
   int blurMax() const;
+  bool getBlur_ZoneEnable() const;
+  bool getBlur_PageEnable() const;
+
+  //hole 
+  void Hole_LoadHolePattern();
+  void Hole_setupGUIImages();
+  bool holeEnable() const;
   int nbHoleCenterSelected() const;
   int nbHoleBorderSelected() const;
   int nbHoleCornerSelected() const;
-  bool holeEnable() const;
   int holeMin() const;
   int holeMax() const;
   int nbHoleCenter() const;
@@ -121,18 +126,16 @@ protected:
   bool bigHoleCenter() const;
   QColor getColorBehind() const;
   int getNbHoleBorder() const;
-  int bleedMax() const;
-  int bleedMin() const;
-  int nbTirageBleed() const;
-  bool bleedEnable() const;
 
-  bool getBlur_ZoneEnable() const;
-  bool getBlur_PageEnable() const;
+  //ElasticDeformation Degradation
+  void ElasticDeformation_setupGUIImages();
+  bool elasticDeformationEnable() const;
 
-  //distortion3D functions
+  //Dist3D
   void Dist3D_setupGUIImages();
   bool dist3DEnable() const;
 
+  
   void setDocController(DocumentController *DocController);
 
 signals:
@@ -277,11 +280,25 @@ protected slots:
   void Hole_OptionCheckedHole();
   void Hole_chooseColor();
   void Hole_tirageHoleChanged(int value);
-
   void Hole_updatePreview();
-
   void Hole_LoadPrevImgHole();
 
+  //ElasticDeformation Degradation slots
+  void ElasticDeformation_EnableElasticOption();
+  void ElasticDeformation_MethodsChanged();
+  void ElasticDeformation_tirageElasticChanged(int nbTirage);
+  void ElasticDeformation_changeMinAlphaTransform1(double);
+  void ElasticDeformation_changeMaxAlphaTransform1(double);
+  void ElasticDeformation_changeMinSigmaTransform1(double);
+  void ElasticDeformation_changeMaxSigmaTransform1(double);
+  void ElasticDeformation_changeMinAlphaTransform2(double);
+  void ElasticDeformation_changeMaxAlphaTransform2(double);
+  void ElasticDeformation_changeMinSigmaTransform2(double);
+  void ElasticDeformation_changeMaxSigmaTransform2(double);
+  void ElasticDeformation_changeMinAlphaAffineTransform2(double);
+  void ElasticDeformation_changeMaxAlphaAffineTransform2(double);
+
+  
   //Distortion3D slots
   void Dist3D_EnableDist3DOption();
   void Dist3D_chooseMeshesDirectory();
@@ -344,6 +361,9 @@ protected:
                                      bool randPosX,
                                      bool randPosY) const;
 
+  int ElasticDeformation_nbDegradations() const;
+  void ElasticDeformation_updateTirageAndTotal();
+  
   void Dist3D_loadListMeshes();
   void Dist3D_loadMeshBackgrounds();
   void Dist3D_updateTirageAndTotal();
@@ -378,10 +398,6 @@ protected:
                const QImage &recto,
                const QString &outputImageDir) const;
 
-  void do_3D(const QString &imageBasename,
-             const QImage &recto,
-             const QString &outputImageDir) const;
-
   void do_GDD(const QString &imageBasename,
              const QImage &recto,
              const QString &outputImageDir) const;
@@ -395,6 +411,13 @@ protected:
 		   const QString &inputImageDir,
 		   const QString &outputImageDir) const;
 
+  void do_ElasticDeformation(const QString &imageBasename,
+			     const QImage &recto,
+			     const QString &outputImageDir) const;
+
+  void do_3D(const QString &imageBasename,
+             const QImage &recto,
+             const QString &outputImageDir) const;
 
   void updateProgress() const;
 
@@ -425,6 +448,7 @@ private:
     Page_Blur,
     Page_Shadow,
     Page_Hole,
+    Page_ElasticDeformation,
     Page_Dist3D,
     Page_FinalDegradations,
     Page_Results
@@ -530,6 +554,9 @@ private:
   bool _Hole_bigHoleCenter;
   QColor _Hole_colorBehind;
 
+  bool _ElasticDeformation_elasticEnable;
+
+  
   bool _Dist3D_dist3DEnable;
   QString _Dist3D_meshDirectory;
   QStringList _Dist3D_meshesList;
