@@ -20,6 +20,7 @@
 #include "Degradations/BleedThrough.hpp"
 #include "Degradations/BlurFilter.hpp"
 #include "Degradations/Distortion3D.hpp"
+#include "Degradations/ElasticDeformation.hpp"
 #include "Degradations/GradientDomainDegradation.hpp"
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
 #include "Degradations/HoleDegradation.hpp"
@@ -66,6 +67,10 @@ const bool do_shadow = true;
 const bool do_holes = true;
 const int hole_minNumHoles = 0;
 const int hole_maxNumHoles = 4;
+
+const bool do_elasticDeformation = true;
+const float elasticDeformation_alpha = 2.0f;
+const float elasticDeformation_sigma = 0.083f;
 
 #if BUILD_WITH_OSMESA
 const bool do_3D = true;
@@ -333,6 +338,18 @@ main(int argc, char *argv[])
 	
     }
 
+    if (do_elasticDeformation) {
+
+      const cv::Mat imgED = dc::ElasticDeformation::transform(currImg, elasticDeformation_alpha, elasticDeformation_sigma);
+      if (cumulate) {
+	currImg = imgED;
+	suffixe += "_ed";
+      }
+      else {
+	saveImage(imgED, outputImageDirectory, imageList[i], "_ed");
+      }
+
+    }
     
     if (do_3D) {
 
