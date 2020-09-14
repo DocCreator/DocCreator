@@ -7,7 +7,7 @@
 #include "MeshWindow.hpp"
 
 
-#if QT_VERSION > 0x050400
+#if (QT_VERSION > QT_VERSION_CHECK(5, 4, 0))
 
 /*
   cf http://doc.qt.io/qt-5/qopenglwidget.html
@@ -31,7 +31,7 @@ static void setDefaultOpenGLSurfaceFormat()
 
 int main(int argc, char** argv) {
 
-#if QT_VERSION > 0x050400
+#if (QT_VERSION > QT_VERSION_CHECK(5, 4, 0))
   setDefaultOpenGLSurfaceFormat();
 #endif //QT_VERSION
 

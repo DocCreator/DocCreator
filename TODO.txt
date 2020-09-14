@@ -1,15 +1,42 @@
+Before 1.2
+
+ - CMake
+   - BUILD_ONLY_DEGRADATIONS
+   - ENABLE_OSMESA : for 3D degradation in Degradations
+   - ENABLE_EGL : needs GLFW git PR ?
+
+ - 3D degradation
+   - without X-server
+     - OSMesa
+     - EGL
+   - background texture ?
+
+- GUI: font extraction
+   - fill left and right margin
+   - allow to see the respective size and position of letters
+   - allow to build the font from several images
+   - allow to cut some connected components from the letter
+   - allow to aggregate several connected components to form a letter
+   - framework & I/O & application : char/CharData : handle several baselines per letter
+
+ - Tesseract 4
+   - test we have same results than 3 ???
+
+
+
+Dans ~/SAI/DOCUMENT/DocCreator_git : version avec tesseract4
+Dans ~/SAI/DOCUMENT/DocCreator_TMP : version avec GUI font extraction
+Dans ~/SAI/DOCUMENT/PdP3D/Distortion3DModel_00C : 3D degradation avec OSMesa
+
+
+
+-----------------------------------------------------
 
 - CODE :
   - framework/src/Degrations
-     - there should be no dependence on Qt, only OpenCV.
-       This way, it will be much easier to make a python wrapper.
-     - Each degradation should output an image of the same type than its input.
+     - Each degradation should output an image of the same type than its input ?
      - Each method must be documented !!!
 
-   In particular :
-    - BleedThrough
-       - should also work with color
-       - should also have an option to not reverse recto image)
     - GrayscaleCharsDegradationModel : 
        - should also work with color
 
@@ -40,8 +67,8 @@
 
 
 - MESH
-  - Test decimation: could we provide less detailed models ?
-  - GUI: MeshesPreview : GUI to visualize meshes before loading them.
+ - Test decimation: could we provide less detailed models ?
+ - GUI: MeshesPreview : GUI to visualize meshes before loading them.
 
 - CODE:MESH/TEXTURE
   - improve texcoords generation !
@@ -52,7 +79,7 @@
    Why QPainter is not used ? Why GraphicsPageItem::draw() is not used ?
 
 - CODE:OPTIM: while patterns used by HoleDegradation & PhantomCharacter are bitmaps, we load and use them as CV_8UC3 !
-  We should use CV_8UC1 !
+  We should use CV_8UC1 !?
 
 
 
@@ -65,7 +92,8 @@
    Would a QChar suffice ? 
 
 
-- CODE: In DocCharacter, there are still things specific to DIGIDOC : _seedPointsFB/BF : can we remove them ???
+- CODE: In DocCharacter, there are still things specific to DIGIDOC : _seedPointsFB/BF
+        Can we remove them ???
 
 
 - CODE: WRITE UNIT TESTS !!!
@@ -76,7 +104,8 @@
 - TODO:CODE:CLEAN ! DocCreator::generateDocuments has lot of copy/paste !!! UGLY !!!
   This code should be in software/DocCreator/src/GenerateDocument/Assistant.cpp ???
   
-- TODO:GUI: incoherence between degradations : for holes, we have an effect on central/"viewed" image,
+- TODO:GUI: incoherence between degradations :
+            for holes, we have an effect on central/"viewed" image,
             but for characters degradation we never see the effect !!!
      There is probably something to change in the way the soft is organized : we should have an editable view (where we enter text) and a "modified" view (where we have the effects applied). We should be able to "stack" the effects in the "modified" view (they all take an input image & some parameters & produce an output image !?). Then when we modify the editable view, and come back to the "modified" view, we should see the "modified" view.
  
@@ -84,9 +113,9 @@
 - TODO:GUI: degradation3D: faire des QTabWidgets :  Screenshot/Light/Texcoords !?! 
 
 - TODO:GUI: font extraction
-   - allow to see the already extracted letters
+ X - allow to see the already extracted letters
        and the missing letters  -> see the web version
-   - allow to see the respective size and possition of letters
+   - allow to see the respective size and position of letters
    - allow to build the font from several images
    - allow to cut some connected components from the letter
    - allow to aggregate several connected components to form a letter
@@ -112,16 +141,16 @@
 
 
 - TODO:CODE:
-  - BleedThrough : do color version !!
   - OPTIM: BleedThrough : optimize !!! It is a stencil operation. It should be faster !
 
 
 - TODO: grayscaleCharacterDegradation
+  - CODE : do color version !!
   - CODE: Be sure there is no bug !
   - CODE:OPTIM: GrayscaleDegradationModel : GrayscaleDegradationByTypes() -> getEllipsePoints() : awfully slow !!!
       cf ? http://www.iquilezles.org/www/articles/ellipses/ellipses.htm
            http://www.iquilezles.org/www/articles/ellipsedist/ellipsedist.htm
-  - GUI : choix de la répartition : 3 pourcentages.
+  - GUI : choice of reparition between 3 kinds of spots: 3 pourcentages ?.
   - GUI : preview in dialog (as in batch generation) !
 
 - TODO:Nicho: when we change the baseline for a character, the modified font is not saved.
@@ -134,19 +163,19 @@
 - TODO: Generation batch
   - CODE: mettre des enums pour les differents panneaux (cf Assistant::nextId())
   - CODE: clean code : in particular avoid code duplication 
-  - BUG? : en synthétique, le répertoire destination pour les images de texte synthetique devrait être vide ? (Si on ne garde pas la liste des images générées, ca veut dire qu'on liste le contenu du répertoire et donc potentiellement des images qui étaient là avant ! Il faudrait un boite de dialogue qui invite à nettoyer le répertoire. 
+X?  - BUG? : en synthétique, le répertoire destination pour les images de texte synthetique devrait être vide ? (Si on ne garde pas la liste des images générées, ca veut dire qu'on liste le contenu du répertoire et donc potentiellement des images qui étaient là avant ! Il faudrait un boite de dialogue qui invite à nettoyer le répertoire. 
        Si on garde la liste des images générées [ce que je ne crois pas], un simple warning suffit. )
-  - BUG: en synthétique : on peut passer le panneau avec les répertoires de sortie, sans avoir remplit ceux-là
+X  - BUG: en synthétique : on peut passer le panneau avec les répertoires de sortie, sans avoir remplit ceux-là
   - BUG: tous les panneaux avec des champs "répertoire" ne font pas ce qu'il faut si le champ est rempli à la main et pas via le bouton qui ouvre le "finder". Cf Code: les signaux ne sont alors pas appelés... 
 
-  - Ordre de présentation des panneaux à changer ? Mettre toutes les dégradations globales, puis les locales ???
+X?  - Ordre de présentation des panneaux à changer ? Mettre toutes les dégradations globales, puis les locales ???
   - Avoir plus d'options sur le traitement des entrées et sorties :
      - pouvoir sélectionner/filtrer que certains types d'images
      - pouvoir charger qu'une liste d'images 
      - pouvoir charger un répertoire d'entrée récursivement
      - pouvoir reproduire la hierarchie d'entrée en sortie
      - pouvoir sauver la sortie par dégradation    
-  - Quand on enable une degradation, mettre à jour le nombre de tirages générés : mettre "1" !?
+X?  - Quand on enable une degradation, mettre à jour le nombre de tirages générés : mettre "1" !?
      (changer ui->TirageBleed, ui->TirageBlur, ui->TirageChar, ... ui->TirageHole ???)
   - BleedThrough :
     - faire mise à jour en continue et pas seulement quand on relache le slider

@@ -33,10 +33,10 @@ public:
   void setKeyboardController(KeyboardController *keyboardController);
 
   /* Events */
-  virtual void keyPressEvent(QKeyEvent *e) override;
-  virtual void keyReleaseEvent(QKeyEvent *e) override;
+  void keyPressEvent(QKeyEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
 
-  virtual Mvc::IController *getController() override
+  Mvc::IController *getController() override
   {
     return (Mvc::IController *)_controller;
   }
@@ -45,7 +45,7 @@ public slots:
   void saveCharacter();
 
 protected:
-  virtual void closeEvent(QCloseEvent *event) override;
+  void closeEvent(QCloseEvent *event) override;
 
 private slots:
   void updateUpLineSpinBox(int pos);

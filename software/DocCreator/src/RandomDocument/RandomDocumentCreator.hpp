@@ -37,7 +37,8 @@ protected:
                   const QString &fontName,
                   int lineSpacing,
                   int textIndex,
-                  bool useRandomTextFile);
+                  bool useRandomTextFile,
+		  int backgroundIndex);
 
 protected:
   DocumentController *_ctrl;

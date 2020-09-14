@@ -215,11 +215,25 @@ You can then launch the executable:
 
 ### CMake options 
 
+#### -DBUILD_ONLY_DEGRADATIONS=ON
+
+When configuring DocCreator with cmake, you can pass the option -DBUILD_ONLY_DEGRADATIONS=ON to cmake. It will only build the degradation models library. It can be combined with -DBUILD_WITH_OSMESA=ON to have the 3D distortion model. It can also be combined with -DBUILD_OTHER_PROGS=ON and -DBUILD_OTHER_PROGS_3D=ON.
+
+#### -DBUILD_WITH_OSMESA=ON
+
+When configuring DocCreator with cmake, you can pass the option -DBUILD_WITH_OSMESA=ON to cmake. It will use OSMesa, through GLFW, to have OpenGL offscreeen rendering for the 3D distortion model. This way, the 3D distortion model could be used on a linux computer without any X11 server.
+GLFW will be downloaded if this option is enabled. OSMesa library must already be installed.
+On Ubuntu (16.04 and above), you can install OSMesa with the following command:
+`sudo apt-get install libosmesa6-dev`  
+On Fedora (30 and above), you can install OSMesa with the following command as root:
+`dnf install mesa-libOSMesa-devel`  
+
+
 #### -DBUILD_OTHER_PROGS=ON
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PROGS=ON to cmake. It will be build other example programs using DocCreator framework.  
 In particular, it will build:  
-	* **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *software/DocCreator/src/Degradator/main.cpp*  
+	* **DocCreatorDegradator** that allows to apply degradation effects on all the images of a given directory and save produced images in a new directory. You can change the applied degradation effects in *tools/degradator.cpp*  
 	* **DocCreatorMakeFont** that allows to create DocCreator *old-fonts* from existing (TrueType) fonts. You can save the produced files in *data/font* to use these fonts in DocCreator.  
 
 #### -DBUILD_OTHER_PROGS_3D=ON

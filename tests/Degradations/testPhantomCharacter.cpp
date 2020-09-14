@@ -6,7 +6,6 @@
 #include "Degradations/PhantomCharacter.hpp"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp> //DEBUG
 
 #include "paths.hpp"
 #include "testCommon.hpp" //checkEqual
@@ -50,7 +49,7 @@ testSimple0(int imageType)
 TEST_CASE( "Testing PhantomCharacter" )
 { 
 
-  SECTION("Testing PhantomCharacter produces output image of same type and size")
+  SECTION("Testing PhantomCharacter produces output image of same type and size than input image")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);

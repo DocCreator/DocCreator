@@ -12,7 +12,7 @@ public:
   void drawElement(T *element, bool complete = false);
   T *getElement() { return _element; }
   void setController(Mvc::IController *controller) { _controller = controller; }
-  virtual Mvc::IController *getController() override { return _controller; }
+  Mvc::IController *getController() override { return _controller; }
 
   virtual void setOffset(int value) = 0;
   virtual void clear() = 0;

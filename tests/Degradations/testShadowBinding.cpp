@@ -65,7 +65,7 @@ testSimple1(int imageType)
   cv::Mat imgClone = img.clone();
   
   const dc::ShadowBinding::Border border = dc::ShadowBinding::Border::RIGHT;
-  const int distanceRatio = 1.f/5.f;
+  const float distanceRatio = 1.f/5.f;
   const float intensity = 0.5;
   const float angle = 45;
   
@@ -79,14 +79,14 @@ testSimple1(int imageType)
 TEST_CASE( "Testing ShadowBinding" )
 { 
 
-  SECTION("Testing ShadowBinding with given shadow width produces output image of same type and size")
+  SECTION("Testing ShadowBinding with given shadow width produces output image of same type and size than input image")
   {
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
     testSimple0(CV_8UC4);
   }
 
-  SECTION("Testing ShadowBinding with dynamic shadow width produces output image of same type and size")
+  SECTION("Testing ShadowBinding with dynamic shadow width produces output image of same type and size than input image")
   {
     testSimple1(CV_8UC1);
     testSimple1(CV_8UC3);

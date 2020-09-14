@@ -4,6 +4,8 @@
 #define NOMINMAX //for Visual
 #include <QObject>
 #include <QStringList>
+#include <QRect>
+#include <QVector>
 
 class RandomDocumentParameters : public QObject
 {
@@ -144,8 +146,12 @@ public slots:
     out.nbBlocksPerRowMin = nbBlocksPerRowMin;
     out.nbBlocksPerRowMax = nbBlocksPerRowMax;
 
-    out.nbPages = nbPages;
+    out.blocks = blocks;
+    out.useRandomBlocks = useRandomBlocks;
+
     out.percentOfEmptyBlocks = percentOfEmptyBlocks;
+
+    out.nbPages = nbPages;
 
     out.imageWidth = imageWidth;
     out.imageHeight = imageHeight;
@@ -177,14 +183,20 @@ public:
   int nbBlocksPerRowMin;
   int nbBlocksPerRowMax;
 
+  QVector<QVector<QRect> > blocks;
+  bool useRandomBlocks;
+  //tells if we use random blocs (according to nbBlocksPerCol/Row/Min/Max)
+  // or blocks given in blocks.
+
+  int percentOfEmptyBlocks;
+
   //int nbDocs;
   int nbPages;
-  int percentOfEmptyBlocks;
 
   int imageWidth;
   int imageHeight;
-  bool
-    imageSizeUniform; //tells if generated images must all be scaled to the same size
+  bool imageSizeUniform;
+  //tells if generated images must all be scaled to the same size
 
 private:
   QString _name;

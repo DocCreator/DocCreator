@@ -37,7 +37,7 @@ public:
   ~DocCreator();
 
   void initialize();
-  virtual void update() override;
+  void update() override;
   //void generateImageFromFolder(const QString &strFolderIn, const QString &strFolderOut, const QString &file);
 
 private slots:
@@ -112,7 +112,7 @@ private:
   int processDisplaySaveMessage(const QString &action);
 
   /* Events */
-  virtual void closeEvent(QCloseEvent *event) override;
+  void closeEvent(QCloseEvent *event) override;
 
   QString getTessdataParentDir() const;
 

@@ -27,25 +27,25 @@ public:
   explicit GraphicsTextBlockItem(Mvc::IController *controller,
                                  QGraphicsItem *parent = nullptr);
 
-  virtual void clear() override;
-  virtual void setOffset(int value) override;
+  void clear() override;
+  void setOffset(int value) override;
 
-  virtual void hide(bool transparent = false) override;
-  virtual void show() override;
+  void hide(bool transparent = false) override;
+  void show() override;
 
   //Events
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void keyPressEvent(QKeyEvent * /*event*/) override {}
-  virtual void keyReleaseEvent(QKeyEvent * /*event*/) override {}
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+  void keyPressEvent(QKeyEvent * /*event*/) override {}
+  void keyReleaseEvent(QKeyEvent * /*event*/) override {}
 
 public slots:
-  virtual void updatePosition() override;
+  void updatePosition() override;
 
 protected:
-  virtual void load() override;
-  virtual void draw(bool complete) override;
+  void load() override;
+  void draw(bool complete) override;
 
   void addCharacterItem(GraphicsCharacterItem *charItem);
   void removeCharacterItem(GraphicsCharacterItem *charItem);

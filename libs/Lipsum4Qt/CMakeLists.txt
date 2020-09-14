@@ -2,56 +2,22 @@
 SET( LIB_NAME Lipsum4Qt )
 
 
-file(
-  GLOB_RECURSE
+SET(
   Lipsum4Qt_sources
-  src/*.cpp
+  src/Lipsum4Qt.cpp
   )
 
-file(
-  GLOB_RECURSE
-  Lipsum4Qt_resources
-  src/*.qrc
-  )
-
-file(
-  GLOB_RECURSE
-  Lipsum4Qt_ui
-  src/*.ui
-  )
-
-file(
-  GLOB_RECURSE
+SET(
   Lipsum4Qt_headers
-  src/*.h
-  src/*.hpp
+  src/Lipsum4Qt_global.h
+  src/Lipsum4Qt.hpp
   )
 
 set_property(SOURCE src/Lipsum4Qt.hpp
   PROPERTY MACOSX_PACKAGE_LOCATION Headers
   )
 
-QTX_ADD_RESOURCES(RCS ${Lipsum4Qt_resources} )
-#QTX_WRAP_UI(UI ${Lipsum4Qt_ui})
-QTX_WRAP_CPP(MOC ${Lipsum4Qt_headers})
-
-
-SET(EXTRA_LIBS  ${QT_LIBRARIES})
-
-
-#C++11 support (for all executables)
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
-  IF (GCC_VERSION VERSION_LESS 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  ELSE()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  ENDIF()
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  #libc++ is required both on mac and linux
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-ENDIF()
-#VS2013 supports c++11 without any additional flags
+SET(EXTRA_LIBS ${QT_LIBRARIES})
 
 
 # ADD_LIBRARY(${LIB_NAME} SHARED ${Lipsum4Qt_sources}  ${MOC} ${RCS} ${UI} ${Lipsum4Qt_headers})
@@ -77,11 +43,14 @@ ENDIF()
 #       #COMMAND cp  application.ini ${CMAKE_CURRENT_BINARY_DIR}/${PROGNAME}.app/Contents/Resources
 #     #)
 # ENDIF( APPLE )
-ADD_LIBRARY(${LIB_NAME} STATIC ${Lipsum4Qt_sources}  ${MOC} ${RCS} ${UI} ${Lipsum4Qt_headers})
+ADD_LIBRARY(${LIB_NAME} STATIC ${Lipsum4Qt_sources} ${Lipsum4Qt_headers})
 TARGET_INCLUDE_DIRECTORIES(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${QT_QTCORE_INCLUDE_DIR} )
-
-
 TARGET_LINK_LIBRARIES(${LIB_NAME} ${QT_LIBRARIES})
+SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  )
 
 
 INSTALL(FILES ${Lipsum4Qt_headers} DESTINATION include/${LIB_NAME})

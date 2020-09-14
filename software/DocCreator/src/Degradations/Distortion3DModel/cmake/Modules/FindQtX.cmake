@@ -1,44 +1,17 @@
-###inspired from FindQTX.cmake from tulip software.
 
-SET(USE_QT5_IF_INSTALLED ON CACHE BOOL "Use Qt5 to build the project if it is installed.")
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-SET(Qt5Widgets_FOUND false)
-SET(Qt5OpenGL_FOUND false)
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
+  set(CMAKE_INCLUDE_CURRENT_DIR ON)
+endif()
 
-# If asked, use Qt5
-IF(USE_QT5_IF_INSTALLED)
-
-    FIND_PACKAGE(Qt5Widgets)
-    FIND_PACKAGE(Qt5OpenGL)
-
-ENDIF(USE_QT5_IF_INSTALLED)
-
-
-function(stripLibName name result)
-    # We have for example name=/usr/lib64/libQt5Core.so.5.1.1
-    # we would like to remove the ".5.1.1" part
-
-    # OLD :
-    # We do this with STRING(REGEX MATCH "^[^\\.]+\\.[^\\.]+" result Var)
-    # that matches string that starts with everything execept a dot, followed by a dot, followed by everything except a dot
-    # Warning: it will not work if Var lists several libraries !
-    #STRING(REGEX MATCH "^[^\\.]+\\.[^\\.]+" resultTmp "${name}")
-    # It fails if we have for example a path like : /aaaa/bbbb/QT5.2.0/libQt5Widgets.so.5.2.0
-
-    # We do this with STRING(REGEX MATCH ".*\\.(so|dylib)" result Var)
-    # that matches string that stats with anything and end with ".so" or ".dylib"
-    STRING(REGEX MATCH ".*\\.(so|dylib)" resultTmp "${name}")
-
-    SET(${result} ${resultTmp} PARENT_SCOPE)
-    #MESSAGE("name=${name}")
-    #MESSAGE("resultTmp=${resultTmp}")
-endfunction()
-
+FIND_PACKAGE(Qt5Widgets)
+FIND_PACKAGE(Qt5OpenGL)
 
 # Qt5 and all the required modules are present, do global setup
 IF(${Qt5Widgets_FOUND} AND ${Qt5OpenGL_FOUND})
-
-    SET(USE_QT5 true)
 
     #With QT5.0 & QT5.1 it seems that QT_PLUGINS_DIR is not longer set.
     #It should be fixed with Qt5.2
@@ -54,90 +27,10 @@ IF(${Qt5Widgets_FOUND} AND ${Qt5OpenGL_FOUND})
         SET(QT_PLUGINS_DIR ${QT_BINARY_DIR}/qt5/plugins) #specific Fedora ???	
     ENDIF(UNIX)
 
-    INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS})
-    INCLUDE_DIRECTORIES(${Qt5OpenGL_INCLUDE_DIRS})
-
-    ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
-    ADD_DEFINITIONS(${Qt5OpenGL_DEFINITIONS})
-
     SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES})
-
-    #We want the variables that were defined for Qt4 :
-    # QT_QTCORE_LIBRARY_DEBUG, QT_QTGUI_LIBRARY_DEBUG, QT_QTOPENGL_LIBRARY_DEBUG
-    # QT_QTCORE_LIBRARY_RELEASE, QT_QTGUI_LIBRARY_RELEASE, QT_QTOPENGL_LIBRARY_RELEASE
-    #
-    # ${Qt5Core_LIBRARIES} is Qt5::Core : it seems enough for CMake to link, 
-    # but this is not what we want for the .pc file.
-    #   
-    # ${Qt5Core_location} is /usr/lib64/libQt5Core.so.5.1.1
-    # we would like to remove the ".5.1.1" part
-    # Warning: it will not work if Var lists several libraries !
-    
-    GET_TARGET_PROPERTY(Qt5Gui_location Qt5::Gui LOCATION)
-    GET_TARGET_PROPERTY(Qt5Widgets_location Qt5::Widgets LOCATION)
-    GET_TARGET_PROPERTY(Qt5OpenGL_location Qt5::OpenGL LOCATION)
-
-    stripLibName("${Qt5Core_location}" QT_QTCORE_LIBRARY)
-    set(QT_QTCORE_LIBRARY_DEBUG ${QT_QTCORE_LIBRARY})
-    set(QT_QTCORE_LIBRARY_RELEASE ${QT_QTCORE_LIBRARY})
-
-    stripLibName("${Qt5Gui_location}" QT_QTGUI_LIBRARY)
-    stripLibName("${Qt5Widgets_location}" QT_QTGUI_LIBRARY2)
-    set(QT_QTGUI_LIBRARY_DEBUG ${QT_QTGUI_LIBRARY} ${QT_QTGUI_LIBRARY2})
-    set(QT_QTGUI_LIBRARY_RELEASE ${QT_QTGUI_LIBRARY} ${QT_QTGUI_LIBRARY2})
-
-    stripLibName("${Qt5OpenGL_location}" QT_QTOPENGL_LIBRARY)
-    set(QT_QTOPENGL_LIBRARY_DEBUG ${QT_QTOPENGL_LIBRARY})
-    set(QT_QTOPENGL_LIBRARY_RELEASE ${QT_QTOPENGL_LIBRARY})
-    # How to get different debug/release libs ???
 
     #Needed to compile an executable !
     #All variables Qt5Core|Widgets|Gui|OpenGL_EXECUTABLE_COMPILE_FLAGS seems to be set to the same thing (-fPIE).
     SET(QTX_EXECUTABLE_COMPILE_FLAGS ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS})
-
-    # define aliases for Qt macros in order to build the project
-    MACRO(QTX_WRAP_CPP outfiles )
-      QT5_WRAP_CPP(${outfiles} ${ARGN})
-    ENDMACRO()
-
-    MACRO(QTX_WRAP_UI outfiles )
-      QT5_WRAP_UI(${outfiles} ${ARGN})
-    ENDMACRO()
-
-    MACRO(QTX_ADD_RESOURCES outfiles )
-      QT5_ADD_RESOURCES(${outfiles} ${ARGN})
-    ENDMACRO()
-
-# Use Qt4 otherwise
-ELSE(${Qt5Widgets_FOUND} AND ${Qt5OpenGL_FOUND})
-
-    IF(USE_QT5_IF_INSTALLED)
-      MESSAGE("Qt 5 required components or the CMake modules to locate them have not been found.")
-      MESSAGE("Falling back to Qt 4.")
-    ENDIF(USE_QT5_IF_INSTALLED)
-
-    FIND_PACKAGE(Qt4 4.2.0 REQUIRED)
-
-    SET(USE_QT4 true)
-    SET(QT_USE_QTOPENGL true)
-    SET(QT_USE_QTTEST false)
-    SET(QT_USE_QTDBUS false)
-    INCLUDE(${QT_USE_FILE})
-
-
-    SET(QTX_EXECUTABLE_COMPILE_FLAGS "")
-
-     # define aliases for Qt macros
-    MACRO(QTX_WRAP_CPP outfiles )
-      QT4_WRAP_CPP(${outfiles} ${ARGN})
-    ENDMACRO()
-
-    MACRO(QTX_WRAP_UI outfiles )
-      QT4_WRAP_UI(${outfiles} ${ARGN})
-    ENDMACRO()
-
-    MACRO(QTX_ADD_RESOURCES outfiles )
-      QT4_ADD_RESOURCES(${outfiles} ${ARGN})
-    ENDMACRO()
 
 ENDIF(${Qt5Widgets_FOUND} AND ${Qt5OpenGL_FOUND})

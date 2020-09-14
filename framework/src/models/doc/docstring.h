@@ -17,9 +17,9 @@ namespace Doc
         DocString(DocStyle* style, Document* document);
         ~DocString();
 
-        virtual DocString* clone() override;
+        DocString* clone() override;
 
-        virtual DocString* getSelection() override;
+        DocString* getSelection() override;
 
         DocCharacter* currentCharacter();
         const QList<DocCharacter*> &getCharacters() const;

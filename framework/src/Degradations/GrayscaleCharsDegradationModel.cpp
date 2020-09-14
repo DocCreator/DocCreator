@@ -78,6 +78,7 @@ namespace dc {
 
     double operator()() { return m_rng.gaussian(m_sigma) + m_mean; }
 
+  private:
     MyRNG m_rng;
     double m_mean;
     double m_sigma;
@@ -93,6 +94,7 @@ namespace dc {
 
     double operator()() { return m_rng.uniform(m_a, m_b); }
 
+  private:
     MyRNG m_rng;
     double m_a;
     double m_b;
@@ -991,7 +993,7 @@ namespace dc {
       float second_min = std::numeric_limits<float>::max();
       const float dis_max = localZone * sqrtf(2);
       {
-	for (const cv::Point pt : listEdgePoints) { //(copy of Point)
+	for (const cv::Point &pt : listEdgePoints) {
 
 	  const float dis =
 	    sqrtf((xo - pt.x) * (xo - pt.x) +
@@ -1060,7 +1062,7 @@ namespace dc {
 
       } else if (sp.type == 1) { // Overlapping spots
 
-	float delta_a = fabs(sp.b_cheval - sp.b_tache);
+	float delta_a = std::fabs(sp.b_cheval - sp.b_tache);
 	if (sp.b_cheval > _Mean_CC_Stroke)
 	  delta_a = _Mean_CC_Stroke - sp.b_tache;
 
@@ -1393,7 +1395,7 @@ namespace dc {
     _mat_contour = cv::Mat::zeros(_mat_binary.size(), _mat_binary.type());
 
     for (const std::vector<cv::Point> &v : _contours)
-      for (const cv::Point p : v) //(copy of Point)
+      for (const cv::Point &p : v) //(copy of Point)
 	_mat_contour.at<uchar>(p.y, p.x) = 255;
 
     mat_Accepted_CCs.release();
@@ -2301,7 +2303,7 @@ namespace dc {
       }
     }
 
-    return sqrt(minDistSq);  //B:CONVERSION TO INT ? Is it really what we want ???
+    return std::sqrt(minDistSq);  //B:CONVERSION TO INT ? Is it really what we want ???
   }
 
   std::vector<float *>
@@ -2467,7 +2469,7 @@ namespace dc {
       //2
 	  line[id] = gray;
 	  ++id;
-	  for (const cv::Point px : pointInLine) {
+	  for (const cv::Point &px : pointInLine) {
 
 	    assert(px.y >= 0 && px.y < _mat_gray.rows && px.x >= 0 &&
 		   px.x < _mat_gray.cols); //B

@@ -14,23 +14,23 @@ public:
   XMLDocumentSaver &operator=(const XMLDocumentSaver &) = delete;
 
 
-  virtual void createNewDocumentOutput() override;
+  void createNewDocumentOutput() override;
 
-  virtual void buildStartDocument() override;
+  void buildStartDocument() override;
 
-  virtual void buildEndDocument() override;
-  virtual void buildStyles() override;
-  virtual void buildContent() override;
+  void buildEndDocument() override;
+  void buildStyles() override;
+  void buildContent() override;
 
 
 protected:
-  virtual void buildStyle(Doc::DocStyle *s) override;
-  virtual void buildPage(Doc::Page *p, int id = -1) override;
-  virtual void buildImageBlock(Doc::DocImageBlock *ib, int id = -1) override;
-  virtual void buildTextBlock(Doc::DocTextBlock *tb, int id = -1) override;
-  virtual void buildParagraph(Doc::DocParagraph *p, int id = -1) override;
-  virtual void buildString(Doc::DocString *s, int id = -1) override;
-  virtual void buildCharacter(Doc::DocCharacter *c, int id = -1) override;
+  void buildStyle(Doc::DocStyle *s) override;
+  void buildPage(Doc::Page *p, int id = -1) override;
+  void buildImageBlock(Doc::DocImageBlock *ib, int id = -1) override;
+  void buildTextBlock(Doc::DocTextBlock *tb, int id = -1) override;
+  void buildParagraph(Doc::DocParagraph *p, int id = -1) override;
+  void buildString(Doc::DocString *s, int id = -1) override;
+  void buildCharacter(Doc::DocCharacter *c, int id = -1) override;
 
   void buildHeaderDocument();
   void buildDocumentInfos();
