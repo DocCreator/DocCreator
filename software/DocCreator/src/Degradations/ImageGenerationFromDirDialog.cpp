@@ -703,7 +703,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
         columnCounter = 1; // Reset column counter for the new page.
       }
       heightFilledTextBlock =
-        tmpParagraph->Height; // update the height of fille text.
+        tmpParagraph->Height; // update the height of filled text.
 
     } else { // continue to add paragraph to the current textblock
       heightFilledTextBlock =
