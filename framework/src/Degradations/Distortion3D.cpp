@@ -96,7 +96,7 @@ namespace dc {
       
     }
 
-    cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random)
+    cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
