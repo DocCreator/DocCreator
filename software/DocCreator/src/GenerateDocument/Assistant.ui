@@ -6412,7 +6412,7 @@ Click &quot;Cancel&quot; otherwise.</string>
         </widget>
        </item>
        <item row="11" column="0">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="label_13E">
          <property name="text">
           <string>Elastic deformation</string>
          </property>
