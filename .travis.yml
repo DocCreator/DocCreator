@@ -413,7 +413,6 @@ jobs:
       addons:
         homebrew:
           packages:
-            - ccache
             - cmake
             - ninja
             - qt5
