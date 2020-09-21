@@ -32,7 +32,7 @@ namespace dc {
 
   public slots :
 
-    virtual QImage apply() override;
+    QImage apply() override;
 
   signals:
 

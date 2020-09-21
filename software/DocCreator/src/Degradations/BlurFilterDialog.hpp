@@ -81,7 +81,7 @@ public slots:
   void savePattern();
 
 protected:
-  virtual void changeEvent(QEvent *e) override;
+  void changeEvent(QEvent *e) override;
 
   void updateSliders();
   void setupGUIImages();

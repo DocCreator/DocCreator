@@ -22,8 +22,8 @@ class GraphicView
 public:
   GraphicView(Mvc::IController *controller, DocumentView *parent);
 
-  virtual void clear() override;
-  virtual void setOffset(int value) override;
+  void clear() override;
+  void setOffset(int value) override;
 
   void print(QPrinter *printer);
   void saveToImage(const QString &filepath);
@@ -35,17 +35,17 @@ public:
   //    void mousePressEvent(QMouseEvent *event);
   //    void mouseReleaseEvent(QMouseEvent *event);
 
-  virtual void wheelEvent(QWheelEvent *event) override;
-  virtual void keyPressEvent(QKeyEvent *event) override;
-  virtual void keyReleaseEvent(QKeyEvent *event) override;
+  void wheelEvent(QWheelEvent *event) override;
+  void keyPressEvent(QKeyEvent *event) override;
+  void keyReleaseEvent(QKeyEvent *event) override;
 
 public slots:
   void zoomIn();
   void zoomOut();
 
 protected:
-  virtual void load() override;
-  virtual void draw(bool complete) override;
+  void load() override;
+  void draw(bool complete) override;
 
 private:
   QImage getDocumentImage(DocRenderFlags flags);

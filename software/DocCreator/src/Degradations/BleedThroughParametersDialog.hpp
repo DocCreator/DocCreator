@@ -42,7 +42,7 @@ public slots:
   void nbIterationsChanged(int value);
 
 protected:
-  virtual void changeEvent(QEvent *e) override;
+  void changeEvent(QEvent *e) override;
 
   void setupGUIImages();
   void updateVersoImage();

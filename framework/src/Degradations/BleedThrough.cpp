@@ -48,7 +48,7 @@ namespace dc {
 				 cv::Mat &out);
 
 
-    virtual void operator()(const cv::Range &r) const override;
+    void operator()(const cv::Range &r) const override;
 
     //update @a out on Rect(x,y,w,h)
     void process(int _x, int _y, int _w, int _h) const;

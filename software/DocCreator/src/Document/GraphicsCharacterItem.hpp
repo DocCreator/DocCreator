@@ -33,7 +33,7 @@ public:
   /* Character choice dialog */
   void openCharacterChoice(QPoint pos);
 
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
 public slots:
   void onCharacterItemClicked(CharacterListWidgetItem *charListItem);

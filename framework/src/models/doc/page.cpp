@@ -118,10 +118,9 @@ void Page::add(Block* e)
 
 void Page::removeTextBlocks()
 {
-  DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
-  if (current != nullptr) {
-    current = nullptr; //B:TODO:USELESS/BUG ?
-  }
+  //DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
+  //current = nullptr; //B:TODO:USELESS/BUG ?
+
   _textBlocks.clear();
 }
   

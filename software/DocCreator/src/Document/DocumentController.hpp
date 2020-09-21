@@ -82,7 +82,7 @@ public:
   void randomize();
 
   /* Observer method */
-  virtual void update() override;
+  void update() override;
 
   void
   setModified(); // Notify the application that a modification has taken effect

@@ -173,7 +173,7 @@ namespace dc {
 	       float intensity)
     {
       const float x1 = matOut.cols - 1 * cosf(-1) - matOut.rows - 1 * sinf(-1); //B: ???
-      float z1 = 3 * fabs(x1) / 30 + intensity;
+      float z1 = 3 * std::fabs(x1) / 30 + intensity;
       if (z1 == 0) {
 	z1 = 1;
       }

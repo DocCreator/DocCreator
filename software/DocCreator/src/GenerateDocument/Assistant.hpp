@@ -31,14 +31,15 @@ public:
 
 protected:
   //enum{Choix_Methode};
-  virtual int nextId() const override;
-  //virtual bool isComplete() const override;
-  virtual void initializePage(int id) override;
-  virtual bool validateCurrentPage() override;
+  int nextId() const override;
+  //bool isComplete() const override;
+  void initializePage(int id) override;
+  bool validateCurrentPage() override;
 
   void updateListText(const QString &textPath);
   void updateListFont(const QString &fontPath);
   void updateListBackground(const QString &pathBack);
+  void updateListBackgroundForms(const QString &pathBack);
   void loadInputDegradationImageList();
 
   bool semi() const;
@@ -53,50 +54,63 @@ protected:
   void BleedThrough_updateBleedImageMax(int nbIter, bool fromZero);
   void BleedThrough_updateVersoImage();
   void BleedThrough_setupGUIImages();
+  bool bleedEnable() const;
+  int bleedMax() const;
+  int bleedMin() const;
+  int nbTirageBleed() const;
 
   //Char Deg
   void CharDeg_setupGUIImages();
+  bool charEnable() const;
   void CharDeg_updateCharImageMin(int level);
   void CharDeg_updateCharImageMax(int level);
-
-  //Shadow
-  void Shadow_setupGUIImages();
-
-  //Phantom Functions
-  void Phantom_setupGUIImages();
-
-  //GDD
-  void GDD_setupGUIImages();
-  
-  //Blur Functions
-  void Blur_setupGUIImages();
-  void Blur_LoadPattern();
-
-  //hole functions
-  void Hole_LoadHolePattern();
-  void Hole_setupGUIImages();
-
   int charMin() const;
   int charMax() const;
   int nbTirageChar() const;
-  bool charEnable() const;
+
+  //Noise Degradation
+  void Noise_setupGUIImages();
+  bool noiseEnable() const;
+
+  //Rotation Degradation
+  void Rotation_setupGUIImages();
+  bool rotationEnable() const;
+  
+  //Shadow
+  void Shadow_setupGUIImages();
   bool shadEnable() const;
-  bool gddEnable() const;
+
+  //Phantom Functions
+  void Phantom_setupGUIImages();
   bool phantEnable() const;
+
+  //GDD
+  void GDD_setupGUIImages();
+  bool gddEnable() const;
+  
+  //Blur 
+  void Blur_setupGUIImages();
+  bool blurEnable() const;
+  void Blur_LoadPattern();
   bool pattern1() const;
   bool pattern2() const;
   bool pattern3() const;
   bool pattern4() const;
   bool pattern5() const;
   bool pattern6() const;
-  bool blurEnable() const;
   int nbTirageBlur() const;
   int blurMin() const;
   int blurMax() const;
+  bool getBlur_ZoneEnable() const;
+  bool getBlur_PageEnable() const;
+
+  //hole 
+  void Hole_LoadHolePattern();
+  void Hole_setupGUIImages();
+  bool holeEnable() const;
   int nbHoleCenterSelected() const;
   int nbHoleBorderSelected() const;
   int nbHoleCornerSelected() const;
-  bool holeEnable() const;
   int holeMin() const;
   int holeMax() const;
   int nbHoleCenter() const;
@@ -112,18 +126,16 @@ protected:
   bool bigHoleCenter() const;
   QColor getColorBehind() const;
   int getNbHoleBorder() const;
-  int bleedMax() const;
-  int bleedMin() const;
-  int nbTirageBleed() const;
-  bool bleedEnable() const;
 
-  bool getBlur_ZoneEnable() const;
-  bool getBlur_PageEnable() const;
+  //ElasticDeformation Degradation
+  void ElasticDeformation_setupGUIImages();
+  bool elasticDeformationEnable() const;
 
-  //distortion3D functions
+  //Dist3D
   void Dist3D_setupGUIImages();
   bool dist3DEnable() const;
 
+  
   void setDocController(DocumentController *DocController);
 
 signals:
@@ -131,13 +143,14 @@ signals:
 
 protected slots:
 
-  virtual void accept() override;
+  void accept() override;
 
   void updateTxtGenerationInfo();
 
   void RadioButtons();
   void chooseTextDirectory();
   void chooseBackgroundDirectory();
+  void chooseBackgroundDirectoryForms();
   void chooseFontDirectory();
   void chooseInputImageDir();
   void chooseGTDirectory();
@@ -149,14 +162,23 @@ protected slots:
   void fontDeselectAll();
   void bckgdSelectAll();
   void bckgdDeselectAll();
+  void bckgdSelectAllForms();
+  void bckgdDeselectAllForms();
 
   void textSelectionChanges();
   void fontSelectionChanges();
+
   void backgroundSelectionChanges();
   void PageParams_updateMin();
   void PageParams_updateMax();
   void PageParams_updateLineSpacing();
   void PageParams_updateImageSize();
+
+  void backgroundSelectionChangesForms();
+  void PageParamsForms_updateMin();
+  void PageParamsForms_updateMax();
+  void PageParamsForms_updateLineSpacing();
+  void PageParamsForms_updateImageSize();
 
   void addInputImage(const QString &imageFilename);
 
@@ -185,6 +207,32 @@ protected slots:
   void CharDeg_nbIterationsMaxChangedChar();
   void CharDeg_tirageCharChanged(int nbTirage);
 
+  //Noise Degradation slots
+  void Noise_EnableNoiseOption();
+  void Noise_MethodsChanged();
+  void Noise_tirageNoiseChanged(int nbTirage);
+  void Noise_changeMinAverageGaussian(double);
+  void Noise_changeMaxAverageGaussian(double);
+  void Noise_changeMinStdDevGaussian(double);
+  void Noise_changeMaxStdDevGaussian(double);
+  void Noise_changeMinAverageSpeckle(double);
+  void Noise_changeMaxAverageSpeckle(double);
+  void Noise_changeMinStdDevSpeckle(double);
+  void Noise_changeMaxStdDevSpeckle(double);
+  void Noise_changeMinAmountSaltAndPepper(double);
+  void Noise_changeMaxAmountSaltAndPepper(double);
+  void Noise_changeMinRatioSaltAndPepper(double);
+  void Noise_changeMaxRatioSaltAndPepper(double);
+
+  //Rotation Degradation slots
+  void Rotation_EnableRotationOption();
+  void Rotation_FillMethodChanged();
+  void Rotation_tirageRotationChanged(int nbTirage);
+  void Rotation_changeMinAngle(double);
+  void Rotation_changeMaxAngle(double);
+  void Rotation_changeMinRepeats(int);
+  void Rotation_changeMaxRepeats(int);
+  
   //ShadowBinding slots
   void Shadow_LoadPrevImgShad();
   void Shadow_EnableShadOption();
@@ -203,7 +251,7 @@ protected slots:
   void Phantom_OptionCheckedPhant();
   void Phantom_EnablePhantOption();
   void Phantom_LoadPrevImgPhant();
-  void Phantom_tiragePhantomChanged(int value);
+  void Phantom_tiragePhantomChanged(int nbTirage);
 
   //Blur slots
   void Blur_OptionCheckedBlur();
@@ -232,11 +280,25 @@ protected slots:
   void Hole_OptionCheckedHole();
   void Hole_chooseColor();
   void Hole_tirageHoleChanged(int value);
-
   void Hole_updatePreview();
-
   void Hole_LoadPrevImgHole();
 
+  //ElasticDeformation Degradation slots
+  void ElasticDeformation_EnableElasticOption();
+  void ElasticDeformation_MethodsChanged();
+  void ElasticDeformation_tirageElasticChanged(int nbTirage);
+  void ElasticDeformation_changeMinAlphaTransform1(double);
+  void ElasticDeformation_changeMaxAlphaTransform1(double);
+  void ElasticDeformation_changeMinSigmaTransform1(double);
+  void ElasticDeformation_changeMaxSigmaTransform1(double);
+  void ElasticDeformation_changeMinAlphaTransform2(double);
+  void ElasticDeformation_changeMaxAlphaTransform2(double);
+  void ElasticDeformation_changeMinSigmaTransform2(double);
+  void ElasticDeformation_changeMaxSigmaTransform2(double);
+  void ElasticDeformation_changeMinAlphaAffineTransform2(double);
+  void ElasticDeformation_changeMaxAlphaAffineTransform2(double);
+
+  
   //Distortion3D slots
   void Dist3D_EnableDist3DOption();
   void Dist3D_chooseMeshesDirectory();
@@ -260,10 +322,21 @@ protected:
   bool PageParams_isComplete() const;
   void PageParams_getParams(RandomDocumentParameters &) const;
 
+  void PageParamsForms_connect();
+  bool PageParamsForms_isComplete() const;
+  void PageParamsForms_getParams(RandomDocumentParameters &) const;
+
   int computeNbGeneratedTexts() const;
 
   void CharDeg_updateTirageAndTotal();
 
+  int Noise_nbDegradations() const;
+  void Noise_updateTirageAndTotal();
+
+  int Rotation_nbDegradations() const;
+  void Rotation_updateTirageAndTotal();
+
+  
   void Shadow_setPreview(dc::ShadowBinding::Border border);
   void Shadow_updatePreviewAll();
   void Shadow_updateTirageAndTotal();
@@ -288,6 +361,9 @@ protected:
                                      bool randPosX,
                                      bool randPosY) const;
 
+  int ElasticDeformation_nbDegradations() const;
+  void ElasticDeformation_updateTirageAndTotal();
+  
   void Dist3D_loadListMeshes();
   void Dist3D_loadMeshBackgrounds();
   void Dist3D_updateTirageAndTotal();
@@ -322,14 +398,26 @@ protected:
                const QImage &recto,
                const QString &outputImageDir) const;
 
-  void do_3D(const QString &imageBasename,
-             const QImage &recto,
-             const QString &outputImageDir) const;
-
   void do_GDD(const QString &imageBasename,
              const QImage &recto,
              const QString &outputImageDir) const;
 
+  void do_Noise(const QString &imageBasename,
+		const QImage &recto,
+		const QString &outputImageDir) const;
+
+  void do_Rotation(const QString &imageBasename,
+		   const QImage &recto,
+		   const QString &inputImageDir,
+		   const QString &outputImageDir) const;
+
+  void do_ElasticDeformation(const QString &imageBasename,
+			     const QImage &recto,
+			     const QString &outputImageDir) const;
+
+  void do_3D(const QString &imageBasename,
+             const QImage &recto,
+             const QString &outputImageDir) const;
 
   void updateProgress() const;
 
@@ -339,22 +427,28 @@ private:
   enum
   {
     Page_SyntheticOrSemiChoice,
+    Page_TextDocument,
     Page_TextType,
     Page_TextDirs,
     Page_TextRandomNb,
     Page_FontFiles,
     Page_BackgroundFiles,
+    Page_BackgroundFilesForms,
     Page_PageParams,
+    Page_PageParamsForms,
     Page_FinalText,
     Page_ConfirmDegradations,
     Page_ImageAndGtDirs,
-    Page_Bleed,
     Page_CharDeg,
-    Page_GDD,
-    Page_Shadow,
     Page_Phantom,
+    Page_GDD,
+    Page_Bleed,
+    Page_Noise,
+    Page_Rotation,
     Page_Blur,
+    Page_Shadow,
     Page_Hole,
+    Page_ElasticDeformation,
     Page_Dist3D,
     Page_FinalDegradations,
     Page_Results
@@ -421,6 +515,10 @@ private:
   //int _CharDeg_nbTirageChar = 0;
   bool _CharDeg_charEnable;
 
+  bool _Noise_noiseEnable;
+
+  bool _Rotation_rotationEnable;
+  
   bool _Shadow_shadEnable;
 
   
@@ -456,6 +554,9 @@ private:
   bool _Hole_bigHoleCenter;
   QColor _Hole_colorBehind;
 
+  bool _ElasticDeformation_elasticEnable;
+
+  
   bool _Dist3D_dist3DEnable;
   QString _Dist3D_meshDirectory;
   QStringList _Dist3D_meshesList;
@@ -481,6 +582,7 @@ private:
   QStringList _backgroundListChoice;
   QStringList _inputImageList;
   DocumentController *_DocController;
+  QVector<QVector<QRect> > _blocks;
 
   mutable QProgressDialog *_progressDialog;
   mutable size_t _numGeneratedImages;

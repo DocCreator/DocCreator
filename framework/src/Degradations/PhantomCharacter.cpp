@@ -603,7 +603,7 @@ namespace dc {
     boundedRand(int minV, int maxV)
     {
       const int r = static_cast<int>(
-				     minV + (static_cast<float>(rand()) / RAND_MAX * (maxV - minV + 1)));
+				     minV + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (maxV - minV + 1)));
       assert(minV <= r && r <= maxV);
       return r;
     }
@@ -1090,7 +1090,7 @@ namespace dc {
       assert(m0 > 0);
       const float inv_m0 = 1.f / m0;
       const float avg = m1 * inv_m0;
-      const float standard_deviation = sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
+      const float standard_deviation = std::sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
 
       //Filtering of ccs
       constexpr float factor = 1.f;

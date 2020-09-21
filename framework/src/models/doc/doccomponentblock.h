@@ -39,24 +39,24 @@ public:
     explicit DocComponentBlock(Document* document);
     DocComponentBlock(Document* document, int w, int h, int x, int y);
 
-    virtual DocComponentBlock* clone() override;
+    DocComponentBlock* clone() override;
 
-    virtual DocComponentBlock* getSelection() override;
+    DocComponentBlock* getSelection() override;
 
     void add(DocComponent* e);
     void add(const QList<DocComponent*> &l);
-    virtual void add(DocZone *e) override;
-    virtual void add(const QList<DocZone*> &l) override;
+    void add(DocZone *e) override;
+    void add(const QList<DocZone*> &l) override;
 
     DocZone* currentZone();
     QList<DocZone*> getZones();
 
-    virtual QString content() const override;
+    QString content() const override;
 
 protected:
-    virtual void actionWhenElementIsEmpty(DocZone* empty) override;
-    virtual void removeBeforeAndCurrentAtBeginning() override;
-    virtual void removeAfterAndCurrentAtEnd() override;
+    void actionWhenElementIsEmpty(DocZone* empty) override;
+    void removeBeforeAndCurrentAtBeginning() override;
+    void removeAfterAndCurrentAtEnd() override;
 
 private:
 

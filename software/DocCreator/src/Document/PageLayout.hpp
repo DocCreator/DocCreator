@@ -7,68 +7,58 @@
 #include "models/doc/doctextblock.h"
 #include "models/doc/document.h"
 
-//#include <QVector>
-
-//template<class T>
-//class Vector2D : public QVector< QVector<T> >
-//{
-//    Vector2D():
-//      QVector< QVector<T> >()
-//    {
-//    }
-//    Vector2D(int rows, int columns) :
-//            QVector< QVector<T> >(rows)
-//    {
-//        for(int i = 0; i < size(); i++)
-//            this[i].resize(columns);
-//    }
-//    virtual ~Vector2D() {}
-//};
 
 class PageLayout : public QObject
 {
   Q_OBJECT
 
 public:
-  explicit PageLayout(Doc::Document *doc, QObject *parent = nullptr)
+  explicit PageLayout(Doc::Document *doc,
+		      QObject *parent = nullptr,
+		      int leftMargin = 0, int rightMargin = 0,
+		      int topMargin = 0, int bottomMargin = 0)
     : QObject(parent)
     , _height(doc->pageHeight())
     , _width(doc->pageWidth())
-    , page(QPoint(0, 0), QPoint(_width, _height))
-    , leftMargin(0)
-    , rightMargin(0)
-    , topMargin(0)
-    , bottomMargin(0)
+    , _page(QPoint(0, 0), QPoint(_width, _height))
+    , _leftMargin(leftMargin)
+    , _rightMargin(rightMargin)
+    , _topMargin(topMargin)
+    , _bottomMargin(bottomMargin)
     , _doc(doc)
-  {}
-
-  virtual Doc::DocTextBlock *newTextBlock(const int blockNumber = -1) = 0;
-
-  virtual inline void setRightMargin(const int pRightMargin)
   {
-    rightMargin = pRightMargin;
-    page.setWidth(_width - rightMargin);
   }
 
-  virtual inline void setLeftMargin(const int pLeftMargin)
+  virtual Doc::DocTextBlock *takeTextBlock(int blockNumber) = 0;
+
+  virtual inline void setRightMargin(int pRightMargin)
   {
-    leftMargin = pLeftMargin;
-    page.setX(leftMargin);
+    _rightMargin = pRightMargin;
+    _page.setWidth(_width - _rightMargin - _leftMargin);
   }
 
-  virtual inline void setBottomMargin(const int pBottomMargin)
+  virtual inline void setLeftMargin(int pLeftMargin)
   {
-    bottomMargin = pBottomMargin;
-    page.setHeight(_height - bottomMargin);
+    _leftMargin = pLeftMargin;
+    _page.setX(_leftMargin);
+    _page.setWidth(_width - _rightMargin - _leftMargin);
   }
 
-  virtual inline void setTopMargin(const int pTopMargin)
+  virtual inline void setBottomMargin(int pBottomMargin)
   {
-    topMargin = pTopMargin;
-    page.setY(topMargin);
+    _bottomMargin = pBottomMargin;
+    _page.setHeight(_height - _bottomMargin - _topMargin);
+  }
+
+  virtual inline void setTopMargin(int pTopMargin)
+  {
+    _topMargin = pTopMargin;
+    _page.setY(_topMargin);
+    _page.setHeight(_height - _bottomMargin - _topMargin);
   }
 
 protected:
+
   virtual Doc::DocTextBlock *creatTextBlock(int x, int y, int w, int h) const
   {
     Doc::DocTextBlock *textBlock = new Doc::DocTextBlock(_doc);
@@ -86,13 +76,14 @@ protected:
   }
 
 protected:
+
   int _height;
   int _width;
-  QRect page;
-  int leftMargin;
-  int rightMargin;
-  int topMargin;
-  int bottomMargin;
+  QRect _page;
+  int _leftMargin;
+  int _rightMargin;
+  int _topMargin;
+  int _bottomMargin;
   Doc::Document *_doc;
 };
 

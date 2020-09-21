@@ -246,7 +246,11 @@ HoleDegradationDialog::setHole()
                             QMessageBox::Yes | QMessageBox::No) ==
       QMessageBox::Yes) {
     _degradedImg = _resultImg;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 5, 0))
     _degradedImg.setAlphaChannel(_resultImg.alphaChannel());
+#else
+    _degradedImg.setAlphaChannel(_resultImg.convertToFormat(QImage::Format_Alpha8));
+#endif
     // _originalImgSmall = _originalImg.scaled(IMG_WIDTH, IMG_HEIGHT,
     // Qt::KeepAspectRatio, Qt::FastTransformation);
 
@@ -262,7 +266,11 @@ void
 HoleDegradationDialog::setOriginalImage(const QImage &img)
 {
   _originalImg = img;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 5, 0))
   _originalImg.setAlphaChannel(img.alphaChannel());
+#else
+  _originalImg.setAlphaChannel(img.convertToFormat(QImage::Format_Alpha8));
+#endif
   _originalImgSmall = img.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
 
@@ -270,8 +278,12 @@ HoleDegradationDialog::setOriginalImage(const QImage &img)
   ui->verticalSlider->setMaximum(img.height());
 
   _degradedImg = _originalImg;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 5, 0))
   _degradedImg.setAlphaChannel(_originalImg.alphaChannel());
-
+#else
+  _degradedImg.setAlphaChannel(_originalImg.convertToFormat(QImage::Format_Alpha8));
+#endif
+  
   updateSliders();
 
   setupGUIImages();

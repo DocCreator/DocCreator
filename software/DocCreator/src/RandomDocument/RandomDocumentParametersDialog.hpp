@@ -32,7 +32,7 @@ protected slots:
   void updateNbBlocksPerRowMax();
 
 protected:
-  virtual void changeEvent(QEvent *e) override;
+  void changeEvent(QEvent *e) override;
 
 private:
   Ui::RandomDocumentParametersDialog *_ui;

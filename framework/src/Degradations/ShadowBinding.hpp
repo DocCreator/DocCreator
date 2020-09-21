@@ -20,7 +20,8 @@ namespace dc {
     /*
       Add a shadow on a given border of image.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      Output image will be of the same type and size than @a img.
 
       @prama[in] img  input original image.
       @param[in] border  border on which shadow is added.
@@ -38,7 +39,8 @@ namespace dc {
 
       Shadow width is computed as @a distanceRatio * image width if border is LEFT or RIGHT, @a distanceRatio * image height if border is TOP or BOTTOM. 
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      Output image will be of the same type and size than @a img.
 
       @prama[in] img  input original image.
       @param[in] border  border on which shadow is added.

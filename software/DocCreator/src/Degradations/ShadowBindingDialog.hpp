@@ -48,7 +48,7 @@ public slots:
   void borderChanged();
 
 protected:
-  virtual void changeEvent(QEvent *e) override;
+  void changeEvent(QEvent *e) override;
 
   void setupGUIImages();
   void updateResultImage();

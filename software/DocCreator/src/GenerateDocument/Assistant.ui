@@ -141,6 +141,67 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QWizardPage" name="ChoiceTextDocument">
+   <property name="subTitle">
+    <string>DocCreator</string>
+   </property>
+   <widget class="QGroupBox" name="groupBoxTD_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>170</y>
+      <width>451</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QWidget" name="layoutWidgetTD_2">
+     <property name="geometry">
+      <rect>
+       <x>1</x>
+       <y>0</y>
+       <width>438</width>
+       <height>95</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayoutTD_3">
+      <item>
+       <widget class="QLabel" name="labelTD_9">
+        <property name="text">
+         <string>Choose the kind of text documents to generate your documents</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayoutTD_3">
+        <item>
+         <widget class="QRadioButton" name="ClassicTextDocument">
+          <property name="text">
+           <string>Standard text documents</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="FormTextDocument">
+        <property name="text">
+         <string>Form documents</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+  </widget>
   <widget class="QWizardPage" name="ChoiceTextType">
    <property name="subTitle">
     <string>DocCreator</string>
@@ -560,6 +621,122 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QWizardPage" name="ChoiceBackgroundsForms">
+   <property name="subTitle">
+    <string>DocCreator</string>
+   </property>
+   <widget class="QWidget" name="layoutWidget_5F">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>721</width>
+      <height>461</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_18F">
+     <item>
+      <widget class="QLabel" name="label_4F">
+       <property name="text">
+        <string>Choose a directory with background images and corresponding blocks (csv) files::</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_19F">
+       <item>
+        <widget class="QLineEdit" name="backgroundPathForms">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnChooseBackgroundDirForms">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_39">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In this directory, you should have:&lt;/p&gt;&lt;p&gt;- either, a single csv file &lt;span style=&quot; font-style:italic;&quot;&gt;blocks.csv&lt;/span&gt; if you want to have the same blocks for all the background images&lt;/p&gt;&lt;p&gt;- or, for each background image file, a csv file with the same name than the image (e.g., &lt;span style=&quot; font-style:italic;&quot;&gt;img1.csv&lt;/span&gt; for &lt;span style=&quot; font-style:italic;&quot;&gt;img1.png&lt;/span&gt;) if you want different blocks per background image&lt;/p&gt;&lt;p&gt;The csv files should have on each row the coordinates of a block: x, y, width, height.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="labelSBF">
+       <property name="text">
+        <string>Select background image(s) to use:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListView" name="listBackgroundViewForms">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_33F">
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="btnSelectBckgdForms">
+         <property name="text">
+          <string>Select all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDeselectBckgdForms">
+         <property name="text">
+          <string>Deselect all</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_8F">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_nbBackgroundsForms">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>0 selected background image(s) [0 block file found]</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <widget class="QWizardPage" name="PageParams">
    <property name="subTitle">
     <string>DocCreator</string>
@@ -582,7 +759,7 @@
      <rect>
       <x>21</x>
       <y>40</y>
-      <width>600</width>
+      <width>646</width>
       <height>470</height>
      </rect>
     </property>
@@ -648,6 +825,13 @@
            </property>
            <property name="value">
             <number>5</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_27">
+           <property name="text">
+            <string>pixels</string>
            </property>
           </widget>
          </item>
@@ -719,6 +903,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="label_28">
+           <property name="text">
+            <string>pixels</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -787,6 +978,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="label_29">
+           <property name="text">
+            <string>pixels</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -852,6 +1050,13 @@
            </property>
            <property name="value">
             <number>5</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_30">
+           <property name="text">
+            <string>pixels</string>
            </property>
           </widget>
          </item>
@@ -1041,6 +1246,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="label_31">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -1111,6 +1323,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QLabel" name="label_34">
+             <property name="text">
+              <string>pixels</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -1127,7 +1346,7 @@
               <string>relative to font height</string>
              </property>
              <property name="checked">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <attribute name="buttonGroup">
               <string notr="true">buttonGroupParamsLineSpacing</string>
@@ -1224,12 +1443,357 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QLabel" name="label_37">
+             <property name="text">
+              <string>pixels</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="hL_14SZ">
            <item>
             <widget class="QRadioButton" name="radioButton_ImageSizeAdaptive">
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>equal to background image size</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonGroupParamsImageSize</string>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="PageParamsForms">
+   <property name="subTitle">
+    <string>DocCreator</string>
+   </property>
+   <widget class="QLabel" name="label_2F">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>251</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Set parameters for page generation:</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="layoutWidget_6F">
+    <property name="geometry">
+     <rect>
+      <x>21</x>
+      <y>40</y>
+      <width>650</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="vLayout_6F">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_41F">
+       <item>
+        <widget class="QLabel" name="label_percentEmptyBlocksForms">
+         <property name="text">
+          <string>percentage of empty blocks: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hl21F">
+         <item>
+          <widget class="QRadioButton" name="radioButton_percentEmptyBlocksForms">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBox_percentEmptyBlocksForms">
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_31F">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_19">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_12F">
+       <item>
+        <widget class="QLabel" name="label_lineSpacingForms">
+         <property name="text">
+          <string>line spacing:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="vvLayout_6F">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_13F">
+           <item>
+            <widget class="QRadioButton" name="radioButton_lineSpacingRandomForms">
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonGroupParamsLineSpacing</string>
+             </attribute>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_lineSpacingBetweenForms">
+             <property name="text">
+              <string>random value between</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox_lineSpacingMinForms">
+             <property name="maximum">
+              <number>2000</number>
+             </property>
+             <property name="value">
+              <number>55</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_lineSpacingAndForms">
+             <property name="text">
+              <string>and</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox_lineSpacingMaxForms">
+             <property name="maximum">
+              <number>2000</number>
+             </property>
+             <property name="value">
+              <number>55</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_35">
+             <property name="text">
+              <string>pixels</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_14F">
+           <item>
+            <widget class="QRadioButton" name="radioButton_lineSpacingFontHeightForms">
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>relative to font height</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonGroupParamsLineSpacing</string>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_20">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="hl_12SZF">
+       <item>
+        <widget class="QLabel" name="label_SZF">
+         <property name="text">
+          <string>image size:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="vvLayout_6SZF">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_13SZF">
+           <item>
+            <widget class="QRadioButton" name="radioButton_ImageSizeUniformForms">
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">buttonGroupParamsImageSize</string>
+             </attribute>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_ImageSizeBetweenForms">
+             <property name="minimumSize">
+              <size>
+               <width>165</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>always scaled to width=</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox_ImageSizeWidthForms">
+             <property name="minimumSize">
+              <size>
+               <width>125</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>5</number>
+             </property>
+             <property name="maximum">
+              <number>9900</number>
+             </property>
+             <property name="value">
+              <number>1006</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_ImageSizeAndForms">
+             <property name="text">
+              <string> height=</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox_ImageSizeHeightForms">
+             <property name="minimumSize">
+              <size>
+               <width>125</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>5</number>
+             </property>
+             <property name="maximum">
+              <number>9900</number>
+             </property>
+             <property name="value">
+              <number>1554</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_38F">
+             <property name="text">
+              <string>pixels</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="hL_14SZF">
+           <item>
+            <widget class="QRadioButton" name="radioButton_ImageSizeAdaptiveForms">
              <property name="minimumSize">
               <size>
                <width>20</width>
@@ -1436,8 +2000,8 @@
        <property name="text">
         <string>Text images have been generated.
 
-Click Next to continue and apply degradation models to these images.
-Click Cancel otherwise.</string>
+Click &quot;Next&quot; to continue and apply degradation models to these images.
+Click &quot;Cancel&quot; otherwise.</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -1555,181 +2119,6 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
       </layout>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QWizardPage" name="Bleed">
-   <property name="subTitle">
-    <string>DocCreator: Bleed-Through</string>
-   </property>
-   <widget class="QWidget" name="OptionBleed" native="true">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>60</y>
-      <width>401</width>
-      <height>241</height>
-     </rect>
-    </property>
-    <widget class="QWidget" name="layoutWidget_8">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>291</width>
-       <height>131</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
-      <item>
-       <widget class="QLabel" name="BleedMinLabel">
-        <property name="text">
-         <string>Bleed intensity Min</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSlider" name="BleedMin">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="value">
-         <number>10</number>
-        </property>
-        <property name="sliderPosition">
-         <number>10</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="invertedAppearance">
-         <bool>false</bool>
-        </property>
-        <property name="invertedControls">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="BleedMaxLabel">
-        <property name="text">
-         <string>Bleed intensity Max</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSlider" name="BleedMax">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="value">
-         <number>20</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QLabel" name="BleedMinValue">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>60</y>
-       <width>67</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>10</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="BleedMaxValue">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>130</y>
-       <width>67</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>20</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QPushButton" name="SwitchBleed">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>380</y>
-      <width>95</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Change preview area of both recto and verso images</string>
-    </property>
-    <property name="text">
-     <string>Switch</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>60</y>
-      <width>161</width>
-      <height>261</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="PrevBleed">
-     <item>
-      <widget class="QLabel" name="BleedMinPreviewLabel">
-       <property name="text">
-        <string>TextLabel</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QCheckBox" name="CheckBleed">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>20</y>
-      <width>431</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Enable this degradation [at least two images are necessary]</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_3">
-    <property name="geometry">
-     <rect>
-      <x>580</x>
-      <y>60</y>
-      <width>161</width>
-      <height>261</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="PrevBleedMax">
-     <item>
-      <widget class="QLabel" name="BleedMaxPreviewLabel">
-       <property name="text">
-        <string>TextLabel</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </widget>
@@ -1927,214 +2316,6 @@ Click Cancel otherwise.</string>
     </property>
    </widget>
   </widget>
-  <widget class="QWizardPage" name="ShadowBinding">
-   <property name="subTitle">
-    <string>DocCreator: Shadow Binding</string>
-   </property>
-   <widget class="QWidget" name="OptionShad" native="true">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>50</y>
-      <width>601</width>
-      <height>381</height>
-     </rect>
-    </property>
-    <widget class="QWidget" name="layoutWidget_10">
-     <property name="geometry">
-      <rect>
-       <x>1</x>
-       <y>1</y>
-       <width>601</width>
-       <height>351</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_36">
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_14">
-        <item>
-         <widget class="QLabel" name="ShadPreviewLabel">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="SwitchShad">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="toolTip">
-           <string>Change preview image</string>
-          </property>
-          <property name="text">
-           <string>Switch</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QCheckBox" name="LeftShad">
-          <property name="text">
-           <string>Left</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="RightShad">
-          <property name="text">
-           <string>Right</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="TopShad">
-          <property name="text">
-           <string>Top</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="BottomShad">
-          <property name="text">
-           <string>Bottom</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="shadHL1">
-          <item>
-           <widget class="QLabel" name="shadLabel1">
-            <property name="text">
-             <string>width</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="shad_width">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="sliderPosition">
-             <number>25</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="shadHL2">
-          <item>
-           <widget class="QLabel" name="shadLabel2">
-            <property name="text">
-             <string>intensity</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="shad_intensity">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="sliderPosition">
-             <number>50</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="shadHL3">
-          <item>
-           <widget class="QLabel" name="shadLabel3">
-            <property name="text">
-             <string>angle</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="shad_angle">
-            <property name="minimum">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <number>90</number>
-            </property>
-            <property name="sliderPosition">
-             <number>30</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </widget>
-   <widget class="QCheckBox" name="CheckShad">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>0</y>
-      <width>251</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Enable this degradation</string>
-    </property>
-   </widget>
-   <zorder>CheckShad</zorder>
-   <zorder>OptionShad</zorder>
-  </widget>
   <widget class="QWizardPage" name="PhantCharacter">
    <property name="subTitle">
     <string>DocCreator: Phantom Character</string>
@@ -2258,7 +2439,7 @@ Click Cancel otherwise.</string>
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>531</width>
+       <width>596</width>
        <height>153</height>
       </rect>
      </property>
@@ -2302,7 +2483,7 @@ Click Cancel otherwise.</string>
         <item>
          <widget class="QLabel" name="GDD_numStainsMinLabel">
           <property name="text">
-           <string>min # </string>
+           <string>min</string>
           </property>
          </widget>
         </item>
@@ -2325,7 +2506,7 @@ Click Cancel otherwise.</string>
         <item>
          <widget class="QLabel" name="GDD_numStainsMaxLabel">
           <property name="text">
-           <string>max # </string>
+           <string>max</string>
           </property>
          </widget>
         </item>
@@ -2367,6 +2548,12 @@ Click Cancel otherwise.</string>
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>310</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>Grayscale transformation of inserted images: </string>
           </property>
@@ -2403,6 +2590,1450 @@ Click Cancel otherwise.</string>
     <property name="text">
      <string>Enable this degradation</string>
     </property>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="Bleed">
+   <property name="subTitle">
+    <string>DocCreator: Bleed-Through</string>
+   </property>
+   <widget class="QWidget" name="OptionBleed" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>60</y>
+      <width>401</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="layoutWidget_8">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>291</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QLabel" name="BleedMinLabel">
+        <property name="text">
+         <string>Bleed intensity Min</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="BleedMin">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="value">
+         <number>10</number>
+        </property>
+        <property name="sliderPosition">
+         <number>10</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="invertedAppearance">
+         <bool>false</bool>
+        </property>
+        <property name="invertedControls">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="BleedMaxLabel">
+        <property name="text">
+         <string>Bleed intensity Max</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="BleedMax">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="value">
+         <number>20</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QLabel" name="BleedMinValue">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>60</y>
+       <width>67</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>10</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="BleedMaxValue">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>130</y>
+       <width>67</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>20</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="SwitchBleed">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>380</y>
+      <width>95</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Change preview area of both recto and verso images</string>
+    </property>
+    <property name="text">
+     <string>Switch</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>161</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="PrevBleed">
+     <item>
+      <widget class="QLabel" name="BleedMinPreviewLabel">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QCheckBox" name="CheckBleed">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>20</y>
+      <width>431</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation [at least two images are necessary]</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>60</y>
+      <width>161</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="PrevBleedMax">
+     <item>
+      <widget class="QLabel" name="BleedMaxPreviewLabel">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="NoiseDegradation">
+   <property name="subTitle">
+    <string>DocCreator: Noise Degradation</string>
+   </property>
+   <widget class="QCheckBox" name="CheckNoise">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>281</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="OptionNoise" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>751</width>
+      <height>441</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget_4N">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>681</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_37N">
+      <item>
+       <widget class="QLabel" name="label_5N">
+        <property name="text">
+         <string>Add noise with the following methods: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_10N">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QGroupBox" name="GaussianNoiseGB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>731</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="GaussianNoiseCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>131</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Gaussian noise</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_6N">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>731</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5N">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_38N">
+         <item>
+          <spacer name="horizontalSpacer_15N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="AverageGaussianNoiseL">
+           <property name="text">
+            <string>Average: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAverageGaussianNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAverageGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAverageGaussianNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAverageGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="StdDevGaussianNoiseL">
+           <property name="text">
+            <string>Std Dev: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinStdDevGaussianNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinStdDevGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxStdDevGaussianNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxStdDevGaussianNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35N">
+         <item>
+          <spacer name="horizontalSpacer_15N_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="GaussianNoiseAddTypeLabel">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>310</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Grayscale transformation of inserted noise: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="GaussianNoiseAddTypeCB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122N_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="SpeckleNoiseGB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>731</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="SpeckleNoiseCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>221</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Speckle noise</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_8N">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>731</width>
+        <height>64</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5N2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_39N">
+         <item>
+          <spacer name="horizontalSpacer_16N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="AverageSpeckleNoiseL">
+           <property name="text">
+            <string>Average: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAverageSpeckleNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAverageSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAverageSpeckleNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAverageSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12N2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="StdDevSpeckleNoiseL">
+           <property name="text">
+            <string>Std Dev: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinStdDevSpeckleNoiseL">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinStdDevSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxStdDevSpeckleNoiseL">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxStdDevSpeckleNoiseSB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_132N">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35N2">
+         <item>
+          <spacer name="horizontalSpacer_15N_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="SpeckleNoiseAddTypeLabel">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>310</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Grayscale transformation of inserted noise: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="SpeckleNoiseAddTypeCB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122N_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="SaltAndPepperNoiseGB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>741</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="SaltAndPepperNoiseCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Salt and Pepper noise</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_13N">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>731</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_40N">
+       <item>
+        <spacer name="horizontalSpacer_17N">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="AmountSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Amount: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MinAmountSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Min</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MinAmountSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.150000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MaxAmountSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Max</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MaxAmountSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.150000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_12SN">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>68</width>
+           <height>26</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="RatioSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Std Dev: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MinRatioSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Min</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MinRatioSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MaxRatioSaltAndPepperNoiseL">
+         <property name="text">
+          <string>Max</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="MaxRatioSaltAndPepperNoiseSB">
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_132SPN">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>68</width>
+           <height>26</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="RotationDegradation">
+   <property name="subTitle">
+    <string>DocCreator: Rotation Degradation</string>
+   </property>
+   <widget class="QCheckBox" name="CheckRotation">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>281</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="OptionRotation" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>751</width>
+      <height>441</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>10</y>
+       <width>681</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_35">
+      <item>
+       <widget class="QLabel" name="RotationAngleLabel">
+        <property name="text">
+         <string>Rotation angle: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="RotationAngleMinLabel">
+        <property name="text">
+         <string>Min</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="RotationAngleMinSB">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-180.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>180.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>-7.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="RotationAngleMaxLabel">
+        <property name="text">
+         <string>Max</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="RotationAngleMaxSB">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-180.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>180.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>7.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_33">
+        <property name="text">
+         <string>degrees</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_9">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>48</width>
+          <height>36</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_4">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>681</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_37">
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Appearing pixel filling methods: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_10">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QGroupBox" name="RotationColorGB">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>110</y>
+       <width>681</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="RotationFillColorCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>92</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Color</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>651</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_38">
+       <item>
+        <spacer name="horizontalSpacer_15">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="RotationSpecificColorRB">
+         <property name="text">
+          <string>specific color</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="ColorButton" name="RotationColorSelectionPB">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="RotationRandomColorRB">
+         <property name="text">
+          <string>random color</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_11">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="RotationImageGB">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>190</y>
+       <width>681</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="RotationFillImageCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>221</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Random background image</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_8">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>651</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_39">
+       <item>
+        <spacer name="horizontalSpacer_16">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="RotationFillImageRepeatsL">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of intermediary images between the background and foreground images&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Repeats: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Min: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="RotationImageRepeatsMinSB">
+         <property name="maximum">
+          <number>180</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_26">
+         <property name="text">
+          <string>Max: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="RotationImageRepeatsMaxSB">
+         <property name="maximum">
+          <number>180</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_12">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>68</width>
+           <height>26</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="RotationBorderGB">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>270</y>
+       <width>681</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="RotationFillBorderCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>151</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Repeat border</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_13">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>651</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_40">
+       <item>
+        <spacer name="horizontalSpacer_17">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationBorderReplicateCB">
+         <property name="toolTip">
+          <string>aaaaaa|abcdefgh|hhhhhhh</string>
+         </property>
+         <property name="text">
+          <string>Replicate</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationBorderReflectCB">
+         <property name="toolTip">
+          <string>fedcba|abcdefgh|hgfedcb</string>
+         </property>
+         <property name="text">
+          <string>Reflect</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationBorderWrapCB">
+         <property name="toolTip">
+          <string>cdefgh|abcdefgh|abcdefg</string>
+         </property>
+         <property name="text">
+          <string>Wrap</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationBorderReflect101CB">
+         <property name="toolTip">
+          <string>gfedcb|abcdefgh|gfedcba</string>
+         </property>
+         <property name="text">
+          <string>Reflect101</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_13">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="RotationInpaintGB">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>340</y>
+       <width>681</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="RotationFillInpaintCB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>151</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Inpaint</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_18">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>651</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_42">
+       <item>
+        <spacer name="horizontalSpacer_18">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationInpaint1CB">
+         <property name="text">
+          <string>Inpaint1</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationInpaint2CB">
+         <property name="text">
+          <string>Inpaint2</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="RotationInpaint3CB">
+         <property name="text">
+          <string>Inpaint3</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_14">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QWizardPage" name="Blur">
@@ -2806,6 +4437,214 @@ Click Cancel otherwise.</string>
      <string>Switch</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QWizardPage" name="ShadowBinding">
+   <property name="subTitle">
+    <string>DocCreator: Shadow Binding</string>
+   </property>
+   <widget class="QWidget" name="OptionShad" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>50</y>
+      <width>601</width>
+      <height>381</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="layoutWidget_10">
+     <property name="geometry">
+      <rect>
+       <x>1</x>
+       <y>1</y>
+       <width>601</width>
+       <height>351</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_36">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_14">
+        <item>
+         <widget class="QLabel" name="ShadPreviewLabel">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="SwitchShad">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Change preview image</string>
+          </property>
+          <property name="text">
+           <string>Switch</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QCheckBox" name="LeftShad">
+          <property name="text">
+           <string>Left</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="RightShad">
+          <property name="text">
+           <string>Right</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="TopShad">
+          <property name="text">
+           <string>Top</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="BottomShad">
+          <property name="text">
+           <string>Bottom</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="shadHL1">
+          <item>
+           <widget class="QLabel" name="shadLabel1">
+            <property name="text">
+             <string>width</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="shad_width">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="sliderPosition">
+             <number>25</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="shadHL2">
+          <item>
+           <widget class="QLabel" name="shadLabel2">
+            <property name="text">
+             <string>intensity</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="shad_intensity">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="sliderPosition">
+             <number>50</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="shadHL3">
+          <item>
+           <widget class="QLabel" name="shadLabel3">
+            <property name="text">
+             <string>angle</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="shad_angle">
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>90</number>
+            </property>
+            <property name="sliderPosition">
+             <number>30</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QCheckBox" name="CheckShad">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>0</y>
+      <width>251</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation</string>
+    </property>
+   </widget>
+   <zorder>CheckShad</zorder>
+   <zorder>OptionShad</zorder>
   </widget>
   <widget class="QWizardPage" name="Hole">
    <property name="enabled">
@@ -3264,6 +5103,679 @@ Click Cancel otherwise.</string>
     </layout>
    </widget>
   </widget>
+  <widget class="QWizardPage" name="ElasticDeformation">
+   <property name="subTitle">
+    <string>DocCreator: Elastic Deformation</string>
+   </property>
+   <widget class="QCheckBox" name="CheckElastic">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>281</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable this degradation</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="OptionElastic" native="true">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>751</width>
+      <height>441</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget_4E">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>681</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_37E">
+      <item>
+       <widget class="QLabel" name="label_5E">
+        <property name="text">
+         <string>Add elastic deformations with the following methods: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_10E">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QGroupBox" name="ElasticDeformation1GB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>731</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="ElasticDeformation1CB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>131</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Transform</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_6E">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>721</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5E">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_38E">
+         <item>
+          <spacer name="horizontalSpacer_15E">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="ElasticDeformation1L">
+           <property name="text">
+            <string>Alpha: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAlphaElasticDeformation1L">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAlphaElasticDeformation1SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAlphaElasticDeformation1L">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAlphaElasticDeformation1SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12E">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Expanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="SigmaElasticDeformation1L">
+           <property name="text">
+            <string>Sigma: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinSigmaElasticDeformation1L">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinSigmaElasticDeformation1SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.080000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxSigmaElasticDeformation1L">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxSigmaElasticDeformation1SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.080000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122E">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35E">
+         <item>
+          <spacer name="horizontalSpacer_15E_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="BorderElasticDeformation1Label">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Border mode: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="BorderElasticDeformation1CB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122E_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="InterpolationElasticDeformation1Label">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Interpolation: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="InterpolationElasticDeformation1CB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122E_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="ElasticDeformation2GB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>731</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="ElasticDeformation2CB">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>221</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Transform2</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget_8E">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>721</width>
+        <height>98</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5E2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_39E">
+         <item>
+          <spacer name="horizontalSpacer_16E">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="AlphaElasticDeformation2L">
+           <property name="text">
+            <string>Alpha: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAlphaElasticDeformation2L">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAlphaElasticDeformation2SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAlphaElasticDeformation2L">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAlphaElasticDeformation2SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>255.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12E2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="SigmaElasticDeformation2L">
+           <property name="text">
+            <string>Sigma: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinSigmaElasticDeformation2L">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinSigmaElasticDeformation2SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.080000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxSigmaElasticDeformation2L">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxSigmaElasticDeformation2SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.080000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_132E">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35E2">
+         <item>
+          <spacer name="horizontalSpacer_15E_2b">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="AlphaAffineElasticDeformation2L">
+           <property name="text">
+            <string>Alpha affine: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MinAlphaAffineElasticDeformation2L">
+           <property name="text">
+            <string>Min</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MinAlphaAffineElasticDeformation2SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>9.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="MaxAlphaAffineElasticDeformation2L">
+           <property name="text">
+            <string>Max</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MaxAlphaAffineElasticDeformation2SB">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>9.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_132E2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_35E2b">
+         <item>
+          <spacer name="horizontalSpacer_15E_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="BorderElasticDeformation2Label">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Border mode: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="BorderElasticDeformation2CB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122E_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="InterpolationElasticDeformation2Label">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Interpolation: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="InterpolationElasticDeformation2CB"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_122E_22">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
   <widget class="QWizardPage" name="Dist3D">
    <property name="subTitle">
     <string>DocCreator: 3D distortion</string>
@@ -3667,14 +6179,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="label_12N">
          <property name="text">
-          <string>Blur</string>
+          <string>Noise</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLineEdit" name="NbDegBlur">
+        <widget class="QLineEdit" name="NbDegNoise">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3690,14 +6202,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="6" column="2">
-        <widget class="QSpinBox" name="TirageBlur">
+        <widget class="QSpinBox" name="TirageNoise">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="6" column="3">
-        <widget class="QLineEdit" name="TotalBlur">
+        <widget class="QLineEdit" name="TotalNoise">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3713,14 +6225,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_14">
+        <widget class="QLabel" name="label_12R">
          <property name="text">
-          <string>Shadow Binding</string>
+          <string>Rotation</string>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QLineEdit" name="NbDegShadow">
+        <widget class="QLineEdit" name="NbDegRotation">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3736,17 +6248,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="7" column="2">
-        <widget class="QSpinBox" name="TirageShadow">
+        <widget class="QSpinBox" name="TirageRotation">
          <property name="enabled">
           <bool>false</bool>
-         </property>
-         <property name="maximum">
-          <number>1</number>
          </property>
         </widget>
        </item>
        <item row="7" column="3">
-        <widget class="QLineEdit" name="TotalShadow">
+        <widget class="QLineEdit" name="TotalRotation">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3762,14 +6271,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="8" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>Hole</string>
+          <string>Blur</string>
          </property>
         </widget>
        </item>
        <item row="8" column="1">
-        <widget class="QLineEdit" name="NbDegHole">
+        <widget class="QLineEdit" name="NbDegBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3785,14 +6294,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="8" column="2">
-        <widget class="QSpinBox" name="TirageHole">
+        <widget class="QSpinBox" name="TirageBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="8" column="3">
-        <widget class="QLineEdit" name="TotalHole">
+        <widget class="QLineEdit" name="TotalBlur">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3808,14 +6317,14 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="9" column="0">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>3D distortion</string>
+          <string>Shadow Binding</string>
          </property>
         </widget>
        </item>
        <item row="9" column="1">
-        <widget class="QLineEdit" name="NbDegDist3D">
+        <widget class="QLineEdit" name="NbDegShadow">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3831,7 +6340,7 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="9" column="2">
-        <widget class="QSpinBox" name="TirageDist3D">
+        <widget class="QSpinBox" name="TirageShadow">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3841,7 +6350,30 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="9" column="3">
-        <widget class="QLineEdit" name="TotalDist3D">
+        <widget class="QLineEdit" name="TotalShadow">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Hole</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QLineEdit" name="NbDegHole">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -3857,6 +6389,127 @@ Click Cancel otherwise.</string>
         </widget>
        </item>
        <item row="10" column="2">
+        <widget class="QSpinBox" name="TirageHole">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="3">
+        <widget class="QLineEdit" name="TotalHole">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_13E">
+         <property name="text">
+          <string>Elastic deformation</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QLineEdit" name="NbDegElasticDeformation">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="2">
+        <widget class="QSpinBox" name="TirageElasticDeformation">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="3">
+        <widget class="QLineEdit" name="TotalElasticDeformation">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>3D distortion</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="1">
+        <widget class="QLineEdit" name="NbDegDist3D">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="2">
+        <widget class="QSpinBox" name="TirageDist3D">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="3">
+        <widget class="QLineEdit" name="TotalDist3D">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="2">
         <widget class="QLabel" name="label_19">
          <property name="text">
           <string>Total number of images that will be generated</string>
@@ -3866,7 +6519,7 @@ Click Cancel otherwise.</string>
          </property>
         </widget>
        </item>
-       <item row="10" column="3">
+       <item row="13" column="3">
         <widget class="QLineEdit" name="TotalPic">
          <property name="enabled">
           <bool>true</bool>
@@ -3957,19 +6610,26 @@ completePathToOutputDirectory </string>
    </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ColorButton</class>
+   <extends>QPushButton</extends>
+   <header>ColorButton.hpp</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupParamsLineSpacing"/>
-  <buttongroup name="buttonGroupParamsRightMargin"/>
-  <buttongroup name="buttonGroupParamsLeftMargin"/>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroupParamsTopMargin"/>
+  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroupParamsBottomMargin"/>
-  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupParamsLeftMargin"/>
   <buttongroup name="buttonGroupTextGeneration"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
-  <buttongroup name="buttonGroupText"/>
   <buttongroup name="buttonGroupParamsBlockX"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
+  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupText"/>
+  <buttongroup name="buttonGroupParamsRightMargin"/>
+  <buttongroup name="buttonGroupParamsLineSpacing"/>
  </buttongroups>
 </ui>

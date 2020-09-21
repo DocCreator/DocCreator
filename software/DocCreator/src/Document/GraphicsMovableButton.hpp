@@ -15,9 +15,9 @@ public:
   void hide();
   void show();
 
-  virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-  virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 signals:
   void moving(QPointF);

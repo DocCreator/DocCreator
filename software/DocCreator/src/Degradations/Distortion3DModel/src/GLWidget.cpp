@@ -29,7 +29,7 @@
 #include <QDesktopWidget>
 #include <QGuiApplication>
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 #include <QOpenGLContext>
 #endif
 
@@ -51,7 +51,7 @@ static const float DEFAULT_SPECULAR_EXPONENT = 6.0f;
 
 static const Eigen::Vector4f DEFAULT_SPHERE_COLOR(0.6f, 0.9f, 0.1f, 0.8f);
 
-#if QT_VERSION < 0x050400
+#if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
 static QGLFormat
 P_makeFormat()
 {
@@ -64,7 +64,7 @@ P_makeFormat()
 
 GLWidget::GLWidget(QWidget *parent)
   :
-#if QT_VERSION < 0x050400
+#if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
   QGLWidget(P_makeFormat(), parent)
 #else
   QOpenGLWidget(parent)
@@ -104,7 +104,7 @@ GLWidget::GLWidget(QWidget *parent)
   , m_backgroundMagFilter(GL_NEAREST)
   , m_selectedVertices()
 {
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   QSurfaceFormat format;
   //format.setDepthBufferSize(24);
   format.setAlphaBufferSize(8);
@@ -170,7 +170,7 @@ GLWidget::printGLInfos()
   std::cout << "OpenGL version: \"" << glGetString(GL_VERSION) << "\""
             << std::endl;
 
-#if QT_VERSION < 0x050400
+#if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
   QGLFormat format = context()->format();
   std::string profileStr =
     ((format.profile() == QGLFormat::CoreProfile)
@@ -209,18 +209,8 @@ GLWidget::initializeGL()
 
   GL_CHECK_ERROR_ALWAYS();
 
-  const std::string vert =
-#include "shaders/simple.vert"
-    ;
-  const std::string frag =
-#include "shaders/simple.frag"
-    ;
-
-  /*
-  const bool ok = m_program.loadFromFiles(SRC_DIR"/shaders/simple.vert",
-                                    SRC_DIR"/shaders/simple.frag");
-  */
-  const bool ok = m_program.loadFromStrings(vert, frag);
+#include "shader_simple.hpp"
+  const bool ok = m_program.loadFromStrings(vs_simple, fs_simple);
   if (!ok) {
     std::cerr << "ERROR: unable to load shaders\n";
     exit(10);
@@ -230,20 +220,15 @@ GLWidget::initializeGL()
 
   //For sphere :
 
-  const std::string vertS =
-#include "shaders/sphere.vert"
-    ;
-  const std::string fragS =
-#include "shaders/sphere.frag"
-    ;
-  const bool okS = m_sphereProgram.loadFromStrings(vertS, fragS);
+#include "shader_sphere.hpp"
+  const bool okS = m_sphereProgram.loadFromStrings(vs_sphere, fs_sphere);
   if (!okS) {
     std::cerr << "ERROR: unable to load (sphere) shaders\n";
     exit(10);
   }
 
   assert(m_sphere.isValid());
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif 
 
@@ -257,13 +242,8 @@ GLWidget::initializeGL()
 
   //For background :
 
-  const std::string vertB =
-#include "shaders/background.vert"
-    ;
-  const std::string fragB =
-#include "shaders/background.frag"
-    ;
-  const bool okP = m_backgroundProgram.loadFromStrings(vertB, fragB);
+#include "shader_background.hpp"
+  const bool okP = m_backgroundProgram.loadFromStrings(vs_background, fs_background);
   if (!okP) {
     std::cerr << "ERROR: unable to load (background) shaders\n";
     exit(10);
@@ -271,7 +251,7 @@ GLWidget::initializeGL()
 
   m_backgroundMesh = makePlane();
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -389,7 +369,7 @@ GLWidget::initGLForMesh()
 
   makeCurrent();
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -438,7 +418,7 @@ GLWidget::setTexture(const QImage &image)
 
   makeCurrent();
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -522,7 +502,7 @@ GLWidget::resizeGL(int w, int h)
 {
   //std::cerr<<"resizeGL w="<<w<<" h="<<h<<"\n";
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -552,7 +532,7 @@ void
 GLWidget::paintGL()
 {
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -614,7 +594,7 @@ GLWidget::paintGL()
         glUniformMatrix3fv(texMatLoc, 1, GL_FALSE, m_backgroundTexMat.data());
     }
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
     assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -695,7 +675,7 @@ GLWidget::paintGL()
       }
     }
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
     assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -781,7 +761,7 @@ GLWidget::paintGL()
 
       GL_CHECK_ERROR_ALWAYS();
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
       assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -796,12 +776,12 @@ GLWidget::paintGL()
 QImage
 GLWidget::takeScreenshot()
 {
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
   QImage img =
-#if QT_VERSION < 0x050400
+#if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
     grabFrameBuffer();
 #else
     QOpenGLWidget::grabFramebuffer();
@@ -972,7 +952,7 @@ GLWidget::keyPressEvent(QKeyEvent *event)
       break;
 
     default:
-#if QT_VERSION < 0x050400
+#if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
       QGLWidget::keyPressEvent(event);
 #else
       QOpenGLWidget::keyPressEvent(event);
@@ -1153,7 +1133,12 @@ GLWidget::mouseMoveEvent(QMouseEvent *e)
 void
 GLWidget::wheelEvent(QWheelEvent *e)
 {
-  m_camDist *= (e->delta() > 0) ? 1. / 1.02 : 1.02;
+#if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+  const int delta = e->delta();
+#else
+  const int delta = e->angleDelta().y();
+#endif
+  m_camDist *= (delta > 0) ? 1. / 1.02 : 1.02;
   updateCameraLookAt();
   e->accept();
   update();
@@ -1204,7 +1189,7 @@ GLWidget::updateMeshGL()
   //for now, we delete & rebuild
   //TODO:OPTIM: do not re-allocate VBO if same size...
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 
@@ -1403,7 +1388,7 @@ GLWidget::setBackgroundTexture(const QImage &image)
     return;
   }
 
-#if QT_VERSION >= 0x050400
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
 #endif
 

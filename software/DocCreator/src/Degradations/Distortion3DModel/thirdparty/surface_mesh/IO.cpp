@@ -41,7 +41,7 @@ bool read_mesh(Surface_mesh& mesh, const std::string& filename)
     mesh.clear();
 
     // extract file extension
-    std::string::size_type dot(filename.rfind("."));
+    std::string::size_type dot(filename.rfind('.'));
     if (dot == std::string::npos) return false;
     std::string ext = filename.substr(dot+1, filename.length()-dot-1);
     std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
@@ -71,7 +71,7 @@ bool read_mesh(Surface_mesh& mesh, const std::string& filename)
 bool write_mesh(const Surface_mesh& mesh, const std::string& filename)
 {
     // extract file extension
-    std::string::size_type dot(filename.rfind("."));
+    std::string::size_type dot(filename.rfind('.'));
     if (dot == std::string::npos) return false;
     std::string ext = filename.substr(dot+1, filename.length()-dot-1);
     std::transform(ext.begin(), ext.end(), ext.begin(), tolower);

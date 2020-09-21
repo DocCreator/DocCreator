@@ -15,14 +15,14 @@ namespace Doc
     public:
       explicit NodeOfLeafs(Document* document);
 
-      virtual void add(T* element) override;
-      virtual void add(const QList<T*> &list) override;
+      void add(T* element) override;
+      void add(const QList<T*> &list) override;
       
-      virtual int removeBeforeCursor() override;
-      virtual int removeAfterCursor() override;
+      int removeBeforeCursor() override;
+      int removeAfterCursor() override;
       
     protected:
-      virtual void selectHandler(int from, int to) override;
+      void selectHandler(int from, int to) override;
     };
 
     template< class T >

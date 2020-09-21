@@ -39,7 +39,7 @@ namespace dc {
 
   public slots:
 
-    virtual QImage apply() override;
+    QImage apply() override;
 
   signals:
 
@@ -54,7 +54,7 @@ namespace dc {
     bool _doRotations;
   };
 					
-}
+} //namespace dc
 
 
 #endif /* ! GRADIENTDOMAINDEGRADATIONQ_HPP */

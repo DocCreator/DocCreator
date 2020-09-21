@@ -6,6 +6,7 @@
 #include <cassert>
 #include <ctime>
 #include <iostream>
+#include <random>
 
 #include <QColorDialog>
 #include <QDebug>
@@ -18,10 +19,13 @@
 #include "Degradations/BleedThroughQ.hpp"
 #include "Degradations/BlurFilterQ.hpp"
 #include "Degradations/Distortion3DModel/src/GLWidget.hpp"
+#include "Degradations/ElasticDeformationQ.hpp"
 #include "Degradations/GradientDomainDegradationQ.hpp"
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationQ.hpp"
 #include "Degradations/PhantomCharacterQ.hpp"
+#include "Degradations/NoiseDegradationQ.hpp"
+#include "Degradations/RotationDegradationQ.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
 #include "Document/DocumentController.hpp"
 #include "Document/DocumentToXMLExporter.hpp"
@@ -123,15 +127,20 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
 
   BleedThrough_setupGUIImages();
   CharDeg_setupGUIImages();
+  Noise_setupGUIImages();
+  Rotation_setupGUIImages();
   Shadow_setupGUIImages();
   Phantom_setupGUIImages();
   GDD_setupGUIImages();
   Blur_setupGUIImages();
   Hole_setupGUIImages();
+  ElasticDeformation_setupGUIImages();
   Dist3D_setupGUIImages();
 
   _BleedThrough_bleedEnable = false;
   _CharDeg_charEnable = false;
+  _Noise_noiseEnable = false;
+  _Rotation_rotationEnable = false;
   _Shadow_shadEnable = false;
   _Phantom_phantEnable = false;
   _GDD_gddEnable = false;
@@ -139,6 +148,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   _Blur_PageEnable = false;
   _Blur_ZoneEnable = false;
   _Hole_holeEnable = false;
+  _ElasticDeformation_elasticEnable = false;
   _Dist3D_dist3DEnable = false;
 
   //_BleedThrough_nbTirageBleed = 0;
@@ -205,15 +215,32 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    SIGNAL(clicked(QModelIndex)),
                    this,
                    SLOT(backgroundSelectionChanges()));
-  QObject::connect(
-    ui->btnSelectBckgd, SIGNAL(clicked()), this, SLOT(bckgdSelectAll()));
-  QObject::connect(
-    ui->btnDeselectBckgd, SIGNAL(clicked()), this, SLOT(bckgdDeselectAll()));
+  QObject::connect(ui->btnSelectBckgd, SIGNAL(clicked()),
+		   this, SLOT(bckgdSelectAll()));
+  QObject::connect(ui->btnDeselectBckgd, SIGNAL(clicked()),
+		   this, SLOT(bckgdDeselectAll()));
+
+
+  QObject::connect(ui->btnChooseBackgroundDirForms,
+                   SIGNAL(clicked()),
+                   this,
+                   SLOT(chooseBackgroundDirectoryForms()));
+  QObject::connect(ui->listBackgroundViewForms,
+                   SIGNAL(clicked(QModelIndex)),
+                   this,
+                   SLOT(backgroundSelectionChangesForms()));
+  QObject::connect(ui->btnSelectBckgdForms, SIGNAL(clicked()),
+		   this, SLOT(bckgdSelectAllForms()));
+  QObject::connect(ui->btnDeselectBckgdForms, SIGNAL(clicked()),
+		   this, SLOT(bckgdDeselectAllForms()));
+
 
   //QObject::connect(ui->LoremIpsum, SIGNAL(clicked()),this, SLOT(changeLoremIpsum()));
   //QObject::connect(ui->FolderText, SIGNAL(clicked()), this, SLOT(changeLoremIpsum()));
 
   PageParams_connect();
+
+  PageParamsForms_connect();
 
   QObject::connect(ui->FontBackgroundRandomRB,
                    SIGNAL(toggled(bool)),
@@ -299,6 +326,145 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    this,
                    SLOT(CharDeg_tirageCharChanged(int)));
 
+
+  QObject::connect(ui->CheckNoise,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_EnableNoiseOption()));
+  QObject::connect(ui->GaussianNoiseCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_MethodsChanged()));
+  QObject::connect(ui->SpeckleNoiseCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_MethodsChanged()));
+  QObject::connect(ui->SaltAndPepperNoiseCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Noise_MethodsChanged()));
+  QObject::connect(ui->MinAverageGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinAverageGaussian(double)));
+  QObject::connect(ui->MaxAverageGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxAverageGaussian(double)));
+  QObject::connect(ui->MinStdDevGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinStdDevGaussian(double)));
+  QObject::connect(ui->MaxStdDevGaussianNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxStdDevGaussian(double)));
+  QObject::connect(ui->MinAverageSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinAverageSpeckle(double)));
+  QObject::connect(ui->MaxAverageSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxAverageSpeckle(double)));
+  QObject::connect(ui->MinStdDevSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinStdDevSpeckle(double)));
+  QObject::connect(ui->MaxStdDevSpeckleNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxStdDevSpeckle(double)));
+  QObject::connect(ui->MinAmountSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinAmountSaltAndPepper(double)));
+  QObject::connect(ui->MaxAmountSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxAmountSaltAndPepper(double)));
+  QObject::connect(ui->MinRatioSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMinRatioSaltAndPepper(double)));
+  QObject::connect(ui->MaxRatioSaltAndPepperNoiseSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Noise_changeMaxRatioSaltAndPepper(double)));
+
+
+
+
+  QObject::connect(ui->CheckRotation,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_EnableRotationOption()));
+  QObject::connect(ui->RotationFillColorCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationFillImageCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationFillBorderCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationBorderReflectCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationBorderReplicateCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationBorderWrapCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationBorderReflect101CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationFillInpaintCB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationInpaint1CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationInpaint2CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationInpaint3CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(Rotation_FillMethodChanged()));
+  QObject::connect(ui->RotationAngleMinSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Rotation_changeMinAngle(double)));
+  QObject::connect(ui->RotationAngleMaxSB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(Rotation_changeMaxAngle(double)));
+  QObject::connect(ui->RotationImageRepeatsMinSB,
+                   SIGNAL(valueChanged(int)),
+                   this,
+                   SLOT(Rotation_changeMinRepeats(int)));
+  QObject::connect(ui->RotationImageRepeatsMaxSB,
+                   SIGNAL(valueChanged(int)),
+                   this,
+                   SLOT(Rotation_changeMaxRepeats(int)));
+  QObject::connect(ui->TirageRotation,
+                   SIGNAL(valueChanged(int)),
+                   this,
+                   SLOT(Rotation_tirageRotationChanged(int)));
+
+  
   QObject::connect(ui->CheckShad,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -340,6 +506,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    this,
                    SLOT(Shadow_tirageShadowChanged(int)));
 
+  
   QObject::connect(ui->CheckPhant,
                    SIGNAL(stateChanged(int)),
                    this,
@@ -503,6 +670,63 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
                    this,
                    SLOT(Hole_tirageHoleChanged(int)));
 
+
+  //- Elastic Deformation
+  QObject::connect(ui->CheckElastic,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(ElasticDeformation_EnableElasticOption()));
+  QObject::connect(ui->ElasticDeformation1CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(ElasticDeformation_MethodsChanged()));
+  QObject::connect(ui->ElasticDeformation2CB,
+                   SIGNAL(stateChanged(int)),
+                   this,
+                   SLOT(ElasticDeformation_MethodsChanged()));
+  QObject::connect(ui->MinAlphaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinAlphaTransform1(double)));
+  QObject::connect(ui->MaxAlphaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxAlphaTransform1(double)));
+  QObject::connect(ui->MinSigmaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinSigmaTransform1(double)));
+  QObject::connect(ui->MaxSigmaElasticDeformation1SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxSigmaTransform1(double)));
+  QObject::connect(ui->MinAlphaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinAlphaTransform2(double)));
+  QObject::connect(ui->MaxAlphaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxAlphaTransform2(double)));
+  QObject::connect(ui->MinSigmaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinSigmaTransform2(double)));
+  QObject::connect(ui->MaxSigmaElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxSigmaTransform2(double)));
+  QObject::connect(ui->MinAlphaAffineElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMinAlphaAffineTransform2(double)));
+  QObject::connect(ui->MaxAlphaAffineElasticDeformation2SB,
+                   SIGNAL(valueChanged(double)),
+                   this,
+                   SLOT(ElasticDeformation_changeMaxAlphaAffineTransform2(double)));
+  
+
+  
   //- Distortion 3D
 
   QObject::connect(ui->CheckDist3D,
@@ -561,8 +785,38 @@ P_bounded_rand(int minV, int maxV)
   int r = rand();
   r = (r != RAND_MAX ? r : 0);
   return static_cast<int>(minV +
-                          (static_cast<float>(r) / RAND_MAX * (maxV - minV)));
+                          (static_cast<float>(r) / static_cast<float>(RAND_MAX) * (maxV - minV)));
 }
+
+std::random_device rd;
+std::mt19937 mt(rd());
+
+//return a random value in [rMin; rMax]
+static
+int
+random_in_range(int rMin, int rMax)
+{
+  std::uniform_int_distribution<int> dist(rMin, rMax);
+  return dist(mt);
+}
+
+static
+float
+random_in_range(float rMin, float rMax)
+{
+  std::uniform_real_distribution<float> dist(rMin,rMax);
+  return dist(mt);
+}
+
+static
+QRgb
+random_color()
+{
+  return qRgb(random_in_range(0, 255),
+	      random_in_range(0, 255),
+	      random_in_range(0, 255));
+}
+
 
 //Take a random part of the image (trying to avoid borders)
 static QImage
@@ -741,7 +995,6 @@ A lot of checks are done in nextId() or validateCurrentPage().
 One problem is that the next button, that should be disabled when these checks are invalid, always appears enabled.
 According to Qt documentation, the solution would be to have one individual class inheriting from QWizardPage for each page,
 and override isComplete() (and emit completeChange() when necessary).
-But as we have all the GUI defined in Assistant.ui, it probably entails that we have to do one .ui per page !?
 
 */
 
@@ -758,13 +1011,25 @@ Assistant::nextId() const
   switch (currentId()) {
     case Page_SyntheticOrSemiChoice:
       if (ui->Synthetic->isChecked()) {
-        return Page_TextType;
-      } else if (ui->Semi->isChecked()) {
+        return Page_TextDocument;
+      }
+      else if (ui->Semi->isChecked()) {
         return Page_ImageAndGtDirs;
       }
+      return currentId();
       break;
 
-    case Page_TextType:
+  case Page_TextDocument:
+    if (ui->ClassicTextDocument->isChecked()) {
+      return Page_TextType;
+    }
+    else if (ui->FormTextDocument->isChecked()) {
+      return Page_TextType;
+    }
+    return currentId();
+    break;
+
+  case Page_TextType:
       if (ui->FolderText->isChecked())
         return Page_TextDirs;
       return Page_TextRandomNb;
@@ -785,7 +1050,12 @@ Assistant::nextId() const
     case Page_FontFiles:
       if (_fontListChoice.isEmpty())
         return currentId();
-      return Page_BackgroundFiles;
+      if (ui->ClassicTextDocument->isChecked()) {
+	return Page_BackgroundFiles;
+      }
+      else if (ui->FormTextDocument->isChecked()) {
+	return Page_BackgroundFilesForms;
+      }
       break;
 
     case Page_BackgroundFiles:
@@ -794,8 +1064,20 @@ Assistant::nextId() const
       return Page_PageParams;
       break;
 
+    case Page_BackgroundFilesForms:
+      if (_backgroundListChoice.isEmpty() && _blocks.isEmpty())
+        return currentId();
+      return Page_PageParamsForms;
+      break;
+
     case Page_PageParams:
       if (!PageParams_isComplete())
+        return currentId();
+      return Page_FinalText;
+      break;
+
+    case Page_PageParamsForms:
+      if (!PageParamsForms_isComplete())
         return currentId();
       return Page_FinalText;
       break;
@@ -825,6 +1107,12 @@ Assistant::nextId() const
       return Page_Bleed;
       break;
     case Page_Bleed:
+      return Page_Noise;
+      break;
+    case Page_Noise:
+      return Page_Rotation;
+      break;
+    case Page_Rotation:
       return Page_Blur;
       break;
     case Page_Blur:
@@ -834,6 +1122,9 @@ Assistant::nextId() const
       return Page_Hole;
       break;
     case Page_Hole:
+      return Page_ElasticDeformation;
+      break;
+    case Page_ElasticDeformation:
       return Page_Dist3D;
       break;
     case Page_Dist3D:
@@ -1035,6 +1326,7 @@ Assistant::fontDeselectAll()
   fontSelectionChanges();
 }
 
+
 void
 Assistant::chooseBackgroundDirectory()
 {
@@ -1110,6 +1402,198 @@ Assistant::bckgdDeselectAll()
   ui->listBackgroundView->clearSelection();
   backgroundSelectionChanges();
 }
+
+
+void
+Assistant::chooseBackgroundDirectoryForms()
+{
+  const QString path =
+    QFileDialog::getExistingDirectory(this,
+                                      tr("Choose background images directory"),
+                                      QStringLiteral("./"),
+                                      QFileDialog::ShowDirsOnly);
+  if (!path.isEmpty()) {
+    this->updateListBackgroundForms(path);
+  }
+}
+
+void
+Assistant::updateListBackgroundForms(const QString &pathBack)
+{
+  ui->backgroundPathForms->setText(pathBack);
+
+  //ui->listBackViewForms->selectAll();
+  ui->listBackgroundViewForms->clearSelection();
+
+  //B: here we modify global BackgroundContext
+  // (see updateListFont comment)
+  // We should populate global BackgroundContext only once selected list of
+  // backgrounds is finalized.
+
+  const QString &backgroundPath = pathBack;
+  Context::BackgroundContext::instance()->clear();
+  Context::BackgroundContext::instance()->initialize(backgroundPath);
+  //B:TODO:DESIGN: why do we modify global BackgroundContext ?
+  //If this function is called just to populate view (?),
+
+  Context::BackgroundList backgroundList =
+    Context::BackgroundContext::instance()->getBackgrounds();
+  QStringList listBack(backgroundList);
+  listBack.sort();
+  _backgroundListModel.setStringList(listBack);
+  ui->listBackgroundViewForms->setModel(&_backgroundListModel);
+  ui->listBackgroundViewForms->selectAll();
+
+  backgroundSelectionChangesForms(); //B: useful ?
+}
+
+
+static
+QString
+changeExtension(const QString &filename, const QString &newExtension)
+{
+  QString outputFilename;
+  const int pos = filename.lastIndexOf('.');
+  if (pos != -1) {
+    outputFilename = filename;
+    outputFilename.replace(pos, filename.length()-pos, newExtension);
+  }
+  else {
+    qDebug()<<"Warning: no extension found for file: "<<filename<<"\n";
+  }
+
+  return outputFilename;
+}
+
+static
+bool readBlocksCSV(const QString &filename,
+	     QVector<QRect> &blocks)
+{
+  blocks.clear();
+
+  QFile file(filename);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    return false;
+
+  int v[4];
+  QStringList words;
+  while (!file.atEnd()) {
+    QString line = file.readLine();
+    if (! line.startsWith("#") && !line.isEmpty() && line !="\n") {
+      words = line.split(',');
+      if (words.size() == 1) {
+	words = line.split(';');
+      }
+      if (words.size() != 4) {
+	qDebug()<<"ERROR: unable to parse line: "<<line<<" from csv file: "<<filename<<"\n";
+	return false;
+      }
+
+      for (int i=0; i<4; ++i) {
+	bool ok = false;
+	v[i] = words[i].toUInt(&ok);
+	if (! ok) {
+	  qDebug()<<"ERROR: invalid value: "<<words[i]<<" in line: "<<line<<" from csv file: "<<filename<<"\n";
+	  return false;
+	}
+      }
+      blocks.push_back(QRect(v[0], v[1], v[2], v[3])); //x, y, w, h
+    }
+  }
+
+  if (blocks.size() == 0) {
+    qDebug()<<"WARNING: no block were read from csv file: "<<filename<<"\n";
+  }
+  return true;
+}
+
+QString
+makePath(const QString &dir, const QString &file)
+{
+  QString res = dir;
+  const QChar sep = '/';
+  if (!dir.isEmpty() && dir[dir.size() - 1] != sep)
+    res += sep;
+  res += file;
+  return res;
+  //TODO: Does it work on Windows ????
+}
+
+void
+Assistant::backgroundSelectionChangesForms()
+{
+  QModelIndexList listSelectionBack =
+    ui->listBackgroundViewForms->selectionModel()->selectedIndexes();
+  _backgroundListChoice.clear();
+  _backgroundListChoice.reserve(listSelectionBack.count());
+
+  _blocks.clear();
+
+  const QString backgroundPath = ui->backgroundPathForms->text();
+  const QString uniqueBlockCSVFilename = makePath(backgroundPath, "blocks.csv");
+  bool useOneBlocksFile = false;
+  if (QFileInfo(uniqueBlockCSVFilename).exists()) {
+    QVector<QRect> blocks;
+    const bool readOk = readBlocksCSV(uniqueBlockCSVFilename, blocks);
+    if (readOk) {
+      useOneBlocksFile = true;
+      _blocks.push_back(blocks);
+      assert(_blocks.size() == 1);
+    }
+  }
+  for (const auto &sb : listSelectionBack) {
+    const QString selectedBack =
+      _backgroundListModel.data(sb, Qt::DisplayRole).toString();
+
+    std::cerr<<"  "<<selectedBack.toStdString()<<"\n";
+    if (! useOneBlocksFile) {
+      const QString blocksCSVFilename = makePath(backgroundPath, changeExtension(selectedBack, ".csv"));
+      qDebug()<<"search csv file: "<<blocksCSVFilename;
+      if (QFileInfo(blocksCSVFilename).exists()) {
+	QVector<QRect> blocks;
+	const bool readOk = readBlocksCSV(blocksCSVFilename, blocks);
+	if (readOk) {
+	  qDebug()<<"read "<<blocks.size()<<" blocks from "<<blocksCSVFilename;
+	  _blocks.push_back(blocks);
+	  _backgroundListChoice.append(selectedBack);
+	}
+	else {
+	  qDebug()<<"unable to read csv file: "<<blocksCSVFilename<<"\n";
+	}
+      }
+      else {
+	std::cerr<<"csv file does not exist: "<<blocksCSVFilename.toStdString()<<"\n";
+      }
+    }
+    else {
+      _backgroundListChoice.append(selectedBack);
+    }
+  }
+
+  ui->label_nbBackgroundsForms->setText(
+    tr("%n selected background image(s)", "", _backgroundListChoice.size())
+    +tr("[with %n blocks file(s)]", "", _blocks.size())
+					);
+
+  //emit completeChanged();
+}
+
+void
+Assistant::bckgdSelectAllForms()
+{
+  ui->listBackgroundViewForms->selectAll();
+  backgroundSelectionChangesForms();
+}
+
+void
+Assistant::bckgdDeselectAllForms()
+{
+  ui->listBackgroundViewForms->clearSelection();
+  backgroundSelectionChangesForms();
+}
+
+
+
 
 void
 Assistant::PageParams_connect()
@@ -1354,6 +1838,143 @@ Assistant::PageParams_getParams(RandomDocumentParameters &params) const
   }
 }
 
+
+
+void
+Assistant::PageParamsForms_connect()
+{
+  connect(ui->radioButton_lineSpacingRandomForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateLineSpacing()));
+  connect(ui->radioButton_lineSpacingFontHeightForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateLineSpacing()));
+  connect(ui->spinBox_lineSpacingMinForms,
+          SIGNAL(valueChanged(int)),
+          this,
+          SLOT(PageParamsForms_updateMin()));
+  connect(ui->spinBox_lineSpacingMaxForms,
+          SIGNAL(valueChanged(int)),
+          this,
+          SLOT(PageParamsForms_updateMax()));
+
+  connect(ui->radioButton_ImageSizeUniformForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateImageSize()));
+  connect(ui->radioButton_ImageSizeAdaptiveForms,
+          SIGNAL(clicked()),
+          this,
+          SLOT(PageParamsForms_updateImageSize()));
+}
+
+void
+Assistant::PageParamsForms_updateLineSpacing()
+{
+  bool enable1 = false;
+  if (ui->radioButton_lineSpacingRandomForms->isChecked()) {
+    enable1 = true;
+  } else if (ui->radioButton_lineSpacingFontHeightForms->isChecked()) {
+    enable1 = false;
+  }
+
+  ui->label_lineSpacingBetweenForms->setEnabled(enable1);
+  ui->label_lineSpacingAndForms->setEnabled(enable1);
+  ui->spinBox_lineSpacingMinForms->setEnabled(enable1);
+  ui->spinBox_lineSpacingMaxForms->setEnabled(enable1);
+
+  //emit completeChanged();
+}
+
+void
+Assistant::PageParamsForms_updateImageSize()
+{
+  bool enable1 = false;
+  if (ui->radioButton_ImageSizeUniformForms->isChecked()) {
+    enable1 = true;
+  } else if (ui->radioButton_ImageSizeAdaptiveForms->isChecked()) {
+    enable1 = false;
+  }
+
+  ui->label_ImageSizeBetweenForms->setEnabled(enable1);
+  ui->label_ImageSizeAndForms->setEnabled(enable1);
+  ui->spinBox_ImageSizeWidthForms->setEnabled(enable1);
+  ui->spinBox_ImageSizeHeightForms->setEnabled(enable1);
+
+  //emit completeChanged();
+}
+
+void
+Assistant::PageParamsForms_updateMin()
+{
+  if (ui->spinBox_lineSpacingMinForms->value() >
+      ui->spinBox_lineSpacingMaxForms->value()) {
+    ui->spinBox_lineSpacingMaxForms->setValue(ui->spinBox_lineSpacingMinForms->value());
+  }
+
+  //emit completeChanged();
+}
+
+void
+Assistant::PageParamsForms_updateMax()
+{
+  //spinBox_YYYMax was updated, we change spinBox_YYYMin
+
+  if (ui->spinBox_lineSpacingMaxForms->value() <
+      ui->spinBox_lineSpacingMinForms->value()) {
+    ui->spinBox_lineSpacingMinForms->setValue(ui->spinBox_lineSpacingMaxForms->value());
+  }
+
+  //emit completeChanged();
+}
+
+bool
+Assistant::PageParamsForms_isComplete() const
+{
+  return (
+    (!ui->radioButton_lineSpacingRandomForms->isChecked() ||
+     ui->spinBox_lineSpacingMinForms->value() <=
+       ui->spinBox_lineSpacingMaxForms->value()));
+}
+
+void
+Assistant::PageParamsForms_getParams(RandomDocumentParameters &params) const
+{
+  if (ui->radioButton_lineSpacingRandomForms->isChecked()) {
+    params.setLineSpacingType(RandomDocumentParameters::RandomLineSpacing);
+    params.setLineSpacingMinMax(ui->spinBox_lineSpacingMinForms->value(),
+                                ui->spinBox_lineSpacingMaxForms->value());
+  }
+  else if (ui->radioButton_lineSpacingFontHeightForms->isChecked()) {
+    params.setLineSpacingType(
+      RandomDocumentParameters::FontHeightAdaptedLineSpacing);
+  }
+  params.setPercentOfEmptyBlocks(ui->spinBox_percentEmptyBlocksForms->value());
+
+  //if (ui->FolderText->isChecked())
+  //params.setNbPages(1);
+  //else
+  params.setNbPages(ui->pageNumber->value());
+
+  if (ui->radioButton_ImageSizeUniformForms->isChecked()) {
+    params.imageSizeUniform = true;
+    params.imageWidth = ui->spinBox_ImageSizeWidthForms->value();
+    params.imageHeight = ui->spinBox_ImageSizeHeightForms->value();
+  }
+  else if (ui->radioButton_ImageSizeAdaptiveForms->isChecked()) {
+    params.imageSizeUniform = false;
+    params.imageWidth = 0;
+    params.imageHeight = 0;
+  }
+
+  params.useRandomBlocks = false;
+  params.blocks = _blocks;
+}
+
+
+
 void
 Assistant::chooseOutputTxtImageDir()
 {
@@ -1566,6 +2187,12 @@ Assistant::nbOfDegradedImages() const
   if (_GDD_gddEnable)
     totalPic += 1 * ui->TirageGDD->value() * nbPic;
 
+  if (_Noise_noiseEnable)
+    totalPic += Noise_nbDegradations() * ui->TirageNoise->value() * nbPic;
+
+  if (_Rotation_rotationEnable)
+    totalPic += Rotation_nbDegradations() * ui->TirageRotation->value() * nbPic;
+  
   if (_Shadow_shadEnable)
     totalPic += _Shadow_nbShadSelected * ui->TirageShadow->value() * nbPic;
 
@@ -1574,6 +2201,9 @@ Assistant::nbOfDegradedImages() const
 
   if (_Hole_holeEnable)
     totalPic += 1 * ui->TirageHole->value() * nbPic;
+
+  if (_ElasticDeformation_elasticEnable)
+    totalPic += ElasticDeformation_nbDegradations() * ui->TirageElasticDeformation->value() * nbPic;
 
   if (_Dist3D_dist3DEnable)
     totalPic += _Dist3D_meshesList.size() * ui->TirageDist3D->value() * nbPic;
@@ -1624,16 +2254,6 @@ computeNumberWidth(int n)
 #include <chrono> //DEBUG
 #endif            //TIMING
 
-QString
-makePath(const QString &dir, const QString &file)
-{
-  QString res = dir;
-  const QChar sep = '/';
-  if (!dir.isEmpty() && dir[dir.size() - 1] != sep)
-    res += sep;
-  res += file;
-  return res;
-}
 
 void
 Assistant::generateTxtImages()
@@ -1730,7 +2350,13 @@ Assistant::generateTxtImages()
   }
 
   RandomDocumentParameters params;
-  PageParams_getParams(params);
+  if (ui->ClassicTextDocument->isChecked()) {
+    PageParams_getParams(params);
+  }
+  else {
+    assert(ui->FormTextDocument->isChecked());
+    PageParamsForms_getParams(params);
+  }
 
   params.outputFolderPath = _outputTxtImageDir;
 
@@ -1743,7 +2369,8 @@ Assistant::generateTxtImages()
       params.textList.append(txtPath);
     }
     params.nbPages = 1;
-  } else {
+  }
+  else {
     const int nbTexts = ui->pageNumber->value();
     params.nbPages = nbTexts;
   }
@@ -1770,7 +2397,8 @@ Assistant::generateTxtImages()
     ui->FontBackgroundRandomRB->isChecked();
   if (oneRandomFontAndBackground) {
     random.createAllTextsOneFontBackground();
-  } else { //all combinations
+  }
+  else { //all combinations
     random.createAllTexts();
   }
 
@@ -2262,6 +2890,402 @@ Assistant::CharDeg_tirageCharChanged(int /*value*/)
   updateTotalPic();
 }
 
+
+void
+Assistant::Noise_setupGUIImages()
+{
+  if (ui->GaussianNoiseAddTypeCB->count() == 0) {
+    ui->GaussianNoiseAddTypeCB->addItem(tr("None"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS)));
+    ui->GaussianNoiseAddTypeCB->addItem(tr("To gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY)));
+    ui->GaussianNoiseAddTypeCB->addItem(tr("To gray if image is gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY)));
+    assert(ui->GaussianNoiseAddTypeCB->count() == 3);
+    ui->GaussianNoiseAddTypeCB->setCurrentIndex(2);
+  }
+
+  if (ui->SpeckleNoiseAddTypeCB->count() == 0) {
+    ui->SpeckleNoiseAddTypeCB->addItem(tr("None"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS)));
+    ui->SpeckleNoiseAddTypeCB->addItem(tr("To gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY)));
+    ui->SpeckleNoiseAddTypeCB->addItem(tr("To gray if image is gray"),
+					QVariant(static_cast<int>(dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY)));
+    assert(ui->SpeckleNoiseAddTypeCB->count() == 3);
+    ui->SpeckleNoiseAddTypeCB->setCurrentIndex(2);
+  }
+
+}
+
+int
+Assistant::Noise_nbDegradations() const
+{
+  int nbDegs = 0;
+  if (ui->GaussianNoiseCB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->SpeckleNoiseCB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->SaltAndPepperNoiseCB->isChecked()) {
+    nbDegs += 1;
+  }
+  return nbDegs;
+}
+
+void
+Assistant::Noise_updateTirageAndTotal()
+{
+  const int nbDegs = Noise_nbDegradations();
+  ui->NbDegNoise->setText(QString::number(nbDegs));
+
+  const bool enabled = (nbDegs > 0);
+  ui->NbDegNoise->setEnabled(enabled);
+  ui->TirageNoise->setEnabled(enabled);
+  ui->TotalNoise->setEnabled(enabled);
+  if (nbDegs == 0)
+    ui->TirageNoise->setValue(0);
+
+  if (nbDegs > 0 &&
+      ui->TirageNoise->value() == 0) {
+    //set TirageNoise value to 1 once we have some degradations selected
+    ui->TirageNoise->setValue(1);
+  }
+
+  const int total =
+    nbDegs * _inputImageList.size() * ui->TirageNoise->value();
+  ui->TotalNoise->setText(QString::number(total));
+
+  updateTotalPic();
+}
+
+void
+Assistant::Noise_EnableNoiseOption()
+{
+  bool enabled = false;
+  if (ui->CheckNoise->isChecked()) {
+    enabled = true;
+    _Noise_noiseEnable = enabled;
+    Noise_updateTirageAndTotal();
+  }
+  else {
+    _Noise_noiseEnable = enabled;
+    ui->NbDegNoise->setEnabled(enabled);
+    ui->TirageNoise->setEnabled(enabled);
+    ui->TotalNoise->setEnabled(enabled);
+
+    ui->TirageNoise->setValue(0);
+    //signal/slot will call Noise_tirageNoiseChanged(0)
+  }
+
+  ui->OptionNoise->setEnabled(enabled);
+  ui->GaussianNoiseCB->setEnabled(enabled);
+  ui->SpeckleNoiseCB->setEnabled(enabled);
+  ui->SaltAndPepperNoiseCB->setEnabled(enabled);
+
+  ui->MinAverageGaussianNoiseSB->setEnabled(enabled);
+  ui->MaxAverageGaussianNoiseSB->setEnabled(enabled);
+  ui->MinStdDevGaussianNoiseSB->setEnabled(enabled);
+  ui->MaxStdDevGaussianNoiseSB->setEnabled(enabled);
+  ui->MinAverageSpeckleNoiseSB->setEnabled(enabled);
+  ui->MaxAverageSpeckleNoiseSB->setEnabled(enabled);
+  ui->MinStdDevSpeckleNoiseSB->setEnabled(enabled);
+  ui->MaxStdDevSpeckleNoiseSB->setEnabled(enabled);
+  ui->MinAmountSaltAndPepperNoiseSB->setEnabled(enabled);
+  ui->MaxAmountSaltAndPepperNoiseSB->setEnabled(enabled);
+  ui->MinRatioSaltAndPepperNoiseSB->setEnabled(enabled);
+  ui->MaxRatioSaltAndPepperNoiseSB->setEnabled(enabled);
+}
+
+void
+Assistant::Noise_MethodsChanged()
+{
+  Noise_updateTirageAndTotal();
+}
+
+void
+Assistant::Noise_tirageNoiseChanged(int /*nbTirage*/)
+{
+  const int nbDegs = Noise_nbDegradations();
+  ui->NbDegNoise->setText(QString::number(nbDegs));
+  const int total = nbDegs * _inputImageList.size() *
+                    ui->TirageNoise->value(); //_Noise_nbTirageNoise;
+  ui->TotalNoise->setText(QString::number(total));
+  updateTotalPic();
+}
+
+void
+Assistant::Noise_changeMinAverageGaussian(double value)
+{
+  if (ui->MaxAverageGaussianNoiseSB->value() < value)
+    ui->MaxAverageGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxAverageGaussian(double value)
+{
+  if (ui->MinAverageGaussianNoiseSB->value() > value)
+    ui->MinAverageGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinStdDevGaussian(double value)
+{
+  if (ui->MaxStdDevGaussianNoiseSB->value() < value)
+    ui->MaxStdDevGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxStdDevGaussian(double value)
+{
+  if (ui->MinStdDevGaussianNoiseSB->value() > value)
+    ui->MinStdDevGaussianNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinAverageSpeckle(double value)
+{
+  if (ui->MaxAverageSpeckleNoiseSB->value() < value)
+    ui->MaxAverageSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxAverageSpeckle(double value)
+{
+  if (ui->MinAverageSpeckleNoiseSB->value() > value)
+    ui->MinAverageSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinStdDevSpeckle(double value)
+{
+  if (ui->MaxStdDevSpeckleNoiseSB->value() < value)
+    ui->MaxStdDevSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxStdDevSpeckle(double value)
+{
+  if (ui->MinStdDevSpeckleNoiseSB->value() > value)
+    ui->MinStdDevSpeckleNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinAmountSaltAndPepper(double value)
+{
+  if (ui->MaxAmountSaltAndPepperNoiseSB->value() < value)
+    ui->MaxAmountSaltAndPepperNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxAmountSaltAndPepper(double value)
+{
+  if (ui->MinAmountSaltAndPepperNoiseSB->value() > value)
+    ui->MinAmountSaltAndPepperNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMinRatioSaltAndPepper(double value)
+{
+  if (ui->MaxRatioSaltAndPepperNoiseSB->value() < value)
+    ui->MaxRatioSaltAndPepperNoiseSB->setValue(value);
+}
+
+void
+Assistant::Noise_changeMaxRatioSaltAndPepper(double value)
+{
+  if (ui->MinRatioSaltAndPepperNoiseSB->value() > value)
+    ui->MinRatioSaltAndPepperNoiseSB->setValue(value);
+}
+
+
+
+void
+Assistant::Rotation_setupGUIImages()
+{
+  ui->RotationColorSelectionPB->setColor(qRgb(0,0,0));
+}
+
+int
+Assistant::Rotation_nbDegradations() const
+{
+  int nbDegs = 0;
+  if (ui->RotationFillColorCB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->RotationFillImageCB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->RotationFillBorderCB->isChecked()) {
+    if (ui->RotationBorderReplicateCB->isChecked()) {
+      nbDegs += 1;
+    }
+    if (ui->RotationBorderReflectCB->isChecked()) {
+      nbDegs += 1;
+    }
+    if (ui->RotationBorderWrapCB->isChecked()) {
+      nbDegs += 1;
+    }
+    if (ui->RotationBorderReflect101CB->isChecked()) {
+      nbDegs += 1;
+    }
+  }
+  if (ui->RotationFillInpaintCB->isChecked()) {
+    if (ui->RotationInpaint1CB->isChecked()) {
+      nbDegs += 1;
+    }
+    if (ui->RotationInpaint2CB->isChecked()) {
+      nbDegs += 1;
+    }
+    if (ui->RotationInpaint3CB->isChecked()) {
+      nbDegs += 1;
+    }
+  }
+  return nbDegs;
+}
+
+
+void
+Assistant::Rotation_updateTirageAndTotal()
+{
+  const int nbDegs = Rotation_nbDegradations();
+  ui->NbDegRotation->setText(QString::number(nbDegs));
+
+  const bool enabled = (nbDegs > 0);
+  ui->NbDegRotation->setEnabled(enabled);
+  ui->TirageRotation->setEnabled(enabled);
+  ui->TotalRotation->setEnabled(enabled);
+  if (nbDegs == 0)
+    ui->TirageRotation->setValue(0);
+
+  if (nbDegs > 0 &&
+      ui->TirageRotation->value() == 0) {
+    //set TirageRotation value to 1 once we have some degradations selected
+    ui->TirageRotation->setValue(1);
+  }
+
+  const int total =
+    nbDegs * _inputImageList.size() * ui->TirageRotation->value();
+  ui->TotalRotation->setText(QString::number(total));
+
+  updateTotalPic();  
+}
+
+void
+Assistant::Rotation_EnableRotationOption()
+{
+  bool enabled = false;
+  if (ui->CheckRotation->isChecked()) {
+    enabled = true;
+    _Rotation_rotationEnable = enabled;
+    Rotation_updateTirageAndTotal();
+  }
+  else {
+    _Rotation_rotationEnable = enabled;
+    ui->NbDegRotation->setEnabled(enabled);
+    ui->TirageRotation->setEnabled(enabled);
+    ui->TotalRotation->setEnabled(enabled);
+    
+    ui->TirageRotation->setValue(0);
+    //signal/slot will call Rotation_tirageRotationChanged(0)
+  }
+
+  ui->OptionRotation->setEnabled(enabled);
+  ui->RotationAngleMinSB->setEnabled(enabled);
+  ui->RotationAngleMinSB->setEnabled(enabled);
+  ui->RotationAngleMaxSB->setEnabled(enabled);
+  ui->RotationFillColorCB->setEnabled(enabled);
+  ui->RotationSpecificColorRB->setEnabled(enabled);
+  ui->RotationColorSelectionPB->setEnabled(enabled);
+  ui->RotationRandomColorRB->setEnabled(enabled);
+
+  ui->RotationFillImageCB->setEnabled(enabled);
+
+  ui->RotationImageRepeatsMinSB->setEnabled(enabled);
+  ui->RotationImageRepeatsMaxSB->setEnabled(enabled);
+  ui->RotationFillBorderCB->setEnabled(enabled);
+  ui->RotationBorderReplicateCB->setEnabled(enabled);
+  ui->RotationBorderReflectCB->setEnabled(enabled);
+  ui->RotationBorderWrapCB->setEnabled(enabled);
+  ui->RotationBorderReflect101CB->setEnabled(enabled);
+  ui->RotationFillInpaintCB->setEnabled(enabled);
+  ui->RotationInpaint1CB->setEnabled(enabled);
+  ui->RotationInpaint2CB->setEnabled(enabled);
+  ui->RotationInpaint3CB->setEnabled(enabled);
+
+
+  if (enabled == true) {
+    if (ui->RotationFillBorderCB->isChecked()) {
+      if (! ui->RotationBorderReplicateCB->isChecked() &&
+	  ! ui->RotationBorderReflectCB->isChecked() &&
+	  ! ui->RotationBorderWrapCB->isChecked() &&
+	  ! ui->RotationBorderReflect101CB->isChecked()) {
+	ui->RotationBorderReplicateCB->setCheckState(Qt::Checked);
+      }
+    }
+    
+    if (ui->RotationFillInpaintCB->isChecked()) {
+      if (! ui->RotationInpaint1CB->isChecked() &&
+	  ! ui->RotationInpaint2CB->isChecked() &&
+	  ! ui->RotationInpaint3CB->isChecked()) {
+	ui->RotationInpaint1CB->setCheckState(Qt::Checked);
+      }
+    }
+    
+  }
+  
+}
+
+void
+Assistant::Rotation_FillMethodChanged()
+{
+  Rotation_updateTirageAndTotal();
+}
+
+void
+Assistant::Rotation_tirageRotationChanged(int /*nbTirage*/)
+{
+  const int nbDegs = Rotation_nbDegradations();
+  ui->NbDegRotation->setText(QString::number(nbDegs));
+  const int total = nbDegs * _inputImageList.size() *
+                    ui->TirageRotation->value(); //_Rotation_nbTirageRotation;
+  ui->TotalRotation->setText(QString::number(total));
+  updateTotalPic();
+}
+
+void
+Assistant::Rotation_changeMinAngle(double value)
+{
+  if (ui->RotationAngleMaxSB->value() < value)
+    ui->RotationAngleMaxSB->setValue(value);
+}
+
+void
+Assistant::Rotation_changeMaxAngle(double value)
+{
+  if (ui->RotationAngleMinSB->value() > value)
+    ui->RotationAngleMinSB->setValue(value);
+}
+
+void
+Assistant::Rotation_changeMinRepeats(int value)
+{
+  if (ui->RotationImageRepeatsMaxSB->value() < value)
+    ui->RotationImageRepeatsMaxSB->setValue(value);
+}
+
+void
+Assistant::Rotation_changeMaxRepeats(int value)
+{
+  if (ui->RotationImageRepeatsMinSB->value() > value)
+    ui->RotationImageRepeatsMinSB->setValue(value);
+
+}
+
+
+
+
 void
 Assistant::Shadow_LoadPrevImgShad()
 {
@@ -2412,8 +3436,6 @@ Assistant::Shadow_updateTirageAndTotal()
   const int total = nbDegs * _inputImageList.size() * ui->TirageShadow->value();
   ui->TotalShadow->setText(QString::number(total));
 
-  //std::cerr<<"DEBUG Shadow_updateTirageAndTotal() nbDegs="<<nbDegs<<" total="<<total<<"\n";
-
   updateTotalPic();
 }
 
@@ -2529,10 +3551,9 @@ Assistant::Phantom_updateTirageAndTotal()
   if (nbDegs == 0)
     ui->TiragePhantom->setValue(0);
 
-  if (
-    nbDegs > 0 &&
-    ui->TiragePhantom->value() ==
-      0) { //set TiragePhantom value to 1 once we have some degradations selected
+  if (nbDegs > 0 &&
+      ui->TiragePhantom->value() == 0) {
+    //set TiragePhantom value to 1 once we have some degradations selected
     ui->TiragePhantom->setValue(1);
   }
 
@@ -2553,14 +3574,15 @@ Assistant::Phantom_EnablePhantOption()
     switchEnabled = (_inputImageList.size() > 1);
     _Phantom_phantEnable = enabled;
     Phantom_updateTirageAndTotal();
-  } else {
+  }
+  else {
     _Phantom_phantEnable = enabled;
     ui->NbDegPhantom->setEnabled(enabled);
     ui->TiragePhantom->setEnabled(enabled);
     ui->TotalPhantom->setEnabled(enabled);
 
-    ui->TiragePhantom->setValue(
-      0); //signal/slot will call Phantom_tiragePhantomChanged(0)
+    ui->TiragePhantom->setValue(0);
+    //signal/slot will call Phantom_tiragePhantomChanged(0)
   }
 
   ui->OptionPhant->setEnabled(enabled);
@@ -2704,8 +3726,8 @@ Assistant::Blur_updateTirageAndTotal()
     ui->TirageBlur->setValue(0);
 
   if (nbDegs > 0 && ui->TirageBlur->value() == 0) {
-    ui->TirageBlur->setValue(
-      1); //will call Blur_tirageBlurChanged via signal/slot
+    ui->TirageBlur->setValue(1);
+    //will call Blur_tirageBlurChanged via signal/slot
   } else {
     const int total = nbDegs * _inputImageList.size() *
                       ui->TirageBlur->value(); //_Blur_nbTirageBlur;
@@ -3478,8 +4500,6 @@ namespace {
 
 struct ImageAreaSorter
 {
-  const std::vector<size_t> &m_areas;
-
   explicit ImageAreaSorter(const std::vector<size_t> &areas)
     : m_areas(areas)
   {}
@@ -3491,6 +4511,9 @@ struct ImageAreaSorter
 
     return m_areas[i] < m_areas[j];
   }
+
+private:
+  const std::vector<size_t> &m_areas;
 };
 
 } //end anonymous namespace
@@ -3636,8 +4659,6 @@ Hole_degradateImageRandom(QImage &degImg,
   QImage holePattern(filename);
 
   if (!holePattern.isNull()) {
-
-    //std::cerr << "   filename=" << filename.toStdString() << "\n";
 
     if (scaleW != 1.f && scaleH != 1.f) {
       const int holeWidth = static_cast<int>(holePattern.width() * scaleW);
@@ -4067,6 +5088,233 @@ Assistant::Hole_updatePreview()
   ui->HolePreviewLabel->setMinimumSize(imgDeg.size());
 }
 
+
+
+void
+Assistant::ElasticDeformation_setupGUIImages()
+{
+  if (ui->BorderElasticDeformation1CB->count() == 0) {
+    ui->BorderElasticDeformation1CB->addItem(tr("Black"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::BLACK)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Replicate"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REPLICATE)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Reflect"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Wrap"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::WRAP)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Reflect101"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
+    ui->BorderElasticDeformation1CB->setCurrentIndex(0);
+  }
+
+  if (ui->InterpolationElasticDeformation1CB->count() == 0) {
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Nearest"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::NEAREST)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Linear"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BILINEAR)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Area"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::AREA)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Cubic"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BICUBIC)));
+    ui->InterpolationElasticDeformation1CB->addItem(tr("Lanczos4"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::LANCZOS)));
+    ui->InterpolationElasticDeformation1CB->setCurrentIndex(1);
+  }
+
+  if (ui->BorderElasticDeformation2CB->count() == 0) {
+    ui->BorderElasticDeformation2CB->addItem(tr("Black"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::BLACK)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Replicate"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REPLICATE)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Reflect"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Wrap"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::WRAP)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Reflect101"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
+    ui->BorderElasticDeformation2CB->setCurrentIndex(0);
+  }
+
+  if (ui->InterpolationElasticDeformation2CB->count() == 0) {
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Nearest"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::NEAREST)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Linear"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BILINEAR)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Area"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::AREA)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Cubic"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BICUBIC)));
+    ui->InterpolationElasticDeformation2CB->addItem(tr("Lanczos4"),
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::LANCZOS)));
+    ui->InterpolationElasticDeformation2CB->setCurrentIndex(1);
+  }
+
+}
+
+int
+Assistant::ElasticDeformation_nbDegradations() const
+{
+  int nbDegs = 0;
+  if (ui->ElasticDeformation1CB->isChecked()) {
+    nbDegs += 1;
+  }
+  if (ui->ElasticDeformation2CB->isChecked()) {
+    nbDegs += 1;
+  }
+  return nbDegs;
+}
+
+void
+Assistant::ElasticDeformation_updateTirageAndTotal()
+{
+  const int nbDegs = ElasticDeformation_nbDegradations();
+  ui->NbDegElasticDeformation->setText(QString::number(nbDegs));
+
+  const bool enabled = (nbDegs > 0);
+  ui->NbDegElasticDeformation->setEnabled(enabled);
+  ui->TirageElasticDeformation->setEnabled(enabled);
+  ui->TotalElasticDeformation->setEnabled(enabled);
+  if (nbDegs == 0)
+    ui->TirageElasticDeformation->setValue(0);
+
+  if (nbDegs > 0 &&
+      ui->TirageElasticDeformation->value() == 0) {
+    //set TirageElasticDeformation value to 1 once we have some degradations selected
+    ui->TirageElasticDeformation->setValue(1);
+  }
+
+  const int total =
+    nbDegs * _inputImageList.size() * ui->TirageElasticDeformation->value();
+  ui->TotalElasticDeformation->setText(QString::number(total));
+
+  updateTotalPic();
+}
+
+void
+Assistant::ElasticDeformation_EnableElasticOption()
+{
+  bool enabled = false;
+  if (ui->CheckElastic->isChecked()) {
+    enabled = true;
+    _ElasticDeformation_elasticEnable = enabled;
+    ElasticDeformation_updateTirageAndTotal();
+  }
+  else {
+    _ElasticDeformation_elasticEnable = enabled;
+    ui->NbDegElasticDeformation->setEnabled(enabled);
+    ui->TirageElasticDeformation->setEnabled(enabled);
+    ui->TotalElasticDeformation->setEnabled(enabled);
+
+    ui->TirageElasticDeformation->setValue(0);
+    //signal/slot will call ElasticDeformation_tirageElasticDeformationChanged(0)
+  }
+
+  ui->OptionElastic->setEnabled(enabled);
+  ui->ElasticDeformation1CB->setEnabled(enabled);
+  ui->ElasticDeformation2CB->setEnabled(enabled);
+
+  ui->MinAlphaElasticDeformation1SB->setEnabled(enabled);
+  ui->MaxAlphaElasticDeformation1SB->setEnabled(enabled);
+  ui->MinSigmaElasticDeformation1SB->setEnabled(enabled);
+  ui->MaxSigmaElasticDeformation1SB->setEnabled(enabled);
+  ui->MinAlphaElasticDeformation2SB->setEnabled(enabled);
+  ui->MaxAlphaElasticDeformation2SB->setEnabled(enabled);
+  ui->MinSigmaElasticDeformation2SB->setEnabled(enabled);
+  ui->MaxSigmaElasticDeformation2SB->setEnabled(enabled);  
+  ui->MinAlphaAffineElasticDeformation2SB->setEnabled(enabled);
+  ui->MaxAlphaAffineElasticDeformation2SB->setEnabled(enabled);
+}
+
+void
+Assistant::ElasticDeformation_MethodsChanged()
+{
+  ElasticDeformation_updateTirageAndTotal();
+}
+
+void
+Assistant::ElasticDeformation_tirageElasticChanged(int /*nbTirage*/)
+{
+  const int nbDegs = ElasticDeformation_nbDegradations();
+  ui->NbDegElasticDeformation->setText(QString::number(nbDegs));
+  const int total = nbDegs * _inputImageList.size() *
+    ui->TirageElasticDeformation->value(); //_ElasticDeformation_nbTirageElasticDeformation;
+  ui->TotalElasticDeformation->setText(QString::number(total));
+  updateTotalPic();
+}
+
+void
+Assistant::ElasticDeformation_changeMinAlphaTransform1(double value)
+{
+  if (ui->MaxAlphaElasticDeformation1SB->value() < value)
+    ui->MaxAlphaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxAlphaTransform1(double value)
+{
+  if (ui->MinAlphaElasticDeformation1SB->value() > value)
+    ui->MinAlphaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinSigmaTransform1(double value)
+{
+  if (ui->MaxSigmaElasticDeformation1SB->value() < value)
+    ui->MaxSigmaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxSigmaTransform1(double value)
+{
+  if (ui->MinSigmaElasticDeformation1SB->value() > value)
+    ui->MinSigmaElasticDeformation1SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinAlphaTransform2(double value)
+{
+  if (ui->MaxAlphaElasticDeformation2SB->value() < value)
+    ui->MaxAlphaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxAlphaTransform2(double value)
+{
+  if (ui->MinAlphaElasticDeformation2SB->value() > value)
+    ui->MinAlphaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinSigmaTransform2(double value)
+{
+  if (ui->MaxSigmaElasticDeformation2SB->value() < value)
+    ui->MaxSigmaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxSigmaTransform2(double value)
+{
+  if (ui->MinSigmaElasticDeformation2SB->value() > value)
+    ui->MinSigmaElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMinAlphaAffineTransform2(double value)
+{
+  if (ui->MaxAlphaAffineElasticDeformation2SB->value() < value)
+    ui->MaxAlphaAffineElasticDeformation2SB->setValue(value);
+}
+
+void
+Assistant::ElasticDeformation_changeMaxAlphaAffineTransform2(double value)
+{
+  if (ui->MinAlphaAffineElasticDeformation2SB->value() > value)
+    ui->MinAlphaAffineElasticDeformation2SB->setValue(value);
+}
+
+
+
+
 void
 Assistant::Dist3D_updateTirageAndTotal()
 {
@@ -4101,14 +5349,15 @@ Assistant::Dist3D_EnableDist3DOption()
     enabled = true;
     _Dist3D_dist3DEnable = enabled;
     Dist3D_updateTirageAndTotal();
-  } else {
+  }
+  else {
     _Dist3D_dist3DEnable = enabled;
     ui->NbDegDist3D->setEnabled(enabled);
     ui->TirageDist3D->setEnabled(enabled);
     ui->TotalDist3D->setEnabled(enabled);
 
-    ui->TirageDist3D->setValue(
-      0); //signal/slot will call Dist3D_tirageDist3DChanged(0)
+    ui->TirageDist3D->setValue(0);
+    //signal/slot will call Dist3D_tirageDist3DChanged(0)
   }
 
   ui->Dist3D_btnMeshesFolder->setEnabled(enabled);
@@ -4396,7 +5645,7 @@ Assistant::GDD_chooseStainImagesDirectory()
 void
 Assistant::GDD_changeMinNbStains(int value)
 {
-  if (ui->GDD_numStainsMax->value() > value)
+  if (ui->GDD_numStainsMax->value() < value)
     ui->GDD_numStainsMax->setValue(value);
 }
 
@@ -4492,6 +5741,18 @@ Assistant::charMin() const
 }
 
 bool
+Assistant::noiseEnable() const
+{
+  return _Noise_noiseEnable;
+}
+
+bool
+Assistant::rotationEnable() const
+{
+  return _Rotation_rotationEnable;
+}
+
+bool
 Assistant::shadEnable() const
 {
   return _Shadow_shadEnable;
@@ -4507,6 +5768,12 @@ bool
 Assistant::gddEnable() const
 {
   return _GDD_gddEnable;
+}
+
+bool
+Assistant::elasticDeformationEnable() const
+{
+  return _ElasticDeformation_elasticEnable;
 }
 
 int
@@ -4712,19 +5979,37 @@ Shadow_getXML(const QString &filename,
               float intensity,
               float angle)
 {
-  QString saveXml = QStringLiteral("<Degradation>\n");
-  saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-  saveXml += QLatin1String("\t<DegradationName>Shadow</DegradationName>\n");
-  saveXml += QLatin1String("\t<Parameters>\n");
-  saveXml += "\t\t<DistanceRatio>" + QString::number(distanceRatio) +
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += QLatin1String("\t<DegradationName>Shadow</DegradationName>\n");
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<DistanceRatio>" + QString::number(distanceRatio) +
              "</DistanceRatio>\n";
-  saveXml +=
+  xml +=
     "\t\t<Border>" + QString::number(static_cast<int>(border)) + "</Border>\n";
-  saveXml += "\t\t<Intensity>" + QString::number(intensity) + "</Intensity>\n";
-  saveXml += "\t\t<Angle>" + QString::number(angle) + "</Angle>\n";
-  saveXml += QLatin1String("\t</Parameters>\n");
-  saveXml += QLatin1String("</Degradation>");
-  return saveXml;
+  xml += "\t\t<Intensity>" + QString::number(intensity) + "</Intensity>\n";
+  xml += "\t\t<Angle>" + QString::number(angle) + "</Angle>\n";
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
+}
+
+static
+bool
+saveXml(const QString &saveXml,
+	const QString &outputXmlFilename)
+{
+  QFile file(outputXmlFilename);
+  const bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
+  if (!openOk) {
+    std::cerr << "ERROR: unable to write xml file: "
+              << outputXmlFilename.toStdString() << "\n";
+    return false;
+  }
+  QTextStream out(&file);
+  out << saveXml;
+  file.close();
+  return true; 
 }
 
 static bool
@@ -4746,18 +6031,7 @@ Shadow_saveImage(const QImage &img,
   }
 
   const QString absoluteFilenameXML = path + prefix + ".xml";
-  QFile file(absoluteFilenameXML);
-  const bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
-  if (!openOk) {
-    std::cerr << "ERROR: unable to write xml file: "
-              << absoluteFilenameXML.toStdString() << "\n";
-    return false;
-  }
-  QTextStream out(&file);
-  out << xml;
-  file.close();
-
-  return true;
+  return saveXml(xml, absoluteFilenameXML);
 }
 
 static QString
@@ -4808,32 +6082,32 @@ Hole_getXML(const QString &filename,
             const QString &patternFilename,
             int posX, int posY, int size, HoleType type, int side, QColor color)
 {
-  QString saveXml = "<Degradation>\n";
-  saveXml += "\t<PictureName>" + filename +  "</PictureName>\n";
-  saveXml += "\t<DegradationName>Hole</DegradationName>\n";
-  saveXml += "\t\t<Number>"+ QString::number(1) +"</Number>\n";
-  saveXml += "\t<Parameters>\n";
-  saveXml += "\t\t<Hole>" + patternFilename + "</Hole>\n";
-  saveXml += "\t\t<HoleType>" + QString::number(static_cast<int>(type)) + "</HoleType>\n";
-  saveXml += "\t\t<Side>" + QString::number(side) + "</Position>\n";
-  saveXml += "\t\t<X>" + QString::number(posX) + "</X>\n";
-  saveXml += "\t\t<Y>" + QString::number(posY) + "</Y>\n";
-  saveXml += "\t\t<ColorBehind>" + color.name() + "</ColorBehind>\n";
-  saveXml += "\t</Parameters>\n";
-  saveXml += "</Degradation>";
-  return saveXml;
+  QString xml = "<Degradation>\n";
+  xml += "\t<PictureName>" + filename +  "</PictureName>\n";
+  xml += "\t<DegradationName>Hole</DegradationName>\n";
+  xml += "\t\t<Number>"+ QString::number(1) +"</Number>\n";
+  xml += "\t<Parameters>\n";
+  xml += "\t\t<Hole>" + patternFilename + "</Hole>\n";
+  xml += "\t\t<HoleType>" + QString::number(static_cast<int>(type)) + "</HoleType>\n";
+  xml += "\t\t<Side>" + QString::number(side) + "</Position>\n";
+  xml += "\t\t<X>" + QString::number(posX) + "</X>\n";
+  xml += "\t\t<Y>" + QString::number(posY) + "</Y>\n";
+  xml += "\t\t<ColorBehind>" + color.name() + "</ColorBehind>\n";
+  xml += "\t</Parameters>\n";
+  xml += "</Degradation>";
+  return xml;
 }
 */
 
 static QString
 Hole_getXML(const QString &filename, std::vector<HoleData> &holes)
 {
-  QString saveXml = QStringLiteral("<Degradation>\n");
-  saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-  saveXml += QLatin1String("\t<DegradationName>Hole</DegradationName>\n");
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += QLatin1String("\t<DegradationName>Hole</DegradationName>\n");
   const unsigned int nbHole = holes.size();
-  saveXml += "\t\t<Number>" + QString::number(nbHole) + "</Number>\n";
-  saveXml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Number>" + QString::number(nbHole) + "</Number>\n";
+  xml += QLatin1String("\t<Parameters>\n");
 
   for (unsigned int i = 0; i < nbHole; ++i) {
     const QString &patternFilename = holes[i].patternFilename;
@@ -4841,17 +6115,17 @@ Hole_getXML(const QString &filename, std::vector<HoleData> &holes)
       QString::number(static_cast<int>(holes[i].type));
     const QString holeSideStr = QString::number(holes[i].side);
 
-    saveXml += "\t\t<Hole>" + patternFilename + "</Hole>\n";
-    saveXml += "\t\t<Size>" + QString::number(holes[i].size) + "</Size>\n";
-    saveXml += "\t\t<HoleType>" + holeTypeStr + "</HoleType>\n";
-    saveXml += "\t\t<Side>" + holeSideStr + "</Side>\n";
-    saveXml += "\t\t<X>" + QString::number(holes[i].posX) + "</X>\n";
-    saveXml += "\t\t<Y>" + QString::number(holes[i].posY) + "</Y>\n";
-    saveXml += "\t\t<ColorBehind>" + holes[i].color.name() + "</ColorBehind>\n";
+    xml += "\t\t<Hole>" + patternFilename + "</Hole>\n";
+    xml += "\t\t<Size>" + QString::number(holes[i].size) + "</Size>\n";
+    xml += "\t\t<HoleType>" + holeTypeStr + "</HoleType>\n";
+    xml += "\t\t<Side>" + holeSideStr + "</Side>\n";
+    xml += "\t\t<X>" + QString::number(holes[i].posX) + "</X>\n";
+    xml += "\t\t<Y>" + QString::number(holes[i].posY) + "</Y>\n";
+    xml += "\t\t<ColorBehind>" + holes[i].color.name() + "</ColorBehind>\n";
   }
-  saveXml += QLatin1String("\t</Parameters>\n");
-  saveXml += QLatin1String("</Degradation>");
-  return saveXml;
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
 }
 
 static bool
@@ -4871,18 +6145,7 @@ Hole_saveImage(const QImage &img,
   }
 
   const QString absoluteFilenameXML = path + prefixStr + ".xml";
-  QFile file(absoluteFilenameXML);
-  const bool openOk = file.open(QIODevice::WriteOnly | QIODevice::Text);
-  if (!openOk) {
-    std::cerr << "ERROR: unable to write xml file: "
-              << absoluteFilenameXML.toStdString() << "\n";
-    return false;
-  }
-  QTextStream out(&file);
-  out << xml;
-  file.close();
-
-  return true;
+  return saveXml(xml, absoluteFilenameXML);
 }
 
 /*
@@ -5014,6 +6277,9 @@ Hole_saveImage(const QImage &img,
   return Hole_saveImage(img, path, prefixStr, ext, xml);
 }
 
+  
+
+
 void
 Assistant::do_bleed(const QString &imageBasename,
                     const QImage &recto,
@@ -5037,9 +6303,9 @@ Assistant::do_bleed(const QString &imageBasename,
 
   const int bleedMin = this->bleedMin();
   const int bleedMax = this->bleedMax();
-  const int nbTirage = this->nbTirageBleed();
 
-  for (int i = 0; i < nbTirage; ++i) {
+  const int numDraws = this->nbTirageBleed();
+  for (int i = 0; i < numDraws; ++i) {
     const int nbOcc = P_bounded_rand(bleedMin, bleedMax + 1);
 
     const QImage imageBleed =
@@ -5049,22 +6315,18 @@ Assistant::do_bleed(const QString &imageBasename,
     const QString filename = prefixFilename + ".png";
     imageBleed.save(outputImageDir + filename);
 
-    QString saveXml = QStringLiteral("<Degradation>\n");
-    saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-    saveXml +=
+    QString xml = QStringLiteral("<Degradation>\n");
+    xml += "\t<PictureName>" + filename + "</PictureName>\n";
+    xml +=
       QLatin1String("\t<DegradationName>Bleed-Through</DegradationName>\n");
-    saveXml += QLatin1String("\t<Parameters>\n");
-    saveXml += "\t\t<Verso>" + versoPath + "</Verso>\n";
-    saveXml +=
+    xml += QLatin1String("\t<Parameters>\n");
+    xml += "\t\t<Verso>" + versoPath + "</Verso>\n";
+    xml +=
       "\t\t<BleedIntensity>" + QString::number(nbOcc) + "</BleedIntensity>\n";
-    saveXml += QLatin1String("\t</Parameters>\n");
-    saveXml += QLatin1String("</Degradation>");
+    xml += QLatin1String("\t</Parameters>\n");
+    xml += QLatin1String("</Degradation>");
 
-    QFile file(outputImageDir + prefixFilename + ".xml");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << saveXml;
-    file.close();
+    saveXml(xml, outputImageDir + prefixFilename + ".xml");
 
     updateProgress();
   }
@@ -5077,9 +6339,9 @@ Assistant::do_charDeg(const QString &imageBasename,
 {
   const int charMin = this->charMin();
   const int charMax = this->charMax();
-  const int nbTirages = this->nbTirageChar();
 
-  for (int i = 0; i < nbTirages; ++i) {
+  const int numDraws = this->nbTirageChar();
+  for (int i = 0; i < numDraws; ++i) {
 
     const int level = P_bounded_rand(charMin, charMax + 1);
 
@@ -5093,20 +6355,16 @@ Assistant::do_charDeg(const QString &imageBasename,
     const QString filename = prefixFilename + ".png";
     imgCharTmp.save(outputImageDir + filename);
 
-    QString saveXml = QStringLiteral("<Degradation>\n");
-    saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-    saveXml += "\t<DegradationName>Characters Degradation</DegradationName>\n";
-    saveXml += QLatin1String("\t<Parameters>\n");
-    saveXml += "\t\t<DegradationIntensity>" + QString::number(level) +
+    QString xml = QStringLiteral("<Degradation>\n");
+    xml += "\t<PictureName>" + filename + "</PictureName>\n";
+    xml += "\t<DegradationName>Characters Degradation</DegradationName>\n";
+    xml += QLatin1String("\t<Parameters>\n");
+    xml += "\t\t<DegradationIntensity>" + QString::number(level) +
                "</DegradationIntensity>\n";
-    saveXml += QLatin1String("\t</Parameters>\n");
-    saveXml += QLatin1String("</Degradation>");
+    xml += QLatin1String("\t</Parameters>\n");
+    xml += QLatin1String("</Degradation>");
 
-    QFile file(outputImageDir + prefixFilename + ".xml");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << saveXml;
-    file.close();
+    saveXml(xml, outputImageDir + prefixFilename + ".xml");
 
     updateProgress();
   }
@@ -5141,66 +6399,487 @@ Assistant::do_GDD(const QString &imageBasename,
     const QString filename = prefixFilename + ".png";
     imgOut.save(outputImageDir + filename);
 
-    QString saveXml = QStringLiteral("<Degradation>\n");
-    saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-    saveXml +=
+    QString xml = QStringLiteral("<Degradation>\n");
+    xml += "\t<PictureName>" + filename + "</PictureName>\n";
+    xml +=
       "\t<DegradationName>Gradient Domain Degradation</DegradationName>\n";
-    saveXml += QLatin1String("\t<Parameters>\n");
-    saveXml +=
+    xml += QLatin1String("\t<Parameters>\n");
+    xml +=
       "\t\t<StainImagesPath>" + stainImagesPath + "</StainImagePath>\n";
-    saveXml +=
+    xml +=
       "\t\t<NumStains>" + QString::number(numStains) + "</NumStains>\n";
-    saveXml += "\t\t<InsertType>" +
+    xml += "\t\t<InsertType>" +
                QString::number(static_cast<int>(insertType)) +
                "</InsertType>\n";
-    saveXml += "\t\t<DoRotations>" +
+    xml += "\t\t<DoRotations>" +
                QString::number(static_cast<int>(doRotations)) +
                "</DoRotations>\n";
-    saveXml += QLatin1String("\t</Parameters>\n");
-    saveXml += QLatin1String("</Degradation>");
+    xml += QLatin1String("\t</Parameters>\n");
+    xml += QLatin1String("</Degradation>");
 
-    QFile file(outputImageDir + prefixFilename + ".xml");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << saveXml;
-    file.close();
+    saveXml(xml, outputImageDir + prefixFilename + ".xml");
 
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    updateProgress();
   }
 }
+
+static
+QString
+Rotation_makePrefixXml(const QString &imageFilename,
+		       const QString &fillMethod,
+		       float angle)
+{
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<DegradationName>Rotation</DegradationName>\n";
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Angle>" + QString::number(angle) + "</Angle>\n";
+  xml += "\t\t<Fill>" + fillMethod + "</Fill>\n";
+  return xml;
+}
+
+static
+QString
+Rotation_makeSuffixeXml()
+{
+  QString xml;
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
+}
+
+static
+bool
+Rotation_saveFillColorXml(const QString &outputXmlFilename,
+			  const QString &imageFilename,
+			  float angle, QColor color)
+{
+  QString xml = Rotation_makePrefixXml(imageFilename, "Color", angle);  
+  xml += "\t\t<Color>" + color.name() + "</Color>\n";
+  xml += Rotation_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+//contrary to bleed, here we do not check if the chosen image is different than the current image...
+static
+QString
+getRandomImagePath(const QString &inputImageDir,
+	       const QStringList &picsList)
+{
+  const int numPics = picsList.size();
+  int randomNb = 0;
+  if (numPics > 1)
+    randomNb = P_bounded_rand(0, numPics);
+  assert(randomNb < numPics);
+  return (inputImageDir + picsList[randomNb]);
+}
+
+static
+bool
+Rotation_saveFillImageXml(const QString &outputXmlFilename,
+			  const QString &imageFilename,
+			  float angle,
+			  const QString &backgroundImgPath)
+{
+  QString xml = Rotation_makePrefixXml(imageFilename, "Image", angle);  
+  xml += "\t\t<Background>" + backgroundImgPath + "</Background>\n";
+  xml += Rotation_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+static
+bool
+Rotation_saveFillBorderXml(const QString &outputXmlFilename,
+			   const QString &imageFilename,
+			   float angle,
+			   const QString &borderModeStr)
+{
+  QString xml = Rotation_makePrefixXml(imageFilename, "Border", angle);  
+  xml += "\t\t<Replication>" + borderModeStr + "</Replication>\n";
+  xml += Rotation_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+static
+bool
+Rotation_saveFillBorder(const QImage &recto, float angle,
+			dc::RotationDegradation::BorderReplication mode,
+			const QString &imageBasename, int i,
+			const QString &outputImageDir)
+{
+  QImage imgRot = dc::RotationDegradation::rotateFillBorder(recto, angle, mode);
+
+  QString modeStr;
+  switch (mode) {
+  case dc::RotationDegradation::BorderReplication::REPLICATE:
+    modeStr = "REPLICATE";
+    break;
+  case dc::RotationDegradation::BorderReplication::REFLECT:
+    modeStr = "REFLECT";
+    break;
+  case dc::RotationDegradation::BorderReplication::WRAP:
+    modeStr = "WRAP";
+    break;
+  case dc::RotationDegradation::BorderReplication::REFLECT101:
+    modeStr = "REFLECT101";
+    break;
+  }
+  
+  const QString prefixFilename = imageBasename + "Rot_" + modeStr + "_" + QString::number(i);
+  const QString filename = prefixFilename + ".png";
+  imgRot.save(outputImageDir + filename);
+  return Rotation_saveFillBorderXml(outputImageDir + prefixFilename + ".xml",
+				    filename, angle, modeStr);
+}
+
+static
+bool
+Rotation_saveFillInpaintXml(const QString &outputXmlFilename,
+			    const QString &imageFilename, float angle,
+			    const QString &methodStr)
+{
+  QString xml = Rotation_makePrefixXml(imageFilename, "Inpaint", angle);  
+  xml += "\t\t<Method>" + methodStr + "</Method>\n";
+  xml += Rotation_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+static
+bool
+Rotation_saveFillInpaint(const QImage &recto, float angle,
+			 int method,
+			 const QString &imageBasename, int i,
+			 const QString &outputImageDir)
+{
+  QImage imgRot;
+  QString methodStr;
+  if (method == 1) {
+    imgRot = dc::RotationDegradation::rotateFillInpaint1(recto, angle); //use default inpaintingRatio
+    methodStr = "1";
+  }
+  else if (method == 2) {
+    imgRot = dc::RotationDegradation::rotateFillInpaint2(recto, angle); 
+    methodStr = "2";
+  }
+  else if (method == 3) {
+    imgRot = dc::RotationDegradation::rotateFillInpaint3(recto, angle); 
+    methodStr = "3";
+  }
+
+  const QString prefixFilename = imageBasename + "Rot_" + "Inpaint"+ methodStr + "_" + QString::number(i);
+  const QString filename = prefixFilename + ".png";
+  imgRot.save(outputImageDir + filename);
+  return Rotation_saveFillInpaintXml(outputImageDir + prefixFilename + ".xml",
+				    filename, angle, methodStr);
+}
+
+void
+Assistant::do_Rotation(const QString &imageBasename,
+		       const QImage &recto,
+		       const QString &inputImageDir,
+		       const QString &outputImageDir) const
+{
+  const int numDraws = ui->TirageRotation->value();
+  const float angleMin = ui->RotationAngleMinSB->value();
+  const float angleMax = ui->RotationAngleMaxSB->value();
+  assert(angleMin<=angleMax);
+  
+  for (int i = 0; i < numDraws; ++i) {
+
+    const float angle = random_in_range(angleMin, angleMax);
+
+    if (ui->RotationFillColorCB->isChecked()) {
+      QImage imgRot;
+      QColor color;
+      if (ui->RotationSpecificColorRB->isChecked()) {
+	color = ui->RotationColorSelectionPB->getColor();
+      }
+      else {
+	assert(ui->RotationRandomColorRB->isChecked());
+	color = random_color();
+      }
+      imgRot = dc::RotationDegradation::rotateFillColor(recto, angle, color);
+
+      const QString prefixFilename = imageBasename + "Rot_color_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgRot.save(outputImageDir + filename);
+      Rotation_saveFillColorXml(outputImageDir + prefixFilename + ".xml",
+				filename, angle, color);
+      updateProgress();
+    }
+
+    if (ui->RotationFillImageCB->isChecked()) {
+      const QString backgroundImgPath = getRandomImagePath(inputImageDir, this->picsList());
+      const QImage background(backgroundImgPath);
+      const int repeats = random_in_range(ui->RotationImageRepeatsMinSB->value(),
+					  ui->RotationImageRepeatsMaxSB->value());
+      QImage imgRot = dc::RotationDegradation::rotateFillImage(recto, angle, background, repeats);
+
+      const QString prefixFilename = imageBasename + "Rot_bckgrd_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgRot.save(outputImageDir + filename);
+      Rotation_saveFillImageXml(outputImageDir + prefixFilename + ".xml",
+				filename, angle, backgroundImgPath);
+      updateProgress();
+    }
+
+    if (ui->RotationFillBorderCB->isChecked()) {
+      if (ui->RotationBorderReplicateCB->isChecked()) {
+	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REPLICATE,
+				imageBasename, i, outputImageDir);
+	updateProgress();
+      }
+      if (ui->RotationBorderReflectCB->isChecked()) {
+	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT,
+				imageBasename, i, outputImageDir);
+	updateProgress();
+      }
+      if (ui->RotationBorderWrapCB->isChecked()) {
+	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::WRAP,
+				imageBasename, i, outputImageDir);
+	updateProgress();
+      }
+      if (ui->RotationBorderReflect101CB->isChecked()) {
+	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT101,
+				imageBasename, i, outputImageDir);
+	updateProgress();
+      }
+    }
+
+    if (ui->RotationFillInpaintCB->isChecked()) {
+      if (ui->RotationInpaint1CB->isChecked()) {
+	Rotation_saveFillInpaint(recto, angle, 1,
+				imageBasename, i, outputImageDir);
+	updateProgress();
+      }
+      if (ui->RotationInpaint2CB->isChecked()) {
+	Rotation_saveFillInpaint(recto, angle, 2,
+				imageBasename, i, outputImageDir);
+
+	updateProgress();
+      }
+       if (ui->RotationInpaint3CB->isChecked()) {
+	Rotation_saveFillInpaint(recto, angle, 3,
+				imageBasename, i, outputImageDir);
+	updateProgress();
+      }
+     
+    }
+    
+  }
+}
+
+
+static
+QString
+Noise_makePrefixXml(const QString &imageFilename,
+		    const QString &noiseMethod)
+{
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<DegradationName>Noise</DegradationName>\n";
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Type>" + noiseMethod + "</Type>\n";
+  return xml;
+}
+
+static
+QString
+Noise_makeSuffixeXml()
+{
+  QString xml;
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
+}
+
+static
+bool
+Noise_saveNoiseXml(const QString &outputXmlFilename,
+		   const QString &imageFilename,
+		   const QString &method,
+		   float average,
+		   float stddev,
+		   dc::NoiseDegradation::AddNoiseType addType)
+{
+  QString xml = Noise_makePrefixXml(imageFilename, method);
+  xml += "\t\t<Average>" + QString::number(average) + "</Average>\n";
+  xml += "\t\t<StdDev>" + QString::number(stddev) + "</StdDev>\n";
+  switch (addType) {
+  case dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS:
+    xml += "\t\t<Add>ADD_NOISE_AS_IS</Add>\n";
+    break;
+  case dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY:
+    xml += "\t\t<Add>ADD_NOISE_AS_GRAY</Add>\n";
+    break;
+  case dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY:
+    xml += "\t\t<Add>ADD_NOISE_AS_GRAY_IF_GRAY</Add>\n";
+    break;
+  }
+  xml += Noise_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+static
+bool
+Noise_saveGaussianNoiseXml(const QString &outputXmlFilename,
+			   const QString &imageFilename,
+			   float average,
+			   float stddev,
+			   dc::NoiseDegradation::AddNoiseType addType)
+{
+  return Noise_saveNoiseXml(outputXmlFilename,
+			    imageFilename,
+			    "Gaussian",
+			    average, stddev, addType);
+}
+
+static
+bool
+Noise_saveSpeckleNoiseXml(const QString &outputXmlFilename,
+			  const QString &imageFilename,
+			  float average,
+			  float stddev,
+			  dc::NoiseDegradation::AddNoiseType addType)
+{
+  return Noise_saveNoiseXml(outputXmlFilename,
+			    imageFilename,
+			    "Speckle",
+			    average, stddev, addType);
+}
+
+static
+bool
+Noise_saveSaltAndPepperNoiseXml(const QString &outputXmlFilename,
+				const QString &imageFilename,
+				float amount, float ratio)
+{
+  QString xml = Noise_makePrefixXml(imageFilename, "SaltAndPepper");
+  xml += "\t\t<Amount>" + QString::number(amount) + "</Amount>\n";
+  xml += "\t\t<Ratio>" + QString::number(ratio) + "</Ratio>\n";
+  xml += Noise_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+void
+Assistant::do_Noise(const QString &imageBasename,
+		    const QImage &recto,
+		    const QString &outputImageDir) const
+{
+  const int numDraws = ui->TirageNoise->value();
+  for (int i = 0; i < numDraws; ++i) {
+
+    if (ui->GaussianNoiseCB->isChecked()) {
+
+      const float averageMin = ui->MinAverageGaussianNoiseSB->value();
+      const float averageMax = ui->MaxAverageGaussianNoiseSB->value();
+      const float average = random_in_range(averageMin, averageMax);
+
+      const float stdDevMin = ui->MinStdDevGaussianNoiseSB->value();
+      const float stdDevMax = ui->MaxStdDevGaussianNoiseSB->value();
+      const float stdDev = random_in_range(stdDevMin, stdDevMax);
+
+      dc::NoiseDegradation::AddNoiseType addType =
+	static_cast<dc::NoiseDegradation::AddNoiseType>(ui->GaussianNoiseAddTypeCB->currentData().toInt());
+
+      QImage imgN;
+      imgN = dc::NoiseDegradation::addGaussianNoise(recto, average, stdDev, addType);
+
+      const QString prefixFilename = imageBasename + "Noise_Gaussian_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      Noise_saveGaussianNoiseXml(outputImageDir + prefixFilename + ".xml",
+				 filename, average, stdDev, addType);
+      updateProgress();
+    }
+
+    if (ui->SpeckleNoiseCB->isChecked()) {
+
+      const float averageMin = ui->MinAverageSpeckleNoiseSB->value();
+      const float averageMax = ui->MaxAverageSpeckleNoiseSB->value();
+      const float average = random_in_range(averageMin, averageMax);
+
+      const float stdDevMin = ui->MinStdDevSpeckleNoiseSB->value();
+      const float stdDevMax = ui->MaxStdDevSpeckleNoiseSB->value();
+      const float stdDev = random_in_range(stdDevMin, stdDevMax);
+
+      dc::NoiseDegradation::AddNoiseType addType =
+	static_cast<dc::NoiseDegradation::AddNoiseType>(ui->SpeckleNoiseAddTypeCB->currentData().toInt());
+
+      QImage imgN;
+      imgN = dc::NoiseDegradation::addSpeckleNoise(recto, average, stdDev, addType);
+
+      const QString prefixFilename = imageBasename + "Noise_Speckle_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      Noise_saveSpeckleNoiseXml(outputImageDir + prefixFilename + ".xml",
+				filename, average, stdDev, addType);
+      updateProgress();
+    }
+
+    if (ui->SaltAndPepperNoiseCB->isChecked()) {
+
+      const float amountMin = ui->MinAmountSaltAndPepperNoiseSB->value();
+      const float amountMax = ui->MaxAmountSaltAndPepperNoiseSB->value();
+      const float amount = random_in_range(amountMin, amountMax);
+
+      const float ratioMin = ui->MinRatioSaltAndPepperNoiseSB->value();
+      const float ratioMax = ui->MaxRatioSaltAndPepperNoiseSB->value();
+      const float ratio = random_in_range(ratioMin, ratioMax);
+
+      QImage imgN;
+      imgN = dc::NoiseDegradation::addSaltAndPepperNoise(recto, amount, ratio);
+
+      const QString prefixFilename = imageBasename + "Noise_SaltAndPepper_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      Noise_saveSaltAndPepperNoiseXml(outputImageDir + prefixFilename + ".xml",
+				      filename, amount, ratio);
+      updateProgress();
+    }
+
+  }
+}
+
+
+
 
 void
 Assistant::do_shadow(const QString &imageBasename,
                      const QImage &recto,
                      const QString &outputImageDir) const
 {
-  QImage picTmpShad;
 
-  //some code duplication with Shadow_setPreview()
-  const float distanceRatio =
-    ui->shad_width->value() / (float)ui->shad_width->maximum();
-  const float intensity =
-    1.f - ui->shad_intensity->value() / (float)ui->shad_intensity->maximum();
-  const float angle = ui->shad_angle->value();
+  const int numDraws = ui->TirageShadow->value();
+  for (int i = 0; i < numDraws; ++i) {
+    QImage picTmpShad;
 
-  const QString &path = outputImageDir;
-  const QString prefix = imageBasename + "Shadow_";
-  const QString imgExt = QStringLiteral(".png");
+    //some code duplication with Shadow_setPreview()
+    const float distanceRatio =
+      ui->shad_width->value() / (float)ui->shad_width->maximum();
+    const float intensity =
+      1.f - ui->shad_intensity->value() / (float)ui->shad_intensity->maximum();
+    const float angle = ui->shad_angle->value();
+    
+    const QString &path = outputImageDir;
+    const QString prefix = imageBasename + "Shadow_";
+    const QString imgExt = QStringLiteral(".png");
+    
+    for (int j = 0; j < _Shadow_nbShadSelected; ++j) {
+      const dc::ShadowBinding::Border border = _Shadow_borderStack[j];
+      picTmpShad = dc::ShadowBinding::shadowBinding(recto, distanceRatio, border,
+						    intensity, angle);
+      Shadow_saveImage(picTmpShad,
+		       path,
+		       prefix,
+		       imgExt,
+		       distanceRatio,
+		       border,
+		       intensity,
+		       angle);
 
-  for (int i = 0; i < _Shadow_nbShadSelected; ++i) {
-    const dc::ShadowBinding::Border border = _Shadow_borderStack[i];
-    picTmpShad = dc::ShadowBinding::shadowBinding(
-      recto, distanceRatio, border, intensity, angle);
-    Shadow_saveImage(picTmpShad,
-                     path,
-                     prefix,
-                     imgExt,
-                     distanceRatio,
-                     border,
-                     intensity,
-                     angle);
-
-    updateProgress();
+      updateProgress();
+    }
   }
 }
 
@@ -5239,19 +6918,15 @@ Phantom_applyAndSave(const QImage &recto,
 
   imgTmpPhant.save(outputImageDir + filename);
 
-  QString saveXml = QStringLiteral("<Degradation>\n");
-  saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-  saveXml += "\t<DegradationName>Phantom Characters</DegradationName>\n";
-  saveXml += QLatin1String("\t<Parameters>\n");
-  saveXml += "\t\t<Frequency>" + freqStr + "</Frequency>\n";
-  saveXml += QLatin1String("\t</Parameters>\n");
-  saveXml += QLatin1String("</Degradation>");
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += "\t<DegradationName>Phantom Characters</DegradationName>\n";
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Frequency>" + freqStr + "</Frequency>\n";
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
 
-  QFile file(outputImageDir + prefixFilename + ".xml");
-  file.open(QIODevice::WriteOnly | QIODevice::Text);
-  QTextStream out(&file);
-  out << saveXml;
-  file.close();
+  saveXml(xml, outputImageDir + prefixFilename + ".xml");
 }
 
 void
@@ -5259,11 +6934,8 @@ Assistant::do_phantom(const QString &imageBasename,
                       const QImage &recto,
                       const QString &outputImageDir) const
 {
-  //B:TODO: plusieurs tirages !!!!!!!
-
-  const int nbTirage = ui->TiragePhantom->value();
-
-  for (int i = 0; i < nbTirage; ++i) {
+  const int numDraws = ui->TiragePhantom->value();
+  for (int i = 0; i < numDraws; ++i) {
 
     //QImage imgTmpPhant;
 
@@ -5374,21 +7046,21 @@ Blur_getXML_area(const QString &filename,
                  dc::BlurFilter::Method method,
                  int intensity)
 {
-  QString saveXml = QStringLiteral("<Degradation>\n");
-  saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-  saveXml += QLatin1String("\t<DegradationName>BlurZone</DegradationName>\n");
-  saveXml += QLatin1String("\t<Parameters>\n");
-  saveXml += "\t\t<Function>" + Blur_getFunctionStr(function) + "</Function>\n";
-  saveXml += "\t\t<Area>" + Blur_getAreaStr(area) + "</Area>\n";
-  saveXml += "\t\t<coeff1>" + QString::number(coeff1) + "</coeff1>\n";
-  saveXml += "\t\t<Vertical>" + QString::number(vert) + "</Vertical>\n";
-  saveXml += "\t\t<Horizontal>" + QString::number(horiz) + "</Horizontal>\n";
-  saveXml += "\t\t<Radius>" + QString::number(radius) + "</Radius>\n";
-  saveXml += "\t\t<Method>" + Blur_getMethodStr(method) + "</Method>\n";
-  saveXml += "\t\t<Intensity>" + QString::number(intensity) + "</Intensity>\n";
-  saveXml += QLatin1String("\t</Parameters>\n");
-  saveXml += QLatin1String("</Degradation>");
-  return saveXml;
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += QLatin1String("\t<DegradationName>BlurZone</DegradationName>\n");
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Function>" + Blur_getFunctionStr(function) + "</Function>\n";
+  xml += "\t\t<Area>" + Blur_getAreaStr(area) + "</Area>\n";
+  xml += "\t\t<coeff1>" + QString::number(coeff1) + "</coeff1>\n";
+  xml += "\t\t<Vertical>" + QString::number(vert) + "</Vertical>\n";
+  xml += "\t\t<Horizontal>" + QString::number(horiz) + "</Horizontal>\n";
+  xml += "\t\t<Radius>" + QString::number(radius) + "</Radius>\n";
+  xml += "\t\t<Method>" + Blur_getMethodStr(method) + "</Method>\n";
+  xml += "\t\t<Intensity>" + QString::number(intensity) + "</Intensity>\n";
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
 }
 
 static QString
@@ -5396,16 +7068,16 @@ Blur_getXML_page(const QString &filename,
                  dc::BlurFilter::Method method,
                  int intensity)
 {
-  QString saveXml = QStringLiteral("<Degradation>\n");
-  saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-  saveXml +=
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml +=
     QLatin1String("\t<DegradationName>BlurComplete</DegradationName>\n");
-  saveXml += QLatin1String("\t<Parameters>\n");
-  saveXml += "\t\t<Method>" + Blur_getMethodStr(method) + "</Method>\n";
-  saveXml += "\t\t<Intensity>" + QString::number(intensity) + "</Intensity>\n";
-  saveXml += QLatin1String("\t</Parameters>\n");
-  saveXml += QLatin1String("</Degradation>");
-  return saveXml;
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Method>" + Blur_getMethodStr(method) + "</Method>\n";
+  xml += "\t\t<Intensity>" + QString::number(intensity) + "</Intensity>\n";
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
 }
 
 /**
@@ -5455,14 +7127,10 @@ Blur_applyAreaAndSave(const QImage &recto,
 
   blurTmp.save(outputImageDir + filename);
 
-  const QString saveXml =
+  const QString xml =
     Blur_getXML_area(filename, f, a, coeff1, vert, horiz, radius, m, intensity);
 
-  QFile file(outputImageDir + prefixFilename + ".xml");
-  file.open(QIODevice::WriteOnly | QIODevice::Text);
-  QTextStream out(&file);
-  out << saveXml;
-  file.close();
+  saveXml(xml, outputImageDir + prefixFilename + ".xml");
 }
 
 static void
@@ -5481,13 +7149,9 @@ Blur_applyPageAndSave(const QImage &recto,
 
   blurTmp.save(outputImageDir + filename);
 
-  QString saveXml = Blur_getXML_page(filename, m, intensity);
+  QString xml = Blur_getXML_page(filename, m, intensity);
 
-  QFile file(outputImageDir + prefixFilename + ".xml");
-  file.open(QIODevice::WriteOnly | QIODevice::Text);
-  QTextStream out(&file);
-  out << saveXml;
-  file.close();
+  saveXml(xml, outputImageDir + prefixFilename + ".xml");
 }
 
 static int
@@ -5507,6 +7171,8 @@ Assistant::do_blur(const QString &imageBasename,
   const int blurMax = this->blurMax();
   const int blurMin = this->blurMin();
 
+  const int numDraws = this->nbTirageBlur();
+  
   if (this->getBlur_ZoneEnable()) {
 
     const dc::BlurFilter::Area a = dc::BlurFilter::Area::UP;
@@ -5515,118 +7181,118 @@ Assistant::do_blur(const QString &imageBasename,
     const int horiz = 50;
     const int radius = 10;
     const dc::BlurFilter::Method m = dc::BlurFilter::Method::GAUSSIAN;
-
+    
     if (this->pattern1()) {
-      for (int i = 0; i < this->nbTirageBlur(); ++i) {
-        Blur_applyAreaAndSave(recto,
-                              i,
-                              dc::BlurFilter::Function::LINEAR,
-                              a,
-                              coeff1,
-                              vert,
-                              horiz,
-                              radius,
-                              m,
-                              Blur_getIntensity(blurMin, blurMax),
-                              imageBasename,
-                              outputImageDir);
+      for (int i = 0; i < numDraws; ++i) {
+	Blur_applyAreaAndSave(recto,
+			      i,
+			      dc::BlurFilter::Function::LINEAR,
+			      a,
+			      coeff1,
+			      vert,
+			      horiz,
+			      radius,
+			      m,
+			      Blur_getIntensity(blurMin, blurMax),
+			      imageBasename,
+			      outputImageDir);
 
-        updateProgress();
+	updateProgress();
       }
     }
 
     if (this->pattern2()) {
-      for (int i = 0; i < this->nbTirageBlur(); ++i) {
-        Blur_applyAreaAndSave(recto,
-                              i,
-                              dc::BlurFilter::Function::LOG,
-                              a,
-                              coeff1,
-                              vert,
-                              horiz,
-                              radius,
-                              m,
-                              Blur_getIntensity(blurMin, blurMax),
-                              imageBasename,
-                              outputImageDir);
+      for (int i = 0; i < numDraws; ++i) {
+	Blur_applyAreaAndSave(recto,
+			      i,
+			      dc::BlurFilter::Function::LOG,
+			      a,
+			      coeff1,
+			      vert,
+			      horiz,
+			      radius,
+			      m,
+			      Blur_getIntensity(blurMin, blurMax),
+			      imageBasename,
+			      outputImageDir);
 
-        updateProgress();
+	updateProgress();
       }
     }
 
     if (this->pattern3()) {
-      for (int i = 0; i < this->nbTirageBlur(); ++i) {
-        Blur_applyAreaAndSave(recto,
-                              i,
-                              dc::BlurFilter::Function::PARABOLA,
-                              a,
-                              coeff1,
-                              vert,
-                              horiz,
-                              radius,
-                              m,
-                              Blur_getIntensity(blurMin, blurMax),
-                              imageBasename,
-                              outputImageDir);
+      for (int i = 0; i < numDraws; ++i) {
+	Blur_applyAreaAndSave(recto,
+			      i,
+			      dc::BlurFilter::Function::PARABOLA,
+			      a,
+			      coeff1,
+			      vert,
+			      horiz,
+			      radius,
+			      m,
+			      Blur_getIntensity(blurMin, blurMax),
+			      imageBasename,
+			      outputImageDir);
 
-        updateProgress();
+	updateProgress();
       }
     }
 
     if (this->pattern4()) {
-      for (int i = 0; i < this->nbTirageBlur(); ++i) {
-        Blur_applyAreaAndSave(recto,
-                              i,
-                              dc::BlurFilter::Function::SINUS,
-                              a,
-                              coeff1,
-                              vert,
-                              horiz,
-                              radius,
-                              m,
-                              Blur_getIntensity(blurMin, blurMax),
-                              imageBasename,
-                              outputImageDir);
+      for (int i = 0; i < numDraws; ++i) {
+	Blur_applyAreaAndSave(recto,
+			      i,
+			      dc::BlurFilter::Function::SINUS,
+			      a,
+			      coeff1,
+			      vert,
+			      horiz,
+			      radius,
+			      m,
+			      Blur_getIntensity(blurMin, blurMax),
+			      imageBasename,
+			      outputImageDir);
 
-        updateProgress();
+	updateProgress();
       }
     }
 
     if (this->pattern5()) {
-      for (int i = 0; i < this->nbTirageBlur(); ++i) {
-        Blur_applyAreaAndSave(recto,
-                              i,
-                              dc::BlurFilter::Function::ELLIPSE,
-                              a,
-                              coeff1,
-                              vert,
-                              horiz,
-                              radius,
-                              m,
-                              Blur_getIntensity(blurMin, blurMax),
-                              imageBasename,
-                              outputImageDir);
+      for (int i = 0; i < numDraws; ++i) {
+	Blur_applyAreaAndSave(recto,
+			      i,
+			      dc::BlurFilter::Function::ELLIPSE,
+			      a,
+			      coeff1,
+			      vert,
+			      horiz,
+			      radius,
+			      m,
+			      Blur_getIntensity(blurMin, blurMax),
+			      imageBasename,
+			      outputImageDir);
 
-        updateProgress();
+	updateProgress();
       }
     }
 
     if (this->pattern6()) {
-      for (int i = 0; i < this->nbTirageBlur(); ++i) {
-        Blur_applyAreaAndSave(recto,
-                              i,
-                              dc::BlurFilter::Function::HYPERBOLA,
-                              a,
-                              coeff1,
-                              vert,
-                              horiz,
-                              radius,
-                              m,
-                              Blur_getIntensity(blurMin, blurMax),
-                              imageBasename,
-                              outputImageDir);
+      for (int i = 0; i < numDraws; ++i) {
+	Blur_applyAreaAndSave(recto,
+			      i,
+			      dc::BlurFilter::Function::HYPERBOLA,
+			      a,
+			      coeff1,
+			      vert,
+			      horiz,
+			      radius,
+			      m,
+			      Blur_getIntensity(blurMin, blurMax),
+			      imageBasename,
+			      outputImageDir);
 
-        updateProgress();
+	updateProgress();
       }
     }
   }
@@ -5636,17 +7302,18 @@ Assistant::do_blur(const QString &imageBasename,
 
     const dc::BlurFilter::Method m = dc::BlurFilter::Method::GAUSSIAN;
 
-    for (int i = 0; i < this->nbTirageBlur(); ++i) {
+    for (int i = 0; i < numDraws; ++i) {
 
       Blur_applyPageAndSave(recto,
-                            i,
-                            m,
-                            Blur_getIntensity(blurMin, blurMax),
-                            imageBasename,
-                            outputImageDir);
+			    i,
+			    m,
+			    Blur_getIntensity(blurMin, blurMax),
+			    imageBasename,
+			    outputImageDir);
 
-      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+      updateProgress();
     }
+    
   }
 }
 
@@ -5672,8 +7339,8 @@ Assistant::do_hole(const QString &imageBasename,
   std::vector<HoleData> holes;
   QImage rectoC;
 
-  const int nbTirages = ui->TirageHole->value();
-  for (int i = 0; i < nbTirages; ++i) {
+  const int numDraws = ui->TirageHole->value();
+  for (int i = 0; i < numDraws; ++i) {
 
     //std::cerr << "----------------------- hole " << i <<"/"<<nbTirages<< "\n";
 
@@ -5691,6 +7358,125 @@ Assistant::do_hole(const QString &imageBasename,
     updateProgress();
   }
 }
+
+
+
+static
+QString
+ElasticDeformation_makePrefixXml(const QString &imageFilename,
+				 const QString &method)
+{
+  QString xml = QStringLiteral("<Degradation>\n");
+  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<DegradationName>ElasticDeformation</DegradationName>\n";
+  xml += QLatin1String("\t<Parameters>\n");
+  xml += "\t\t<Type>" + method + "</Type>\n";
+  return xml;
+}
+
+static
+QString
+ElasticDeformation_makeSuffixeXml()
+{
+  QString xml;
+  xml += QLatin1String("\t</Parameters>\n");
+  xml += QLatin1String("</Degradation>");
+  return xml;
+}
+
+static
+bool
+ElasticDeformation_saveXml(const QString &outputXmlFilename,
+			   const QString &imageFilename,
+			   int method,
+			   float alpha,
+			   float sigma,
+			   float alpha_affine,
+			   dc::ElasticDeformation::BorderReplication borderMode,
+			   dc::ElasticDeformation::Interpolation interpolation)
+{
+  QString xml = ElasticDeformation_makePrefixXml(imageFilename, QString::number(method));
+  xml += "\t\t<Alpha>" + QString::number(alpha) + "</Alpha>\n";
+  xml += "\t\t<Sigma>" + QString::number(sigma) + "</Sigma>\n";
+  if (method == 2) {
+    xml += "\t\t<AlphaAffine>" + QString::number(alpha_affine) + "</AlphaAffine>\n";
+  }
+  xml += "\t\t<BorderMode>" + QString::number(static_cast<int>(borderMode)) + "</BorderMode>\n";
+  xml += "\t\t<Interpolation>" + QString::number(static_cast<int>(interpolation)) + "</Interpolation>\n";
+  xml += ElasticDeformation_makeSuffixeXml();
+  return saveXml(xml, outputXmlFilename);
+}
+
+void
+Assistant::do_ElasticDeformation(const QString &imageBasename,
+				 const QImage &recto,
+				 const QString &outputImageDir) const
+{
+  const int numDraws = ui->TirageElasticDeformation->value();
+  for (int i = 0; i < numDraws; ++i) {
+
+    if (ui->ElasticDeformation1CB->isChecked()) {
+
+      const float alphaMin = ui->MinAlphaElasticDeformation1SB->value();
+      const float alphaMax = ui->MaxAlphaElasticDeformation1SB->value();
+      const float alpha = random_in_range(alphaMin, alphaMax);
+
+      const float sigmaMin = ui->MinSigmaElasticDeformation1SB->value();
+      const float sigmaMax = ui->MaxSigmaElasticDeformation1SB->value();
+      const float sigma = random_in_range(sigmaMin, sigmaMax);
+
+      const dc::ElasticDeformation::BorderReplication borderMode = static_cast<dc::ElasticDeformation::BorderReplication>(ui->BorderElasticDeformation1CB->currentData().toInt());
+      const dc::ElasticDeformation::Interpolation interpolation = static_cast<dc::ElasticDeformation::Interpolation>(ui->InterpolationElasticDeformation1CB->currentData().toInt());
+
+      QImage imgN;
+      imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
+
+      const QString prefixFilename = imageBasename + "ElasticDeformation_1_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      ElasticDeformation_saveXml(outputImageDir + prefixFilename + ".xml",
+				 filename,
+				 1,
+				 alpha, sigma, 0, borderMode, interpolation);
+      updateProgress();
+    }
+
+    if (ui->ElasticDeformation2CB->isChecked()) {
+
+      const float alphaMin = ui->MinAlphaElasticDeformation2SB->value();
+      const float alphaMax = ui->MaxAlphaElasticDeformation2SB->value();
+      const float alpha = random_in_range(alphaMin, alphaMax);
+
+      const float sigmaMin = ui->MinSigmaElasticDeformation2SB->value();
+      const float sigmaMax = ui->MaxSigmaElasticDeformation2SB->value();
+      const float sigma = random_in_range(sigmaMin, sigmaMax);
+
+      const float alphaAffineMin = ui->MinAlphaAffineElasticDeformation2SB->value();
+      const float alphaAffineMax = ui->MaxAlphaAffineElasticDeformation2SB->value();
+      const float alphaAffine = random_in_range(alphaAffineMin, alphaAffineMax);
+
+      
+      const dc::ElasticDeformation::BorderReplication  borderMode = static_cast<dc::ElasticDeformation::BorderReplication>(ui->BorderElasticDeformation2CB->currentData().toInt());
+      const dc::ElasticDeformation::Interpolation interpolation = static_cast<dc::ElasticDeformation::Interpolation>(ui->InterpolationElasticDeformation2CB->currentData().toInt());
+
+      QImage imgN;
+      imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
+
+      const QString prefixFilename = imageBasename + "ElasticDeformation_2_" + QString::number(i);
+      const QString filename = prefixFilename + ".png";
+      imgN.save(outputImageDir + filename);
+      ElasticDeformation_saveXml(outputImageDir + prefixFilename + ".xml",
+				 filename,
+				 2,
+				 alpha, sigma, alphaAffine, borderMode, interpolation);
+      updateProgress();
+    }
+    
+  }
+}
+
+
+
 
 void
 Assistant::do_3D(const QString &imageBasename,
@@ -5710,55 +7496,55 @@ Assistant::do_3D(const QString &imageBasename,
     w->setUseBackgroundTexture(true);
   }
 
-  for (const QString &meshFilename : _Dist3D_meshesList) {
+  const int numDraws = ui->TirageDist3D->value();
+  for (int i=0; i<numDraws; ++i) {
 
-    //std::cerr<<"meshFilename="<<meshFilename.toStdString()<<"\n";
+    for (const QString &meshFilename : _Dist3D_meshesList) {
 
-    w->loadMesh(meshFilename);
+      //std::cerr<<"meshFilename="<<meshFilename.toStdString()<<"\n";
 
-    QString backgroundFilename;
-    if (useBackground) {
+      w->loadMesh(meshFilename);
 
-      const int index = P_bounded_rand(0, _Dist3D_meshBackgroundsList.size());
-      backgroundFilename = _Dist3D_meshBackgroundsList[index];
-      QImage backgroundImg(backgroundFilename);
+      QString backgroundFilename;
+      if (useBackground) {
 
-      w->setBackgroundTexture(backgroundImg);
+	const int index = P_bounded_rand(0, _Dist3D_meshBackgroundsList.size());
+	backgroundFilename = _Dist3D_meshBackgroundsList[index];
+	QImage backgroundImg(backgroundFilename);
+
+	w->setBackgroundTexture(backgroundImg);
+      }
+
+      QImage img = w->takeScreenshotHiRes();
+
+      QFileInfo fiMesh(meshFilename);
+
+      const QString meshBasename = fiMesh.baseName();
+
+      const QString prefixFilename =
+	imageBasename + "Distortion3D_"  + QString::number(i) +"_"+ meshBasename;
+      const QString filename = prefixFilename + ".png";
+
+      img.save(outputImageDir + filename);
+
+      QString xml = QStringLiteral("<Degradation>\n");
+      xml += "\t<PictureName>" + filename + "</PictureName>\n";
+      xml +=
+	QLatin1String("\t<DegradationName>Distortion 3D</DegradationName>\n");
+      xml += QLatin1String("\t<Parameters>\n");
+      xml += "\t\t<Mesh>" + fiMesh.fileName() + "</Mesh>\n";
+      if (useBackground) {
+	xml += "\t\t<Background>" + QFileInfo(backgroundFilename).fileName() +
+	  "</Background>\n";
+      }
+      //TODO: save other parameters ???
+      xml += QLatin1String("\t</Parameters>\n");
+      xml += QLatin1String("</Degradation>");
+
+      saveXml(xml, outputImageDir + prefixFilename + ".xml");
+
+      updateProgress();
     }
-
-    QImage img = w->takeScreenshotHiRes();
-
-    QFileInfo fiMesh(meshFilename);
-
-    const QString meshBasename = fiMesh.baseName();
-
-    const QString prefixFilename =
-      imageBasename + "Distortion3D_" + meshBasename;
-    const QString filename = prefixFilename + ".png";
-
-    img.save(outputImageDir + filename);
-
-    QString saveXml = QStringLiteral("<Degradation>\n");
-    saveXml += "\t<PictureName>" + filename + "</PictureName>\n";
-    saveXml +=
-      QLatin1String("\t<DegradationName>Distortion 3D</DegradationName>\n");
-    saveXml += QLatin1String("\t<Parameters>\n");
-    saveXml += "\t\t<Mesh>" + fiMesh.fileName() + "</Mesh>\n";
-    if (useBackground) {
-      saveXml += "\t\t<Background>" + QFileInfo(backgroundFilename).fileName() +
-                 "</Background>\n";
-    }
-    //TODO: save other parameters ???
-    saveXml += QLatin1String("\t</Parameters>\n");
-    saveXml += QLatin1String("</Degradation>");
-
-    QFile file(outputImageDir + prefixFilename + ".xml");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << saveXml;
-    file.close();
-
-    updateProgress();
   }
 
   delete w;
@@ -5795,7 +7581,7 @@ Assistant::generateDegradedImages() const
   const int numPics = picsList.size();
   const size_t numImagesToGenerate = ui->TotalPic->text().toUInt();
   
-    if (numPics > 0)
+  if (numPics > 0)
   {
     _numGeneratedImages = 0;
     _progressDialog =
@@ -5882,6 +7668,22 @@ Assistant::generateDegradedImages() const
       //Apply Gradient Domain Degradation if enabled
       if (this->gddEnable()) {
         do_GDD(imageBasename, recto, savePath);
+        if (_progressDialog->wasCanceled()) {
+          break;
+        }
+      }
+
+      //Apply NoiseDegradation if enabled
+      if (this->noiseEnable()) {
+        do_Noise(imageBasename, recto, savePath);
+        if (_progressDialog->wasCanceled()) {
+          break;
+        }
+      }
+
+      //Apply RotationDegradation if enabled
+      if (this->rotationEnable()) {
+        do_Rotation(imageBasename, recto, inputImageDir, savePath);
         if (_progressDialog->wasCanceled()) {
           break;
         }
