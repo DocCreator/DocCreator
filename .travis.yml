@@ -63,8 +63,9 @@ jobs:
         - mkdir build
         - cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DBUILD_ONLY_DEGRADATIONS=ON
-        - ninja -j 3
+        - ninja -j 3 || travis_terminate 1
         - ninja test
+        - travis_terminate 0
 
     - stage: Ubuntu 20.04 (gcc-7.4.0, cmake 3.10.2), Qt 5.9.5, Release
       os: linux
@@ -94,7 +95,7 @@ jobs:
         - mkdir build
         - cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-        - ninja -j 3
+        - ninja -j 3 || travis_terminate 1
         - ninja test
 
     - stage: Ubuntu 16.04 (gcc-5.4.0, cmake 3.12.4), Qt 5.5.1, Release
