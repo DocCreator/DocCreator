@@ -11,9 +11,64 @@ cache: ccache
 jobs:
   include:
     ###
-    - stage: Ubuntu 14.04 (gcc-4.8.4, cmake 3.9.2) Qt 5.2.1, Debug
+    # - stage: Ubuntu 14.04 (gcc-4.8.4, cmake 3.9.2) Qt 5.2.1, Debug
+    #   os: linux
+    #   dist: trusty
+    #   compiler: gcc
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - cmake
+    #         - ccache
+    #         - ninja-build
+    #         - libpng-dev
+    #         - libjpeg-dev
+    #         - libopencv-dev
+    #         - qtbase5-dev
+    #         - qtdeclarative5-dev
+    #         - libqt5xmlpatterns5-dev
+    #         - libqt5opengl5-dev
+
+    #   script:
+    #     - cmake --version
+    #     - gcc --version
+    #     - ninja --version
+    #     - qmake --version
+    #     - qtchooser -list-versions
+    #     - export QT_SELECT=qt5
+    #     - qmake --version        
+    #     - mkdir build
+    #     - cd build
+    #     - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+    #     - ninja -j 3
+    #     - ninja test
+
+    - stage: Ubuntu 14.04 (gcc-4.8.4, cmake 3.9.2), BUILD_ONLY_DEGRADATIONS, Debug
       os: linux
       dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - ccache
+            - ninja-build
+            - libpng-dev
+            - libjpeg-dev
+            - libopencv-dev
+      script:
+        - cmake --version
+        - gcc --version
+        - ninja --version
+        - mkdir build
+        - cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DBUILD_ONLY_DEGRADATIONS=ON
+        - ninja -j 3
+        - ninja test
+
+    - stage: Ubuntu 20.04 (gcc-7.4.0, cmake 3.10.2), Qt 5.9.5, Release
+      os: linux
+      dist: focal
       compiler: gcc
       addons:
         apt:
@@ -32,14 +87,13 @@ jobs:
       script:
         - cmake --version
         - gcc --version
-        - ninja --version
         - qmake --version
         - qtchooser -list-versions
         - export QT_SELECT=qt5
         - qmake --version        
         - mkdir build
         - cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
         - ninja -j 3
         - ninja test
 
@@ -105,6 +159,7 @@ jobs:
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
         - ninja -j 3
         - ninja test
+
 
     # ###
     # - stage: Ubuntu 14.04, gcc-4.8.3, Qt5.2.1, Debug
