@@ -5094,58 +5094,58 @@ void
 Assistant::ElasticDeformation_setupGUIImages()
 {
   if (ui->BorderElasticDeformation1CB->count() == 0) {
-    ui->BorderElasticDeformation1CB->addItem(tr("Constant"),
-					   QVariant(static_cast<int>(cv::BORDER_CONSTANT)));
+    ui->BorderElasticDeformation1CB->addItem(tr("Black"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::BLACK)));
     ui->BorderElasticDeformation1CB->addItem(tr("Replicate"),
-					   QVariant(static_cast<int>(cv::BORDER_REPLICATE)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REPLICATE)));
     ui->BorderElasticDeformation1CB->addItem(tr("Reflect"),
-					   QVariant(static_cast<int>(cv::BORDER_REFLECT)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
     ui->BorderElasticDeformation1CB->addItem(tr("Wrap"),
-					   QVariant(static_cast<int>(cv::BORDER_WRAP)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::WRAP)));
     ui->BorderElasticDeformation1CB->addItem(tr("Reflect101"),
-					   QVariant(static_cast<int>(cv::BORDER_REFLECT_101)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
     ui->BorderElasticDeformation1CB->setCurrentIndex(0);
   }
 
   if (ui->InterpolationElasticDeformation1CB->count() == 0) {
     ui->InterpolationElasticDeformation1CB->addItem(tr("Nearest"),
-						  QVariant(static_cast<int>(cv::INTER_NEAREST)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::NEAREST)));
     ui->InterpolationElasticDeformation1CB->addItem(tr("Linear"),
-						  QVariant(static_cast<int>(cv::INTER_LINEAR)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BILINEAR)));
     ui->InterpolationElasticDeformation1CB->addItem(tr("Area"),
-					   QVariant(static_cast<int>(cv::INTER_AREA)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::AREA)));
     ui->InterpolationElasticDeformation1CB->addItem(tr("Cubic"),
-					   QVariant(static_cast<int>(cv::INTER_CUBIC)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BICUBIC)));
     ui->InterpolationElasticDeformation1CB->addItem(tr("Lanczos4"),
-					   QVariant(static_cast<int>(cv::INTER_LANCZOS4)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::LANCZOS)));
     ui->InterpolationElasticDeformation1CB->setCurrentIndex(1);
   }
 
   if (ui->BorderElasticDeformation2CB->count() == 0) {
-    ui->BorderElasticDeformation2CB->addItem(tr("Constant"),
-					   QVariant(static_cast<int>(cv::BORDER_CONSTANT)));
+    ui->BorderElasticDeformation2CB->addItem(tr("Black"),
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::BLACK)));
     ui->BorderElasticDeformation2CB->addItem(tr("Replicate"),
-					   QVariant(static_cast<int>(cv::BORDER_REPLICATE)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REPLICATE)));
     ui->BorderElasticDeformation2CB->addItem(tr("Reflect"),
-					   QVariant(static_cast<int>(cv::BORDER_REFLECT)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
     ui->BorderElasticDeformation2CB->addItem(tr("Wrap"),
-					   QVariant(static_cast<int>(cv::BORDER_WRAP)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::WRAP)));
     ui->BorderElasticDeformation2CB->addItem(tr("Reflect101"),
-					   QVariant(static_cast<int>(cv::BORDER_REFLECT_101)));
+					     QVariant(static_cast<int>(dc::ElasticDeformation::BorderReplication::REFLECT)));
     ui->BorderElasticDeformation2CB->setCurrentIndex(0);
   }
 
   if (ui->InterpolationElasticDeformation2CB->count() == 0) {
     ui->InterpolationElasticDeformation2CB->addItem(tr("Nearest"),
-						  QVariant(static_cast<int>(cv::INTER_NEAREST)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::NEAREST)));
     ui->InterpolationElasticDeformation2CB->addItem(tr("Linear"),
-						  QVariant(static_cast<int>(cv::INTER_LINEAR)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BILINEAR)));
     ui->InterpolationElasticDeformation2CB->addItem(tr("Area"),
-					   QVariant(static_cast<int>(cv::INTER_AREA)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::AREA)));
     ui->InterpolationElasticDeformation2CB->addItem(tr("Cubic"),
-					   QVariant(static_cast<int>(cv::INTER_CUBIC)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::BICUBIC)));
     ui->InterpolationElasticDeformation2CB->addItem(tr("Lanczos4"),
-					   QVariant(static_cast<int>(cv::INTER_LANCZOS4)));
+						    QVariant(static_cast<int>(dc::ElasticDeformation::Interpolation::LANCZOS)));
     ui->InterpolationElasticDeformation2CB->setCurrentIndex(1);
   }
 
@@ -5237,7 +5237,7 @@ Assistant::ElasticDeformation_tirageElasticChanged(int /*nbTirage*/)
   const int nbDegs = ElasticDeformation_nbDegradations();
   ui->NbDegElasticDeformation->setText(QString::number(nbDegs));
   const int total = nbDegs * _inputImageList.size() *
-                    ui->TirageElasticDeformation->value(); //_ElasticDeformation_nbTirageElasticDeformation;
+    ui->TirageElasticDeformation->value(); //_ElasticDeformation_nbTirageElasticDeformation;
   ui->TotalElasticDeformation->setText(QString::number(total));
   updateTotalPic();
 }
@@ -5263,7 +5263,7 @@ Assistant::ElasticDeformation_changeMinSigmaTransform1(double value)
     ui->MaxSigmaElasticDeformation1SB->setValue(value);
 }
 
-  void
+void
 Assistant::ElasticDeformation_changeMaxSigmaTransform1(double value)
 {
   if (ui->MinSigmaElasticDeformation1SB->value() > value)
@@ -7392,8 +7392,8 @@ ElasticDeformation_saveXml(const QString &outputXmlFilename,
 			   float alpha,
 			   float sigma,
 			   float alpha_affine,
-			   int borderMode,
-			   int interpolation)
+			   dc::ElasticDeformation::BorderReplication borderMode,
+			   dc::ElasticDeformation::Interpolation interpolation)
 {
   QString xml = ElasticDeformation_makePrefixXml(imageFilename, QString::number(method));
   xml += "\t\t<Alpha>" + QString::number(alpha) + "</Alpha>\n";
@@ -7401,8 +7401,8 @@ ElasticDeformation_saveXml(const QString &outputXmlFilename,
   if (method == 2) {
     xml += "\t\t<AlphaAffine>" + QString::number(alpha_affine) + "</AlphaAffine>\n";
   }
-  xml += "\t\t<BorderMode>" + QString::number(borderMode) + "</BorderMode>\n";
-  xml += "\t\t<Interpolation>" + QString::number(interpolation) + "</Interpolation>\n";
+  xml += "\t\t<BorderMode>" + QString::number(static_cast<int>(borderMode)) + "</BorderMode>\n";
+  xml += "\t\t<Interpolation>" + QString::number(static_cast<int>(interpolation)) + "</Interpolation>\n";
   xml += ElasticDeformation_makeSuffixeXml();
   return saveXml(xml, outputXmlFilename);
 }
@@ -7425,8 +7425,8 @@ Assistant::do_ElasticDeformation(const QString &imageBasename,
       const float sigmaMax = ui->MaxSigmaElasticDeformation1SB->value();
       const float sigma = random_in_range(sigmaMin, sigmaMax);
 
-      const int borderMode = ui->BorderElasticDeformation1CB->currentData().toInt();
-      const int interpolation = ui->InterpolationElasticDeformation1CB->currentData().toInt();
+      const dc::ElasticDeformation::BorderReplication borderMode = static_cast<dc::ElasticDeformation::BorderReplication>(ui->BorderElasticDeformation1CB->currentData().toInt());
+      const dc::ElasticDeformation::Interpolation interpolation = static_cast<dc::ElasticDeformation::Interpolation>(ui->InterpolationElasticDeformation1CB->currentData().toInt());
 
       QImage imgN;
       imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
@@ -7456,8 +7456,8 @@ Assistant::do_ElasticDeformation(const QString &imageBasename,
       const float alphaAffine = random_in_range(alphaAffineMin, alphaAffineMax);
 
       
-      const int borderMode = ui->BorderElasticDeformation2CB->currentData().toInt();
-      const int interpolation = ui->InterpolationElasticDeformation2CB->currentData().toInt();
+      const dc::ElasticDeformation::BorderReplication  borderMode = static_cast<dc::ElasticDeformation::BorderReplication>(ui->BorderElasticDeformation2CB->currentData().toInt());
+      const dc::ElasticDeformation::Interpolation interpolation = static_cast<dc::ElasticDeformation::Interpolation>(ui->InterpolationElasticDeformation2CB->currentData().toInt());
 
       QImage imgN;
       imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);

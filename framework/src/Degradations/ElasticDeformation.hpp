@@ -7,6 +7,20 @@
 namespace dc {
   namespace ElasticDeformation {
 
+    enum class BorderReplication {REPLICATE=0, // aaaaaa|abcdefgh|hhhhhhh
+				  REFLECT, // fedcba|abcdefgh|hgfedcb
+				  WRAP, // cdefgh|abcdefgh|abcdefg
+				  REFLECT101, // gfedcb|abcdefgh|gfedcba
+				  BLACK // 000000|abcdefgh|000000
+    };
+
+    enum class Interpolation {NEAREST=0, //nearest-neighbour
+			      BILINEAR, //bilinear
+			      AREA, //
+			      BICUBIC, //bicubic over 4x4 pixel neighborhood
+			      LANCZOS //Lanczos over 8x8 pixel neighborhood
+    };
+
     /**
        Apply elastic deformation to @a img as described in [Simard2003].
 
@@ -32,8 +46,8 @@ namespace dc {
     cv::Mat transform(const cv::Mat &img,
 		      float alpha = 2.0f,
 		      float sigma = 0.08f,
-		      int borderMode = cv::BORDER_CONSTANT,
-		      int interpolation = cv::INTER_LINEAR);
+		      BorderReplication borderMode = BorderReplication::BLACK,
+		      Interpolation interpolation = Interpolation::BILINEAR);
 
     /**
        Apply elastic deformation to @a img as described in [Simard2003], 
@@ -54,8 +68,8 @@ namespace dc {
 		       float alpha = 2.0f,
 		       float sigma = 0.08f,
 		       float alpha_affine = 9.0f,
-		       int borderMode = cv::BORDER_CONSTANT,
-		       int interpolation = cv::INTER_LINEAR);
+		       BorderReplication borderMode = BorderReplication::BLACK,
+		       Interpolation interpolation = Interpolation::BILINEAR);
     
 
   } //namespace ElasticDeformation
