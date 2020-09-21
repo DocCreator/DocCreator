@@ -180,7 +180,7 @@ GLRenderer::GLRenderer(int width, int height) :
 
   m_window = glfwCreateWindow(window_width, window_height, "GLRenderer", NULL, NULL);
   if (!m_window) {
-    std::cerr<<"ERROR: unabe to create window\n";
+    std::cerr<<"ERROR: unable to create window\n";
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
