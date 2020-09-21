@@ -410,7 +410,7 @@ jobs:
       os: osx
       osx_image: xcode12  #macOS 10.15.5 & Xcode 12.0
       compiler: clang
-     addons:
+      addons:
         homebrew:
           packages:
             - ccache
@@ -425,7 +425,7 @@ jobs:
         - mkdir build
         - cd build
         - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 -DVERBOSE=1 || travis_terminate 1
+        - make -j 3 VERBOSE=1 || travis_terminate 1
         - make test || travis_terminate 1
         - cd ..
         - mkdir buildDebug
@@ -492,7 +492,3 @@ jobs:
         - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
         - make -j 3 || travis_terminate 1
         - make test
-
-        
-       
-        
