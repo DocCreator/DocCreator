@@ -405,6 +405,36 @@ jobs:
     #     - make -j 3
     #     - make test
 
+    ###
+    - stage: macOS 10.15, recent clang, Qt5 from brew, OpenCV from sources, Release & Debug
+      os: osx
+      osx_image: xcode12  #macOS 10.15.5 & Xcode 12.0
+      compiler: clang
+     addons:
+        homebrew:
+          # install Tulip thirdparty build dependencies
+          packages:
+            - ccache
+            - cmake
+            - ninja
+            - qt5
+            - opencv
+
+      script:
+        - cmake --version
+        - qmake --version
+        - mkdir build
+        - cd build
+        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
+        - make -j 3 -DVERBOSE=1 || travis_terminate 1
+        - make test || travis_terminate 1
+        - cd ..
+        - mkdir buildDebug
+        - cd buildDebug
+        - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
+        - make -j 3 || travis_terminate 1
+        - make test
+        
     - stage: macOS 10.14, recent clang, Qt5 & OpenCV from brew, Release
       os: osx
       osx_image: xcode11.3  #macOS 10.14.6 & Xcode 11.3.1
@@ -419,7 +449,6 @@ jobs:
             - ccache
             - cmake
             - ninja
-            - llvm
             - qt5
             - opencv
           update: true
@@ -433,38 +462,6 @@ jobs:
         - make -j 3 || travis_terminate 1
         - make test
         
-    ###
-    - stage: macOS 10.15, recent clang, Qt5 & OpenCV from brew, Release & Debug
-      os: osx
-      osx_image: xcode12  #macOS 10.15.5 & Xcode 12.0
-      compiler: clang
-
-      before_install:
-        - brew update
-        - brew list
-        #- brew outdated qt || brew upgrade qt
-        - brew install qt
-        - brew list
-        - ls /usr/local/opt/
-        - export PATH=$PATH:/usr/local/opt/qt/bin
-        #- brew outdated opencv || (pip2 uninstall -y numpy && brew upgrade opencv)
-        - pip2 uninstall -y numpy && brew install opencv #see https://github.com/travis-ci/travis-ci/issues/6688
-        - brew list
-
-      script:
-        - cmake --version
-        - qmake --version
-        - mkdir build
-        - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 || travis_terminate 1
-        - make test || travis_terminate 1
-        - cd ..
-        - mkdir buildDebug
-        - cd buildDebug
-        - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3
-        - make test
 
     ###
     - stage: macOS 10.13, recent clang, Qt5 & OpenCV from brew, Release & Debug
@@ -496,7 +493,7 @@ jobs:
         - mkdir buildDebug
         - cd buildDebug
         - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3
+        - make -j 3 || travis_terminate 1
         - make test
 
         
