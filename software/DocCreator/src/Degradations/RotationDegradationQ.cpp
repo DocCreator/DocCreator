@@ -1,6 +1,6 @@
 #include "RotationDegradationQ.hpp"
 #include "Utils/convertor.h"
-
+#include <QColor>
 
 namespace dc {
 
