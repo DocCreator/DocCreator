@@ -414,23 +414,22 @@ jobs:
         homebrew:
           packages:
             - cmake
-            - ninja
             - qt5
             - opencv
 
       script:
         - cmake --version
-        - qmake --version
+        - $(brew --prefix qt)/bin/qmake --version
         - mkdir build
         - cd build
         - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 VERBOSE=1 || travis_terminate 1
+        - make -j 4 VERBOSE=1 || travis_terminate 1
         - make test || travis_terminate 1
         - cd ..
         - mkdir buildDebug
         - cd buildDebug
         - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 || travis_terminate 1
+        - make -j 4 || travis_terminate 1
         - make test
 
     - stage: macOS 10.14, recent clang, Qt5 & OpenCV from brew, Release
@@ -452,12 +451,12 @@ jobs:
 
       script:
         - cmake --version
-        - qmake --version
+        - $(brew --prefix qt)/bin/qmake --version
         - mkdir build
         - cd build
-        - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 || travis_terminate 1
-        - make test
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
+        - ninja -j 4 || travis_terminate 1
+        - ninja test
 
     ###
     - stage: macOS 10.13, recent clang, Qt5 & OpenCV from brew, Release & Debug
@@ -483,11 +482,11 @@ jobs:
         - mkdir build
         - cd build
         - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 || travis_terminate 1
+        - make -j 4 || travis_terminate 1
         - make test || travis_terminate 1
         - cd ..
         - mkdir buildDebug
         - cd buildDebug
         - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$(brew --prefix qt) -DBUILD_TESTING=ON
-        - make -j 3 || travis_terminate 1
+        - make -j 4 || travis_terminate 1
         - make test
