@@ -20,10 +20,11 @@ The program has the following dependencies :
 * **Qt 5**  
 * **Tesseract** [optional] If Tesseract is not found on the system, it will be compiled from (provided) sources. 
 However, you will need to have network access during the configuration step to download tessdata, tesseract languages data.
+* **OSMesa** [optional] for OpenGL offscreen rendering for the 3D distortion model.
 * **CMake** is used for compilation configuration.
 * **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
 * ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
-It has been tested on Fedora (19->30), Ubuntu (14.04->19.04), Mac OS (10.9->10.14), Windows 10.
+It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.15), Windows 10.
 
 
 ### Linux
@@ -68,6 +69,15 @@ Binary packages of CMake last versions are available from https://cmake.org/down
 Binary packages of Ninja are available from https://github.com/ninja-build/ninja/releases  
 **ninja must be in your PATH**. You should be able to print ninja version with the following commande: `ninja --version`
 
+ To add ninja to your path on Windows, you may open a cmd prompt "CMD.exe" with Administrator privileges (right click), and do:  
+ `setx -m PATH "%PATH%;<PATH_to_ninja>"`  
+
+ For macOS, Ninja binary packages (ninja-mac.zip) are also available from https://github.com/ninja-build/ninja/releases
+ You will have to copy the ninja executable to a directory in your path (for example /usr/local/bin)
+ On Mac OS 10.15 Catalina, you may also have to specify that ninja is not a malware.
+ Run `ninja --version` (you should have a message preventing the execution). Go to "Apple menu" -> "System Preferences", click "Security & Privacy", then click "General". You should see "ninja" : click "open anyway"
+ Run `ninja --version` a second time, you should have a dialog where you can choose "open".
+
 
 ### Mac
 
@@ -93,13 +103,16 @@ For example, "MSVC 2017 64-bit" if you use Microsoft Visual Studio 2017 on a 64-
 You can also install OpenCV from sources (if it is not provided by your distribution or if you want a newer version for example).
 
 OpenCV is also built with CMake.
-You can use the following command to configure a minimal OpenCV version compatible with DocCreator:
+You can use the following command to configure a *minimal* OpenCV version compatible with DocCreator:
 ```
 cmake <PATH_TO_CMakeLists.txt> -DCMAKE_INSTALL_PREFIX=<INSTALL_PREFIX> -DBUILD_opencv_highgui=ON -DENABLE_FAST_MATH=ON -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CUDA=OFF -DWITH_CUFFT=OFF -DWITH_FFMPEG=OFF -DWITH_GIGEAPI=OFF -DWITH_JASPER=OFF -DWITH_LIBV4L=OFF  -DWITH_MATLAB=OFF -DWITH_OPENCL=OFF -DWITH_OPENCLAMDBLAS=OFF -DWITH_OPENCLAMDFFT=OFF -DWITH_OPENEXR=OFF -DWITH_PVAPI=OFF -DWITH_V4L=OFF -DWITH_VTK=OFF -DWITH_WEBP=OFF -DWITH_1394=OFF -DBUILD_opencv_apps=OFF -DBUILD_opencv_calib3d=OFF -DBUILD_opencv_dnn=OFF -DBUILD_opencv_features2d=OFF -DBUILD_opencv_flann=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_shape=OFF -DBUILD_opencv_stitching=OFF -DBUILD_opencv_superres=OFF  -DBUILD_opencv_ts=OFF -DBUILD_opencv_video=OFF -DBUILD_opencv_videoio=ON -DBUILD_opencv_videostab=OFF -DBUILD_opencv_world=OFF -DBUILD_opencv_highgui=ON -DPYTHON2_EXECUTABLE="" -DPYTHON3_EXECUTABLE="" -DBUILD_opencv_python2=OFF -DBUILD_opencv_python3=OFF -DWITH_QUICKTIME=OFF -DHAVE_QTKIT=FALSE
 ```
 with corrected <PATH_TO_CMakeLists.txt> and <INSTALL_PREFIX>.
 
  #### On Windows
+
+Binaries for Visual Studio are available from [OpenCV github releases page](https://github.com/opencv/opencv/releases).
+However, you can also build it with Visual Studio IDE or from the command line with ninja.
 
   ##### With IDE
 
@@ -219,7 +232,56 @@ GLFW will be downloaded if this option is enabled. OSMesa library must already b
 On Ubuntu (16.04 and above), you can install OSMesa with the following command:
 `sudo apt-get install libosmesa6-dev`  
 On Fedora (30 and above), you can install OSMesa with the following command as root:
-`dnf install mesa-libOSMesa-devel`  
+`dnf install mesa-libOSMesa-devel`
+
+#### OSMesa from sources
+
+ OSMesa is part of Mesa.
+
+ To build Mesa from sources, python 3.5+, Meson, mako, and ninja are required.
+
+ ##### On macOS
+
+ Only python 2.7 is available on macOS. You can install python 3.5+ (for example 3.8.5) with "macOS 64-bit installer" available from https://www.python.org/downloads/mac-osx/
+
+ You should then be able to install meson and mako packages locally with pip3:
+  `pip3 install --user meson`
+  `pip3 install --user mako`
+
+ You may have to add python bin path to your PATH:
+ `export PATH=/Users/mansencal/Library/Python/3.8/bin:$PATH`
+
+ As meson uses ninja, you should also install ninja (see Ninja section).
+
+ With these dependencies installed, you should be now able to compile Mesa.
+ First, get (latest) mesa archive from https://archive.mesa3d.org/
+ For example mesa-20.1.7.tar.xz
+ ```
+tar xvJf mesa-20.1.7.tar.xz
+cd mesa-20.1.7
+mkdir build
+ ```
+
+ On macOS 10.15 Catalina, you may first have to edit the meson.build file: remove `'timespec_get', ` from the foreach command (line 1168).
+
+ You should be able to configure with meson:
+ ```
+ meson build -Dosmesa=gallium -Dgallium-drivers=swrast -Ddri-drivers=[] -Dvulkan-drivers=[] -Dprefix=$PWD/build/install -Dplatforms=surfaceless -Dglx=disabled
+ ```
+ and build with ninja: 
+  ```
+ninja -C build install
+ ```
+
+ When configuring DocCreator, you may have to pass the OSMESA location:
+ ```
+cmake .. -DBUILD_WITH_OSMESA=ON -DOSMESA_INCLUDE_DIR=<mesa_directory>/build/install/include -DOSMESA_LIBRARY=<mesa_directory>/build/install/lib/libOSMesa.dylib
+ ```
+ Besides, if osmesa library is not installed in a standard path, you may have to add it to DYLD_LIBRARY_PATH:
+ ```
+ export DYLD_LIBRARY_PATH=<mesa_directory>/build/install/lib:$DYLD_LIBRARY_PATH
+ ```
+
 
 
 #### -DBUILD_OTHER_PROGS=ON
@@ -251,7 +313,9 @@ When configuring DocCreator with cmake, you can pass the option -DBUILD_TESTING=
 
 * If you encounter a problem with OpenCV during the cmake process, you may have to specify the directory containing the file OpenCVConfig.cmake
  For example, on linux and macOS:    
- `OpenCV_DIR=/Users/XXX/tools/share/OpenCV cmake ..`  
+ `OpenCV_DIR=/Users/XXX/tools/share/OpenCV cmake ..`
+ or 
+ `OpenCV_DIR=/Users/XXX/tools/share/opencv4 cmake ..`  
  On Windows, to set the OpenCV_DIR environment variable, you may open a cmd prompt "CMD.exe" with Administrator privileges (right click), and do:  
  `setx -m OPENCV_DIR <INSTALL_PREFIX>`  
  You will have to open a new terminal. You can print and check that the variable is correctly set with:  

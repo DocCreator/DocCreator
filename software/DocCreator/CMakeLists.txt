@@ -47,7 +47,7 @@ IF(BUILD_TESSERACT)
   
   message(STATUS "Will download and build leptonica and tesseract from sources")
 
-  SET(LEPTONICA_VERSION 1.79.0)
+  SET(LEPTONICA_VERSION 1.80.0)
   SET(TESSERACT_VERSION 41) #library suffixe
   SET(TESSERACT_ARCHIVE_VERSION 4.1.1)
   SET(LEPTONICA_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/leptonica-${LEPTONICA_VERSION}")
@@ -57,6 +57,7 @@ IF(BUILD_TESSERACT)
   IF (NOT EXISTS ${LEPTONICA_SRC_DIR} OR NOT EXISTS ${TESSERACT_SRC_DIR} OR NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata) 
 
     SET(LEPTONICA_URL "https://github.com/DanBloomberg/leptonica/archive/${LEPTONICA_VERSION}.tar.gz")
+    #SET(LEPTONICA_URL "http://dept-info.labri.fr/~mansenca/leptonica-${LEPTONICA_VERSION}.tar.gz") 
     SET(TESSERACT_URL "https://github.com/tesseract-ocr/tesseract/archive/${TESSERACT_ARCHIVE_VERSION}.tar.gz")
     SET(LEPTONICA_ARCHIVE "leptonica.tar.gz")
     SET(TESSERACT_ARCHIVE "tesseract.tar.gz")
@@ -141,14 +142,14 @@ IF(BUILD_TESSERACT)
   ExternalProject_Add(leptonica
     URL ${LEPTONICA_SRC_DIR}
     PREFIX ${PROJECT_BINARY_DIR}/leptonica
+    PATCH_COMMAND patch -p0 < ${PROJECT_SOURCE_DIR}/thirdparty/leptonica-1.80.0.patch
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DSTATIC=ON -DSW_BUILD=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     BUILD_BYPRODUCTS ${LEPTONICA_LIBRARY}
     )
 
   #-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is to ensure that leptonica&tesseract are built with the same compiler than DocCreator
   # It is for example useful on Linux, when compiled with a non-default compiler.
-  
-  
+
   ExternalProject_Get_Property(leptonica binary_dir)
   ExternalProject_Get_Property(leptonica source_dir)
   ExternalProject_Get_Property(leptonica install_dir)
@@ -163,6 +164,13 @@ IF(BUILD_TESSERACT)
   ADD_LIBRARY(leptonicaLib STATIC IMPORTED GLOBAL)
   SET_TARGET_PROPERTIES(leptonicaLib PROPERTIES IMPORTED_LOCATION ${LEPTONICA_LIBRARY})
   ADD_DEPENDENCIES(leptonicaLib leptonica)
+
+  ExternalProject_Get_Property(leptonica install_dir)
+  message("leptonica install_dir=${install_dir}")
+  message("Leptonica_INCLUDE_DIRS=${Leptonica_INCLUDE_DIRS}")
+  set(Lept_INCLUDE_DIRS "${install_dir}/include;${install_dir}/include/leptonica")
+  message("moi Lept_INCLUDE_DIRS=${Lept_INCLUDE_DIRS}")
+  message("Leptonica_LIBRARIES=${Leptonica_LIBRARIES}")
 
   #Tesseract is built with -std=c++11
   #If clang is used, we ensure that libc++ is also used.
@@ -191,7 +199,11 @@ IF(BUILD_TESSERACT)
   ADD_DEPENDENCIES(tesseractLib tesseract)
 
   #TODO: the following libraries are already searched by leptonica.
-  # CMakeLists for leptonica should provide a way to retrieve them !
+  #they are in ${install_dir}/cmake/LeptonicaTargets-release.cmake
+  # but I don't know how to retrieve them.
+  # As we use ExternalProject_Add(),
+  # LeptonicaTargets-release.cmake is only created during the build phase (and not the configuration phase)
+  # We cannot use find_package(leptonica) to get them.
 
   FIND_PACKAGE(ZLIB QUIET)  #ZLIB brought by PNG on linux but not on OSX 
   IF(ZLIB_FOUND)
@@ -217,24 +229,53 @@ IF(BUILD_TESSERACT)
   IF(GIF_FOUND)
     SET(OTHER_LIBS "${GIF_LIBRARIES};${OTHER_LIBS}")
   ENDIF()
+
+  message("OTHER_LIBS=${OTHER_LIBS}")
   
   FIND_PACKAGE(PkgConfig QUIET)
   IF (PKG_CONFIG_FOUND)
+    message("search with pkg config")
     pkg_check_modules(WEBP QUIET libwebp)
     IF(WEBP_FOUND)
-      SET(OTHER_LIBS "${WEBP_LIBRARIES};${OTHER_LIBS}")
+      #SET(OTHER_LIBS "${WEBP_LIBRARIES};${OTHER_LIBS}")
+      message("WEBP_FOUND=${WEBP_FOUND} by pkg: $WEBP_LIBRARY=${WEBP_LIBRARY} $WEBP_LIBRARIES=${WEBP_LIBRARIES} WEBP=${WEBP}")
     ENDIF()
     pkg_check_modules(JP2K QUIET libopenjp2)
     IF(JP2K_FOUND)
-      SET(OTHER_LIBS "${JP2K_LIBRARIES};${OTHER_LIBS}")
+      #SET(OTHER_LIBS "${JP2K_LIBRARIES};${OTHER_LIBS}")
+      message("JP2K_FOUND=${JP2K_FOUND} by pkg: $JP2K_LIBRARY=${WEBP_LIBRARY} $JP2K_LIBRARIES=${WEBP_LIBRARIES} JP2K=${JP2K}")
     ENDIF()
   ENDIF()
+  if(NOT WEBP)
+    message("search webp directly")
+    find_path(WEBP_INCLUDE_DIR /webp/decode.h)
+    find_library(WEBP_LIBRARY NAMES webp)
+    if (WEBP_INCLUDE_DIR AND WEBP_LIBRARY)
+      message("WEBP_FOUND2=${WEBP_FOUND}: $WEBP_LIBRARY=${WEBP_LIBRARY} $WEBP_LIBRARIES=${WEBP_LIBRARIES} WEBP=${WEBP}")
+      set(OTHER_LIBS "${WEBP_LIBRARY};${OTHER_LIBS}")
+    endif()
+  endif()
+  if(NOT JP2K)
+    message("search jp2k directly")
+    find_path(JP2K_INCLUDE_DIR /openjpeg-2.3/openjpeg.h)
+    find_library(JP2K_LIBRARY NAMES openjp2)
+    if (JP2K_INCLUDE_DIR AND JP2K_LIBRARY)
+      message("JP2K_FOUND2=${JP2K_FOUND}: $JP2K_LIBRARY=${JP2K_LIBRARY} $JP2K_LIBRARIES=${JP2K_LIBRARIES} JP2K=${JP2K}")
+      set(OTHER_LIBS "${JP2K_LIBRARY};${OTHER_LIBS}")
+    endif()
+  endif()
 
+  message("OTHER_LIBS=${OTHER_LIBS}")
+    
   SET(Lept_LIBRARIES "${LEPTONICA_LIBRARY};${OTHER_LIBS}")
   SET(Tesseract_LIBRARIES ${TESSERACT_LIBRARY})
   IF(MSVC OR MINGW)
     SET(Tesseract_LIBRARIES "${TESSERACT_LIBRARY};Ws2_32")
   ENDIF()
+
+  message("Lept_LIBRARIES=${Lept_LIBRARIES}")
+  message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
+
 
   #install tessdata
   install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/tessdata DESTINATION share/DocCreator)
@@ -244,6 +285,7 @@ IF(BUILD_TESSERACT)
 ENDIF()
 
 SET(Tesseract_LIBRARIES "${Tesseract_LIBRARIES};${Lept_LIBRARIES}")
+message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
 
 
 ######################################## TESSERACT

@@ -7,10 +7,10 @@ namespace dc {
   namespace ElasticDeformation {
 
     QImage transform(const QImage &img,
-		      float alpha,
-		      float sigma,
-		      int borderMode,
-		      int interpolation)
+		     float alpha,
+		     float sigma,
+		     BorderReplication borderMode,
+		     Interpolation interpolation)
     {
       const cv::Mat matIn = Convertor::getCvMat(img);
       
@@ -24,8 +24,8 @@ namespace dc {
 		      float alpha,
 		      float sigma,
 		      float alpha_affine,
-		      int borderMode,
-		      int interpolation)
+		      BorderReplication borderMode,
+		      Interpolation interpolation)
     {
       const cv::Mat matIn = Convertor::getCvMat(img);
       
