@@ -6,8 +6,63 @@
 namespace dc {
   namespace ElasticDeformation {
 
+
+    namespace {
+
+      inline
+      int
+      getBorderModeCV(BorderReplication borderMode)
+      {
+	int borderModeCV = cv::BORDER_REPLICATE;
+	switch (borderMode) {
+	default:
+	case BorderReplication::REPLICATE:
+	  borderModeCV = cv::BORDER_REPLICATE;
+	  break;
+	case BorderReplication::REFLECT:
+	  borderModeCV = cv::BORDER_REFLECT;
+	  break;
+	case BorderReplication::WRAP:
+	  borderModeCV = cv::BORDER_WRAP;
+	  break;
+	case BorderReplication::REFLECT101:
+	  borderModeCV = cv::BORDER_REFLECT101;
+	  break;
+	}
+	return borderModeCV;
+      }
+
+      inline
+      int getInterpolationCV(Interpolation interpolation)
+      {
+	int interpolationCV = cv::INTER_LINEAR;
+	switch (interpolation) {
+	case Interpolation::NEAREST:
+	  interpolationCV = cv::INTER_NEAREST;
+	  break;
+	default:
+	case Interpolation::BILINEAR:
+	  interpolationCV = cv::INTER_LINEAR;
+	  break;
+	case Interpolation::AREA:
+	  interpolationCV = cv::INTER_AREA;
+	  break;
+	case Interpolation::BICUBIC:
+	  interpolationCV = cv::INTER_CUBIC;
+	  break;
+	case Interpolation::LANCZOS:
+	  interpolationCV = cv::INTER_LANCZOS4;
+	  break;
+	}
+	return interpolationCV;
+      }
+
+    } //anonymous namespace
+
+
     cv::Mat transform(const cv::Mat &img, float alpha, float sigma,
-		      int borderMode, int interpolation)
+		      BorderReplication borderMode,
+		      Interpolation interpolation)
     {
       const int scale = std::min(img.cols, img.rows);
       alpha *= scale;
@@ -37,15 +92,22 @@ namespace dc {
 	  ry[j] = i+rdy[j];
 	}
       }
+
+
+      const int borderModeCV = getBorderModeCV(borderMode);
+      const int interpolationCV = getInterpolationCV(interpolation);
+
       cv::Mat img2;
-      cv::remap(img, img2, map_x, map_y, interpolation, borderMode, cv::Scalar(0, 0, 0));
+      cv::remap(img, img2, map_x, map_y, interpolationCV, borderModeCV, cv::Scalar(0, 0, 0));
 
       return img2;
     }
 
 
     cv::Mat transform2(const cv::Mat &img, float alpha, float sigma, float alpha_affine,
-		       int borderMode, int interpolation)
+		       BorderReplication borderMode,
+		       Interpolation interpolation)
+
     {
       const int width = img.cols;
       const int height = img.rows;
@@ -66,8 +128,10 @@ namespace dc {
 
       cv::Mat M = cv::getAffineTransform(src, dst);
 
+      const int borderModeCV = getBorderModeCV(borderMode);
+
       cv::Mat img2;
-      cv::warpAffine(img, img2, M, img.size(), borderMode);
+      cv::warpAffine(img, img2, M, img.size(), borderModeCV);
 
       return transform(img2, alpha, sigma, borderMode, interpolation);
     }

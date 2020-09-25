@@ -30,8 +30,8 @@ testSimple0(int imageType)
   
   const float alpha = 2.0f;
   const float sigma = 0.083f;
-  const int borderMode = cv::BORDER_CONSTANT;
-  const int interpolation = cv::INTER_LINEAR;
+  const dc::ElasticDeformation::BorderReplication borderMode = dc::ElasticDeformation::BorderReplication::BLACK;
+  const dc::ElasticDeformation::Interpolation interpolation = dc::ElasticDeformation::Interpolation::BILINEAR;
 
   const cv::Mat out = dc::ElasticDeformation::transform(img2, alpha, sigma, borderMode, interpolation);
 
@@ -65,8 +65,8 @@ testSimple1(int imageType)
   const float alpha = 2.1f;
   const float sigma = 0.087f;
   const float alpha_affine = 8.9f;
-  const int borderMode = cv::BORDER_CONSTANT;
-  const int interpolation = cv::INTER_LINEAR;
+  const dc::ElasticDeformation::BorderReplication borderMode = dc::ElasticDeformation::BorderReplication::BLACK;
+  const dc::ElasticDeformation::Interpolation interpolation = dc::ElasticDeformation::Interpolation::BILINEAR;
 
   const cv::Mat out = dc::ElasticDeformation::transform2(img2, alpha, sigma, alpha_affine,
 							 borderMode, interpolation);
