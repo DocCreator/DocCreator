@@ -24,14 +24,35 @@ img3 = DocCreator.gradientDomainDegradation(img3, stainImagePath=STAINS_PATH, nu
 holeImg = cv2.imread(HOLE_PATTERN, cv2.IMREAD_GRAYSCALE)
 #holeImg = cv2.imread(HOLE_PATTERN) #TODO: be able to use a CV_8UC3 holeImg ???
 img3 = DocCreator.holeDegradation(img3, holeImg,
-                                  xOrigin=img.shape[0]/2, yOrigin=img.shape[1]/2,
+                                  xOrigin=img.shape[0]//2, yOrigin=img.shape[1]//2,
                                   size=1, holeType=1, side=1, color=[220, 60, 60])#, shadowBorderWidth=0, shadowBorderIntensity=10.0)
 
 img3 = DocCreator.blur(img3, method=0, intensity=5)
 
-img3 = DocCreator.shadowBinding(img3, border=3, distance=img.shape[0]/3, intensity=0.9, angle=80)
+img3 = DocCreator.shadowBinding(img3, border=3, distance=img.shape[0]//3, intensity=0.9, angle=80)
+#BORIS: SWIG is not user friendly at all !
+#here, if for distance we pass a float instead of an int
+# we have the following error:
+# Traceback (most recent call last):
+#   File "testPython.py", line 35, in <module>
+#     img3 = DocCreator.shadowBinding(img3, border=3, distance=img.shape[0]/3, intensity=0.9, angle=80)
+#   File "/home/mansenca/SAI/DOCUMENT/DocCreator_git/buildPython/wrapper/python/DocCreator.py", line 81, in shadowBinding
+#     res = Degradations.shadowBinding(imgOutLength, img,
+#   File "/home/mansenca/SAI/DOCUMENT/DocCreator_git/buildPython/wrapper/python/Degradations.py", line 93, in shadowBinding
+#     return _Degradations.shadowBinding(imgOut, imgIn, border, distance, intensity, angle)
+# TypeError: in method 'shadowBinding', argument 8 of type 'int'
+
+## that is, the argument number refers to the wrapped function and not to the argument number in DocCreator.py !!!
+
+
+img3 = DocCreator.addGaussianNoise(img3)
+
+img3 = DocCreator.rotateFillImageRepeats(img3, angle=11.2, imgBackground=img3, repeats=3)
+
+img3 = DocCreator.elasticDeformation(img3)
 
 
 output="degraded.png"
 cv2.imwrite(output, img3)
+print("wrote", output)
 
