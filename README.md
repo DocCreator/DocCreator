@@ -23,8 +23,8 @@ However, you will need to have network access during the configuration step to d
 * **OSMesa** [optional] for OpenGL offscreen rendering for the 3D distortion model.
 * **CMake** is used for compilation configuration.
 * **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
-* ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
-* **SWIG** for python wrapper. You will also need **numpy** and **opencv-python** packages.
+* ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017/2019).
+* **python** and **SWIG** for python wrapper. You will also need **numpy**.
 
 It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.15), Windows 10.
 
@@ -39,8 +39,8 @@ You may also have to set Qt5 as default with:
 `sudo apt-get install qt5-default`  
 You can install tesseract with the following command:  
 `sudo apt-get install tesseract-ocr tesseract-ocr-fra libtesseract-dev libleptonica-dev`
-You can install swig with the following command:
-`sudo apt-get install swig`
+You can install python (3.8) development files and swig with the following command:
+`sudo apt-get install libpython3.8-dev swig`
 You can install python-opencv with the following command:
 `sudo apt-get install python3-opencv`
 
@@ -291,6 +291,9 @@ cmake .. -DBUILD_WITH_OSMESA=ON -DOSMESA_INCLUDE_DIR=<mesa_directory>/build/inst
  export DYLD_LIBRARY_PATH=<mesa_directory>/build/install/lib:$DYLD_LIBRARY_PATH
  ```
 
+ ##### On Windows
+
+  Currently, glfw, that is used internally to manage OSMesa, is not supported on Windows.
 
 
 #### -DBUILD_OTHER_PROGS=ON
