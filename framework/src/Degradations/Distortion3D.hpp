@@ -11,6 +11,14 @@ namespace dc {
     /*
       Apply 3D distortion to an image.
 
+      Described in [1]
+
+      [1]
+      Semi-synthetic Document Image Generation Using Texture Mapping on Scanned 3D Document Shapes
+      KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel, MULLOT, Rémy, DOMENGER, Jean-Philippe
+      In : 2013 12th International Conference on Document Analysis and Recognition (ICDAR). IEEE, 2013. p. 489-493.
+
+
       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. 
       Output image will be of the same type and size than @a img.
 
@@ -41,7 +49,7 @@ namespace dc {
       @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
 
     */
-    extern FRAMEWORK_EXPORT void degrade3D(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random=true);
+    extern FRAMEWORK_EXPORT void degrade3DN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random=true);
 
     //extern FRAMEWORK_EXPORT void degrade3D(cv::Mat &img, const std::string &meshDir, size_t numOutputImages, const std::string &prefix);
 
@@ -77,7 +85,7 @@ namespace dc {
       @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
 
     */
-    extern FRAMEWORK_EXPORT void degrade3DWithBackground(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random=true);
+    extern FRAMEWORK_EXPORT void degrade3DWithBackgroundN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random=true);
 
 
     //extern FRAMEWORK_EXPORT void degrade3DWithBackground(cv::Mat &img, const std::string &meshDir, const std::string &backgroundImageDir, size_t numOutputImages, const std::string &prefix);

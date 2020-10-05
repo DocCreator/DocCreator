@@ -199,8 +199,7 @@ main(int argc, char *argv[])
       const int level = random_in_range(charDeg_minLevel, charDeg_maxLevel);
       cv::Mat currImgGray;
       cv::cvtColor(currImg, currImgGray, cv::COLOR_BGR2GRAY);
-      dc::GrayscaleCharsDegradationModel deg(currImgGray);
-      const cv::Mat imgCharDeg = deg.degradateByLevel_cv(level);
+      const cv::Mat imgCharDeg = dc::GrayscaleCharsDegradation::degradation(currImgGray, level);
       if (cumulate) {
 	currImg = imgCharDeg;
 	suffixe += "_cd";
@@ -212,8 +211,8 @@ main(int argc, char *argv[])
 
     
     if (do_phantom) {
-      const dc::PhantomCharacter::Frequency frequency = (dc::PhantomCharacter::Frequency)random_in_range(0, 2);
-      cv::Mat imgPhant = dc::PhantomCharacter::phantomCharacter(currImg, frequency, phantom_patternsPath);
+      const float occurenceProbability = random_in_range(0.0f, 1.0f);
+      const cv::Mat imgPhant = dc::PhantomCharacter::phantomCharacter(currImg, occurenceProbability, phantom_patternsPath);
       if (cumulate) {
 	currImg = imgPhant;
 	suffixe += "_ph";
@@ -277,7 +276,7 @@ main(int argc, char *argv[])
       }
       else {
 	const int repeats = random_in_range(rotation_minRepeats, rotation_maxRepeats);
-	rotatedImg = dc::RotationDegradation::rotateFillImage(currImg, angle, backgroundImg, repeats);
+	rotatedImg = dc::RotationDegradation::rotateFillImageN(currImg, angle, backgroundImg, repeats);
       }
       if (cumulate) {
 	currImg = rotatedImg;
@@ -321,10 +320,40 @@ main(int argc, char *argv[])
 	
 	const float ratioOutside = 0.3f;
 	const int size = 0;
-	const int side = random_in_range(0, 3);
 	const cv::Scalar color(0, 0, 0);
+
+	const int sideI = random_in_range(0, 3);
+	dc::HoleDegradation::HoleSide holeSide;
+	if (holeType == dc::HoleDegradation::HoleType::BORDER) {
+	  if (sideI == 0) {
+	    holeSide = dc::HoleDegradation::HoleSide::BORDER_TOP;
+	  }
+	  else if (sideI == 1) {
+	    holeSide = dc::HoleDegradation::HoleSide::BORDER_RIGHT;
+	  }
+	  else if (sideI == 2) {
+	    holeSide = dc::HoleDegradation::HoleSide::BORDER_BOTTOM;
+	  }
+	  else if (sideI == 3) {
+	    holeSide = dc::HoleDegradation::HoleSide::BORDER_LEFT;
+	  }
+	}
+	else if (holeType == dc::HoleDegradation::HoleType::CORNER) {
+	  if (sideI == 0) {
+	    holeSide = dc::HoleDegradation::HoleSide::CORNER_TOPLEFT;
+	  }
+	  else if (sideI == 1) {
+	    holeSide = dc::HoleDegradation::HoleSide::CORNER_TOPRIGHT;
+	  }
+	  else if (sideI == 2) {
+	    holeSide = dc::HoleDegradation::HoleSide::CORNER_BOTTOMRIGHT;
+	  }
+	  else if (sideI == 3) {
+	    holeSide = dc::HoleDegradation::HoleSide::CORNER_BOTTOMLEFT;
+	  }
+	}
 	
-	imgHole = dc::HoleDegradation::holeDegradation(imgHole, holePattern, size, holeType, ratioOutside, side, color);
+	imgHole = dc::HoleDegradation::addHoleAtRandom(imgHole, holePattern, size, holeType, ratioOutside, holeSide, color);
 
       }
 

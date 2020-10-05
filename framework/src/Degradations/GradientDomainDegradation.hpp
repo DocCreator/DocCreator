@@ -44,19 +44,26 @@ namespace dc {
 						bool doRotations = true);
 
     /*
-      Try to copy stain image @a stainImg onto destination image @a dstImg at position @a pos.
+      Copy stain image @a stainImg onto destination image @a dstImg at position @a pos.
       
+      @a img and @stainImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      Output image will be of the same type and size than the input img.
+
       If there is no overlap between images, with given position, there is no copy.
       Otherwise, only the overlappong part of @a stainImg is copied.
+
+      @stainImg is not converted to gray, even if @a dstImg is a grayscale image.
+      @stainImg is not rotated before insertion.
       
-      @param stainImg stain image to insert. It must be of type CV_8UC3.
-      @param dstImg destination image to copy onto. It must be of type 8UC3.
+      @param dstImg destination image to copy onto.
+      @param stainImg stain image to insert.
       @param posCenter position of center of @a stainImg on destination image @a dstImg.
-      @return true on success, false otherwise.
+      @return modified image.
     */
-    extern FRAMEWORK_EXPORT bool copyOnto(const cv::Mat &stainImg,
-					  cv::Mat &dstImg,
-					  const cv::Point &posCenter);
+    extern FRAMEWORK_EXPORT cv::Mat copyOnto(const cv::Mat &dstImg,
+					     const cv::Mat &stainImg,
+					     const cv::Point &posCenter);
+
     
     
   } //namespace GradientDomainDegradation

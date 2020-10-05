@@ -23,16 +23,21 @@ namespace dc {
       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
       Output image will be of the same type and size than @a img.
 
+      @a angle corresponds to the angle between the page and the spine of the book when a page is scanned.
+
       @prama[in] img  input original image.
       @param[in] border  border on which shadow is added.
       @param[in] distance   size in pixels of degradation.
-      @param[in] intensity intinsity in [0; 1]
-      @param[in] angle angle in degrees in [0; 90]
+      @param[in] intensity  intensity in [0; 1]. The higher, the darker the shadow.
+      @param[in] angle angle in degrees in [0; 90]. The higher, the darker the shadow.
 
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img, Border border,
-						  int distance, float intensity, float angle);
+    extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img,
+						  Border border,
+						  int distance,
+						  float intensity,
+						  float angle);
 
     /*
       Add a shadow on a given border of image.
@@ -42,16 +47,21 @@ namespace dc {
       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
       Output image will be of the same type and size than @a img.
 
+      @a angle corresponds to the angle between the page and the spine of the book when a page is scanned.
+
       @prama[in] img  input original image.
       @param[in] border  border on which shadow is added.
       @param[in] distanceRatio  ratio of width or height used to compute size in pixels of degradation, in [0; 1].
-      @param[in] intensity intinsity in [0; 1]
-      @param[in] angle angle in degrees in [0; 90]
+      @param[in] intensity intinsity in [0; 1]. The higher, the darker the shadow.
+      @param[in] angle angle in degrees in [0; 90]. The higher, the darker the shadow.
 
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img, float distanceRatio,
-						  Border border, float intensity, float angle);
+    extern FRAMEWORK_EXPORT cv::Mat shadowBinding2(const cv::Mat &img,
+						   float distanceRatio,
+						   Border border,
+						   float intensity,
+						   float angle);
 
 
   } //namespace ShadowBinding 

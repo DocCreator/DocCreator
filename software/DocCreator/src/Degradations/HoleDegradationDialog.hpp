@@ -46,7 +46,7 @@ public:
 
   dc::HoleDegradation::HoleType getType() const { return _type; }
 
-  int getSide() const { return _side; }
+  //int getSide() const { return _side; }
 
   void setOriginalImage(const QImage &img);
   void findBound(dc::HoleDegradation::HoleType type,
@@ -54,7 +54,7 @@ public:
                  int &maxH,
                  int &minV,
                  int &maxV,
-                 int side,
+                 dc::HoleDegradation::HoleSide side,
                  const QImage &patternImg);
   static QString getHolePatternsPath();
   static QString getCenterHolePatternsPath();
@@ -74,7 +74,6 @@ public slots:
   void colorChanged(QColor color);
   void borderButtonClicked();
   void cornerButtonClicked();
-  void sideChanged(int side);
   void chooseShadow();
   void setTransparent();
   void chooseColor();
@@ -91,6 +90,8 @@ public slots:
   void updateZoom();
 
 protected:
+  void sideChanged(dc::HoleDegradation::HoleSide side);
+
   void changeEvent(QEvent *e) override;
   void setupGUIImages();
   void updateResultImage();
@@ -169,7 +170,7 @@ private:
   int _vertical;
   int _size;
   dc::HoleDegradation::HoleType _type;
-  int _side;
+  dc::HoleDegradation::HoleSide _side;
   int _width;
   float _intensity;
   QColor _color;

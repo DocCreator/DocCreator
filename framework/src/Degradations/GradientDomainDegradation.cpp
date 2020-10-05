@@ -102,7 +102,9 @@ testCrop(const cv::Mat &stainImg,
   return true;
 }
 
-    
+
+
+
 /*
   Try to copy stain image @a stainImg onto destination image @a dstImg at position @a pos.
 
@@ -115,9 +117,9 @@ testCrop(const cv::Mat &stainImg,
   @return true on success, false otherwise.
  */
 bool
-copyOnto(const cv::Mat &stainImg,
-	 cv::Mat &dstImg,
-	 const cv::Point &posCenter)
+copyOntoAux(const cv::Mat &stainImg,
+	    cv::Mat &dstImg,
+	    const cv::Point &posCenter)
 {
   bool inserted = false;
 
@@ -162,10 +164,64 @@ copyOnto(const cv::Mat &stainImg,
   (void)dstImg;
   (void)posCenter;
 #endif //CV_MAJOR_VERSION >= 3
-
   
   return inserted;
 }
+
+    cv::Mat
+    copyOnto(const cv::Mat &dstImg,
+	     const cv::Mat &stainImg,
+	     const cv::Point &posCenter)
+    {
+#if CV_MAJOR_VERSION >= 3
+      //cv::seamlessClone() was introduced in OpenCV 3.0
+
+      //cv::seamlessClone() needs 3-channel src and dst images
+
+      assert(dstImg.type() == CV_8UC1 || dstImg.type() == CV_8UC3 || dstImg.type() == CV_8UC4);
+      assert(stainImg.type() == CV_8UC1 || stainImg.type() == CV_8UC3 || stainImg.type() == CV_8UC4);
+
+      cv::Mat dstImg2;
+      if (dstImg.channels() == 3) {
+	dstImg2 = dstImg.clone();
+      }
+      else if (dstImg.channels() == 4) {
+	cv::cvtColor(dstImg, dstImg2, cv::COLOR_BGRA2BGR); //remove alpha channel
+      }
+      else if (dstImg.channels() == 1) {
+	cv::cvtColor(dstImg, dstImg2, cv::COLOR_GRAY2BGR);
+      }
+
+      cv::Mat stainImg2 = stainImg;
+      if (stainImg.channels() == 4) {
+	cv::cvtColor(stainImg, stainImg2, cv::COLOR_BGRA2BGR); //remove alpha channel
+      }
+      else if (stainImg.channels() == 1) {
+	cv::cvtColor(stainImg, stainImg2, cv::COLOR_GRAY2BGR);
+      }
+
+      copyOntoAux(stainImg2, dstImg2, posCenter);
+
+      if (dstImg.channels() == 1) {
+	cv::cvtColor(dstImg2, dstImg2, cv::COLOR_BGR2GRAY);
+      }
+      else if (dstImg.channels() == 4) {
+	//Keep alpha channel from @a in.
+	cv::Mat from[] = {dstImg2, dstImg2};
+	cv::Mat dstImg2B(dstImg.rows, dstImg.cols, dstImg.type());
+	const int from_to[] = {0,0, 1,1, 2,2, 6,3};
+	cv::mixChannels(from, 2, &dstImg2B, 1, from_to, 4);
+	dstImg2 = dstImg2B;
+      }
+      assert(dstImg2.type() == dstImg.type());
+      return dstImg2;
+
+#else
+#pragma message "Warning: GradientDomainDegradation not supported on OpenCV < 3.0"
+      return dstImg;
+#endif
+
+    }
 
 
 cv::Mat
@@ -262,7 +318,7 @@ degradation(const cv::Mat &in,
     assert(out.type() == CV_8UC3);
     assert(stain.type() == CV_8UC3);
     
-    const bool insertOk = copyOnto(stain, out, pos);
+    const bool insertOk = copyOntoAux(stain, out, pos);
     if (! insertOk) {
       std::cerr<<"Warning: unable to insert image "<<stainFilename<<"\n";
     }

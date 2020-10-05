@@ -13,7 +13,7 @@ namespace dc {
     // images as otherwise we would lose precision.
   
     cv::Mat makeRandnNoise(const cv::Mat &image,
-			   double average, double standard_deviation,
+			   double average, double standardDeviation,
 			   AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS)
     {
       const int type = CV_MAKETYPE(CV_16S, image.channels());
@@ -28,11 +28,11 @@ namespace dc {
 					   && (image.type() != CV_8UC1));
 
       if (! sameNoiseOnAllChannels) {
-	cv::randn(noise_image, cv::Scalar::all(average), cv::Scalar::all(standard_deviation));
+	cv::randn(noise_image, cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
       }
       else {
 	cv::Mat noise_image1(image.size(), CV_16SC1);
-	cv::randn(noise_image1, cv::Scalar::all(average), cv::Scalar::all(standard_deviation));    
+	cv::randn(noise_image1, cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
 	if (image.channels() == 3) {
 	  int from_to[] = {0,0,
 			   0,1,
@@ -51,7 +51,7 @@ namespace dc {
     }
 
     cv::Mat addGaussianNoise(const cv::Mat &image,
-			     float average, float standard_deviation,
+			     float average, float standardDeviation,
 			     AddNoiseType addType)
     {
       assert(image.depth() == CV_8U);
@@ -59,7 +59,7 @@ namespace dc {
       cv::Mat dst;
 
       const int type = CV_MAKETYPE(CV_16S, image.channels());
-      cv::Mat noise_image = makeRandnNoise(image, (double)average, (double)standard_deviation, addType);
+      cv::Mat noise_image = makeRandnNoise(image, (double)average, (double)standardDeviation, addType);
   
       cv::Mat temp_image;
       image.convertTo(temp_image, type);
@@ -75,7 +75,7 @@ namespace dc {
 
 
     cv::Mat addSpeckleNoise(const cv::Mat &image,
-			    float average, float standard_deviation,
+			    float average, float standardDeviation,
 			    AddNoiseType addType)
     {
       assert(image.depth() == CV_8U);
@@ -83,7 +83,7 @@ namespace dc {
       cv::Mat dst;
 
       const int type = CV_MAKETYPE(CV_16S, image.channels());
-      cv::Mat noise_image = makeRandnNoise(image, average, standard_deviation, addType);
+      cv::Mat noise_image = makeRandnNoise(image, average, standardDeviation, addType);
   
       cv::Mat temp_image, temp_image2;
       image.convertTo(temp_image, type);

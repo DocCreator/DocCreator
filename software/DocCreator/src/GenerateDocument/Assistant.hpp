@@ -249,6 +249,8 @@ protected slots:
 
   //Phantom slots
   void Phantom_OptionCheckedPhant();
+  void Phantom_sliderChanged(int);
+  void Phantom_SBChanged(double);
   void Phantom_EnablePhantOption();
   void Phantom_LoadPrevImgPhant();
   void Phantom_tiragePhantomChanged(int nbTirage);
@@ -341,7 +343,7 @@ protected:
   void Shadow_updatePreviewAll();
   void Shadow_updateTirageAndTotal();
 
-  void Phantom_apply(dc::PhantomCharacter::Frequency frequency);
+  void Phantom_apply(float occurenceProbability);
   void Phantom_updatePreview();
   void Phantom_updateTirageAndTotal();
 

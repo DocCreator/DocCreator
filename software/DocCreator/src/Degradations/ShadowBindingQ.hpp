@@ -22,7 +22,7 @@ namespace dc {
       @param[in] intensity intinsity in [0; 1]
       @param[in] angle angle in degrees in [0; 90]
     */
-    extern FRAMEWORK_EXPORT QImage shadowBinding(const QImage &imgOriginal, float distanceRatio, dc::ShadowBinding::Border border, float intensity, float angle);
+    extern FRAMEWORK_EXPORT QImage shadowBinding2(const QImage &imgOriginal, float distanceRatio, dc::ShadowBinding::Border border, float intensity, float angle);
 
     
   } //namespace ShadowBinding

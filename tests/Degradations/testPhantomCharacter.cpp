@@ -30,14 +30,15 @@ testSimple0(int imageType)
   REQUIRE( imageType == img.type() );  
 
   cv::Mat imgClone = img.clone();
+
+  const float occurenceProbabilities[] = {0.15f, 0.40f, 0.70f};
+  const int N = sizeof(occurenceProbabilities)/sizeof(float);
   
-  for (int i=0; i<3; ++i) {
+  for (int i=0; i<N; ++i) {
     cv::Mat img2 = img.clone();
     assert(img2.type() == imageType);
     
-    const dc::PhantomCharacter::Frequency frequency = (dc::PhantomCharacter::Frequency)(i);
-
-    const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img2, frequency, PHANTOM_PATTERNS_PATH);
+    const cv::Mat out = dc::PhantomCharacter::phantomCharacter(img2, occurenceProbabilities[i], PHANTOM_PATTERNS_PATH);
 
     REQUIRE( out.type() == imageType );
 

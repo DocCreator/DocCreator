@@ -68,9 +68,9 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
-          <widget class="QLabel" name="intensityLabel">
+          <widget class="QLabel" name="kernelSizeLabel">
            <property name="text">
-            <string>Intensity :</string>
+            <string>KernelSize :</string>
            </property>
           </widget>
          </item>
@@ -84,7 +84,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QSlider" name="intensitySlider">
+        <widget class="QSlider" name="kernelSizeSlider">
          <property name="minimum">
           <number>1</number>
          </property>

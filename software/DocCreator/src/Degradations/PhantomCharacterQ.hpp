@@ -9,7 +9,7 @@ namespace dc {
 
   namespace PhantomCharacter {
 
-    extern FRAMEWORK_EXPORT QImage phantomCharacter(const QImage &imgOriginal, Frequency frequency, const QString &phantomPatternsPath);
+    extern FRAMEWORK_EXPORT QImage phantomCharacter(const QImage &imgOriginal, float occurenceProbability, const QString &phantomPatternsPath);
 
     
   } //namespace PhantomCharacter 
@@ -25,11 +25,11 @@ namespace dc {
 
      */
     explicit PhantomCharacterQ(const QImage &original,
-			       dc::PhantomCharacter::Frequency frequency,
+			       float occurenceProbability,
 			       const QString &phantomPatternsPath,
 			       QObject *parent =0) :
       DocumentDegradation(parent),
-      _frequency(frequency),
+      _occurenceProbability(occurenceProbability),
       _original(original),
       _phantomPatternsPath(phantomPatternsPath)
       {}
@@ -43,7 +43,7 @@ namespace dc {
     void imageReady(const QImage &);
 
   protected :
-    const dc::PhantomCharacter::Frequency _frequency;
+    const float _occurenceProbability;
     QImage _original;
     const QString _phantomPatternsPath;
 

@@ -26,12 +26,11 @@ namespace dc {
       @param imgRecto  recto image.
       @param imgVerso  verso image.
       @param nbIter   number of iterations. The higher the number of iterations, the more the verso image will bleed through the recto image.
-      @param x  x coordinate of @a imgVerso image origine in @a imgRecto frame. It may be negative.
-      @param y  y coordinate of @a imgVerso image origine in @a imgRecto frame. It may be negative.
-      @param nbThreads  number of threads. If @a nbThreads is negative a value is determined according to image size and number of available CPU cores.
+      @param pos  position of @a imgVerso image origine in @a imgRecto frame. Coordinates may be negative.
+      @param numThreads  number of threads. If @a numThreads is negative a value is determined according to image size and number of available CPU cores.
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat bleedThrough(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int x=0, int y=0, int nbThreads=-1);
+    extern FRAMEWORK_EXPORT cv::Mat bleedThrough(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
     
     /*
       Function provided for convenience.
@@ -51,12 +50,11 @@ namespace dc {
       @param imgRecto  current recto image.
       @param imgVerso  verso image.
       @param nbIter   number of iterations. The higher the number of iterations, the more the verso image will bleed through the recto image.
-      @param x  x coordinate of @a imgVerso image origine in @a imgRecto frame. It may be negative.
-      @param y  y coordinate of @a imgVerso image origine in @a imgRecto frame. It may be negative.
-      @param nbThreads  number of threads. If @a nbThreads is negative a value is determined according to image size and number of available CPU cores.
+      @param pos  position of @a imgVerso image origine in @a imgRecto frame. Coordinates may be negative.
+      @param numThreads  number of threads. If @a numThreads is negative a value is determined according to image size and number of available CPU cores.
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat bleedThrough(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int x=0, int y=0, int nbThreads=-1);
+    extern FRAMEWORK_EXPORT cv::Mat bleedThroughInc(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
 
   } //namespace BleedThrough
 

@@ -98,7 +98,7 @@ BlurFilterDialog::BlurFilterDialog(QWidget *parent)
   , _blurredLabel(nullptr)
 {
   ui->setupUi(this);
-  _intensity = ui->intensitySlider->value();
+  _kernelSize = ui->kernelSizeSlider->value();
   _coeff = ui->coeffSlider->value();
   _vertical = ui->verticalSlider->value();
   _horizontal = ui->horizontalSlider->value();
@@ -122,10 +122,10 @@ BlurFilterDialog::BlurFilterDialog(QWidget *parent)
   hideSettings();
   hideAdvancedOptions();
 
-  connect(ui->intensitySlider,
+  connect(ui->kernelSizeSlider,
           SIGNAL(valueChanged(int)),
           this,
-          SLOT(intensityChanged(int)));
+          SLOT(kernelSizeChanged(int)));
   connect(
     ui->coeffSlider, SIGNAL(valueChanged(int)), this, SLOT(coeffChanged(int)));
   connect(ui->verticalSlider,
@@ -239,12 +239,12 @@ BlurFilterDialog::exampleChosen()
     QDir(getBlurExamplesPath()).absoluteFilePath(_examples.at(_currentExample));
   QImage exampleImg(path);
 
-  _intensity = dc::BlurFilter::searchFitFourier(_originalImg, dc::BlurFilter::getRadiusFourier(exampleImg));
+  _kernelSize = dc::BlurFilter::searchFitFourier(_originalImg, dc::BlurFilter::getRadiusFourier(exampleImg));
 
   _method = dc::BlurFilter::Method::GAUSSIAN;
-  ui->intensitySlider->setValue(_intensity);
-  ui->intensitySlider->setSliderPosition(_intensity);
-  intensityChanged(_intensity);
+  ui->kernelSizeSlider->setValue(_kernelSize);
+  ui->kernelSizeSlider->setSliderPosition(_kernelSize);
+  kernelSizeChanged(_kernelSize);
   ui->methodComboBox->setCurrentIndex(static_cast<int>(_method));
   updateBlurredImage();
 }
@@ -466,11 +466,11 @@ void
 BlurFilterDialog::updateBlurredImage()
 {
   if (_mode == dc::BlurFilter::Mode::COMPLETE) {
-    _blurredImg = dc::BlurFilter::blur(_originalImg, _method, _intensity);
+    _blurredImg = dc::BlurFilter::blur(_originalImg, _method, _kernelSize);
   }
   else {
-    _blurredImg = dc::BlurFilter::applyPattern(_originalImg, _patternImg, _method, _intensity);
-  //_blurredImg = dc::BlurFilter::blur(_originalImg, _method,  _intensity, _mode, _function, _area, _coeff,  _vertical, _horizontal, _radius);
+    _blurredImg = dc::BlurFilter::applyPattern(_originalImg, _patternImg, _method, _kernelSize);
+  //_blurredImg = dc::BlurFilter::blur(_originalImg, _method,  _kernelSize, _mode, _function, _area, _coeff,  _vertical, _horizontal, _radius);
   }
 
   _blurredImgSmall = _blurredImg.scaled(IMG_WIDTH, IMG_HEIGHT,
@@ -553,8 +553,8 @@ BlurFilterDialog::hideAdvancedOptions()
   ui->functionComboBox->setVisible(false);
   ui->settingButton->setVisible(false);
 
-  ui->intensityLabel->setVisible(false);
-  ui->intensitySlider->setVisible(false);
+  ui->kernelSizeLabel->setVisible(false);
+  ui->kernelSizeSlider->setVisible(false);
   ui->coeffLabel->setVisible(false);
   ui->coeffSlider->setVisible(false);
   ui->verticalLabel->setVisible(false);
@@ -583,8 +583,8 @@ BlurFilterDialog::showAdvancedOptions()
   ui->methodLabel->setVisible(true);
   ui->methodComboBox->setVisible(true);
 
-  ui->intensityLabel->setVisible(true);
-  ui->intensitySlider->setVisible(true);
+  ui->kernelSizeLabel->setVisible(true);
+  ui->kernelSizeSlider->setVisible(true);
 
   modeChanged(
     static_cast<int>(_mode)); //to show sliders and combo box that we need
@@ -593,16 +593,16 @@ BlurFilterDialog::showAdvancedOptions()
 }
 
 void
-BlurFilterDialog::intensityChanged(int intensity)
+BlurFilterDialog::kernelSizeChanged(int kernelSize)
 {
-  if (intensity % 2 == 1) {
-    _intensity = intensity;
+  if (kernelSize % 2 == 1) {
+    _kernelSize = kernelSize;
   }
   else {
-    _intensity = intensity - 1;
+    _kernelSize = kernelSize - 1;
   }
 
-  ui->intensitySlider->setValue(_intensity);
+  ui->kernelSizeSlider->setValue(_kernelSize);
 
   if (ui->modeLabel->isVisible() &&
       _exampleChosen !=

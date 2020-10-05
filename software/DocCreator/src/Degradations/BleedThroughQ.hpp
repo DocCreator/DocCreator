@@ -17,11 +17,11 @@ namespace dc {
       
       @warning @a imgVerso is not transformed. In particular, it is considered already mirrored.
       
-      If @a nbThreads is negative a value is determined according to image size.
+      If @a numThreads is negative a value is determined according to image size.
       
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT QImage bleedThrough(const QImage &imgRecto, const QImage &imgVerso, int nbIters, int x=0, int y=0, int nbThreads=-1);
+    extern FRAMEWORK_EXPORT QImage bleedThrough(const QImage &imgRecto, const QImage &imgVerso, int nbIters, QPoint pos = QPoint(0, 0), int numThreads=-1);
 
     /*
       Function provided for convenience.
@@ -30,7 +30,7 @@ namespace dc {
       
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT QImage bleedThrough(const QImage &originalRecto, const QImage &imgRecto, const QImage &imgVerso, int nbIters, int x=0, int y=0, int nbThreads=-1);
+    extern FRAMEWORK_EXPORT QImage bleedThroughInc(const QImage &originalRecto, const QImage &imgRecto, const QImage &imgVerso, int nbIters, QPoint pos = QPoint(0, 0), int numThreads=-1);
 
   } //namespace BleedThrough
     

@@ -78,8 +78,20 @@ ImageGenerationFromDirDialog::degrade(
     QString filePath = folder.absoluteFilePath(f);
     QImage input(filePath);
 
-    dc::GrayscaleCharsDegradationModelQ cdg(input);
-    QImage out = cdg.degradateByLevel(level);
+    float percentOfIndepentSpots = 33, percentOfOverlappingSpots = 33;
+    if (level <= 4) {
+      percentOfIndepentSpots = 50;
+      percentOfOverlappingSpots = 30;
+    }
+    else if (level <= 7) {
+      percentOfIndepentSpots = 30;
+      percentOfOverlappingSpots = 50;
+    }
+    else {
+      percentOfIndepentSpots = 20;
+      percentOfOverlappingSpots = 30;
+    }
+    QImage out = dc::CharactersDegradation::degradation(input, level, percentOfIndepentSpots, percentOfOverlappingSpots);
 
     QString fileImageOut = filePath;
     QString str_degradation_level =

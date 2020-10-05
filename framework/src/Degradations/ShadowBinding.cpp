@@ -128,11 +128,11 @@ namespace dc {
        @param[in, out] matOut.
     */
     cv::Mat
-    shadowBinding(const cv::Mat &img,
-		  float distanceRatio,
-		  Border border,
-		  float intensity,
-		  float angle)
+    shadowBinding2(const cv::Mat &img,
+		   float distanceRatio,
+		   Border border,
+		   float intensity,
+		   float angle)
     {
       const int distance =
 	getDistance(border, distanceRatio, img.cols, img.rows);

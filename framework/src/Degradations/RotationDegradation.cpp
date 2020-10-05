@@ -6,6 +6,8 @@
 
 #include "GradientDomainDegradation.hpp" //copyOnto
 
+#include <iostream>//DEBUG
+
 namespace dc {
   namespace RotationDegradation {
 
@@ -55,6 +57,7 @@ namespace dc {
 	  cv::cvtColor(img2, img2b, cv::COLOR_BGR2BGRA);
 	}
 	else {
+	  std::cerr<<"img1.type()="<<img1.type()<<" CV_8UC1="<<CV_8UC1<<" CV_8UC3="<<CV_8UC3<<" CV_8UC4="<<CV_8UC4<<"  img2.type()="<<img2.type()<<"\n";
 #if CV_MAJOR_VERSION < 3
 	  const int code = CV_StsUnsupportedFormat;
 #else
@@ -75,8 +78,10 @@ namespace dc {
 			    float angle,
 			    const cv::Mat &backgroundImg)
     {
-      cv::Mat rotatedImg;
+      if (backgroundImg.empty())
+	return rotateFillColor(img, angle, cv::Scalar(0, 0, 0));
 
+      cv::Mat rotatedImg;
       cv::Mat backgroundImgS = convertSameType(backgroundImg, img);
       
       const cv::Size dSize = img.size();
@@ -92,15 +97,18 @@ namespace dc {
       
       assert(rotatedImg.type() == img.type());
       assert(rotatedImg.size() == img.size());
-      
+
       return rotatedImg;
     }
 
-    cv::Mat rotateFillImage(const cv::Mat &img,
+    cv::Mat rotateFillImageN(const cv::Mat &img,
 			    float angle,
 			    const cv::Mat &backgroundImg,
 			    int repeats)
     {
+      if (backgroundImg.empty())
+	return rotateFillColor(img, angle, cv::Scalar(0, 0, 0));
+
       if (repeats <= 0) {
 	return rotateFillImage(img, angle, backgroundImg);
       }
@@ -119,9 +127,9 @@ namespace dc {
       }
     }
 
-    cv::Mat rotateFillImage(const cv::Mat &img,
-			    float angle,
-			    const std::vector<cv::Mat> &backgroundImgs)
+    cv::Mat rotateFillImages(const cv::Mat &img,
+			     float angle,
+			     const std::vector<cv::Mat> &backgroundImgs)
     {
       const size_t sz = backgroundImgs.size();
       if (sz == 0) {

@@ -1059,8 +1059,10 @@ namespace dc {
     }
 
     cv::Mat
-    phantomCharacter(const cv::Mat &img, Frequency frequency, const std::string &phantomPatternsPath)
+    phantomCharacter(const cv::Mat &img, float occurenceProbability, const std::string &phantomPatternsPath)
     {
+      assert(0.0f <= occurenceProbability && occurenceProbability <= 1.0f);
+
       cv::Mat output = img.clone();
 
       CCs ccs;
@@ -1108,18 +1110,7 @@ namespace dc {
       //sz = ccs.size();
 
       //Create default
-      srand(time(nullptr)); // initialization
-      int probOccurence = 0;
-
-      if (frequency == Frequency::RARE) {
-	probOccurence = 15; // 15 %
-      }
-      else if (frequency == Frequency::FREQUENT) {
-	probOccurence = 40;
-      }
-      else if (frequency == Frequency::VERY_FREQUENT) {
-	probOccurence = 70;
-      }
+      srand(time(nullptr)); // initialization //B:TODO:UGLY
 
 #ifdef SAVE_DEGRADATIONS_IMAGE
       cv::Mat degrads(img.rows,
@@ -1130,9 +1121,9 @@ namespace dc {
 
       for (int unsigned i = 0; i < ccs.size(); ++i) {
 	//Random : choose if we apply a default on this characters or not
-	const int chosen = rand() % 100; // random number between 0 and 100
+	const float chosen = rand() / static_cast<float>(RAND_MAX); // random number between 0 and 100
 
-	if (chosen < probOccurence) { // if random number is included in the x % (x
+	if (chosen < occurenceProbability) { // if random number is included in the x % (x
 	  // which was chosen by the user)
 	  degradeComposant(output,
 			   ccs[i],

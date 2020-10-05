@@ -22,10 +22,10 @@ namespace dc {
 
       @param img image to apply effect onto.
       @param method applied blur method.
-      @param intensity is kernel size.
+      @param kernelSize blur filter kernel size. It must be positive and odd.
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int intensity);
+    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int kernelSize);
 
     /*
       Apply blur to specific image area
@@ -34,12 +34,12 @@ namespace dc {
 
       @param img image to apply effect onto.
       @param method applied blur method.
-      @param intensity is kernel size.
+      @param kernelSize blur filter kernel size. It must be positive and odd.
       @param function
       @param area
       @return modified image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0);
+    extern FRAMEWORK_EXPORT cv::Mat blurArea(const cv::Mat &img, Method method, int kernelSize, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0);
 
     /*
       return a CV_8UC1 mat the same size than @a originalMat.
@@ -47,9 +47,11 @@ namespace dc {
     extern FRAMEWORK_EXPORT cv::Mat makePattern(const cv::Mat &originalMat, Function function, Area area, float coeff1, int vertical, int horizontal, int radius = 10);
 
     /*
+      @param method applied blur method.
+      @param kernelSize blur filter kernel size. It must be positive and odd.
       @param patternMat CV_8UC1 mat. Blur will be applied only at white pixels.
      */
-    extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int intensity);
+    extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int kernelSize);
 
     /*
       Compute the Fourier transform of image to measure the blur
@@ -67,7 +69,7 @@ namespace dc {
       to look like a dst image.
       @a dstRadius may have been computed with getRadiusFourier() on dst image.
 
-      The obtained filter size can then be used as intensity parameter of blurFilter() function, with method=Method::GAUSSIAN.
+      The obtained filter size can then be used as kernelSize parameter of blurFilter() function, with method=Method::GAUSSIAN.
     */
     extern FRAMEWORK_EXPORT int searchFitFourier(const cv::Mat &img, float dstRadius);
 

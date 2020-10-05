@@ -380,7 +380,7 @@ namespace dc {
     applyPattern(const cv::Mat &originalMat,
 		 const cv::Mat &patternMat,
 		 Method method,
-		 int intensity)
+		 int kernelSize)
     {
       assert(patternMat.type() == CV_8UC1);
 
@@ -388,7 +388,7 @@ namespace dc {
       assert(resultMat.type() == originalMat.type());
       assert(resultMat.size() == originalMat.size());
 
-      cv::Mat blurredMat = blur(originalMat, method, intensity);
+      cv::Mat blurredMat = blur(originalMat, method, kernelSize);
       assert(blurredMat.type() == originalMat.type());
       assert(blurredMat.size() == originalMat.size());
 
@@ -430,22 +430,22 @@ namespace dc {
     applyPattern(const cv::Mat &originalMat,
 		 const cv::Mat &patternMat,
 		 Method method,
-		 int intensity)
+		 int kernelSize)
     {
       assert(patternMat.type() == CV_8UC1);
       assert(originalMat.type() == CV_8UC3 || originalMat.type() == CV_8UC4 || originalMat.type() == CV_8UC1);
 
       if (originalMat.type() == CV_8UC3) {
 	return applyPattern<cv::Vec3b>(originalMat, patternMat,
-				       method, intensity);
+				       method, kernelSize);
       }
       else if (originalMat.type() == CV_8UC4) {
 	return applyPattern<cv::Vec4b>(originalMat, patternMat,
-				       method, intensity);
+				       method, kernelSize);
       }
       else if (originalMat.type() == CV_8UC1) {
 	return applyPattern<uchar>(originalMat, patternMat,
-				   method, intensity);
+				   method, kernelSize);
       }
       
       assert(false);
@@ -545,26 +545,26 @@ namespace dc {
 
     //Apply blur filter to whole image
     cv::Mat
-    blur(const cv::Mat &img, Method method, int intensity)
+    blur(const cv::Mat &img, Method method, int kernelSize)
     {
       //B: (tested with OpenCV 2.4.12)
-      //If intensity(=kSize) == 1 : the three functions do nothing
-      //If intensity(=kSize) == 2 : GaussianBlur & medianBlur assert, but blur() seems ok
+      //If kernelSize(=kSize) == 1 : the three functions do nothing
+      //If kernelSize(=kSize) == 2 : GaussianBlur & medianBlur assert, but blur() seems ok
 
       cv::Mat matOut;
 
       switch (method) {
       case Method::GAUSSIAN:
 	cv::GaussianBlur(img, matOut,
-			 cv::Size(intensity, intensity), 0, 0);
+			 cv::Size(kernelSize, kernelSize), 0, 0);
 	break;
 
       case Method::MEDIAN:
-	cv::medianBlur(img, matOut, intensity);
+	cv::medianBlur(img, matOut, kernelSize);
 	break;
 
       case Method::NORMAL:
-	cv::blur(img, matOut, cv::Size(intensity, intensity));
+	cv::blur(img, matOut, cv::Size(kernelSize, kernelSize));
 	break;
       }
 
@@ -574,9 +574,9 @@ namespace dc {
     }
 
     cv::Mat
-    blur(const cv::Mat &img,
+    blurArea(const cv::Mat &img,
 	 Method method,
-	 int intensity,
+	 int kernelSize,
 	 Function function,
 	 Area area,
 	 float coeff,
@@ -592,7 +592,7 @@ namespace dc {
       // We should have a function to get the bounding box of the pattern
       // and apply the blur only in this bounding box...
 
-      cv::Mat matOut = blur(img, method, intensity);
+      cv::Mat matOut = blur(img, method, kernelSize);
       assert(matOut.type() == img.type());
       return degradateArea(img, matOut,
 			   function, area, coeff, vertical, horizontal, radius);
@@ -719,7 +719,7 @@ namespace dc {
 
 
     /*
-      Search the size of filter (represented here by intensity) that we have to apply to fit with the example selected.
+      Search the size of filter (represented here by kernelSize) that we have to apply to fit with the example selected.
 
       @a img is the image on which we want to apply blur.
       @a dstRadius is the radius (computed by the fonction getRadiusFourier) of the example selected.
@@ -728,35 +728,35 @@ namespace dc {
     searchFitFourier(const cv::Mat &img, float dstRadius)
     {
       bool found = false;
-      int intensity = 0;
+      int kernelSize = 0;
 
-      int intensityMin = MIN_BLUR_FOURIER;
-      int intensityMax = MAX_BLUR_FOURIER;
+      int kernelSizeMin = MIN_BLUR_FOURIER;
+      int kernelSizeMax = MAX_BLUR_FOURIER;
 
-      while (!found && intensityMax - intensityMin > 2) {
-	//binary search to find intensity that we need
+      while (!found && kernelSizeMax - kernelSizeMin > 2) {
+	//binary search to find kernelSize that we need
 
-	intensity = ((intensityMax + intensityMin) / 2);
-	if (intensity % 2 == 0) {
-	    --intensity; // to get an odd number
+	kernelSize = ((kernelSizeMax + kernelSizeMin) / 2);
+	if (kernelSize % 2 == 0) {
+	    --kernelSize; // to get an odd number
 	}
 
-	// compute the radius of result image with actual intensity
+	// compute the radius of result image with actual kernelSize
 	const float radius = getRadiusFourier(blur(img,
 						   Method::GAUSSIAN,
-						   intensity));
+						   kernelSize));
 	if (radius > dstRadius + INTERVAL_FOURIER) { //not enough blur
-	    intensityMin = intensity;
+	    kernelSizeMin = kernelSize;
 	}
 	else if (radius < dstRadius - INTERVAL_FOURIER) { // too blur
-	  intensityMax = intensity;
+	  kernelSizeMax = kernelSize;
 	}
 	else {
 	  found = true;
 	}
       }
 
-      return intensity;
+      return kernelSize;
     }
 
   } //namespace BlurFilter

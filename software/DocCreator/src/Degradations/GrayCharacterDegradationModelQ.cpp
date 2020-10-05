@@ -4,34 +4,15 @@
 
 
 namespace dc {
+  namespace CharactersDegradation {
 
-GrayscaleCharsDegradationModelQ::GrayscaleCharsDegradationModelQ(const QImage &img) :
-  _cdm(Convertor::getCvMat(img))
-{
+    QImage degradation(const QImage &img, int level, float percentOfIndepentSpots, float percentOfOverlappingSpots)
+    {
+      const cv::Mat matImg = Convertor::getCvMat(img);
+      cv::Mat out = dc::GrayscaleCharsDegradation::degradation(matImg, level, percentOfIndepentSpots, percentOfOverlappingSpots);
+      return Convertor::getQImage(out);
+    }
 
-}
-
-/*
-void
-GrayscaleCharsDegradationModelQ::initialize(const QImage &input)
-{
-
-}
-*/
-
-QImage
-GrayscaleCharsDegradationModelQ::degradate(int level, float I, float O, float D)
-{
-  const cv::Mat img = _cdm.degradate_cv(level, I, O, D);
-  return Convertor::getQImage(img);
-}
-
-QImage
-GrayscaleCharsDegradationModelQ::degradateByLevel(int level)
-{
-  const cv::Mat img = _cdm.degradateByLevel_cv(level);
-  return Convertor::getQImage(img);
-}
-
+  }
 
 } //namespace dc

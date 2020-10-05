@@ -17,7 +17,7 @@ static
 void
 testSimple0(int imageType)
 {
-  //Apply BleedThrough (on random images) (at position (0,0) with 1 thread)
+  //Apply BleedThrough (on random images) (at position (0, 0) with 1 thread)
   //Check that the output type is the same than the input type.
   //Check that the input images are not modified.
   //Check that the output size is the same than the input recto size.
@@ -30,7 +30,7 @@ testSimple0(int imageType)
   //add gaussian noise
   cv::randn(imgRecto, 128, 30);
 
-  REQUIRE( imageType == imgRecto.type() );  
+  REQUIRE( imageType == imgRecto.type() );
 
   cv::Mat imgVerso;
   cv::flip(imgRecto, imgVerso, 1);
@@ -41,11 +41,10 @@ testSimple0(int imageType)
   cv::Mat imgVersoClone = imgVerso.clone();
   
   const int nbIters = 3;
-  const int x = 0;
-  const int y = 0;
+  const cv::Point pos(0, 0);
   const int nbThreads = 1;
   
-  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads); 
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, pos, nbThreads);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
@@ -64,28 +63,27 @@ testSimple0b(int imageType)
 
   const int ROWS = 64;
   const int COLS = 64;
-    
+
   cv::Mat imgRecto(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(imgRecto, 128, 30);
 
-  REQUIRE( imageType == imgRecto.type() );  
+  REQUIRE( imageType == imgRecto.type() );
 
   cv::Mat imgVerso;
   cv::flip(imgRecto, imgVerso, 1);
-  
+
   REQUIRE( imgVerso.type() == imgRecto.type() );
 
   cv::Mat imgRectoClone = imgRecto.clone();
   cv::Mat imgVersoClone = imgVerso.clone();
 
   const int nbIters = 3;
-  const int x = ROWS/2;
-  const int y = COLS/2;
+  const cv::Point pos(ROWS/2, COLS/2);
   const int nbThreads = 1;
   
-  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads); 
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, pos, nbThreads);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
@@ -104,28 +102,27 @@ testSimple0c(int imageType)
 
   const int ROWS = 64;
   const int COLS = 64;
-    
+
   cv::Mat imgRecto(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(imgRecto, 128, 30);
 
-  REQUIRE( imageType == imgRecto.type() );  
+  REQUIRE( imageType == imgRecto.type() );
 
   cv::Mat imgVerso;
   cv::flip(imgRecto, imgVerso, 1);
-  
+
   REQUIRE( imgVerso.type() == imgRecto.type() );
 
   cv::Mat imgRectoClone = imgRecto.clone();
-  cv::Mat imgVersoClone = imgVerso.clone();  
+  cv::Mat imgVersoClone = imgVerso.clone();
 
   const int nbIters = 3;
-  const int x = ROWS/3;
-  const int y = COLS/2;
+  const cv::Point pos(ROWS/3, COLS/2);
   const int nbThreads = 2;
-  
-  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads); 
+
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, pos, nbThreads);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
@@ -151,11 +148,10 @@ testSimple1(int imageType)
   cv::Mat imgVersoClone = imgVerso.clone();
 
   const int nbIters = 1;
-  const int x = -3;
-  const int y = 2;
+  const cv::Point pos(-3, 2);
   const int nbThreads = 1;
 
-  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads);
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, pos, nbThreads);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
@@ -192,11 +188,10 @@ testSimple1b(int imageType)
   cv::Mat imgVersoClone = imgVerso.clone();
 
   const int nbIters = 1;
-  const int x = 2;
-  const int y = -5;
+  const cv::Point pos(2, -5);
   const int nbThreads = 1;
 
-  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, x, y, nbThreads);
+  const cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, pos, nbThreads);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(imgRecto, imgRectoClone) );
@@ -229,7 +224,7 @@ testEqualToGT1_aux(const std::string &imgFilename,
 {
   //test BleedThrough on grayscale image
 
-  
+
   const std::string imgFilepath = dc::makePath(BLEEDTHROUGH_TEST_IMAGES_PATH, imgFilename);
   const std::string gtFilepath = dc::makePath(BLEEDTHROUGH_TEST_IMAGES_PATH, gtFilename);
   
@@ -243,17 +238,17 @@ testEqualToGT1_aux(const std::string &imgFilename,
   REQUIRE( ! imgGT.empty() );
   REQUIRE( imgGT.type() == CV_8UC1 );
 
-  
+
   cv::Mat imgRecto = cv::imread(imgFilepath, flag);
   REQUIRE( ! imgRecto.empty() );
   REQUIRE( imgRecto.type() == CV_8UC1 );
-  
+
   cv::Mat imgVerso;
   cv::flip(imgRecto, imgVerso, 1);
   REQUIRE( ! imgVerso.empty() );
   REQUIRE( imgVerso.type() == CV_8UC1 );
-  
-  cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, 0, 0, nbThreads);
+
+  cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, cv::Point(0, 0), nbThreads);
 
   REQUIRE( checkEqual(out, imgGT) );
 }
@@ -280,7 +275,7 @@ testEqualToGT3_aux(const std::string &imgFilename,
 		   int nbThreads)
 {
   //test BleedThrough on BGR image
-  
+
   const std::string imgFilepath = dc::makePath(BLEEDTHROUGH_TEST_IMAGES_PATH, imgFilename);
   const std::string gtFilepath = dc::makePath(BLEEDTHROUGH_TEST_IMAGES_PATH, gtFilename);
 
@@ -294,17 +289,17 @@ testEqualToGT3_aux(const std::string &imgFilename,
   REQUIRE( ! imgGT.empty() );
   REQUIRE( imgGT.type() == CV_8UC3 );
 
-  
+
   cv::Mat imgRecto = cv::imread(imgFilepath, flag);
   REQUIRE( ! imgRecto.empty() );
   REQUIRE( imgRecto.type() == CV_8UC3 );
-  
+
   cv::Mat imgVerso;
   cv::flip(imgRecto, imgVerso, 1);
   REQUIRE( ! imgVerso.empty() );
   REQUIRE( imgVerso.type() == CV_8UC3 );
-  
-  cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, 0, 0, nbThreads);
+
+  cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, cv::Point(0, 0), nbThreads);
 
   REQUIRE( checkEqual(out, imgGT) );
 }
@@ -358,17 +353,17 @@ testEqualToGT4_aux(const std::string &imgFilename,
   REQUIRE( ! imgGT.empty() );
   REQUIRE( imgGT.type() == CV_8UC4 );
 
-  
+
   cv::Mat imgRecto = cv::imread(imgFilepath, flag);
   REQUIRE( ! imgRecto.empty() );
   REQUIRE( imgRecto.type() == CV_8UC4 );
-  
+
   cv::Mat imgVerso;
   cv::flip(imgRecto, imgVerso, 1);
   REQUIRE( ! imgVerso.empty() );
   REQUIRE( imgVerso.type() == CV_8UC4 );
-  
-  cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, 0, 0, nbThreads);
+
+  cv::Mat out = dc::BleedThrough::bleedThrough(imgRecto, imgVerso, nbIters, cv::Point(0, 0), nbThreads);
 
   REQUIRE( checkEqual(out, imgGT) );
 }

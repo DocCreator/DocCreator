@@ -7,27 +7,24 @@
 namespace dc {
   namespace PhantomCharacter {
 
-    /**
-       Tells the probability of occurence of phantom characters.
-     */
-    enum class Frequency {RARE=0, /** Probability of occurence is 15% */
-			  FREQUENT, /** Probability of occurence is 40% */
-			  VERY_FREQUENT /** Probability of occurence is 70% */
-    }; 
-
     /*
       Insert "phantom characters" on border of characters.
 
       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
 
+      With an @a occurenceProbability of 0.15, phantom characters will appear rarely.
+      With an @a occurenceProbability of 0.40, phantom characters will appear rather frequently.
+      With an @a occurenceProbability of 0.70, phantom characters will appear very frequently.
+
+
       @param img input image to degrade.
-      @param frequency frequency of occurence of phantom characters.
-      @param phantomPatternsPath directory to load phantom patterns from.
+      @param occurenceProbability probability of occurence of phantom characters. Must be in [0; 1].
+      @param phantomPatternsPath directory to load phantom patterns from. Phantom patterns are loaded as grayscale images.
 
       @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &img,
-						     Frequency frequency,
+						     float occurenceProbability,
 						     const std::string &phantomPatternsPath);
 
 

@@ -28,7 +28,7 @@ public:
 
   const QImage &getResultImg() const { return _resultImg; }
 
-  dc::PhantomCharacter::Frequency getFrequency() const { return _frequency; }
+  //float getOccurenceProbability() const { return _occurenceProbability; }
 
   void setOriginalImage(const QImage &img);
 
@@ -45,7 +45,7 @@ protected:
 
 private:
   Ui::PhantomCharacterDialog *ui;
-  dc::PhantomCharacter::Frequency _frequency;
+  float _occurenceProbability;
   int _zoomX;
   int _zoomY;
   QString _phantomPatternsPath;

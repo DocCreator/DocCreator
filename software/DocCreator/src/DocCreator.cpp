@@ -1055,16 +1055,16 @@ DocCreator::applyBlurFilter()
 
   if (dialog.exec()) {
     dc::BlurFilterQ deg(img,
-                   dialog.getMethod(),
-                   dialog.getIntensity(),
-                   dialog.getMode(),
-                   dialog.getFunction(),
-                   dialog.getArea(),
-                   dialog.getCoeff(),
-                   dialog.getVertical(),
-                   dialog.getHorizontal(),
-                   dialog.getRadius(),
-                   dialog.getPattern(),
+			dialog.getMethod(),
+			dialog.getKernelSize(),
+			dialog.getMode(),
+			dialog.getFunction(),
+			dialog.getArea(),
+			dialog.getCoeff(),
+			dialog.getVertical(),
+			dialog.getHorizontal(),
+			dialog.getRadius(),
+			dialog.getPattern(),
                    this);
 
     BackGroundChanger changer;
@@ -1153,7 +1153,7 @@ DocCreator::applyPhantomCharacter()
     _docController->toQImage(WithTextBlocks | WithImageBlocks));
 
   if (dialog.exec()) {
-    //PhantomCharacter deg(_docController->toQImage(WithTextBlocks | WithImageBlocks), dialog.getFrequency(), this);
+    //PhantomCharacter deg(_docController->toQImage(WithTextBlocks | WithImageBlocks), dialog.getOccurenceProbability(), this);
 
     BackGroundChanger changer;
     changer.changeBackGroundImage(dialog.getResultImg());
@@ -1177,9 +1177,21 @@ DocCreator::applyCharacterDegradationModel()
   if (dialog.exec()) {
     QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
-    dc::GrayscaleCharsDegradationModelQ cdg(img);
-
-    QImage dst = cdg.degradateByLevel(dialog.getLevel());
+    const int level = dialog.getLevel();
+    float percentOfIndepentSpots = 33, percentOfOverlappingSpots = 33;
+    if (level <= 4) {
+      percentOfIndepentSpots = 50;
+      percentOfOverlappingSpots = 30;
+    }
+    else if (level <= 7) {
+      percentOfIndepentSpots = 30;
+      percentOfOverlappingSpots = 50;
+    }
+    else {
+      percentOfIndepentSpots = 20;
+      percentOfOverlappingSpots = 30;
+    }
+    QImage dst = dc::CharactersDegradation::degradation(img, level, percentOfIndepentSpots, percentOfOverlappingSpots);
 
     const bool writeOk = dst.save(dialog.getOutputFilename());
 

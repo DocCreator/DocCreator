@@ -222,7 +222,7 @@ namespace dc {
 
   template <typename T>
   cv::Mat
-  bleedThroughMT0(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int nbThreads=5)
+  bleedThroughMT0(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int numThreads=5)
   {
     assert(imgRecto.size() == imgVerso.size());
     assert(originalRecto.size() == imgVerso.size());
@@ -242,7 +242,7 @@ namespace dc {
 
       cv::parallel_for_(cv::Range(0, height),
 			BleedThroughDiffusionThreadA<T>(originalRecto, currRecto, imgVerso, out),
-			nbThreads);
+			numThreads);
 
       cv::swap(currRecto, out); 
     }
@@ -253,21 +253,21 @@ namespace dc {
   }
 
   cv::Mat
-  bleedThroughMT0(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int nbThreads=16)
+  bleedThroughMT0(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int numThreads=16)
   {
     assert(imgRecto.size() == imgVerso.size());
     assert(originalRecto.size() == imgVerso.size());
 
-    if (nbThreads < 0) {
-      nbThreads = cv::getNumThreads(); //B:TODO: use also height of images to decide nbThreads ? 
+    if (numThreads < 0) {
+      numThreads = cv::getNumThreads(); //B:TODO: use also height of images to decide numThreads ?
     }
 
     if (imgRecto.type() == CV_8UC1)
-      return bleedThroughMT0<uchar>(originalRecto, imgRecto, imgVerso, nbIter, nbThreads);
+      return bleedThroughMT0<uchar>(originalRecto, imgRecto, imgVerso, nbIter, numThreads);
     else if (imgRecto.type() == CV_8UC3)
-      return bleedThroughMT0<cv::Vec3b>(originalRecto, imgRecto, imgVerso, nbIter, nbThreads);
+      return bleedThroughMT0<cv::Vec3b>(originalRecto, imgRecto, imgVerso, nbIter, numThreads);
     else if (imgRecto.type() == CV_8UC4)
-      return bleedThroughMT0<cv::Vec4b>(originalRecto, imgRecto, imgVerso, nbIter, nbThreads); //B:TODO: does it make sense to do bleedThrough in alpha channel ????
+      return bleedThroughMT0<cv::Vec4b>(originalRecto, imgRecto, imgVerso, nbIter, numThreads); //B:TODO: does it make sense to do bleedThrough in alpha channel ????
     else {
       std::cerr<<"ERROR: bleedThrough: unhandled image type\n";
       assert(false);
@@ -277,11 +277,11 @@ namespace dc {
 
   /*
   cv::Mat
-  bleedThroughMT0(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int nbThreads=16)
+  bleedThroughMT0(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int numThreads=16)
   {
     assert(imgRecto.size() == imgVerso.size());
 
-    return bleedThroughMT0(imgRecto.clone(), imgRecto, imgVerso, nbIter, nbThreads);
+    return bleedThroughMT0(imgRecto.clone(), imgRecto, imgVerso, nbIter, numThreads);
   }
   */
 
@@ -328,20 +328,20 @@ namespace dc {
 
 
   cv::Mat
-  bleedThrough(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int x, int y, int nbThreads)
+  bleedThrough(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, cv::Point pos, int numThreads)
   {
     cv::Mat res = imgRecto.clone();
 
     cv::Rect versoROI;
-    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), x, y, versoROI);
+    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), pos.x, pos.y, versoROI);
     if (intersection) {
       const cv::Mat imgVersoROI = imgVerso(versoROI);
 
-      const cv::Rect rectoROI(x+versoROI.x, y+versoROI.y, versoROI.width, versoROI.height);
+      const cv::Rect rectoROI(pos.x+versoROI.x, pos.y+versoROI.y, versoROI.width, versoROI.height);
       const cv::Mat imgRectoROI = imgRecto(rectoROI);
       assert(imgVersoROI.size() == imgRectoROI.size());
 
-      const cv::Mat outROI = bleedThroughMT0(imgRectoROI.clone(), imgRectoROI, imgVersoROI, nbIter, nbThreads);
+      const cv::Mat outROI = bleedThroughMT0(imgRectoROI.clone(), imgRectoROI, imgVersoROI, nbIter, numThreads);
 
       cv::Mat dst_roi = res(rectoROI);
       outROI.copyTo(dst_roi);
@@ -350,24 +350,24 @@ namespace dc {
   }
 
   cv::Mat
-  bleedThrough(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int x, int y, int nbThreads)
+  bleedThroughInc(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, cv::Point pos, int numThreads)
   {
     assert(originalRecto.size() == imgRecto.size());
 
     cv::Mat res = imgRecto.clone();
 
     cv::Rect versoROI;
-    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), x, y, versoROI);
+    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), pos.x, pos.y, versoROI);
     if (intersection) {
       cv::Mat imgVersoROI = imgVerso(versoROI);
 
-      const cv::Rect rectoROI(x+versoROI.x, y+versoROI.y, versoROI.width, versoROI.height);
+      const cv::Rect rectoROI(pos.x+versoROI.x, pos.y+versoROI.y, versoROI.width, versoROI.height);
       cv::Mat imgRectoROI = imgRecto(rectoROI);
       cv::Mat originalRectoROI = originalRecto(rectoROI);
       assert(imgVersoROI.size() == imgRectoROI.size());
       assert(originalRectoROI.size() == imgRectoROI.size());
 
-      const cv::Mat outROI = bleedThroughMT0(originalRectoROI, imgRectoROI, imgVersoROI, nbIter, nbThreads);
+      const cv::Mat outROI = bleedThroughMT0(originalRectoROI, imgRectoROI, imgVersoROI, nbIter, numThreads);
 
       cv::Mat dst_roi = res(rectoROI);
       outROI.copyTo(dst_roi);

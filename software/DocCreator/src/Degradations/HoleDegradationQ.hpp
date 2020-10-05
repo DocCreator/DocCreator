@@ -9,9 +9,9 @@
 namespace dc {
   namespace HoleDegradation {
 
-    extern FRAMEWORK_EXPORT QImage holeDegradation(const QImage &imgOriginal, const QImage &holePattern, int xOrigin, int yOrigin, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
+    extern FRAMEWORK_EXPORT QImage addHole(const QImage &imgOriginal, const QImage &holePattern, QPoint pos, int size, HoleType type, HoleSide side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
 
-    extern FRAMEWORK_EXPORT QImage holeDegradation(const QImage &imgOriginal, const QImage &holePattern, float ratioOutside, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
+    extern FRAMEWORK_EXPORT QImage addHoleAtRandom(const QImage &imgOriginal, const QImage &holePattern, float ratioOutside, int size, HoleType type, HoleSide side, const QColor &color, const QImage &pageBelow=QImage(), int width=0, float intensity=1000);
     
 
   } //namespace HoleDegradation
@@ -23,11 +23,14 @@ namespace dc {
   public : 
 
     explicit HoleDegradationQ(const QImage &original, const QImage &holePattern,
-			      int xOrigin, int yOrigin, int size,
-			      dc::HoleDegradation::HoleType type, int side,
-			      const QColor &color, const QImage &pageBelow=QImage(),
-			      int width=0, float intensity=1000, QObject *parent =0) :
-      DocumentDegradation(parent), _pattern(holePattern), _xOrigin(xOrigin), _yOrigin(yOrigin), _size(size), _type(type), _side(side), _width(width), _intensity(intensity), _color(color), _pageBelow(pageBelow), _original(original)
+			      QPoint pos, int size,
+			      dc::HoleDegradation::HoleType type,
+			      dc::HoleDegradation::HoleSide side,
+			      const QColor &color,
+			      const QImage &pageBelow=QImage(),
+			      int width=0, float intensity=1000,
+			      QObject *parent =0) :
+      DocumentDegradation(parent), _pattern(holePattern), _pos(pos), _size(size), _type(type), _side(side), _width(width), _intensity(intensity), _color(color), _pageBelow(pageBelow), _original(original)
     {}
 
   public slots :
@@ -40,11 +43,10 @@ namespace dc {
 
   protected :
     QImage _pattern;
-    const int _xOrigin;
-    const int _yOrigin;
+    const QPoint _pos;
     const int _size;
     const dc::HoleDegradation::HoleType _type;
-    const int _side;
+    const dc::HoleDegradation::HoleSide _side;
     const int _width;
     const float _intensity;
     QColor _color;

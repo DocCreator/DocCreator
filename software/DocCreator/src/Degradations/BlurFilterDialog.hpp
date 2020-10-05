@@ -26,7 +26,7 @@ public:
 
   const QImage &getPattern() const { return _patternImg; }
 
-  int getIntensity() const { return _intensity; }
+  int getKernelSize() const { return _kernelSize; }
 
   float getCoeff() const { return _coeff; }
 
@@ -53,7 +53,7 @@ public:
   static QStringList getDirectoryList(const QString &dirName);
 
 public slots:
-  void intensityChanged(int intensity);
+  void kernelSizeChanged(int kernelSize);
   void coeffChanged(int coeff);
   void verticalChanged(int vertical);
   void horizontalChanged(int horizontal);
@@ -92,7 +92,7 @@ private:
   int _exampleChosen; // for fit
   int _currentExample;
   int _currentPattern;
-  int _intensity;
+  int _kernelSize;
   float _coeff;
   int _horizontal;
   int _vertical;

@@ -31,9 +31,7 @@ testSimple(int imageType)
   
   const int level = 5;
 
-  dc::GrayscaleCharsDegradationModel dcm(img);
-
-  cv::Mat out = dcm.degradateByLevel_cv(level);
+  cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, level);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, imgClone) );
@@ -63,11 +61,9 @@ testSimple2(int imageType)
 
   cv::Mat imgClone = img.clone();
 
-  const int level = 5;
+  const int level = 4;
 
-  dc::GrayscaleCharsDegradationModel dcm(img);
-
-  cv::Mat out = dcm.degradateByLevel_cv(level);
+  cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, level);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, imgClone) );

@@ -31,7 +31,7 @@ testSimple0(int imageType)
 
   cv::Mat imgClone = img.clone();
   
-  const int intensity = 3;
+  const int kernelSize = 3;
   
   for (int i=0; i<3; ++i) {
     const dc::BlurFilter::Method method = (dc::BlurFilter::Method)(i);
@@ -40,7 +40,7 @@ testSimple0(int imageType)
     REQUIRE( imageType == img2.type() );  
     
     //apply blur to whole image
-    const cv::Mat out = dc::BlurFilter::blur(img2, method, intensity);
+    const cv::Mat out = dc::BlurFilter::blur(img2, method, kernelSize);
 
     REQUIRE( out.type() == imageType );
     REQUIRE( checkEqual(img, imgClone) );
@@ -69,7 +69,7 @@ testSimple1(int imageType)
 
   cv::Mat imgClone = img.clone();
   
-  const int intensity = 3;
+  const int kernelSize = 3;
 
   const dc::BlurFilter::Function function = dc::BlurFilter::Function::LINEAR;
   const float coeff = 1.f;
@@ -88,7 +88,7 @@ testSimple1(int imageType)
       REQUIRE( imageType == img2.type() );
 
       //apply blur to part of the image
-      const cv::Mat out = dc::BlurFilter::blur(img2, method, intensity, function, area, coeff, vertical, horizontal, radius);
+      const cv::Mat out = dc::BlurFilter::blurArea(img2, method, kernelSize, function, area, coeff, vertical, horizontal, radius);
 
       REQUIRE( out.type() == imageType );
       REQUIRE( checkEqual(img, imgClone) );
@@ -138,9 +138,9 @@ testSimple2(int imageType)
     REQUIRE( CV_8UC1 == pattern.type() );
 
     const dc::BlurFilter::Method method = dc::BlurFilter::Method::GAUSSIAN;
-    const int intensity = 3;
+    const int kernelSize = 3;
 
-    cv::Mat out = dc::BlurFilter::applyPattern(img2, pattern, method, intensity);
+    cv::Mat out = dc::BlurFilter::applyPattern(img2, pattern, method, kernelSize);
 
     REQUIRE( imageType == out.type() );
     REQUIRE( checkEqual(img, imgClone) );
@@ -174,6 +174,6 @@ TEST_CASE( "Testing BlurFilter" )
     testSimple2(CV_8UC4);
   }
 
-  //TODO: test blur with even intensity (ex: 2, 4, ...)
+  //TODO: test blur with even kernelSize (ex: 2, 4, ...)
 
 }

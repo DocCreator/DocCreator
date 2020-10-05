@@ -19,19 +19,19 @@ testSimple0a(int imageType)
   //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(img, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   
   const float angle = 11;
-  const cv::Scalar color(100, 150, 200); 
+  const cv::Scalar color(100, 150, 200);
   const cv::Mat out = dc::RotationDegradation::rotateFillColor(img, angle, color);
 
   REQUIRE( out.type() == imageType );
@@ -44,14 +44,14 @@ void
 testSimple0b(int imageType)
 {
   //Apply RotationDegradation::rotateFillImage
-  //Bakcground image is not necessarily of the same type and size than input image.
+  //Background image is not necessarily of the same type and size than input image.
   //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
   //Check that the input background image is not modified.
   //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
@@ -62,7 +62,7 @@ testSimple0b(int imageType)
 
   cv::randn(backgroundImg, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   cv::Mat backgroundImgClone = backgroundImg.clone();
@@ -82,14 +82,14 @@ void
 testSimple0b2(int imageType)
 {
   //Apply RotationDegradation::rotateFillImage (with repeats)
-  //Bakcground image is not necessarily of the same type and size than input image.
+  //Background image is not necessarily of the same type and size than input image.
   //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
   //Check that the input background image is not modified.
   //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
@@ -100,14 +100,14 @@ testSimple0b2(int imageType)
 
   cv::randn(backgroundImg, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   cv::Mat backgroundImgClone = backgroundImg.clone();
   
   const float angle = 17;
   const int repeats = 3;
-  const cv::Mat out = dc::RotationDegradation::rotateFillImage(img, angle, backgroundImg, repeats);
+  const cv::Mat out = dc::RotationDegradation::rotateFillImageN(img, angle, backgroundImg, repeats);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, imgClone) );
@@ -119,35 +119,29 @@ static
 void
 testSimple0b3(int imageType)
 {
-  //Apply RotationDegradation::rotateFillImage (with repeats)
-  //Bakcground image is not necessarily of the same type and size than input image.
+  //Apply RotationDegradation::rotateFillImage
+  //Background image is an empty image.
   //Check that the output type is the same than the input type.
   //Check that the input image is not modified.
   //Check that the input background image is not modified.
   //Check that the output size is the same than the input size.
 
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
-  cv::Mat backgroundImg(ROWS*2, COLS/3, CV_8UC3);
+  cv::Mat backgroundImg;
 
   //add gaussian noise
   cv::randn(img, 128, 30);
 
-  cv::randn(backgroundImg, 128, 30);
-
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   cv::Mat backgroundImgClone = backgroundImg.clone();
   
   const float angle = 17;
-  std::vector<cv::Mat> backgroundImgs;
-  backgroundImgs.push_back(backgroundImg);
-  backgroundImgs.push_back(img);
-  backgroundImgs.push_back(backgroundImg);
   const cv::Mat out = dc::RotationDegradation::rotateFillImage(img, angle, backgroundImg);
 
   REQUIRE( out.type() == imageType );
@@ -159,6 +153,42 @@ testSimple0b3(int imageType)
 
 static
 void
+testSimple0b4(int imageType)
+{
+  //Apply RotationDegradation::rotateFillImage (with repeats)
+  //Background image is an empty image.
+  //Check that the output type is the same than the input type.
+  //Check that the input image is not modified.
+  //Check that the input background image is not modified.
+  //Check that the output size is the same than the input size.
+
+  const int ROWS = 100;
+  const int COLS = 100;
+    
+  cv::Mat img(ROWS, COLS, imageType);
+
+  cv::Mat backgroundImg;
+
+  //add gaussian noise
+  cv::randn(img, 128, 30);
+
+  REQUIRE( imageType == img.type() );
+
+  cv::Mat imgClone = img.clone();
+  cv::Mat backgroundImgClone = backgroundImg.clone();
+  
+  const float angle = 17;
+  const int repeats = 3;
+  const cv::Mat out = dc::RotationDegradation::rotateFillImageN(img, angle, backgroundImg, repeats);
+
+  REQUIRE( out.type() == imageType );
+  REQUIRE( checkEqual(img, imgClone) );
+  REQUIRE( checkEqual(backgroundImg, backgroundImgClone) );
+  REQUIRE( out.size() == img.size() );
+}
+
+static
+void
 testSimple0c(int imageType)
 {
   //Apply RotationDegradation::rotateFillBorder
@@ -167,14 +197,14 @@ testSimple0c(int imageType)
   //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(img, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   
@@ -202,14 +232,14 @@ testSimple0d(int imageType)
   //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(img, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   
@@ -232,14 +262,14 @@ testSimple0e(int imageType)
   //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(img, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   
@@ -261,14 +291,14 @@ testSimple0f(int imageType)
   //Check that the output size is the same than the input size.
   
   const int ROWS = 100;
-  const int COLS = 100;    
+  const int COLS = 100;
     
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
   cv::randn(img, 128, 30);
 
-  REQUIRE( imageType == img.type() );  
+  REQUIRE( imageType == img.type() );
 
   cv::Mat imgClone = img.clone();
   
@@ -306,6 +336,10 @@ TEST_CASE( "Testing RotationDegradation" )
     testSimple0b3(CV_8UC1);
     testSimple0b3(CV_8UC3);
     testSimple0b3(CV_8UC4);
+
+    testSimple0b4(CV_8UC1);
+    testSimple0b4(CV_8UC3);
+    testSimple0b4(CV_8UC4);
   }
 
   SECTION("Testing RotationDegradation::rotateFillBorder produces output image of same type and size than input image")

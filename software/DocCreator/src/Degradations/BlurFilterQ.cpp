@@ -10,10 +10,10 @@ namespace dc {
     QImage finalImg;
 
     if (_mode == dc::BlurFilter::Mode::COMPLETE) {
-      finalImg = dc::BlurFilter::blur(_original, _method, _intensity);
+      finalImg = dc::BlurFilter::blur(_original, _method, _kernelSize);
     }
     else {
-      finalImg = applyPattern(_original, _pattern, _method, _intensity);
+      finalImg = applyPattern(_original, _pattern, _method, _kernelSize);
     }
 
     emit imageReady(finalImg);
@@ -27,7 +27,7 @@ namespace dc {
     applyPattern(const QImage &originalImg,
 		 const QImage &pattern,
 		 Method method,
-		 int intensity)
+		 int kernelSize)
     {
       cv::Mat originalMat = Convertor::getCvMat(originalImg);
       cv::Mat patternMat = Convertor::getCvMat(pattern);
@@ -35,7 +35,7 @@ namespace dc {
       patternMat = Convertor::binarizeOTSU(patternMat);
       assert(patternMat.type() == CV_8UC1);
 
-      cv::Mat resultMat = applyPattern(originalMat, patternMat, method, intensity);
+      cv::Mat resultMat = applyPattern(originalMat, patternMat, method, kernelSize);
       assert(resultMat.type() == originalMat.type());
 
       return Convertor::getQImage(resultMat);
@@ -73,11 +73,11 @@ namespace dc {
     */
 
     QImage
-    blur(const QImage &originalImg, Method method, int intensity)
+    blur(const QImage &originalImg, Method method, int kernelSize)
     {
       cv::Mat matIn = Convertor::getCvMat(originalImg);
 
-      cv::Mat matOut = dc::BlurFilter::blur(matIn, method, intensity);
+      cv::Mat matOut = dc::BlurFilter::blur(matIn, method, kernelSize);
       assert(matIn.type() == matOut.type());
 
       QImage res = Convertor::getQImage(matOut);
@@ -88,7 +88,7 @@ namespace dc {
     QImage
     blur(const QImage &originalImg,
 	 Method method,
-	 int intensity,
+	 int kernelSize,
 	 Function function,
 	 Area area,
 	 float coeff,
@@ -98,15 +98,15 @@ namespace dc {
     {
       cv::Mat matIn = Convertor::getCvMat(originalImg);
 
-      cv::Mat matOut = dc::BlurFilter::blur(matIn,
-					    method,
-					    intensity,
-					    function,
-					    area,
-					    coeff,
-					    vertical,
-					    horizontal,
-					    radius);
+      cv::Mat matOut = dc::BlurFilter::blurArea(matIn,
+						method,
+						kernelSize,
+						function,
+						area,
+						coeff,
+						vertical,
+						horizontal,
+						radius);
       assert(matIn.type() == matOut.type());
 
       QImage res = Convertor::getQImage(matOut);

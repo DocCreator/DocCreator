@@ -19,6 +19,24 @@ static const int ZOOM_HEIGHT = 200;
 static const int ZOOM_X_INIT = 200;
 static const int ZOOM_Y_INIT = 200;
 
+//TODO: change GUI to be able to choose occurenceProbability directly and remove this function
+static
+float
+getOccurenceProbability(int frequency)
+{
+  float occurenceProbability = 0.5f;
+  if (frequency >= 2) {
+    occurenceProbability = 0.7f;
+  }
+  else if (frequency == 1) {
+    occurenceProbability = 0.4f;
+  }
+  else if (frequency <= 0) {
+    occurenceProbability = 0.15f;
+  }
+  return occurenceProbability;
+}
+
 PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
   : QDialog(parent)
   , ui(new Ui::PhantomCharacterDialog)
@@ -26,7 +44,7 @@ PhantomCharacterDialog::PhantomCharacterDialog(QWidget *parent)
   , _resultLabel(nullptr)
 {
   ui->setupUi(this);
-  _frequency = static_cast<dc::PhantomCharacter::Frequency>( ui->frequencyComboBox->currentIndex() );
+  _occurenceProbability = getOccurenceProbability( ui->frequencyComboBox->currentIndex() );
   _zoomX = ZOOM_X_INIT;
   _zoomY = ZOOM_Y_INIT;
   _phantomPatternsPath = getPhantomPatternPath();
@@ -95,7 +113,7 @@ PhantomCharacterDialog::setupGUIImages()
 void
 PhantomCharacterDialog::updateResultImage()
 {
-  _resultImg = dc::PhantomCharacter::phantomCharacter(_originalImg, _frequency, _phantomPatternsPath);
+  _resultImg = dc::PhantomCharacter::phantomCharacter(_originalImg, _occurenceProbability, _phantomPatternsPath);
   _resultImgSmall = _resultImg.scaled(
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
   _resultLabel->setPixmap(QPixmap::fromImage(_resultImgSmall));
@@ -119,7 +137,7 @@ PhantomCharacterDialog::updateZoom()
 void
 PhantomCharacterDialog::frequencyChanged(int frequency)
 {
-  _frequency = static_cast<dc::PhantomCharacter::Frequency>( frequency );
+  _occurenceProbability = getOccurenceProbability( frequency );
 
   if (!_originalImgSmall.isNull()) {
     updateResultImage();

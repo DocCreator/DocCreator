@@ -2335,33 +2335,54 @@ Click &quot;Cancel&quot; otherwise.</string>
     <widget class="QWidget" name="verticalLayoutWidget_5">
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>210</x>
        <y>80</y>
-       <width>191</width>
+       <width>385</width>
        <height>171</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_7">
       <item>
-       <widget class="QCheckBox" name="Phantom_Rare">
+       <widget class="QLabel" name="Phantom_label">
         <property name="text">
-         <string>Rare</string>
+         <string>Occurence probability:
+Near 0 occurence of phantom character is very rare.
+Near 1 occurence of phantom character is very frequent.</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="Phantom_Frequent">
-        <property name="text">
-         <string>Frequent</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="Phantom_VeryFrequent">
-        <property name="text">
-         <string>Very frequent</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_43">
+        <item>
+         <widget class="QSlider" name="Phantom_occurenceSlider">
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>50</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="Phantom_occurenceSB">
+          <property name="maximum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.500000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -6620,16 +6641,16 @@ completePathToOutputDirectory </string>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupParamsTopMargin"/>
+  <buttongroup name="buttonGroupText"/>
   <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroupParamsBottomMargin"/>
+  <buttongroup name="buttonGroupParamsRightMargin"/>
   <buttongroup name="buttonGroupParamsLeftMargin"/>
+  <buttongroup name="buttonGroupParamsLineSpacing"/>
+  <buttongroup name="buttonGroupParamsBottomMargin"/>
+  <buttongroup name="buttonGroupParamsImageSize"/>
+  <buttongroup name="buttonGroupParamsTopMargin"/>
+  <buttongroup name="buttonGroupParamsBlockY"/>
   <buttongroup name="buttonGroupTextGeneration"/>
   <buttongroup name="buttonGroupParamsBlockX"/>
-  <buttongroup name="buttonGroupParamsBlockY"/>
-  <buttongroup name="buttonGroupParamsImageSize"/>
-  <buttongroup name="buttonGroupText"/>
-  <buttongroup name="buttonGroupParamsRightMargin"/>
-  <buttongroup name="buttonGroupParamsLineSpacing"/>
  </buttongroups>
 </ui>

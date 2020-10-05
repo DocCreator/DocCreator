@@ -8,7 +8,7 @@ namespace dc {
   namespace RotationDegradation {
 
     /**
-       Rotate in image and fill appearing background pixels with uniform color.
+       Rotate an image and fill appearing background pixels with uniform color.
        
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
        Output image will be of the same type and size than the input img.
@@ -22,7 +22,7 @@ namespace dc {
 						    const cv::Scalar &color);
 
     /**
-       Rotate in image and fill appearing background pixels with given background image.
+       Rotate an image and fill appearing background pixels with given background image.
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
        Background image may be converted to the same type. 
@@ -38,9 +38,8 @@ namespace dc {
 						    float angle,
 						    const cv::Mat &backgroundImg);
 
-
     /**
-       Rotate in image and fill appearing background pixels with given background image.
+       Rotate an image and fill appearing background pixels with given background image.
 
        The background image is inserted (@a repeats + 1) times. First at angle 0, then at angle (@a angle/(@a repeast + 1)), ...
 
@@ -55,13 +54,13 @@ namespace dc {
        @param backgroundImage background image (rescaled if necessary).
        @param repeats number of intermediary images between the background image and the foreground image.
      */    
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillImage(const cv::Mat &img,
-						    float angle,
-						    const cv::Mat &backgroundImg,
-						    int repeats);
+    extern FRAMEWORK_EXPORT cv::Mat rotateFillImageN(const cv::Mat &img,
+						     float angle,
+						     const cv::Mat &backgroundImg,
+						     int repeats);
     
     /**
-       Rotate in image and fill appearing background pixels with given background images.
+       Rotate in image and fill appearing background pixels with given background image repeated several times.
 
        The background images are inserted once each. @a backgroundImgs[0] is inserted at angle 0, then @a backgroundImgs[1] at angle (@a angle/@a backgroundImgs.size()), ...
        If @a backgroundImgs is empty, black background pixels are used.
@@ -76,9 +75,9 @@ namespace dc {
        @param angle rotation angle in degrees.
        @param backgroundImage background image (rescaled if necessary).
      */    
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillImage(const cv::Mat &img,
-						    float angle,
-						    const std::vector<cv::Mat> &backgroundImgs);
+    extern FRAMEWORK_EXPORT cv::Mat rotateFillImages(const cv::Mat &img,
+						     float angle,
+						     const std::vector<cv::Mat> &backgroundImgs);
     
     
 
@@ -117,7 +116,7 @@ namespace dc {
     */
     extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint1(const cv::Mat &img,
 						       float angle,
-						       float inpaintingRatio = 0.05);
+						       float inpaintingRatio = 0.05f);
 
     
     /**

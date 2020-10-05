@@ -114,7 +114,7 @@ GrayCharacterDegradationDialog::degrade()
 
   int I = ui->cboIndependent->value();
   int O = ui->cboOverlapping->value();
-  int D = ui->cboDisconnection->value();
+  //int D = ui->cboDisconnection->value();
   int levelOfNoise = ui->cboLevelOfNoise->value();
 
   //B: CODE DUPLICATION ? there is almost the same code in GrayCharacterDegradationParameter.cpp
@@ -126,9 +126,7 @@ GrayCharacterDegradationDialog::degrade()
     return;
   }
 
-  dc::GrayscaleCharsDegradationModelQ cdg(img);
-
-  const QImage dst = cdg.degradate(levelOfNoise, I, O, D);
+  const QImage dst = dc::CharactersDegradation::degradation(img, levelOfNoise, I, O);
 
   //B: It would be better to be able to visualize the produced image
   // and not save it on disk

@@ -13,6 +13,143 @@
 
 namespace dc {
 
+  constexpr int WHITE = 255;
+  constexpr int BLACK = 0;
+  constexpr float PERCENT = 0.01f;
+
+  struct Pixel
+  {
+    cv::Point pos;
+    float distanceToEdge;
+    float probability;
+    float gradient_value;
+    float gradient_angle;
+    bool isBackground;
+
+    Pixel(int x=0, int y=0) :
+      pos(x, y),
+      distanceToEdge(0),
+      probability(-1),
+      gradient_value(0),
+      gradient_angle(0),
+      isBackground(true)
+    {}
+
+  };
+
+  struct Seedpoint
+  {
+    Seedpoint(const Pixel &p = Pixel(),
+	      float sz = 0.f,
+	      float tache = -1.f,
+	      float cheval = -1.f,
+	      float diffusion = FLT_MAX,
+	      int t = -1) :
+      pixel(p),
+      size(sz),
+      b_tache(tache),
+      b_cheval(cheval),
+      b_diffusion(diffusion),
+      type(t)
+    {}
+
+    Pixel pixel;
+    float size;
+    float b_tache;
+    float b_cheval;
+    float b_diffusion;
+    int type;
+  };
+
+
+  class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
+  {
+  public:
+    explicit GrayscaleCharsDegradationModel(const cv::Mat &img);
+    ~GrayscaleCharsDegradationModel();
+
+    cv::Mat degradate_cv(int level = 1, float I = 33, float O = 33, float D = 34);
+    cv::Mat degradateByLevel_cv(int level);
+    cv::Mat getImageGray_cv();
+    cv::Mat getImageDegraded_cv();
+
+  private:
+
+    int getMinStrokeWidthAtASeedPoint(const Seedpoint &sp, int &angle, cv::Point &A, cv::Point &B) const;
+
+    float getAvgStrokeWidth() const;
+
+    int getNumberOfConnectedComponants() const;
+    void initialize(const cv::Mat &imgInput);
+
+    void calculateNoiseRegionType(float b0);
+    void calculateNoiseRegionType();
+
+    void grayscaleDegradationByTypes();
+    //void RapidlyGrayscaleDegradationByTypes();
+    void separateSeedPointsByTypes(float percent_cheval, float percent_diffusion);
+    void assignmentSizeOfNoiseRegion();
+
+
+    void extractConnectedComponantInfos();
+
+    int calculateDistanceFromBord(const Pixel &pixel) const;
+    int calculateApproximatelyDistanceFromBord(const Pixel &pixel) const;
+
+    std::vector<float*> getEllipsePoints(cv::Rect &rec,int &max_B, int &min_B, cv::Point centre, double semi_minor_axis, double semi_major_axis, double theta);
+    //std::vector<cv::Point> getLinePoints(cv::Point A, cv::Point B) const;
+
+    void DegradedLine(const float* Line, cv::Point Centre, int Centre_gray, int pixel_signma, int sigma_gaussien,
+                      cv::Mat &imgGrayOutput, bool isFtoB);
+    void RapidlyDegradeLine(const float* Line, cv::Point Centre, int Centre_gray, cv::Mat &imgGrayOutput);
+
+    //unsigned int* calHist(cv::Mat src);
+
+    cv::Mat binarize();
+
+    void flipPixelsByProbability(float percent_independent);
+    void calculatePixelsProbability();
+
+    //int getTypeNoiseRegion(const std::vector<cv::Point> &listElipseEdgePoints);
+
+    void calculatePixelsDistanceTransform();
+
+  private:
+
+    //global parameters
+    cv::Mat _mat_output;
+    //cv::Mat _mat_input;
+    cv::Mat _mat_gray;
+    cv::Mat _mat_binary;
+
+    cv::Mat _mat_reduce_pixels;
+    cv::Mat _mat_CCs;
+    cv::Mat _mat_contour;
+
+    int _inputType;
+
+    int _width, _height;
+    int _avgBackground, _avgForeground, _nb_connectedcomponants, _MAX_a0;
+    // Kanungo parameters
+    double _alpha, _beta, _alpha0, _beta0, _nf, _nb;
+    // Grayscale Model parameters
+    float _a0, _g, _MAX_Gradient, _AVG_Gradient, _sigma_gausien;
+    bool _is4connected;
+    std::vector<Seedpoint> _listSeedPoints;
+    std::vector<Pixel> _listPixels;
+
+    std::vector<std::vector<cv::Point> > _contours;
+    // connected component
+    //std::vector<CC*> _listCCs;
+    float _Mean_CC_Distance, _Max_CC_Distance;
+    float _Mean_CC_Stroke, _Max_CC_Stroke;
+    float _Total_Degradation;
+    int _nbSPs_User;
+    int _local_zone;
+
+  };
+
+
   //#include <iostream>//DEBUG
 
   /**
@@ -2663,6 +2800,28 @@ namespace dc {
 
     _listPixels.clear();
   }
+
+
+  namespace GrayscaleCharsDegradation {
+
+    cv::Mat degradation(const cv::Mat &img, int level, float indepentSpotsRatio, float overlappingSpotsRatio)
+    {
+      assert(0.0<=indepentSpotsRatio && indepentSpotsRatio<=1.0);
+      assert(0.0<=overlappingSpotsRatio && overlappingSpotsRatio<=1.0);
+
+      const float percentOfIndepentSpots = 100.f*indepentSpotsRatio;
+      const float percentOfOverlappingSpots = 100.f*overlappingSpotsRatio;
+      const float percentageOfDisconnectionSpots = 100.f - percentOfIndepentSpots - percentOfOverlappingSpots;
+
+      GrayscaleCharsDegradationModel cdm(img);
+      const cv::Mat out = cdm.degradate_cv(level, percentOfIndepentSpots, percentOfOverlappingSpots, percentageOfDisconnectionSpots);
+
+      return out;
+    }
+
+
+  } //namespace GrayscaleCharsDegradation
+
 
 
 } //namespace dc

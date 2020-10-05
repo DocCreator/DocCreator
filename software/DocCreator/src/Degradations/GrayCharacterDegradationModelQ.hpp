@@ -9,29 +9,11 @@
 
 namespace dc {
 
-  /*
   namespace CharactersDegradation {
 
-
+    extern FRAMEWORK_EXPORT QImage degradation(const QImage &img, int level = 1, float percentOfIndepentSpots = 33, float percentOfOverlappingSpots = 33);
 
   } //namespace CharactersDegradation
-  */
-
-  class FRAMEWORK_EXPORT GrayscaleCharsDegradationModelQ
-  {
-  public:
-    explicit GrayscaleCharsDegradationModelQ(const QImage &img);
-
-    QImage degradate(int level = 1, float I = 33, float O = 33, float D = 34);
-    QImage degradateByLevel(int level);
-  
-
-  private:
-  //void initialize(const QImage &input);
-
-  private:
-    GrayscaleCharsDegradationModel _cdm;
-  };
 
 
 } //namespace dc

@@ -55,7 +55,7 @@ namespace dc {
 #endif //USE_NATIVE_OSMESA
 
     
-    void degrade3D(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
+    void degrade3DN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
@@ -126,7 +126,7 @@ namespace dc {
 
     }
     
-    void degrade3DWithBackground(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
+    void degrade3DWithBackgroundN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);

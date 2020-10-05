@@ -69,7 +69,7 @@ testSimple1(int imageType)
   const float intensity = 0.5;
   const float angle = 45;
   
-  const cv::Mat out = dc::ShadowBinding::shadowBinding(img, distanceRatio, border, intensity, angle);
+  const cv::Mat out = dc::ShadowBinding::shadowBinding2(img, distanceRatio, border, intensity, angle);
 
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, imgClone) );

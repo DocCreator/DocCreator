@@ -39,7 +39,7 @@ namespace dc {
       const cv::Mat matIn = Convertor::getCvMat(img);
       const cv::Mat matBack = Convertor::getCvMat(backgroundImg);
       
-      const cv::Mat matOut = dc::RotationDegradation::rotateFillImage(matIn, angle, matBack, repeats);
+      const cv::Mat matOut = dc::RotationDegradation::rotateFillImageN(matIn, angle, matBack, repeats);
 
       return Convertor::getQImage(matOut);
     }
@@ -56,7 +56,7 @@ namespace dc {
       }
       assert(matBacks.size() == backgroundImgs.size());
       
-      const cv::Mat matOut = dc::RotationDegradation::rotateFillImage(matIn, angle, matBacks);
+      const cv::Mat matOut = dc::RotationDegradation::rotateFillImages(matIn, angle, matBacks);
 
       return Convertor::getQImage(matOut);
     }

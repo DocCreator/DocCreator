@@ -22,7 +22,7 @@ namespace dc {
     }
 
     QImage
-    shadowBinding(const QImage &imgOriginal,
+    shadowBinding2(const QImage &imgOriginal,
 		  float distanceRatio,
 		  dc::ShadowBinding::Border border,
 		  float intensity,
@@ -30,7 +30,7 @@ namespace dc {
     {
       const cv::Mat matIn = Convertor::getCvMat(imgOriginal);
 
-      const cv::Mat matOut = dc::ShadowBinding::shadowBinding(matIn, distanceRatio, border, intensity, angle);
+      const cv::Mat matOut = dc::ShadowBinding::shadowBinding2(matIn, distanceRatio, border, intensity, angle);
 
       const QImage out = Convertor::getQImage(matOut);
 

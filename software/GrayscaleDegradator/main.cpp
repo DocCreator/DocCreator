@@ -28,14 +28,11 @@ main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  int level = 10;
-  float I = 20;
-  float O = 30;
-  float D = 50;
+  int level = 10; //must be in [0; 10]
+  float I = 0.20;
+  float O = 0.30;
 
-  dc::GrayscaleCharsDegradationModel gdm(img);
-
-  cv::Mat outImg = gdm.degradate_cv(level, I, O, D);
+  cv::Mat outImg = dc::GrayscaleCharsDegradation::degradation(img, level, I, O);
 
   const bool writeOk = cv::imwrite(outputImageFilename, outImg);
   if (!writeOk) {

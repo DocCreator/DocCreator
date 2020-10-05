@@ -8,19 +8,18 @@ namespace dc {
   namespace HoleDegradation {
 
     QImage
-    holeDegradation(const QImage &imgOriginal,
-		    const QImage &pattern,
-		    int xOrigin,
-		    int yOrigin,
-		    int size,
-		    HoleType type,
-		    int side,
-		    const QColor &color,
-		    const QImage &pageBelow,
-		    int width,
-		    float intensity)
+    addHole(const QImage &imgOriginal,
+	    const QImage &pattern,
+	    QPoint pos,
+	    int size,
+	    HoleType type,
+	    HoleSide side,
+	    const QColor &color,
+	    const QImage &pageBelow,
+	    int width,
+	    float intensity)
     {
-      cv::Mat matOriginal = Convertor::getCvMat(imgOriginal);
+      const cv::Mat matOriginal = Convertor::getCvMat(imgOriginal);
       cv::Mat matBelow;
       if (!pageBelow.isNull()) {
 	matBelow = Convertor::getCvMat(pageBelow);
@@ -42,28 +41,29 @@ namespace dc {
 	}
       }
 
-      const cv::Scalar color4(
-			      color.blue(), color.green(), color.red(), color.alpha());
+      const cv::Scalar color4(color.blue(),
+			      color.green(),
+			      color.red(),
+			      color.alpha());
 
-      cv::Mat matOut = holeDegradation(matOriginal,
-				       matPattern,
-				       xOrigin,
-				       yOrigin,
-				       size,
-				       type,
-				       side,
-				       color4,
-				       matBelow,
-				       width,
-				       intensity);
+      cv::Mat matOut = addHole(matOriginal,
+			       matPattern,
+			       cv::Point(pos.x(), pos.y()),
+			       size,
+			       type,
+			       side,
+			       color4,
+			       matBelow,
+			       width,
+			       intensity);
 
       return Convertor::getQImage(matOut);
     }
     
-    QImage holeDegradation(const QImage &imgOriginal, const QImage &pattern, float ratioOutside, int size, HoleType type, int side, const QColor &color, const QImage &pageBelow, int width, float intensity)
+    QImage addHoleAtRandom(const QImage &imgOriginal, const QImage &pattern, float ratioOutside, int size, HoleType type, HoleSide side, const QColor &color, const QImage &pageBelow, int width, float intensity)
     {
       
-      cv::Mat matOriginal = Convertor::getCvMat(imgOriginal);
+      const cv::Mat matOriginal = Convertor::getCvMat(imgOriginal);
       cv::Mat matBelow;
       if (!pageBelow.isNull()) {
 	matBelow = Convertor::getCvMat(pageBelow);
@@ -85,10 +85,12 @@ namespace dc {
 	}
       }
 
-      const cv::Scalar color4(
-			      color.blue(), color.green(), color.red(), color.alpha());
+      const cv::Scalar color4(color.blue(),
+			      color.green(),
+			      color.red(),
+			      color.alpha());
 
-      cv::Mat matOut = holeDegradation(matOriginal,
+      cv::Mat matOut = addHoleAtRandom(matOriginal,
 				       matPattern,
 				       size,
 				       type,
@@ -107,17 +109,16 @@ namespace dc {
   QImage
   HoleDegradationQ::apply()
   {
-    QImage finalImg = dc::HoleDegradation::holeDegradation(_original,
-							   _pattern,
-							   _xOrigin,
-							   _yOrigin,
-							   _size,
-							   _type,
-							   _side,
-							   _color,
-							   _pageBelow,
-							   _width,
-							   _intensity);
+    QImage finalImg = dc::HoleDegradation::addHole(_original,
+						   _pattern,
+						   _pos,
+						   _size,
+						   _type,
+						   _side,
+						   _color,
+						   _pageBelow,
+						   _width,
+						   _intensity);
     
     emit imageReady(finalImg);
     

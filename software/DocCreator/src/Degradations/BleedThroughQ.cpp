@@ -8,23 +8,24 @@ namespace dc {
 
   namespace BleedThrough {
 
-    QImage bleedThrough(const QImage &imgRecto, const QImage &imgVerso, int nbIters, int x, int y, int nbThreads)
+    QImage bleedThrough(const QImage &imgRecto, const QImage &imgVerso, int nbIters, QPoint pos, int numThreads)
     {
-      cv::Mat imgRectoMat = Convertor::getCvMat(imgRecto);
-      cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
+      const cv::Mat originalRectoMat = Convertor::getCvMat(imgRecto);
+      const cv::Mat imgRectoMat = originalRectoMat.clone();
+      const cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
 
-      cv::Mat out = dc::BleedThrough::bleedThrough(imgRectoMat.clone(), imgRectoMat, imgVersoMat, nbIters, x, y, nbThreads);
+      cv::Mat out = dc::BleedThrough::bleedThroughInc(originalRectoMat, imgRectoMat, imgVersoMat, nbIters, cv::Point(pos.x(), pos.y()), numThreads);
 
       return Convertor::getQImage(out);
     }
     
-    QImage bleedThrough(const QImage &originalRecto, const QImage &imgRecto, const QImage &imgVerso, int nbIters, int x, int y, int nbThreads)
+    QImage bleedThroughInc(const QImage &originalRecto, const QImage &imgRecto, const QImage &imgVerso, int nbIters, QPoint pos, int numThreads)
     {
-      cv::Mat originalRectoMat = Convertor::getCvMat(originalRecto);
-      cv::Mat imgRectoMat = Convertor::getCvMat(imgRecto);
-      cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
+      const cv::Mat originalRectoMat = Convertor::getCvMat(originalRecto);
+      const cv::Mat imgRectoMat = Convertor::getCvMat(imgRecto);
+      const cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
 
-      cv::Mat out = dc::BleedThrough::bleedThrough(originalRectoMat, imgRectoMat, imgVersoMat, nbIters, x, y, nbThreads);
+      cv::Mat out = dc::BleedThrough::bleedThroughInc(originalRectoMat, imgRectoMat, imgVersoMat, nbIters, cv::Point(pos.x(), pos.y()), numThreads);
 
       return Convertor::getQImage(out);
     }
@@ -97,9 +98,9 @@ namespace dc {
     progress.setWindowModality(Qt::WindowModal);
 
     
-    cv::Mat originalRectoMat = Convertor::getCvMat(originalRecto);
+    const cv::Mat originalRectoMat = Convertor::getCvMat(originalRecto);
     cv::Mat imgRectoMat = Convertor::getCvMat(imgRecto);
-    cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
+    const cv::Mat imgVersoMat = Convertor::getCvMat(imgVerso);
     cv::Mat outMat; // = originalRectoMat.clone();
     
     const int lNbIter = _nbIter;
@@ -111,7 +112,7 @@ namespace dc {
 	break;
       }
 
-      outMat = dc::BleedThrough::bleedThrough(originalRectoMat, imgRectoMat, imgVersoMat, 1, 0, 0, -1);
+      outMat = dc::BleedThrough::bleedThroughInc(originalRectoMat, imgRectoMat, imgVersoMat, 1, cv::Point(0, 0), -1);
 
       cv::swap(imgRectoMat, outMat);
       

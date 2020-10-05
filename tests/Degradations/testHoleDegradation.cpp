@@ -78,13 +78,13 @@ testSimple0(int imageType)
   const int yOrigin = 0;
   const int size = 0;
   const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
-  const int side = 0;
+  const dc::HoleDegradation::HoleSide side = dc::HoleDegradation::HoleSide::BORDER_TOP;
     
-  cv::Mat out = holeDegradation(img, hole,
-				xOrigin, yOrigin,
-				size,
-				type, side,
-				COLOR);
+  cv::Mat out = addHole(img, hole,
+			cv::Point(xOrigin, yOrigin),
+			size,
+			type, side,
+			COLOR);
 
   REQUIRE( out.type() == img.type() );
 				  
@@ -127,13 +127,13 @@ testSimple1(int imageType)
   const int yOrigin = HOLE_COLS;
   const int size = 0;
   const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
-  const int side = 0;
+  const dc::HoleDegradation::HoleSide side = dc::HoleDegradation::HoleSide::BORDER_TOP;
     
-  cv::Mat out = holeDegradation(img, hole,
-				xOrigin, yOrigin,
-				size,
-				type, side,
-				COLOR);
+  cv::Mat out = addHole(img, hole,
+			cv::Point(xOrigin, yOrigin),
+			size,
+			type, side,
+			COLOR);
 
   REQUIRE( out.type() == img.type() );
   
@@ -173,13 +173,13 @@ testSimple2(int imageType)
   const int yOrigin = COLS;
   const int size = 0;
   const dc::HoleDegradation::HoleType type = dc::HoleDegradation::HoleType::CENTER;
-  const int side = 0;
+  const dc::HoleDegradation::HoleSide side = dc::HoleDegradation::HoleSide::BORDER_TOP;
     
-  cv::Mat out = holeDegradation(img, hole,
-				xOrigin, yOrigin,
-				size,
-				type, side,
-				COLOR, img);
+  cv::Mat out = addHole(img, hole,
+			cv::Point(xOrigin, yOrigin),
+			size,
+			type, side,
+			COLOR, img);
 				  
   REQUIRE( out.type() == img.type() );
 

@@ -14,15 +14,15 @@ namespace dc {
     */
     extern FRAMEWORK_EXPORT QImage blur(const QImage &originalImg,
 					dc::BlurFilter::Method method,
-					int intensity);
+					int kernelSize);
 
     /*
       Apply blur to specific image area
     */
-    extern FRAMEWORK_EXPORT QImage blur(const QImage &originalImg, Method method, int intensity, Function function, Area area=Area::UP, float coeff=1, int vertical=0, int horizontal=0, int radius=0); //Vertical : Position vertical of the area, Horizontal : Position Horizontal of the area
+    extern FRAMEWORK_EXPORT QImage blur(const QImage &originalImg, Method method, int kernelSize, Function function, Area area=Area::UP, float coeff=1, int vertical=0, int horizontal=0, int radius=0); //Vertical : Position vertical of the area, Horizontal : Position Horizontal of the area
 
     extern FRAMEWORK_EXPORT QImage makePattern(const QImage &originalImg, Function function, Area area, float coeff, int vertical, int horizontal, int radius = 10);
-    extern FRAMEWORK_EXPORT QImage applyPattern(const QImage &originalImg, const QImage &pattern, Method method, int intensity);
+    extern FRAMEWORK_EXPORT QImage applyPattern(const QImage &originalImg, const QImage &pattern, Method method, int kernelSize);
 
     extern FRAMEWORK_EXPORT float getRadiusFourier(const QImage &img);
 
@@ -39,13 +39,13 @@ namespace dc {
 
     explicit BlurFilterQ(const QImage &original,
 			 dc::BlurFilter::Method method,
-			 int intensity,
+			 int kernelSize,
 			 dc::BlurFilter::Mode mode = dc::BlurFilter::Mode::COMPLETE,
 			 dc::BlurFilter::Function function = dc::BlurFilter::Function::LINEAR,
 			 dc::BlurFilter::Area area = dc::BlurFilter::Area::UP,
 			 float coeff=1, int vertical=0, int horizontal=0, int radius=0,
 			 const QImage &pattern = QImage(), QObject *parent =0) :
-      DocumentDegradation(parent), _intensity(intensity), _method(method), _mode(mode), _function(function), _area(area), _coeff(coeff), _vertical(vertical), _horizontal(horizontal), _radius(radius), _original(original), _pattern(pattern)
+      DocumentDegradation(parent), _kernelSize(kernelSize), _method(method), _mode(mode), _function(function), _area(area), _coeff(coeff), _vertical(vertical), _horizontal(horizontal), _radius(radius), _original(original), _pattern(pattern)
     {}
 
 
@@ -58,7 +58,7 @@ namespace dc {
     void imageReady(const QImage &);
 
   protected :
-    const int _intensity;
+    const int _kernelSize;
     const dc::BlurFilter::Method _method;
     const dc::BlurFilter::Mode _mode;
     const dc::BlurFilter::Function _function;
