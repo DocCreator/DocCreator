@@ -18,6 +18,7 @@ SET( CMAKE_VERBOSE_MAKEFILE ON )
 SET(sources
   main.cpp
   MainWindow.cpp
+  CharacterWidget.cpp
   )
 
 SET( PROGNAME DocCreatorMakeFont )
