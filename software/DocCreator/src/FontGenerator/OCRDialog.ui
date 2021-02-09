@@ -323,6 +323,24 @@
                </property>
               </spacer>
              </item>
+             <item>
+              <widget class="QPushButton" name="apply">
+               <property name="font">
+                <font>
+                 <pointsize>15</pointsize>
+                 <weight>75</weight>
+                 <italic>false</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Add to font</string>
+               </property>
+               <property name="text">
+                <string>Add</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
           </layout>
@@ -354,41 +372,26 @@
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::MinimumExpanding</enum>
+             </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>158</width>
+               <width>28</width>
                <height>20</height>
               </size>
              </property>
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
+            <widget class="QLabel" name="label_5">
              <property name="text">
-              <string>Split / Merge</string>
+              <string>Font:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="apply">
-             <property name="font">
-              <font>
-               <pointsize>15</pointsize>
-               <weight>75</weight>
-               <italic>false</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Add to font</string>
-             </property>
-             <property name="text">
-              <string>Add</string>
-             </property>
-            </widget>
+            <widget class="QFontComboBox" name="fontComboBox"/>
            </item>
           </layout>
          </item>

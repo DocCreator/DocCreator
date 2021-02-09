@@ -13,6 +13,7 @@ namespace Models {
 class Font;
 }
 
+class QFont;
 class QLabel;
 class QTableView;
 
@@ -54,12 +55,14 @@ private slots:
 
   void on_saveFont_clicked();
 
+  void on_fontComboBox_currentFontChanged(QFont);
+
 protected:
   struct FontLetter
   {
     // Binary mask of kept parts of the character
     cv::Mat mask;
-    std::string label;
+    QString label;
     float confidence = 0.f;
 
     // Bounding box of the character in the image
@@ -102,15 +105,17 @@ protected:
                            int background_value = 237) const;
 
   QColor getConfidenceColor(float conf) const;
-  std::vector<int> getSimilarLetters(const std::string &label) const;
+  std::vector<int> getSimilarLetters(const QString &label) const;
 
   //std::vector<FontLetter> getFinalFont() const;
 
-  int indexOfLetterInAlphabet(const std::string &label) const;
+  int indexOfLetterInAlphabet(const QString &label) const;
 
-  int frequencyInValidatedFont(const std::string &label) const;
+  int frequencyInValidatedFont(const QString &label) const;
   size_t countCharacters() const;
   void updateOkButton(size_t numCharacters);
+
+  void setLetterLabel(const QString &s);
 
 private:
   Ui::OCRDialog *ui;
@@ -135,7 +140,7 @@ private:
     int frequencyValidatedFont; //frequency of letter in m_validatedFont
 
     //REM: frequencyValidatedFont may be superior to frequencyFont
-    // because we can add the same instance several times, with a diferent baseline for example.
+    // because we can add the same instance several times, with a different baseline for example.
   };
   
   std::vector<AlphabetInfo> m_alphabet;

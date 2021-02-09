@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <QDebug>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -380,7 +381,7 @@ OCRDialog::process()
           FontLetter fl;
           fl.binarization_step = Binarization::binarize(mask, mask);
           fl.mask = mask;
-          fl.label = symbol;
+          fl.label = QString::fromUtf8(symbol);
 
           const int b2 = Baseline::getBaseline(r, baselines_tmp);
           fl.baseline2 = b2 - r.y;
@@ -469,7 +470,7 @@ OCRDialog::updateTableLetters()
   If not found, m_alphabet.size() is returned.
  */
 int
-OCRDialog::indexOfLetterInAlphabet(const std::string &label) const
+OCRDialog::indexOfLetterInAlphabet(const QString &label) const
 {
   int index = m_alphabet.size();
   const int asz = (int)m_alphabet.size();
@@ -491,7 +492,7 @@ OCRDialog::indexOfLetterInAlphabet(const std::string &label) const
 */
 /*
 bool
-OCRDialog::isLetterAdded(const std::string &label) const
+OCRDialog::isLetterAdded(const QString &label) const
 {
   for (const FontLetter &fl : m_validatedFont) {
     if (fl.label == label)
@@ -502,7 +503,7 @@ OCRDialog::isLetterAdded(const std::string &label) const
 */
 
 int
-OCRDialog::frequencyInValidatedFont(const std::string &label) const
+OCRDialog::frequencyInValidatedFont(const QString &label) const
 {
   int freq = 0;
   for (const FontLetter &fl : m_validatedFont) {
@@ -512,6 +513,11 @@ OCRDialog::frequencyInValidatedFont(const std::string &label) const
   return freq;
 }
 
+void
+OCRDialog::on_fontComboBox_currentFontChanged(QFont)
+{
+  updateAlphabet();
+}
 
 void
 OCRDialog::updateAlphabet()
@@ -554,21 +560,22 @@ OCRDialog::updateAlphabet()
 	    });
 
   // We fill the QTable
+  QFont qtFont = ui->fontComboBox->currentFont();
   for (int j = 0; j < (int)m_alphabet.size(); ++j) {
     QTableWidgetItem *thumb = new QTableWidgetItem();
     //B:REM: using html text in QTableWidgetItem::setText() does not work. We would need to code a delegate ?
 
-    QString text=QString::fromStdString(m_font[m_alphabet[j].index].label + " (" + std::to_string(m_alphabet[j].frequencyFont) + ")");
+    QString text = m_font[m_alphabet[j].index].label + QString(" (") + QString::number(m_alphabet[j].frequencyFont) + QString(")");
 
     const bool letterAlreadyAdded = (m_alphabet[j].frequencyValidatedFont > 0); //isLetterAdded(m_font[m_alphabet[j].index].label);
-
     if (letterAlreadyAdded) 
-      text += QString(" [")+QString::number(m_alphabet[j].frequencyValidatedFont)+QString("]");    
+      text += QString(" [")+QString::number(m_alphabet[j].frequencyValidatedFont)+QString("]");
+
+    thumb->setFont(qtFont);
     thumb->setText(text);
-    
+
     //B:TODO:we have to display one more field : the number of instance added to m_validateFont.
 
-    
     //TODO:OPTIM: set number of rows at once (setRowCount() ?)
     if (j % NUM_COLUMNS == 0)
       ui->tableAlphabet->insertRow(ui->tableAlphabet->rowCount());
@@ -607,6 +614,13 @@ OCRDialog::updateAlphabet()
     ui->tableAlphabet->setCurrentCell(row, col);
   }
   
+}
+
+void
+OCRDialog::setLetterLabel(const QString &s)
+{
+  ui->letterLabel->setFont(ui->fontComboBox->currentFont());
+  ui->letterLabel->setText(s);
 }
 
 //B:TODO: clean up this code
@@ -677,7 +691,7 @@ OCRDialog::updateView()
     ori_img2.scaled(200, 200, Qt::KeepAspectRatio, Qt::FastTransformation)));
 
   // Set the label
-  ui->letterLabel->setText(QString::fromStdString(m_currentLetter.label));
+  setLetterLabel(m_currentLetter.label);
 
   // Set the baseline value
   ui->baselineSpinBox->setValue(m_currentLetter.baseline);
@@ -747,7 +761,7 @@ OCRDialog::getConfidenceColor(float conf) const
    The letters are sorted by decreasing confidence of the guessed label
 */
 std::vector<int>
-OCRDialog::getSimilarLetters(const std::string &label) const
+OCRDialog::getSimilarLetters(const QString &label) const
 {
   struct IndiceConfidence
   {
@@ -857,23 +871,10 @@ OCRDialog::on_baselineSpinBox_valueChanged(int arg1)
 size_t
 OCRDialog::countCharacters() const
 {
-  //m_validatedFont.size() is the nuber of instances
-
-#if 0
-  //code if FontLetter::label was a QString
-  
   QHash<QString, bool> characters; //used as an unordered_set of QStrings
   for (const FontLetter &f : m_validatedFont)
     characters[f.label] = true;
   return characters.size();
-#else
-  std::unordered_set<std::string> characters;
-   for (const FontLetter &f : m_validatedFont)
-     characters.insert(f.label);
-  return characters.size();
-#endif
-
-  
 }
 
 void
@@ -885,7 +886,7 @@ OCRDialog::on_apply_clicked()
   assert(m_currentIndex >= 0 && m_currentIndex < (int)m_font.size());
 
   // Modify the label and set the confidence to 100%
-  m_currentLetter.label = ui->letterLabel->text().toUtf8().constData();
+  m_currentLetter.label = ui->letterLabel->text(); //ui->letterLabel->text().toUtf8().constData();
   m_currentLetter.confidence = 100;
   m_font[m_currentIndex] = m_currentLetter;
 
@@ -962,7 +963,7 @@ void
 OCRDialog::on_letterLabel_textChanged()
 {
   // Update the label
-  m_currentLetter.label = ui->letterLabel->text().toUtf8().constData();
+  m_currentLetter.label = ui->letterLabel->text(); //ui->letterLabel->text().toUtf8().constData();
 }
 
 void
@@ -993,7 +994,7 @@ OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
 {
   // Get current label
   assert(row * NUM_COLUMNS + column < (int)m_alphabet.size());
-  const std::string label = m_font[m_alphabet[row * NUM_COLUMNS + column].index].label;
+  const QString label = m_font[m_alphabet[row * NUM_COLUMNS + column].index].label;
 
   // Select the one with the highest confidence
   float best_confidence = -1;
@@ -1109,19 +1110,19 @@ OCRDialog::getFont() const
   int sum_spacing_h = 0;
   int nb = 0;
 
-  std::unordered_map<std::string, std::vector<size_t> > letter2indices;
+  QHash<QString, std::vector<size_t> > letter2indices;
   const size_t totalNumInstances = m_validatedFont.size();
   for (size_t i=0; i<totalNumInstances; ++i) {
     const FontLetter &fl = m_validatedFont[i];
     letter2indices[fl.label].push_back(i);
   }
-    
-  for (const auto &l2i : letter2indices) {
-    assert(! l2i.second.empty());
-    const size_t ind0 = l2i.second[0];
+
+  for (auto it = letter2indices.constBegin(); it != letter2indices.constEnd(); ++it) {
+    assert(! it.value().empty());
+    const size_t ind0 = it.value()[0];
     const FontLetter &fl0 = m_validatedFont[ind0];
-    assert(fl0.label == l2i.first);
-    
+    assert(fl0.label == it.key());
+
     //B:TODO
     // For now, We keep the baseline of the first instance.
     // (It is completely arbitrary)
@@ -1134,15 +1135,14 @@ OCRDialog::getFont() const
     const qreal leftLine = 0;
     const qreal rightLine = 100;
 
-    auto c = new Models::Character(QString::fromStdString(fl0.label),
+    auto c = new Models::Character(fl0.label,
 				   upLine, baseLine, leftLine, rightLine);
 
-
-    const size_t numInstances = l2i.second.size();
+    const size_t numInstances = it.value().size();
     for (size_t i=0; i<numInstances; ++i) {
-      const FontLetter &fls = m_validatedFont[l2i.second[i]];
-      
-      QImage image = getQImageFromMask(thumb(fls.rect), fls.mask);
+      const FontLetter &fls = m_validatedFont[it.value()[i]];
+
+      const QImage image = getQImageFromMask(thumb(fls.rect), fls.mask);
 
       auto *cd = new Models::CharacterData(image, i);
       c->add(cd);
@@ -1154,10 +1154,10 @@ OCRDialog::getFont() const
 
     const bool addOk = font->addCharacter(c);
     if (!addOk) {
-      std::cerr << "Warning: character for letter " << fl0.label
+      qDebug() << "Warning: character for letter " << fl0.label
                 << " was not added to font. Already present ?\n";
     }
-    
+
   }
 
   if (nb > 0) {
@@ -1180,13 +1180,12 @@ OCRDialog::getFont() const
     c->add(cd);
     const bool addOk = font->addCharacter(c);
     if (!addOk) {
-      std::cerr << "Warning: character for space letter was not added to font. "
+      qDebug() << "Warning: character for space letter was not added to font. "
                    "Already present ?\n";
     }
   }
 
-  return font;  
-  
+  return font;
 }
 
 
@@ -1217,7 +1216,7 @@ OCRDialog::getFont() const
     const qreal leftLine = 0;
     const qreal rightLine = 100;
 
-    auto c = new Models::Character(QString::fromStdString(fl.label),
+    auto c = new Models::Character(fl.label,
 				   upLine, baseLine, leftLine, rightLine);
     int picture_id = 0;
     const std::vector<int> sim = getSimilarLetters(fl.label);
@@ -1238,7 +1237,7 @@ OCRDialog::getFont() const
 
     const bool addOk = font->addCharacter(c);
     if (!addOk) {
-      std::cerr << "Warning: character for letter " << fl.label
+      std::cerr << "Warning: character for letter " << fl.label.toStdString()
                 << " was not added to font. Already present ?\n";
     }
   }
