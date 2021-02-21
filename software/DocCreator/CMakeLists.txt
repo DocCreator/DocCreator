@@ -48,8 +48,8 @@ IF(BUILD_TESSERACT)
   message(STATUS "Will download and build leptonica and tesseract from sources")
 
   SET(LEPTONICA_VERSION 1.80.0)
-  SET(TESSERACT_VERSION 41) #library suffixe
-  SET(TESSERACT_ARCHIVE_VERSION 4.1.1)
+  #SET(TESSERACT_VERSION 41) #library suffixe
+  #SET(TESSERACT_ARCHIVE_VERSION 4.1.1)
   SET(LEPTONICA_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/leptonica-${LEPTONICA_VERSION}")
   SET(TESSERACT_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/tesseract-${TESSERACT_ARCHIVE_VERSION}")
   #TODO: check that directories exist
@@ -57,10 +57,10 @@ IF(BUILD_TESSERACT)
   IF (NOT EXISTS ${LEPTONICA_SRC_DIR} OR NOT EXISTS ${TESSERACT_SRC_DIR} OR NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata) 
 
     SET(LEPTONICA_URL "https://github.com/DanBloomberg/leptonica/archive/${LEPTONICA_VERSION}.tar.gz")
-    #SET(LEPTONICA_URL "http://dept-info.labri.fr/~mansenca/leptonica-${LEPTONICA_VERSION}.tar.gz") 
-    SET(TESSERACT_URL "https://github.com/tesseract-ocr/tesseract/archive/${TESSERACT_ARCHIVE_VERSION}.tar.gz")
+    ##SET(LEPTONICA_URL "http://dept-info.labri.fr/~mansenca/leptonica-${LEPTONICA_VERSION}.tar.gz")
+    #SET(TESSERACT_URL "https://github.com/tesseract-ocr/tesseract/archive/${TESSERACT_ARCHIVE_VERSION}.tar.gz")
     SET(LEPTONICA_ARCHIVE "leptonica.tar.gz")
-    SET(TESSERACT_ARCHIVE "tesseract.tar.gz")
+    #SET(TESSERACT_ARCHIVE "tesseract.tar.gz")
     IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE})
       MESSAGE(STATUS "  downloading leptonica & tesseract")
       FILE(DOWNLOAD ${LEPTONICA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${LEPTONICA_ARCHIVE} STATUS status LOG log)
@@ -70,12 +70,12 @@ IF(BUILD_TESSERACT)
         MESSAGE(FATAL_ERROR "error: downloading ${LEPTONICA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
       ENDIF()
       
-      FILE(DOWNLOAD ${TESSERACT_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} STATUS status LOG log)
-      LIST(GET status 0 status_code)
-      LIST(GET status 1 status_string)
-      IF(NOT status_code EQUAL 0)
-        MESSAGE(FATAL_ERROR "error: downloading ${TESSERACT_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-      ENDIF()
+      # FILE(DOWNLOAD ${TESSERACT_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} STATUS status LOG log)
+      # LIST(GET status 0 status_code)
+      # LIST(GET status 1 status_string)
+      # IF(NOT status_code EQUAL 0)
+      #   MESSAGE(FATAL_ERROR "error: downloading ${TESSERACT_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
+      # ENDIF()
       MESSAGE(STATUS "  downloading done.")
     ENDIF()
     #download tessdata
@@ -101,7 +101,7 @@ IF(BUILD_TESSERACT)
     ENDIF()
 
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${LEPTONICA_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
-    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
+    # EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
     MESSAGE(STATUS "  decompression done.")
   ENDIF()
 
@@ -166,11 +166,11 @@ IF(BUILD_TESSERACT)
   ADD_DEPENDENCIES(leptonicaLib leptonica)
 
   ExternalProject_Get_Property(leptonica install_dir)
-  message("leptonica install_dir=${install_dir}")
-  message("Leptonica_INCLUDE_DIRS=${Leptonica_INCLUDE_DIRS}")
+  #message("leptonica install_dir=${install_dir}")
+  #message("Leptonica_INCLUDE_DIRS=${Leptonica_INCLUDE_DIRS}")
   set(Lept_INCLUDE_DIRS "${install_dir}/include;${install_dir}/include/leptonica")
-  message("moi Lept_INCLUDE_DIRS=${Lept_INCLUDE_DIRS}")
-  message("Leptonica_LIBRARIES=${Leptonica_LIBRARIES}")
+  #message("moi Lept_INCLUDE_DIRS=${Lept_INCLUDE_DIRS}")
+  #message("Leptonica_LIBRARIES=${Leptonica_LIBRARIES}")
 
   #Tesseract is built with -std=c++11
   #If clang is used, we ensure that libc++ is also used.
@@ -181,7 +181,9 @@ IF(BUILD_TESSERACT)
 
   ExternalProject_Add(tesseract
     DEPENDS leptonica
-    URL ${TESSERACT_SRC_DIR}
+    #URL ${TESSERACT_SRC_DIR}
+    GIT_REPOSITORY https://github.com/tesseract-ocr/tesseract.git
+    GIT_TAG 8081cae82ee5649cf28a61533aeedee2b4ce4964
     PREFIX ${PROJECT_BINARY_DIR}/tesseract
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${ADDITIONAL_FLAG}
     BUILD_BYPRODUCTS ${TESSERACT_LIBRARY}
@@ -230,11 +232,11 @@ IF(BUILD_TESSERACT)
     SET(OTHER_LIBS "${GIF_LIBRARIES};${OTHER_LIBS}")
   ENDIF()
 
-  message("OTHER_LIBS=${OTHER_LIBS}")
+  #message("OTHER_LIBS=${OTHER_LIBS}")
   
   FIND_PACKAGE(PkgConfig QUIET)
   IF (PKG_CONFIG_FOUND)
-    message("search with pkg config")
+    #message("search with pkg config")
     pkg_check_modules(WEBP QUIET libwebp)
     IF(WEBP_FOUND)
       #SET(OTHER_LIBS "${WEBP_LIBRARIES};${OTHER_LIBS}")
@@ -247,7 +249,7 @@ IF(BUILD_TESSERACT)
     ENDIF()
   ENDIF()
   if(NOT WEBP)
-    message("search webp directly")
+    #message("search webp directly")
     find_path(WEBP_INCLUDE_DIR /webp/decode.h)
     find_library(WEBP_LIBRARY NAMES webp)
     if (WEBP_INCLUDE_DIR AND WEBP_LIBRARY)
@@ -256,7 +258,7 @@ IF(BUILD_TESSERACT)
     endif()
   endif()
   if(NOT JP2K)
-    message("search jp2k directly")
+    #message("search jp2k directly")
     find_path(JP2K_INCLUDE_DIR /openjpeg-2.3/openjpeg.h)
     find_library(JP2K_LIBRARY NAMES openjp2)
     if (JP2K_INCLUDE_DIR AND JP2K_LIBRARY)
@@ -265,7 +267,7 @@ IF(BUILD_TESSERACT)
     endif()
   endif()
 
-  message("OTHER_LIBS=${OTHER_LIBS}")
+  #message("OTHER_LIBS=${OTHER_LIBS}")
     
   SET(Lept_LIBRARIES "${LEPTONICA_LIBRARY};${OTHER_LIBS}")
   SET(Tesseract_LIBRARIES ${TESSERACT_LIBRARY})
@@ -273,8 +275,8 @@ IF(BUILD_TESSERACT)
     SET(Tesseract_LIBRARIES "${TESSERACT_LIBRARY};Ws2_32")
   ENDIF()
 
-  message("Lept_LIBRARIES=${Lept_LIBRARIES}")
-  message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
+  #message("Lept_LIBRARIES=${Lept_LIBRARIES}")
+  #message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
 
 
   #install tessdata
@@ -285,7 +287,7 @@ IF(BUILD_TESSERACT)
 ENDIF()
 
 SET(Tesseract_LIBRARIES "${Tesseract_LIBRARIES};${Lept_LIBRARIES}")
-message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
+#message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
 
 
 ######################################## TESSERACT
