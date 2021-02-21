@@ -214,8 +214,7 @@ OCRDialog::getQImageFromMask(const cv::Mat &original,
   return qimg;
 }
 
-#include <iostream> //DEBUG
-
+#include <iostream>
 #include <clocale>
 
 void
@@ -261,8 +260,7 @@ OCRDialog::process()
 #endif
 
   tesseract::TessBaseAPI tess;
-  tess.SetVariable("tessedit_char_whitelist",
-                   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+  //tess.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
 #if TESSERACT_VERSION >= 262144
   //On Ubuntu 18.04 LTS with tesseract 4.0 (version=262144)
@@ -315,14 +313,15 @@ OCRDialog::process()
     tess.SetPageSegMode(tesseract::PSM_SPARSE_TEXT);
 
     tess.SetImage(static_cast<uchar *>(tmp.data), tmp.cols, tmp.rows, 1, tmp.cols);
-    tess.GetUTF8Text();
+    //tess.GetUTF8Text();
+    tess.Recognize(0);
 
     tesseract::ResultIterator *ri = tess.GetIterator();
 
-    cv::Mat base, base2;
+#if WRITE_BASELINES
+    cv::Mat base;
     original.copyTo(base);
 
-#if WRITE_BASELINES
     {
       for (int i = 0; i < (int)baselines_tmp.size(); ++i) {
         cv::Vec4i l = baselines_tmp[i];
@@ -383,6 +382,7 @@ OCRDialog::process()
           fl.mask = mask;
           fl.label = QString::fromUtf8(symbol);
 
+
           const int b2 = Baseline::getBaseline(r, baselines_tmp);
           fl.baseline2 = b2 - r.y;
           fl.baseline = (int)((y1 + y2) / 2 - r.y);
@@ -401,6 +401,8 @@ OCRDialog::process()
 
       if (! m_font.empty())
         m_currentLetter = m_font[0];
+
+      delete ri;
     }
 
 #if WRITE_BASELINES
@@ -621,6 +623,7 @@ OCRDialog::setLetterLabel(const QString &s)
 {
   ui->letterLabel->setFont(ui->fontComboBox->currentFont());
   ui->letterLabel->setText(s);
+  //qDebug()<<"setLetterLabel("<<s<<")";
 }
 
 //B:TODO: clean up this code
