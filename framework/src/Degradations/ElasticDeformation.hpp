@@ -1,6 +1,7 @@
 #ifndef ELASTICDEFORMATION_HPP
 #define ELASTICDEFORMATION_HPP
 
+#include <framework_global.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -38,19 +39,44 @@ namespace dc {
 
        @param img input image.
        @param alpha  scaling factor, controling the intensity of the deformation.
-       @param sigma  elasticity coefficiant (standard deviation of Gaussian). 
+       @param sigma  elasticity coefficiant (standard deviation of Gaussian).
        @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
-       @param interpolation interpolation metod. See OpenCV cv::resize(). 
+       @param interpolation interpolation metod. See OpenCV cv::resize().
        @return modified image.
      */    
-    cv::Mat transform(const cv::Mat &img,
-		      float alpha = 2.0f,
-		      float sigma = 0.08f,
-		      BorderReplication borderMode = BorderReplication::BLACK,
-		      Interpolation interpolation = Interpolation::BILINEAR);
+    extern FRAMEWORK_EXPORT cv::Mat transform(const cv::Mat &img,
+					      float alpha = 2.0f,
+					      float sigma = 0.08f,
+					      BorderReplication borderMode = BorderReplication::BLACK,
+					      Interpolation interpolation = Interpolation::BILINEAR);
 
     /**
-       Apply elastic deformation to @a img as described in [Simard2003], 
+       Apply elastic deformation to @a img as described in [Simard2003].
+
+       Same as @see transform, but also transform @a rects and put tansformed points in @a rects_pts.
+       @a rects are supposed to be inside the image frame.
+
+       @param img input image.
+       @param rects input rectangles.
+       @param rects_pts output points of transformed rectangles. @see getRotatedRects.
+       @param alpha  scaling factor, controling the intensity of the deformation.
+       @param sigma  elasticity coefficiant (standard deviation of Gaussian).
+       @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
+       @param interpolation interpolation metod. See OpenCV cv::resize().
+       @return modified image.
+
+    */
+    extern FRAMEWORK_EXPORT cv::Mat transform_rects(const cv::Mat &img,
+						    const std::vector<cv::Rect> &rects,
+						    std::vector<std::vector<cv::Point2f> > &rects_pts,
+						    float alpha = 2.0f,
+						    float sigma = 0.08f,
+						    BorderReplication borderMode = BorderReplication::BLACK,
+						    Interpolation interpolation = Interpolation::BILINEAR);
+
+
+    /**
+       Apply elastic deformation to @a img as described in [Simard2003],
        after a first affine transformation.
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
@@ -64,13 +90,47 @@ namespace dc {
        @param interpolation interpolation metod. See OpenCV cv::resize(). 
        @return modified image.
     */
-    cv::Mat transform2(const cv::Mat &img,
-		       float alpha = 2.0f,
-		       float sigma = 0.08f,
-		       float alpha_affine = 9.0f,
-		       BorderReplication borderMode = BorderReplication::BLACK,
-		       Interpolation interpolation = Interpolation::BILINEAR);
+    extern FRAMEWORK_EXPORT cv::Mat transform2(const cv::Mat &img,
+					       float alpha = 2.0f,
+					       float sigma = 0.08f,
+					       float alpha_affine = 9.0f,
+					       BorderReplication borderMode = BorderReplication::BLACK,
+					       Interpolation interpolation = Interpolation::BILINEAR);
     
+    /**
+       Apply elastic deformation to @a img as described in [Simard2003],
+       after a first affine transformation.
+
+       Same as @see transform2, but also transform @a rects and put tansformed points in @a rects_pts.
+       @a rects are supposed to be inside the image frame.
+
+       @param img input image.
+       @param rects input rectangles.
+       @param rects_pts output points of transformed rectangles. @see getRotatedRects.
+       @param alpha  scaling factor, controling the intensity of the deformation.
+       @param sigma  elasticity coefficiant (standard deviation of Gaussian).
+       @param alpha_affine scaling factor of initial affine transformation.
+       @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
+       @param interpolation interpolation metod. See OpenCV cv::resize().
+       @return modified image.
+    */
+    extern FRAMEWORK_EXPORT cv::Mat transform2_rects(const cv::Mat &img,
+						     const std::vector<cv::Rect> &rects,
+						     std::vector<std::vector<cv::Point2f> > &rects_pts,
+						     float alpha = 2.0f,
+						     float sigma = 0.08f,
+						     float alpha_affine = 9.0f,
+						     BorderReplication borderMode = BorderReplication::BLACK,
+						     Interpolation interpolation = Interpolation::BILINEAR);
+
+    /**
+       Get oriented bounding rectangles from rectangles points.
+
+       @param rects_pts input points of transformed rectangles. @see transform
+       @return oriented bounding rectangles.
+    */
+    extern FRAMEWORK_EXPORT std::vector<cv::RotatedRect> getRotatedRects(const std::vector<std::vector<cv::Point2f> > &rects_pts);
+
 
   } //namespace ElasticDeformation
 } //namespace dc
