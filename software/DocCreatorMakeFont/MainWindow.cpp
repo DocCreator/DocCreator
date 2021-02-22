@@ -228,7 +228,11 @@ MainWindow::buildGUI()
 	  m_characterWidget, &CharacterWidget::updateStyle);
   connect(m_fontMergingCB, &QAbstractButton::toggled,
 	  m_characterWidget, &CharacterWidget::updateFontMerging);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)) 
   connect(m_choicesCB, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateChoice);
+#else
+  connect(m_choicesCB, SIGNAL(currentIndexChanged(int)), this, SLOT(updateChoice(int)));
+#endif //QT_VERSION
 
 
   connect(m_outputFileLE, SIGNAL(textChanged(QString)), this, SLOT(updateProcess()));
