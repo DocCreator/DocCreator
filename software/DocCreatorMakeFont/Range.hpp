@@ -1,6 +1,8 @@
 #ifndef RANGE_HPP
 #define RANGE_HPP
 
+#include <cassert>
+
 static inline
 int
 hex2int(const char *s)

@@ -262,13 +262,13 @@ MainWindow::populateChoices()
   m_choicesCB->addItem(tr("All characters"));
   m_choices.push_back(whole_range());
 
-  assert(m_choicesCB.count() == m_choices.size());
+  assert(m_choicesCB->count() == m_choices.size());
 }
 
 void
 MainWindow::updateChoice(int index)
 {
-  assert(index < m_choices.size());
+  assert((size_t)index < m_choices.size());
   m_characterWidget->setChoices(m_choices[index]);
 }
 
@@ -506,7 +506,7 @@ MainWindow::saveCharacters()
   const QString fontName = getOutputFilename(font);
 
   const int currentChoice = m_choicesCB->currentIndex();
-  assert(currentChoice < m_choices.size());
+  assert((size_t)currentChoice < m_choices.size());
   const RangeVector &rv = m_choices[currentChoice];
 
   const int numSavedCharacters = saveCharactersFromFont(rv, font, fontName, filename);
