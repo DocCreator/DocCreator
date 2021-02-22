@@ -23,6 +23,7 @@ However, you will need to have network access during the configuration step to d
 * **OSMesa** [optional] for OpenGL offscreen rendering for the 3D distortion model.
 * **CMake** is used for compilation configuration.
 * **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
+* **git** (1.6.5 or later) [for tesseract download from CMake]
 * ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
 It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.15), Windows 10.
 
