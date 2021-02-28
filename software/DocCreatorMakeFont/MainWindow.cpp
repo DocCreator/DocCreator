@@ -267,7 +267,7 @@ MainWindow::populateChoices()
   m_choicesCB->addItem(tr("All characters"));
   m_choices.push_back(whole_range());
 
-  assert(m_choicesCB->count() == m_choices.size());
+  assert((size_t)m_choicesCB->count() == m_choices.size());
 }
 
 void
