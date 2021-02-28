@@ -4,6 +4,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
+//#include <QDebug>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QFontComboBox>
@@ -420,7 +421,7 @@ saveCharactersFromFont(const RangeVector &rv,
 
       if (fontMetrics.inFont(c)) {
 
-	//std::cerr<<QString(c).toStdString()<<"\n";
+	//qDebug()<<c;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
 	int width = fontMetrics.horizontalAdvance(c);
@@ -428,36 +429,48 @@ saveCharactersFromFont(const RangeVector &rv,
 	int width = fontMetrics.width(c);
 #endif
 	int height = fontMetrics.height();
-	//QRect boundingRect = fontMetrics.boundingRect(c);
+
 	//std::cerr<<"height="<<height<<"\n";
 	//std::cerr<<"width="<<width<<"\n";
-	//std::cerr<<"boundingRect: x="<<boundingRect.x()<<" y="<<boundingRect.y()<<" w="<<boundingRect.width()<<" h="<<boundingRect.height()<<"\n";
-	//std::cerr<<"fontMetrics.ascent()="<< fontMetrics.ascent()<<"\n";
+
+	const QRect boundingRect = fontMetrics.boundingRect(c);
+	if (width == 0)
+	  width = boundingRect.width();
+	if (height == 0)
+	  height = boundingRect.height();
+
+	// std::cerr<<"fontMetrics.horizontalAdvance(c)="<<fontMetrics.horizontalAdvance(c)<<"\n";
+	// std::cerr<<"fontMetrics.width(c)="<<fontMetrics.width(c)<<"\n";
+	// std::cerr<<"boundingRect: x="<<boundingRect.x()<<" y="<<boundingRect.y()<<" w="<<boundingRect.width()<<" h="<<boundingRect.height()<<"\n";
+	// std::cerr<<"fontMetrics.leftBearing(c)="<< fontMetrics.leftBearing(c)<<" fontMetrics.rightBearing(c)="<< fontMetrics.rightBearing(c)<<"\n";
+
+	if (width > 0 && height > 0) {
+
+	  QImage img(width, height, QImage::Format_ARGB32);
+	  img.fill(qRgba(255,255,255,0));
+	  QPainter p(&img);
+	  p.setFont(font);
+	  p.setPen(QPen(Qt::black));
+	  p.drawText(0, fontMetrics.ascent(), QString(c));
+
+	  //QString outFilename = outputDir+"/"+c+".png";
+	  //img.save(outFilename);
+
+	  Models::CharacterData *chd = new Models::CharacterData(img, 0);
+	  qreal upLine = 0;
+	  qreal baseLine = 100; //TODO
+	  qreal leftLine = 0;
+	  qreal rightLine = 100; //TODO
     
-	QImage img(width, height, QImage::Format_ARGB32);
-	img.fill(qRgba(255,255,255,0));
-	QPainter p(&img);
-	p.setFont(font);
-	p.setPen(QPen(Qt::black));
-	p.drawText(0, fontMetrics.ascent(), QString(c));
+	  Models::Character *ch = new Models::Character(QString(c),
+							upLine, baseLine, leftLine, rightLine);
+	  ch->add(chd);
+	  docFont.addCharacter(ch);
 
-	//QString outFilename = outputDir+"/"+c+".png";
-	//img.save(outFilename);
-
-	Models::CharacterData *chd = new Models::CharacterData(img, 0);
-	qreal upLine = 0;
-	qreal baseLine = 100; //TODO
-	qreal leftLine = 0;
-	qreal rightLine = 100; //TODO
-    
-	Models::Character *ch = new Models::Character(QString(c),
-						      upLine, baseLine, leftLine, rightLine);
-	ch->add(chd);
-	docFont.addCharacter(ch);
-
-	sumWidths += width;
-	sumHeights += height;
-	++numChars;
+	  sumWidths += width;
+	  sumHeights += height;
+	  ++numChars;
+	}
       }
     }
 
@@ -468,7 +481,7 @@ saveCharactersFromFont(const RangeVector &rv,
     const int space_width = sumWidths/numChars;
     const int space_height = sumHeights/numChars;
     QImage spaceImg(space_width, space_height, QImage::Format_ARGB32);
-    spaceImg.fill(qRgba(0,0,0,0));
+    spaceImg.fill(qRgba(0, 0, 0, 0));
     Models::CharacterData *chd = new Models::CharacterData(spaceImg, 0);
     qreal upLine = 0;
     qreal baseLine = 100; //TODO
