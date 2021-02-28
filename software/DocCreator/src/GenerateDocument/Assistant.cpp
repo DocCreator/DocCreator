@@ -2838,20 +2838,20 @@ static
 QImage
 charDeg(const QImage &img, int level)
 {
-  float percentOfIndepentSpots = 33, percentOfOverlappingSpots = 33;
+  float indepentSpotsRatio = 0.33, overlappingSpotsRatio = 0.33;
   if (level <= 4) {
-    percentOfIndepentSpots = 50;
-    percentOfOverlappingSpots = 30;
+    indepentSpotsRatio = 0.50;
+    overlappingSpotsRatio = 0.30;
   }
   else if (level <= 7) {
-    percentOfIndepentSpots = 30;
-    percentOfOverlappingSpots = 50;
+    indepentSpotsRatio = 0.30;
+    overlappingSpotsRatio = 0.50;
   }
   else {
-    percentOfIndepentSpots = 20;
-    percentOfOverlappingSpots = 30;
+    indepentSpotsRatio = 0.20;
+    overlappingSpotsRatio = 0.30;
   }
-  return dc::CharactersDegradation::degradation(img, level, percentOfIndepentSpots, percentOfOverlappingSpots);
+  return dc::CharactersDegradation::degradation(img, level, indepentSpotsRatio, overlappingSpotsRatio);
 }
 
 void
