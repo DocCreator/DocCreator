@@ -399,11 +399,47 @@ void MainWindow::findSizes(const QFont &font)
 #include <models/font.h>
 #include <iomanager/fontfilemanager.h>
 
+static
+void
+getLeftRight(const QImage &img,
+	     qreal &leftLine, qreal &rightLine)
+{
+  const int w = img.width();
+  const int h = img.height();
+
+  assert(img.depth() == 32);
+
+  int minX = w;
+  int maxX = 0;
+
+  const QRgb WHITE = qRgb(255, 255, 255);
+  for (int i=0; i<h; ++i) {
+    const QRgb *s = (const QRgb*)img.constScanLine(i);
+    for (int j=0; j<minX; ++j) {
+      if (s[j] != WHITE) {
+	  minX = j;
+      }
+    }
+    for (int j=maxX+1; j<w; ++j) {
+      if (s[j] != WHITE) {
+	  maxX = j;
+      }
+    }
+  }
+
+  assert(0 <= minX && minX < w);
+  assert(0 <= maxX && maxX < w);
+  leftLine = (minX * 100)/(qreal)w;
+  rightLine = (maxX * 100)/(qreal)w;
+}
+
+static
 int
 saveCharactersFromFont(const RangeVector &rv,
 		       const QFont &font,
 		       const QString &fontName,
-		       const QString &outputFilename)
+		       const QString &outputFilename,
+		       bool updateLeftRight = false)
 {
   QFontMetrics fontMetrics(font);
 
@@ -461,7 +497,12 @@ saveCharactersFromFont(const RangeVector &rv,
 	  qreal baseLine = 100; //TODO
 	  qreal leftLine = 0;
 	  qreal rightLine = 100; //TODO
-    
+
+	  if (updateLeftRight) {
+	    getLeftRight(img, leftLine, rightLine);
+	    //qDebug()<<"char="<<c<<" leftLine="<<leftLine<<" rightLine="<<rightLine<<"\n";
+	  }
+
 	  Models::Character *ch = new Models::Character(QString(c),
 							upLine, baseLine, leftLine, rightLine);
 	  ch->add(chd);
@@ -526,7 +567,9 @@ MainWindow::saveCharacters()
   assert((size_t)currentChoice < m_choices.size());
   const RangeVector &rv = m_choices[currentChoice];
 
-  const int numSavedCharacters = saveCharactersFromFont(rv, font, fontName, filename);
+  const bool updateLeftRight = m_choicesCB->currentText().contains(tr("Arabic"));
+
+  const int numSavedCharacters = saveCharactersFromFont(rv, font, fontName, filename, updateLeftRight);
 
   m_statusBar->showMessage(tr("saved %1 characters to %2").arg(QString::number(numSavedCharacters), QFileInfo(filename).fileName()), 2000);
 
