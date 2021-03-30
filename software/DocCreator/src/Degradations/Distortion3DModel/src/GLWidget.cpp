@@ -843,7 +843,7 @@ GLWidget::takeScreenshotHiRes()
 static float
 P_bounded_rand(float min, float max)
 {
-  return (min + (static_cast<float>(rand()) / RAND_MAX * (max - min + 1)));
+  return (min + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min + 1)));
 }
 
 static QString
