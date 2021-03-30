@@ -15,7 +15,6 @@ namespace dc {
 
   constexpr int WHITE = 255;
   constexpr int BLACK = 0;
-  constexpr float PERCENT = 0.01f;
 
   struct Pixel
   {
