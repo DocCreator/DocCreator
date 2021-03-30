@@ -91,9 +91,9 @@ namespace Doc
 	assert(getDocument() && getDocument()->currentParagraph() == current);
 
 	setOffset(offset()-1);
-       }
-        current->add(e);
-        setLength(length() + e->length()); //B: assert(e->length() == 1) ???
+      }
+      current->add(e);
+      setLength(length() + e->length()); //B: assert(e->length() == 1) ???
     }
 
     void DocTextBlock::add(const QList<DocCharacter*> &l)
