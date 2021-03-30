@@ -37,7 +37,7 @@
 #include "Degradations/GrayCharacterDegradationParameter.hpp"
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Degradations/HoleDegradationDialog.hpp"
-#include "Degradations/ImageGenerationFromDirDialog.hpp"
+//#include "Degradations/ImageGenerationFromDirDialog.hpp"
 #include "Degradations/PhantomCharacterDialog.hpp"
 #include "Degradations/ShadowBindingDialog.hpp"
 #include "Degradations/ShadowBindingQ.hpp"
