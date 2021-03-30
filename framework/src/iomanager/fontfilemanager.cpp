@@ -28,6 +28,8 @@ FontFileManager::fontFromXml(const QString &filepath)
 {
   //B:TODO:UGLY: errors are not checked correctly ! What if file is corrupt ?
 
+  //qDebug()<<"FontFileManager::fontFromXml("<<filepath<<")";
+
   QFile file(filepath);
   const bool ok = file.open(QFile::ReadOnly);
   if (!ok) {
@@ -391,6 +393,11 @@ FontFileManager::characterDataFromXml(QXmlStreamReader &reader)
       }
     }
   }
+
+  if (imgWidth <= 0 || imgHeight <= 0) {
+    qDebug()<<"Warning: while reading font, found invalid image dimensions: imgWidth="<<imgWidth<<" imgHeight="<<imgHeight<<" pixels.size()="<<pixelsData.split(QStringLiteral(",")).size()<<"\n";
+  }
+
   //building QImage
   QImage img(imgWidth, imgHeight, static_cast<QImage::Format>(format));
 
