@@ -6,6 +6,7 @@
 class KeyboardViewBuilder
 {
 public:
+  KeyboardViewBuilder() : _keyboardView(nullptr) {}
   virtual ~KeyboardViewBuilder() {}
 
   KeyboardView *getKeyboardView() { return _keyboardView; }
