@@ -88,8 +88,8 @@ namespace dc {
 	    if (x >= 0 && x < cols) {
 	      // map_x.at<float>(y, x) actually stores x+dx
 	      // we want x-dx that is 2*x-nx
-	      const float nx = 2*x - map_x.at<float>(y, x);
-	      const float ny = 2*y - map_y.at<float>(y, x);
+	      const float nx = 2.f*x - map_x.at<float>(y, x);
+	      const float ny = 2.f*y - map_y.at<float>(y, x);
 	      npts.push_back(cv::Point2f(nx, ny));
 	    }
 	  }
@@ -100,8 +100,8 @@ namespace dc {
 	  y = r.y;
 	  for ( ; y <= r.y+r.height; ++y) {
 	    if (y >= 0 && y < rows) {
-	      const float nx = 2*x - map_x.at<float>(y, x);
-	      const float ny = 2*y - map_y.at<float>(y, x);
+	      const float nx = 2.f*x - map_x.at<float>(y, x);
+	      const float ny = 2.f*y - map_y.at<float>(y, x);
 	      npts.push_back(cv::Point2f(nx, ny));
 	    }
 	  }
@@ -112,8 +112,8 @@ namespace dc {
 	  x = r.x + r.width;
 	  for ( ; x >= r.x; --x) {
 	    if (x >= 0 && x < cols) {
-	      const float nx = 2*x - map_x.at<float>(y, x);
-	      const float ny = 2*y - map_y.at<float>(y, x);
+	      const float nx = 2.f*x - map_x.at<float>(y, x);
+	      const float ny = 2.f*y - map_y.at<float>(y, x);
 	      npts.push_back(cv::Point2f(nx, ny));
 	    }
 	  }
@@ -124,8 +124,8 @@ namespace dc {
 	  y = r.y + r.height;
 	  for ( ; y >= r.y; --y) {
 	    if (y >= 0 && y < rows) {
-	      const float nx = 2*x - map_x.at<float>(y, x);
-	      const float ny = 2*y - map_y.at<float>(y, x);
+	      const float nx = 2.f*x - map_x.at<float>(y, x);
+	      const float ny = 2.f*y - map_y.at<float>(y, x);
 	      npts.push_back(cv::Point2f(nx, ny));
 	    }
 	  }
@@ -151,7 +151,7 @@ namespace dc {
 		      Interpolation interpolation,
 		      cv::Mat &map_x, cv::Mat &map_y)
     {
-      const int scale = std::min(img.cols, img.rows);
+      const float scale = std::min(img.cols, img.rows);
       alpha *= scale;
       sigma *= scale;
 
