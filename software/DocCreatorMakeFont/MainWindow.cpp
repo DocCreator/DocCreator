@@ -492,16 +492,15 @@ saveCharactersFromFont(const RangeVector &rv,
 	  //QString outFilename = outputDir+"/"+c+".png";
 	  //img.save(outFilename);
 
-	  Models::CharacterData *chd = new Models::CharacterData(img, 0);
 	  qreal upLine = 0;
-	  qreal baseLine = 100; //TODO
+	  qreal baseLine = 100;
 	  qreal leftLine = 0;
-	  qreal rightLine = 100; //TODO
-
+	  qreal rightLine = 100;
 	  if (updateLeftRight) {
 	    getLeftRight(img, leftLine, rightLine);
 	    //qDebug()<<"char="<<c<<" leftLine="<<leftLine<<" rightLine="<<rightLine<<"\n";
 	  }
+	  Models::CharacterData *chd = new Models::CharacterData(img, 0);
 
 	  Models::Character *ch = new Models::Character(QString(c),
 							upLine, baseLine, leftLine, rightLine);
@@ -561,7 +560,7 @@ MainWindow::saveCharacters()
 
   //int size = m_sizeCB->currentText().toInt();
   //font.setPointSize(size);
-  const QString fontName = getOutputFilename(font);
+  const QString fontName = QFileInfo(filename).fileName();
 
   const int currentChoice = m_choicesCB->currentIndex();
   assert((size_t)currentChoice < m_choices.size());
