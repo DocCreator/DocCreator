@@ -360,7 +360,7 @@ SET(
   src/Utils/RandomElement.hpp
   src/Utils/FontUtils.hpp
   src/Degradations/BleedThroughParameters.hpp
-  src/Degradations/ImageGenerationFromDirDialog.hpp
+  #src/Degradations/ImageGenerationFromDirDialog.hpp
   src/Degradations/GrayCharacterDegradationParameter.hpp
   src/Degradations/GrayCharacterDegradationDialog.hpp
   src/Degradations/VersoImageChangerParameters.hpp
@@ -422,7 +422,7 @@ SET(
   src/Degradations/HoleDegradationDialog.cpp
   src/Degradations/PhantomCharacterDialog.cpp
   src/Degradations/GradientDomainDegradationDialog.cpp
-  src/Degradations/ImageGenerationFromDirDialog.cpp
+  #src/Degradations/ImageGenerationFromDirDialog.cpp
   src/RandomDocument/RandomDocumentCreator.cpp
   src/RandomDocument/RandomBackGroundChanger.cpp
   src/RandomDocument/RandomDocumentExporter.cpp
@@ -476,7 +476,7 @@ SET(
 SET(
   DocCreator_ui
   src/Degradations/GrayCharacterDegradationDialog.ui
-  src/Degradations/ImageGenerationFromDirDialog.ui
+  #src/Degradations/ImageGenerationFromDirDialog.ui
   src/Degradations/GrayCharacterDegradationParameter.ui
   src/Degradations/BleedThroughParametersDialog.ui
   src/Degradations/BlurFilterDialog.ui
