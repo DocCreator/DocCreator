@@ -17,9 +17,9 @@ namespace dc {
       Output image will be of the same type.
       @a holePattern must be of type CV_8UC1.
 
-      pixels inside hole are filled with pixels from @a matBelow if 
-      @a matBelow is not empty and visible, or with color @a color otherwise.
-      If not empty, @a matBelow must be of the same type than @a img.
+      pixels inside hole are filled with pixels from @a belowImg if
+      @a belowImg is not empty and visible, or with color @a color otherwise.
+      If not empty, @a belowImg must be of the same type than @a img.
 
       @a side is used only if @a type is BORDER or CORNER.
       @a holePattern for corner or border must be oriented for top left corner or top border. It will be rotated if necessary.
@@ -65,7 +65,7 @@ namespace dc {
       @param holePattern hole pattern image. It must be of type CV_8UC1.
       @param size size increment (in each dimension) for hole pattern image.
       @param type type of hole on pattern image (center, border or corner).
-      @a ratioOutside value in [0; 1.0]. Indicates ratio of @a holePattern image that can be outside image. 0.6 means 60% of pattern can be outside image, 1.0 means pattern is completely outside.
+      @a ratioOutside value in [0; 1.0] that indicates the ratio of @a holePattern image that can be outside image. 0.6 means 60% of pattern can be outside image, 1.0 means pattern is completely outside.
       @param side side of hole. For a center hole, this value is not used. For a border or corner hole, the hole pattern image will be transformed. Border hole images are considered to be for the top border side. Corner hole images are considered to be for the top left border side.
       @param color color used to fill the applied hole pattern image, only if @a belowImg is not empty.
       @param belowImg below image used to fill the applied hole pattern image. In this case, @a color is not used.
