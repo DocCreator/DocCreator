@@ -225,14 +225,14 @@ copyOntoAux(const cv::Mat &stainImg,
 
 
 cv::Mat
-degradation(const cv::Mat &in,
+degradation(const cv::Mat &img,
 	    const std::string &stainDirName,
 	    const size_t numStainsToInsert,
 	    InsertType insertType,
 	    bool doRotations)
 {
-  cv::Mat out = in.clone();
-  if (in.depth() != CV_8U) {
+  cv::Mat out = img.clone();
+  if (img.depth() != CV_8U) {
     std::cerr<<"Warning: no stain inserted. Input image is not a 8-bit image.\n";
     return out;
   }
@@ -269,12 +269,12 @@ degradation(const cv::Mat &in,
   
   std::random_device rd; // obtain a random number from hardware
   std::mt19937 eng(rd()); // seed the generator
-  std::uniform_int_distribution<> distrX(0, in.cols);
-  std::uniform_int_distribution<> distrY(0, in.rows);
+  std::uniform_int_distribution<> distrX(0, img.cols);
+  std::uniform_int_distribution<> distrY(0, img.rows);
 
   bool isImgGray = false;
   if (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY) {
-    isImgGray = dc::isGray(in);
+    isImgGray = dc::isGray(img);
   }
   const bool haveToConvert = (insertType == InsertType::INSERT_AS_GRAY
 			      || (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY && isImgGray));
@@ -326,19 +326,19 @@ degradation(const cv::Mat &in,
   }
 
   assert(out.type() == CV_8UC3);
-  if (in.channels() == 1) {
+  if (img.channels() == 1) {
     cv::cvtColor(out, out, cv::COLOR_BGR2GRAY);
   }
-  else if (in.channels() == 4) {
-    //Keep alpha channel from @a in.
-    //cv::extractChannel(in, alpha, 4); //suppose @a in in BGRA
-    cv::Mat from[] = {out, in};
-    cv::Mat out2(in.rows, in.cols, in.type());
+  else if (img.channels() == 4) {
+    //Keep alpha channel from @a img.
+    //cv::extractChannel(img, alpha, 4); //suppose @a in in BGRA
+    cv::Mat from[] = {out, img};
+    cv::Mat out2(img.rows, img.cols, img.type());
     const int from_to[] = {0,0, 1,1, 2,2, 6,3};
     cv::mixChannels(from, 2, &out2, 1, from_to, 4);
     out = out2;
   }
-  assert(out.type() == in.type());
+  assert(out.type() == img.type());
   
   return out;
 }
