@@ -6,9 +6,7 @@
 /*
   Code inspired from original Cuong's code.
   
-  This is a stencil operation, it could be coded to be better parallelized/faster !
-  cf TestBleedThrough directory, for some tests
-  
+  TODO: This is a stencil operation, it could be coded to be better parallelized/faster.
 */
 
 namespace dc {
@@ -42,9 +40,9 @@ namespace dc {
   {
   public:
         
-    BleedThroughDiffusionThreadA(const cv::Mat &originalRecto,
-				 const cv::Mat &recto,
-				 const cv::Mat &verso,
+    BleedThroughDiffusionThreadA(const cv::Mat &originalFrontImg,
+				 const cv::Mat &front,
+				 const cv::Mat &back,
 				 cv::Mat &out);
 
 
@@ -54,78 +52,78 @@ namespace dc {
     void process(int _x, int _y, int _w, int _h) const;
   
   private:
-    const cv::Mat &_originalRecto;
-    const cv::Mat &_recto;
-    const cv::Mat &_verso;
+    const cv::Mat &_originalFrontImg;
+    const cv::Mat &_front;
+    const cv::Mat &_back;
     cv::Mat &_out;
   };
 
   template <typename T>
-  BleedThroughDiffusionThreadA<T>::BleedThroughDiffusionThreadA(const cv::Mat &originalRecto,
-								const cv::Mat &recto,
-								const cv::Mat &verso,
+  BleedThroughDiffusionThreadA<T>::BleedThroughDiffusionThreadA(const cv::Mat &originalFrontImg,
+								const cv::Mat &front,
+								const cv::Mat &back,
 								cv::Mat &out) :
-    _originalRecto(originalRecto),
-    _recto(recto),
-    _verso(verso),
+    _originalFrontImg(originalFrontImg),
+    _front(front),
+    _back(back),
     _out(out)
   {
-    assert(_originalRecto.size() == _recto.size());
-    assert(_recto.size() == _verso.size());  
+    assert(_originalFrontImg.size() == _front.size());
+    assert(_front.size() == _back.size());
 
-    assert(_originalRecto.type() == _recto.type());
-    assert(_recto.type() == _verso.type());
+    assert(_originalFrontImg.type() == _front.type());
+    assert(_front.type() == _back.type());
   
-    assert(_out.type() == _recto.type());
-    assert(_out.type() == _verso.type());
+    assert(_out.type() == _front.type());
+    assert(_out.type() == _back.type());
   }
 
   template <>
-  BleedThroughDiffusionThreadA<uchar>::BleedThroughDiffusionThreadA(const cv::Mat &originalRecto,
-								    const cv::Mat &recto,
-								    const cv::Mat &verso,
+  BleedThroughDiffusionThreadA<uchar>::BleedThroughDiffusionThreadA(const cv::Mat &originalFrontImg,
+								    const cv::Mat &front,
+								    const cv::Mat &back,
 								    cv::Mat &out) :
-    _originalRecto(originalRecto),
-    _recto(recto),
-    _verso(verso),
+    _originalFrontImg(originalFrontImg),
+    _front(front),
+    _back(back),
     _out(out)
   {
-    assert(_originalRecto.size() == _recto.size());
-    assert(_recto.size() == _verso.size());  
+    assert(_originalFrontImg.size() == _front.size());
+    assert(_front.size() == _back.size());
 
-    assert(_originalRecto.type() == _recto.type());
-    assert(_recto.type() == _verso.type());  
-    assert(_originalRecto.type() == CV_8UC1);
+    assert(_originalFrontImg.type() == _front.type());
+    assert(_front.type() == _back.type());
+    assert(_originalFrontImg.type() == CV_8UC1);
   
-    assert(_out.type() == _recto.type());
-    assert(_out.type() == _verso.type());
+    assert(_out.type() == _front.type());
+    assert(_out.type() == _back.type());
   }
 
   //bleedThrough4b
   template <typename T>
   void BleedThroughDiffusionThreadA<T>::process(int _x, int _y, int _w, int _h) const
   {
-    assert(_verso.size() == _recto.size());
-    assert(_verso.size() == _originalRecto.size());
-    assert(_verso.size() == _out.size());
+    assert(_back.size() == _front.size());
+    assert(_back.size() == _originalFrontImg.size());
+    assert(_back.size() == _out.size());
 
-    assert(_verso.type() == _recto.type());
-    assert(_verso.type() == _originalRecto.type());
-    assert(_verso.type() == _out.type());
+    assert(_back.type() == _front.type());
+    assert(_back.type() == _originalFrontImg.type());
+    assert(_back.type() == _out.type());
   
-    const int numChan = _verso.channels();
+    const int numChan = _back.channels();
   
     for (int y = _y; y<_h; ++y) {
-      const T *v = _verso.ptr<T>(y);
-      const T *sr = _originalRecto.ptr<T>(y);
-      const T *r = _recto.ptr<T>(y);
+      const T *v = _back.ptr<T>(y);
+      const T *sr = _originalFrontImg.ptr<T>(y);
+      const T *r = _front.ptr<T>(y);
       T *o = _out.ptr<T>(y);
 
       const int py = (y > 0 ? y - 1 : 0);
-      const int ny = (y < _verso.rows-1 ? y + 1 : _verso.rows-1);
+      const int ny = (y < _back.rows-1 ? y + 1 : _back.rows-1);
     
-      const T *v_py = _verso.ptr<T>(py);
-      const T *v_ny = _verso.ptr<T>(ny);
+      const T *v_py = _back.ptr<T>(py);
+      const T *v_ny = _back.ptr<T>(ny);
     
       for (int x=_x; x<_w; ++x) {
 
@@ -133,7 +131,7 @@ namespace dc {
 	const T &sr_v = sr[x];
 
 	const int px = (x > 0 ? x - 1 : 0);
-	const int nx = (x < _verso.cols-1 ? x + 1 : _verso.cols-1);
+	const int nx = (x < _back.cols-1 ? x + 1 : _back.cols-1);
 
 	const T &iyn_v = v_py[x];
 	const T &ixp_v = v[px];
@@ -163,27 +161,27 @@ namespace dc {
   template <>
   void BleedThroughDiffusionThreadA<uchar>::process(int _x, int _y, int _w, int _h) const
   {
-    assert(_verso.size() == _recto.size());
-    assert(_verso.size() == _originalRecto.size());
-    assert(_verso.size() == _out.size());
+    assert(_back.size() == _front.size());
+    assert(_back.size() == _originalFrontImg.size());
+    assert(_back.size() == _out.size());
   
-    assert(_verso.type() == _recto.type());
-    assert(_verso.type() == _originalRecto.type());
-    assert(_verso.type() == _out.type());
+    assert(_back.type() == _front.type());
+    assert(_back.type() == _originalFrontImg.type());
+    assert(_back.type() == _out.type());
   
-    assert(_verso.type() == CV_8UC1);
+    assert(_back.type() == CV_8UC1);
   
     for (int y = _y; y<_h; ++y) {
-      const uchar *v = _verso.ptr<uchar>(y);
-      const uchar *sr = _originalRecto.ptr<uchar>(y);
-      const uchar *r = _recto.ptr<uchar>(y);
+      const uchar *v = _back.ptr<uchar>(y);
+      const uchar *sr = _originalFrontImg.ptr<uchar>(y);
+      const uchar *r = _front.ptr<uchar>(y);
       uchar *o = _out.ptr<uchar>(y);
 
       const int py = (y > 0 ? y - 1 : 0);
-      const int ny = (y < _verso.rows-1 ? y + 1 : _verso.rows-1);
+      const int ny = (y < _back.rows-1 ? y + 1 : _back.rows-1);
     
-      const uchar *v_py = _verso.ptr<uchar>(py);
-      const uchar *v_ny = _verso.ptr<uchar>(ny);
+      const uchar *v_py = _back.ptr<uchar>(py);
+      const uchar *v_ny = _back.ptr<uchar>(ny);
     
       for (int x=_x; x<_w; ++x) {
 
@@ -191,7 +189,7 @@ namespace dc {
 	const int u = sr[x];
 
 	const int px = (x > 0 ? x - 1 : 0);
-	const int nx = (x < _verso.cols-1 ? x + 1 : _verso.cols-1);
+	const int nx = (x < _back.cols-1 ? x + 1 : _back.cols-1);
 
 	const int iyn = v_py[x];
 	const int  ixp = v[px];
@@ -209,79 +207,79 @@ namespace dc {
   template <typename T>
   void BleedThroughDiffusionThreadA<T>::operator()(const cv::Range &r) const
   {
-    process(0, r.start, _recto.cols, r.end);
+    process(0, r.start, _front.cols, r.end);
   }
 
   template <>
   void BleedThroughDiffusionThreadA<uchar>::operator()(const cv::Range &r) const
   {
-    process(0, r.start, _recto.cols, r.end);
+    process(0, r.start, _front.cols, r.end);
   }
 
 
 
   template <typename T>
   cv::Mat
-  bleedThroughMT0(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int numThreads=5)
+  bleedThroughMT0(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads=5)
   {
-    assert(imgRecto.size() == imgVerso.size());
-    assert(originalRecto.size() == imgVerso.size());
+    assert(frontImg.size() == backImg.size());
+    assert(originalFrontImg.size() == backImg.size());
   
-    assert(imgRecto.type() == imgVerso.type());
-    assert(originalRecto.type() == imgVerso.type());
+    assert(frontImg.type() == backImg.type());
+    assert(originalFrontImg.type() == backImg.type());
   
-    const int height = imgRecto.rows;
+    const int height = frontImg.rows;
 
-    cv::Mat out(imgRecto.size(), imgRecto.type());
-    cv::Mat currRecto = imgRecto.clone();
+    cv::Mat out(frontImg.size(), frontImg.type());
+    cv::Mat currFront = frontImg.clone();
   
 
-    const int lNbIter = nbIter;
+    const int lNbIter = numIter;
     for (int p=0; p<lNbIter; ++p) {
 
 
       cv::parallel_for_(cv::Range(0, height),
-			BleedThroughDiffusionThreadA<T>(originalRecto, currRecto, imgVerso, out),
+			BleedThroughDiffusionThreadA<T>(originalFrontImg, currFront, backImg, out),
 			numThreads);
 
-      cv::swap(currRecto, out); 
+      cv::swap(currFront, out);
     }
 
-    out = currRecto;
+    out = currFront;
 
     return out;
   }
 
   cv::Mat
-  bleedThroughMT0(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int numThreads=16)
+  bleedThroughMT0(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads=16)
   {
-    assert(imgRecto.size() == imgVerso.size());
-    assert(originalRecto.size() == imgVerso.size());
+    assert(frontImg.size() == backImg.size());
+    assert(originalFrontImg.size() == backImg.size());
 
     if (numThreads < 0) {
       numThreads = cv::getNumThreads(); //B:TODO: use also height of images to decide numThreads ?
     }
 
-    if (imgRecto.type() == CV_8UC1)
-      return bleedThroughMT0<uchar>(originalRecto, imgRecto, imgVerso, nbIter, numThreads);
-    else if (imgRecto.type() == CV_8UC3)
-      return bleedThroughMT0<cv::Vec3b>(originalRecto, imgRecto, imgVerso, nbIter, numThreads);
-    else if (imgRecto.type() == CV_8UC4)
-      return bleedThroughMT0<cv::Vec4b>(originalRecto, imgRecto, imgVerso, nbIter, numThreads); //B:TODO: does it make sense to do bleedThrough in alpha channel ????
+    if (frontImg.type() == CV_8UC1)
+      return bleedThroughMT0<uchar>(originalFrontImg, frontImg, backImg, numIter, numThreads);
+    else if (frontImg.type() == CV_8UC3)
+      return bleedThroughMT0<cv::Vec3b>(originalFrontImg, frontImg, backImg, numIter, numThreads);
+    else if (frontImg.type() == CV_8UC4)
+      return bleedThroughMT0<cv::Vec4b>(originalFrontImg, frontImg, backImg, numIter, numThreads); //B:TODO: does it make sense to do bleedThrough in alpha channel ????
     else {
       std::cerr<<"ERROR: bleedThrough: unhandled image type\n";
       assert(false);
-      return originalRecto;
+      return originalFrontImg;
     }
   }
 
   /*
   cv::Mat
-  bleedThroughMT0(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, int numThreads=16)
+  bleedThroughMT0(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads=16)
   {
-    assert(imgRecto.size() == imgVerso.size());
+    assert(frontImg.size() == backImg.size());
 
-    return bleedThroughMT0(imgRecto.clone(), imgRecto, imgVerso, nbIter, numThreads);
+    return bleedThroughMT0(frontImg.clone(), frontImg, backImg, numIter, numThreads);
   }
   */
 
@@ -328,48 +326,48 @@ namespace dc {
 
 
   cv::Mat
-  bleedThrough(const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, cv::Point pos, int numThreads)
+  bleedThrough(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos, int numThreads)
   {
-    cv::Mat res = imgRecto.clone();
+    cv::Mat res = frontImg.clone();
 
-    cv::Rect versoROI;
-    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), pos.x, pos.y, versoROI);
+    cv::Rect backROI;
+    const bool intersection = getOverlappingPart(frontImg.cols, frontImg.rows, backImg.size(), pos.x, pos.y, backROI);
     if (intersection) {
-      const cv::Mat imgVersoROI = imgVerso(versoROI);
+      const cv::Mat backImgROI = backImg(backROI);
 
-      const cv::Rect rectoROI(pos.x+versoROI.x, pos.y+versoROI.y, versoROI.width, versoROI.height);
-      const cv::Mat imgRectoROI = imgRecto(rectoROI);
-      assert(imgVersoROI.size() == imgRectoROI.size());
+      const cv::Rect frontROI(pos.x+backROI.x, pos.y+backROI.y, backROI.width, backROI.height);
+      const cv::Mat frontImgROI = frontImg(frontROI);
+      assert(backImgROI.size() == frontImgROI.size());
 
-      const cv::Mat outROI = bleedThroughMT0(imgRectoROI.clone(), imgRectoROI, imgVersoROI, nbIter, numThreads);
+      const cv::Mat outROI = bleedThroughMT0(frontImgROI.clone(), frontImgROI, backImgROI, numIter, numThreads);
 
-      cv::Mat dst_roi = res(rectoROI);
+      cv::Mat dst_roi = res(frontROI);
       outROI.copyTo(dst_roi);
     }
     return res;
   }
 
   cv::Mat
-  bleedThroughInc(const cv::Mat &originalRecto, const cv::Mat &imgRecto, const cv::Mat &imgVerso, int nbIter, cv::Point pos, int numThreads)
+  bleedThroughInc(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos, int numThreads)
   {
-    assert(originalRecto.size() == imgRecto.size());
+    assert(originalFrontImg.size() == frontImg.size());
 
-    cv::Mat res = imgRecto.clone();
+    cv::Mat res = frontImg.clone();
 
-    cv::Rect versoROI;
-    const bool intersection = getOverlappingPart(imgRecto.cols, imgRecto.rows, imgVerso.size(), pos.x, pos.y, versoROI);
+    cv::Rect backROI;
+    const bool intersection = getOverlappingPart(frontImg.cols, frontImg.rows, backImg.size(), pos.x, pos.y, backROI);
     if (intersection) {
-      cv::Mat imgVersoROI = imgVerso(versoROI);
+      cv::Mat backImgROI = backImg(backROI);
 
-      const cv::Rect rectoROI(pos.x+versoROI.x, pos.y+versoROI.y, versoROI.width, versoROI.height);
-      cv::Mat imgRectoROI = imgRecto(rectoROI);
-      cv::Mat originalRectoROI = originalRecto(rectoROI);
-      assert(imgVersoROI.size() == imgRectoROI.size());
-      assert(originalRectoROI.size() == imgRectoROI.size());
+      const cv::Rect frontROI(pos.x+backROI.x, pos.y+backROI.y, backROI.width, backROI.height);
+      cv::Mat frontImgROI = frontImg(frontROI);
+      cv::Mat originalFrontImgROI = originalFrontImg(frontROI);
+      assert(backImgROI.size() == frontImgROI.size());
+      assert(originalFrontImgROI.size() == frontImgROI.size());
 
-      const cv::Mat outROI = bleedThroughMT0(originalRectoROI, imgRectoROI, imgVersoROI, nbIter, numThreads);
+      const cv::Mat outROI = bleedThroughMT0(originalFrontImgROI, frontImgROI, backImgROI, numIter, numThreads);
 
-      cv::Mat dst_roi = res(rectoROI);
+      cv::Mat dst_roi = res(frontROI);
       outROI.copyTo(dst_roi);
     }
     return res;
