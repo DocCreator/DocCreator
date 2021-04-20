@@ -26,7 +26,7 @@ namespace dc {
       @a angle corresponds to the angle between the page and the spine of the book when a page is scanned.
 
       @prama[in] img  input original image.
-      @param[in] border  border on which shadow is added.
+      @param[in] border  border on which the shadow is added.
       @param[in] distance   size in pixels of degradation.
       @param[in] intensity  intensity in [0; 1]. The higher, the darker the shadow.
       @param[in] angle angle in degrees in [0; 90]. The higher, the darker the shadow.
@@ -50,7 +50,7 @@ namespace dc {
       @a angle corresponds to the angle between the page and the spine of the book when a page is scanned.
 
       @prama[in] img  input original image.
-      @param[in] border  border on which shadow is added.
+      @param[in] border  border on which the shadow is added.
       @param[in] distanceRatio  ratio of width or height used to compute size in pixels of degradation, in [0; 1].
       @param[in] intensity intinsity in [0; 1]. The higher, the darker the shadow.
       @param[in] angle angle in degrees in [0; 90]. The higher, the darker the shadow.
