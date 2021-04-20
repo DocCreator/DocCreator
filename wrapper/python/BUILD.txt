@@ -1,0 +1,56 @@
+#In DocCreator root directory:
+
+
+#To do only once :
+docker pull quay.io/pypa/manylinux2010_x86_64
+
+
+#To do to build wheels :
+
+docker run --rm -it -v $(pwd):/io quay.io/pypa/manylinux2010_x86_64 /bin/bash
+
+cd /io
+
+#To build without OSMesa
+cp -f wrapper/python/build_wheels_manylinux.sh .
+chmod u+x build_wheels_manylinux.sh
+./build_wheels_manylinux.sh
+
+ => produced wheels (fichiers *.whl) will be in the WHEELS/ directory.
+
+
+#To build with OSMesa
+cp -f wrapper/python/build_wheels_with_osmesa_manylinux.sh .
+chmod u+x build_wheels_with_osmesa_manylinux.sh
+rm -rf  /etc/yum.repos.d/*
+cp -f wrapper/python/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo
+./build_wheels_with_osmesa_manylinux.sh
+
+ => produced wheels (fichiers *.whl) will be in the WHEELS_OSMESA/ directory.
+
+
+# Install
+
+Get and install the wheel corresponding to your python version.
+
+You may have to upgrade pip first:
+python3 -m pip install --upgrade pip
+
+For example for python 3.7:
+python3 -m pip install --upgrade ./DocCreatorPy-0.0-cp37-cp37m-manylinux2010_x86_64.whl
+
+
+To use it you may have to install pillow & numpy:
+python3 -m pip install pillow
+python3 -m pip install numpy
+
+
+
+
+# Troubleshootings
+
+- If you have the error:
+RuntimeError: module compiled against API version 0xe but this version of numpy is 0xd
+ you may have to upgrade numpy:
+python3 -m pip install --upgrade numpy
+
