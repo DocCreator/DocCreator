@@ -38,10 +38,10 @@ namespace dc {
        If @a sigma is large the displacements becomes close to affine.
 
        @param img input image.
-       @param alpha  scaling factor, controling the intensity of the deformation.
+       @param alpha  scaling factor, controlling the intensity of the deformation.
        @param sigma  elasticity coefficiant (standard deviation of Gaussian).
-       @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
-       @param interpolation interpolation metod. See OpenCV cv::resize().
+       @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
+       @param interpolation interpolation method. See OpenCV cv::resize().
        @return modified image.
      */    
     extern FRAMEWORK_EXPORT cv::Mat transform(const cv::Mat &img,
@@ -61,8 +61,8 @@ namespace dc {
        @param rects_pts output points of transformed rectangles. @see getRotatedRects.
        @param alpha  scaling factor, controling the intensity of the deformation.
        @param sigma  elasticity coefficiant (standard deviation of Gaussian).
-       @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
-       @param interpolation interpolation metod. See OpenCV cv::resize().
+       @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
+       @param interpolation interpolation method. See OpenCV cv::resize().
        @return modified image.
 
     */
@@ -85,15 +85,15 @@ namespace dc {
        @param img input image.
        @param alpha  scaling factor, controling the intensity of the deformation.
        @param sigma  elasticity coefficiant (standard deviation of Gaussian). 
-       @param alpha_affine scaling factor of initial affine transformation.
-       @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
-       @param interpolation interpolation metod. See OpenCV cv::resize(). 
+       @param alphaAffine scaling factor of initial affine transformation.
+       @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
+       @param interpolation interpolation method. See OpenCV cv::resize().
        @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat transform2(const cv::Mat &img,
 					       float alpha = 2.0f,
 					       float sigma = 0.08f,
-					       float alpha_affine = 9.0f,
+					       float alphaAffine = 9.0f,
 					       BorderReplication borderMode = BorderReplication::BLACK,
 					       Interpolation interpolation = Interpolation::BILINEAR);
     
@@ -109,9 +109,9 @@ namespace dc {
        @param rects_pts output points of transformed rectangles. @see getRotatedRects.
        @param alpha  scaling factor, controling the intensity of the deformation.
        @param sigma  elasticity coefficiant (standard deviation of Gaussian).
-       @param alpha_affine scaling factor of initial affine transformation.
-       @param borderMode  pixel interpolation method. See OpenCV cv::BorderTypes.
-       @param interpolation interpolation metod. See OpenCV cv::resize().
+       @param alphaAffine scaling factor of initial affine transformation.
+       @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
+       @param interpolation interpolation method. See OpenCV cv::resize().
        @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat transform2_rects(const cv::Mat &img,
@@ -119,7 +119,7 @@ namespace dc {
 						     std::vector<std::vector<cv::Point2f> > &rects_pts,
 						     float alpha = 2.0f,
 						     float sigma = 0.08f,
-						     float alpha_affine = 9.0f,
+						     float alphaAffine = 9.0f,
 						     BorderReplication borderMode = BorderReplication::BLACK,
 						     Interpolation interpolation = Interpolation::BILINEAR);
 

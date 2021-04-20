@@ -213,7 +213,7 @@ namespace dc {
 
 
     cv::Mat transform2(const cv::Mat &img,
-		       float alpha, float sigma, float alpha_affine,
+		       float alpha, float sigma, float alphaAffine,
 		       BorderReplication borderMode,
 		       Interpolation interpolation,
 		       cv::Mat &map_x, cv::Mat &map_y, cv::Mat &M)
@@ -228,7 +228,7 @@ namespace dc {
       src[2] = cv::Point2f(center.x-shift, center.y-shift);
 
       std::default_random_engine generator;
-      std::uniform_real_distribution<float> distribution(-alpha_affine, alpha_affine);
+      std::uniform_real_distribution<float> distribution(-alphaAffine, alphaAffine);
 
       cv::Point2f dst[3];
       for (int i=0; i<3; ++i) 
@@ -245,25 +245,25 @@ namespace dc {
       return transform(img2, alpha, sigma, borderMode, interpolation, map_x, map_y);
     }
 
-    cv::Mat transform2(const cv::Mat &img, float alpha, float sigma, float alpha_affine,
+    cv::Mat transform2(const cv::Mat &img, float alpha, float sigma, float alphaAffine,
 		       BorderReplication borderMode,
 		       Interpolation interpolation)
 
     {
       cv::Mat map_x, map_y, M;
-      return transform2(img, alpha, sigma, alpha_affine, borderMode, interpolation, map_x, map_y, M);
+      return transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M);
     }
 
     cv::Mat transform2_rects(const cv::Mat &img,
 			     const std::vector<cv::Rect> &rects,
 			     std::vector<std::vector<cv::Point2f> > &rects_pts,
-			     float alpha, float sigma, float alpha_affine,
+			     float alpha, float sigma, float alphaAffine,
 			     BorderReplication borderMode,
 			     Interpolation interpolation)
 
     {
       cv::Mat map_x, map_y, M;
-      cv::Mat res = transform2(img, alpha, sigma, alpha_affine, borderMode, interpolation, map_x, map_y, M);
+      cv::Mat res = transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M);
 
       std::vector<std::vector<cv::Point2f> > rects_pts0;
       getTransformedRects(map_x, map_y, rects, rects_pts0);
