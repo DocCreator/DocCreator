@@ -56,7 +56,9 @@ namespace dc {
 
 
     /**
-       Add Gaussian-distributed additive noise.
+       Add Salt and pepper noise.
+
+       Replaces random pixels with 0 or 1.
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
        Output image will be of the same type and size than the input img.
