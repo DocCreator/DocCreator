@@ -723,7 +723,7 @@ GLRenderer::render(bool random)
   glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 #endif
 
-  // Write image Y-flipped because OpenGL
+  // Output image Y-flipped because OpenGL
   cv::Mat out(height, width, CV_8UC4, buffer);
   cv::flip(out, out, 0);
 
@@ -733,9 +733,16 @@ GLRenderer::render(bool random)
   else if (m_channels == 3) {
     cv::cvtColor(out, out, cv::COLOR_RGBA2BGR);
   }
-  else {
-    //m_channels == 4 or neither 1 nor 3
-    cv::cvtColor(out, out, cv::COLOR_RGBA2BGRA);
+  else if (m_channels == 4) {
+
+    //Warning: here, out may still point to "buffer"
+    // (that will be deleted when the context is destroyed)
+    // Thus we need to allocate a new image.
+
+    cv::Mat out2(out.size(), CV_8UC4);
+    cv::cvtColor(out, out2, cv::COLOR_RGBA2BGRA);
+
+    return out2;
   }
 
   return out;
