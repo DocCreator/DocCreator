@@ -58,18 +58,21 @@ readHeader(std::ifstream &in, BRSType &type)
 {
   uint32_t t;
   in.read((char *)&t, sizeof(t));
-  if (in.bad())
+  if (in.bad()) {
     return false;
+  }
 
-  if ((t & HEADER_MASK) != HEADER)
+  if ((t & HEADER_MASK) != HEADER) {
     return false;
+  }
   type = static_cast<BRSType>(t & TYPE_MASK);
 
   if (type != VERTICES
       && type != (VERTICES | TEXCOORDS)
       && type != (VERTICES | NORMALS)
-      && type != (VERTICES | TEXCOORDS | NORMALS))
+      && type != (VERTICES | TEXCOORDS | NORMALS)) {
     return false;
+  }
 
   return true;
 }
@@ -79,6 +82,7 @@ isBRSFile(const std::string &filename)
 {
   std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
   if (!in) {
+    std::cerr<<"ERROR: unable to open: "<<filename<<"\n";
     return false;
   }
   BRSType type;
