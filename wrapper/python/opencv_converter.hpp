@@ -63,7 +63,7 @@ namespace pybind11 { namespace detail{
 
 
     // cv::Scalar <=> tuple (x), (y,y), (x,y,z), (x,y,z,w)
-    //B:TODO: we handle only ints ! Should we handle doubles ???
+    //B:TODO: we handle only doubles ! Should we handle ints ???
     //B:TODO: In OpenCV python wrapper, they can use a single int as a Scalar for a grayscale image
     template<>
     struct type_caster<cv::Scalar>{
