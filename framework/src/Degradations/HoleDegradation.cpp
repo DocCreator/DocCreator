@@ -394,6 +394,7 @@ namespace dc {
       assert(matBelow.empty() || matBelow.type() == img.type());
       assert(holePattern.type() == CV_8UC1 || holePattern.type() == CV_8UC3 || holePattern.type() == CV_8UC4);
       //std::cerr<<"img.size()="<<img.size()<<" holePattern.size()="<<holePattern.size()<<"\n";
+      //std::cerr<<"img.type()="<<img.type()<<" holePattern.type()="<<holePattern.type()<<" CV_8UC3="<<CV_8UC3<<" CV_8UC4="<<CV_8UC4<<"\n";
 
       cv::Mat matOut = img.clone(); //img must not be modified.
 
@@ -478,7 +479,7 @@ namespace dc {
 		      float ratioOutside,
 		      HoleSide side)
     {
-      //b: we want to draw xOrigin in [startX, endX] and yOrigin in [startY, endY]
+      //B: we want to draw xOrigin in [startX, endX] and yOrigin in [startY, endY]
       
       int startX = 0;
       int startY = 0;
@@ -559,11 +560,16 @@ namespace dc {
 	  startX = -rh; //0;
 	  endX = 1;
 	  startY = -rw;
-	  endY = imgH + holeW - rw;
+	  endY = imgH + rw - holeW;
 	  break;
 	}
 	//std::cerr<<"   border side="<<(int)side<<" startX="<<startX<<" endX="<<endX<<" startY="<<startY<<" endY="<<endY<<"\n";
      }
+
+      if (startX >= endX || startY >= endY) {
+	//It may happen for big hole img on a small img
+	return cv::Point(imgW/2, imgH/2);
+      }
 
       const int xOrigin = random_in_range(startX, endX-1);
       const int yOrigin = random_in_range(startY, endY-1);
@@ -592,7 +598,6 @@ namespace dc {
 					      side);
 
       //std::cerr<<"addHoleAtRandom pos="<<pos<<"\n";
-      
       return addHole(img,
 		     holePattern,
 		     pos,
