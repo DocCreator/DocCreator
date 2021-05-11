@@ -15,7 +15,7 @@ namespace dc {
 
       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
       Output image will be of the same type.
-      @a holePattern must be of type CV_8UC1.
+      @a holePattern may be of type CV_8UC1, CV_8UC3 or CV_8UC4 and will be converted to grayscale and used as a binary mask.
 
       pixels inside hole are filled with pixels from @a belowImg if
       @a belowImg is not empty and visible, or with color @a color otherwise.
@@ -57,7 +57,7 @@ namespace dc {
 
       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
       Output image will be of the same type.
-      @a holePattern must be of type CV_8UC1.
+      @a holePattern may be of type CV_8UC1, CV_8UC3 or CV_8UC4 and will be converted to grayscale and used as a binary mask.
 
       @a holePattern is inserted at random position according to @a holePattern size and @a ratioOutside value.
 

@@ -556,7 +556,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	--------
 	Images must have dtype==np.uint8.
 	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-	holePattern must have have ndim==2 or (ndim==3 and shape[2]==1).
+	holePattern must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	It may be converted to grayscale and used as a binary mask.
 	If not empty, belowImg must have the same dtype and shape[2]
 	than img.
 
@@ -617,7 +618,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	--------
 	Images must have dtype==np.uint8.
 	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-	holePattern must have have ndim==2 or (ndim==3 and shape[2]==1).
+	holePattern must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	It may be converted to grayscale and used as a binary mask.
 	If not empty, belowImg must have the same dtype and shape[2]
 	than img.
 
