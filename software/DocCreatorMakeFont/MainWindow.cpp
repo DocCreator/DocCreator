@@ -563,7 +563,7 @@ MainWindow::saveCharacters()
 
   //int size = m_sizeCB->currentText().toInt();
   //font.setPointSize(size);
-  const QString fontName = QFileInfo(filename).fileName();
+  const QString fontName = QFileInfo(filename).completeBaseName();
 
   const int currentChoice = m_choicesCB->currentIndex();
   assert((size_t)currentChoice < m_choices.size());
