@@ -29,7 +29,7 @@ public:
 
   Models::Font *getCurrentFont();
 
-  void addFontsFromXmlFiles(const QStringList &fontFiles); //B
+  void addFontsFromFiles(const QStringList &fontFiles); //B
 
   //Take ownership of added @a font.
   void addFont(Models::Font *font);

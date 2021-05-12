@@ -1093,7 +1093,7 @@ OCRDialog::saveFont()
   // to be able to save the created font with other application fonts
   // and thus be able to use it when batch-generating.
 
-  const QString filters(QStringLiteral("font files (*.of)"));
+  const QString filters(QStringLiteral("font files (*.bof *.of)"));
   const QString filename = QFileDialog::getSaveFileName(
     nullptr, QStringLiteral("Save Font"), fontPath, filters);
   if (! filename.isEmpty())
@@ -1282,7 +1282,10 @@ OCRDialog::writeFont(const QString &filename) const
   Models::Font *font = getFont();
   font->setName(fontName);
 
-  IOManager::FontFileManager::fontToXml(font, filename);
+  const bool writeOk = IOManager::FontFileManager::writeFont(font, filename);
+  if (! writeOk) {
+    qDebug()<<"ERROR: unable to write font: "<<filename;
+  }
 
   delete font;
 }

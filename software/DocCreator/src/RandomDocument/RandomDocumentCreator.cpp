@@ -371,7 +371,7 @@ RandomDocumentCreator::create()
     QList<Models::Font *> prevFonts;
     saveFonts(prevCurrFontName, prevFonts);
 
-    Context::FontContext::instance()->addFontsFromXmlFiles(_params.fontList);
+    Context::FontContext::instance()->addFontsFromFiles(_params.fontList);
     QStringList fontList =
       Context::FontContext::instance()->getFontNames();
     //may be different than _params.fontList
@@ -488,7 +488,7 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     QList<Models::Font *> prevFonts;
     saveFonts(prevCurrFontName, prevFonts);
 
-    Context::FontContext::instance()->addFontsFromXmlFiles(_params.fontList);
+    Context::FontContext::instance()->addFontsFromFiles(_params.fontList);
     QStringList fontList =
       Context::FontContext::instance()
         ->getFontNames(); //may be different than _params.fontList
@@ -639,7 +639,7 @@ RandomDocumentCreator::createAllTexts()
     QList<Models::Font *> prevFonts;
     saveFonts(prevCurrFontName, prevFonts);
 
-    Context::FontContext::instance()->addFontsFromXmlFiles(_params.fontList);
+    Context::FontContext::instance()->addFontsFromFiles(_params.fontList);
     QStringList fontList =
       Context::FontContext::instance()
         ->getFontNames(); //may be different than _params.fontList

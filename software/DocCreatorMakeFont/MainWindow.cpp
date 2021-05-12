@@ -4,7 +4,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
-//#include <QDebug>
+#include <QDebug>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QFontComboBox>
@@ -291,7 +291,7 @@ MainWindow::chooseOutputFilename()
 {
   
   QString filename = getOutputFilename(m_fontCB->currentFont());
-  filename = QFileDialog::getSaveFileName(this, tr("Output OF filename"), filename, tr("OF files (*.of)"));
+  filename = QFileDialog::getSaveFileName(this, tr("Output OF filename"), filename, tr("binary OF files (*.bof);;OF files (*.of)"));
   if (! filename.isEmpty()) {
     m_outputFileLE->setText(filename);
   }
@@ -301,7 +301,7 @@ MainWindow::chooseOutputFilename()
 QString
 MainWindow::getOutputFilename(const QFont &font)
 {
-  QString outputFilename = font.family() + "__" + m_styleCB->currentText() + "__" + m_sizeCB->currentText() + ".of";
+  QString outputFilename = font.family() + "__" + m_styleCB->currentText() + "__" + m_sizeCB->currentText() + ".bof";
   outputFilename.replace(' ', '_');
   return outputFilename;
 }
@@ -538,7 +538,10 @@ saveCharactersFromFont(const RangeVector &rv,
 
   //TODO: add space ??? cf software/DocCreator/src/Document/ChooseLabelForComponentForm.cpp ???
 
-  IOManager::FontFileManager::fontToXml(&docFont, outputFilename);
+  const bool writeOk = IOManager::FontFileManager::writeFont(&docFont, outputFilename);
+  if (! writeOk) {
+    qDebug()<<"ERROR: unable to write font: "<<outputFilename;
+  }
 
   return numChars;
 }

@@ -1276,7 +1276,7 @@ Assistant::updateListFont(const QString &fontPath)
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigFontExtKey)
       .toString();
   Context::FontContext::instance()->clear();
-  Context::FontContext::instance()->initialize(fontPath, fontExt);
+  Context::FontContext::instance()->initialize(fontPath, fontExt); //B:TODO: currently will read either .bof or .of but not both
 
   QStringList list = Context::FontContext::instance()->getFontNames();
 

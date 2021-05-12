@@ -1,0 +1,6 @@
+#ifndef TESTS_PATHS_HPP
+#define TESTS_PATHS_HPP
+
+const char *FONT_DATA_SRC_PATH="@FONT_DATA_SRC_DIRECTORY@";
+
+#endif /* ! TESTS_PATHS_HPP */

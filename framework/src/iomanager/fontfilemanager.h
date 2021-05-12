@@ -20,14 +20,19 @@ class FRAMEWORK_EXPORT FontFileManager
 {
 public:
   //Font Input/Output
+  static Models::Font *readFont(const QString &filepath);
+  static Models::Font *fontFromBinary(const QString &filepath);
   static Models::Font *fontFromXml(const QString &filepath);
   static Models::Font *fontFromDirectory(const QString &dirpath,
                                          const QMap<QString, QString> &matches);
-  static void fontToXml(const Models::Font *font, const QString &filepath);
+  static bool writeFont(const Models::Font *font, const QString &filepath);
+  static bool fontToXml(const Models::Font *font, const QString &filepath);
+  static bool fontToBinary(const Models::Font *font, const QString &filepath);
   static int saveBaseLineInformation(const QString &path,
                                      qreal base,
                                      qreal right,
                                      const QString &character);
+  static bool isBOFFile(const QString &filename);
 
 private:
   // deal with unicode

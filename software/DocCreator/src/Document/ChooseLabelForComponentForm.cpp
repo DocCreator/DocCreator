@@ -624,8 +624,8 @@ ChooseLabelForComponentForm::createNewFont()
   QString fontNamePath =
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigFontFolderKey)
       .toString();
-  fontNamePath.append('/' + _currentFont->getName() + ".of");
-  IOManager::FontFileManager::fontToXml(_currentFont, fontNamePath);
+  fontNamePath.append('/' + _currentFont->getName() + ".bof");
+  IOManager::FontFileManager::writeFont(_currentFont, fontNamePath);
 }
 
 int

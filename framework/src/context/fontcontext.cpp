@@ -42,6 +42,7 @@ FontContext::initialize(const QString &path, const QString &fileExtension)
   for (const QString &file : fileList) {
     if (!file.endsWith(fileExtension))
       continue;
+    //qDebug()<<"FontContext::initialize kept file="<<file;
     fontFiles.push_back(directory.absoluteFilePath(file));
   }
 
@@ -52,7 +53,7 @@ FontContext::initialize(const QString &path, const QString &fileExtension)
   //B: Should we call clear() ? Should we notify observers ?
   //clear(); //will delete previous fonts if any.
 
-  addFontsFromXmlFiles(fontFiles);
+  addFontsFromFiles(fontFiles);
 
   assert(checkInvariant());
 }
@@ -65,14 +66,14 @@ FontContext::getCurrentFont()
 
 //B : may call notifyAll() via setCurrentFont()
 void
-FontContext::addFontsFromXmlFiles(const QStringList &fontFiles)
+FontContext::addFontsFromFiles(const QStringList &fontFiles)
 {
   //B: Is it ok to have this method here ?
   //B: If called directly, it will not call setVars()...
 
   FontContext *inst = instance();
   for (const QString &file : fontFiles) {
-    Models::Font *font = IOManager::FontFileManager::fontFromXml(file);
+    Models::Font *font = IOManager::FontFileManager::readFont(file);
     if (font != nullptr)
       inst->addFont(font);
   }

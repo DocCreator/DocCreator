@@ -2,11 +2,9 @@
 
 namespace Models {
 CharacterData::CharacterData(const QImage &image,
-                             int id,
-                             float degradationLevel)
+                             int id)
   : _image(image)
   , _id(id)
-  , _degradationLevel(degradationLevel)
 {}
 
 void

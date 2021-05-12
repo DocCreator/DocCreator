@@ -792,20 +792,15 @@ void
 DocCreator::loadFont()
 {
   QString filePath = QFileDialog::getOpenFileName(
-    this, tr("Open a font..."), QString(), tr("Xml Old font (*.of *.xml)"));
+    this, tr("Open a font..."), QString(), tr("Binary Old Font (*.bof);;Xml Old font (*.of *.xml)"));
 
-  if (!filePath.isEmpty()) {
-    addNewFont(IOManager::FontFileManager::fontFromXml(filePath));
+  if (! filePath.isEmpty()) {
+    Models::Font *f = IOManager::FontFileManager::readFont(filePath);
+    if (f != nullptr) {
+      addNewFont(f);
+    }
   }
 }
-
-/*
-void DocCreator::loadFontFromPath(const QString &fontPath)
-{
-  if (!fontPath.isEmpty()) //B:TODO: not enough ! File may not be readable and read may fail.
-    addNewFont(IOManager::FontFileManager::fontFromXml(fontPath));
-}
-*/
 
 void
 DocCreator::addMatch()
@@ -815,60 +810,6 @@ DocCreator::addMatch()
   _listDialog->setData(_listDialog->index(0, 1), QString());
   _matchesTable->setModel(_listDialog);
 }
-
-/*
-void DocCreator::generateImagesFromDir()
-{
-  auto dialog = new ImageGenerationFromDirDialog(this, _docController);
-  dialog->exec();
-}
-*/
-
-/*
-void DocCreator::importFontFromDir()
-{
-  QString dirpath = QFileDialog::getExistingDirectory(this, tr("Import font from directory"));
-
-  if (!dirpath.isEmpty())
-    {
-      QDialog *matchesDialog = new QDialog(this);
-      QVBoxLayout *layoutDialog = new QVBoxLayout(matchesDialog);
-      matchesDialog->setLayout(layoutDialog);
-
-      _matchesTable = new QTableView();
-
-      _listDialog =  new QStandardItemModel(0, 2, _matchesTable);
-      _listDialog->setHeaderData(0, Qt::Horizontal, QObject::tr("In filename"));
-      _listDialog->setHeaderData(1, Qt::Horizontal, QObject::tr("Character"));
-
-      _matchesTable->setModel(_listDialog);
-
-      QPushButton *addButton = new QPushButton();
-      QObject::connect(addButton, SIGNAL(clicked()), this, SLOT(addMatch()));
-      addButton->setText(tr("Add match"));
-
-      QPushButton *validButton = new QPushButton();
-      QObject::connect(validButton, SIGNAL(clicked()), matchesDialog, SLOT(accept()));
-      validButton->setText(tr("Valid"));
-
-      layoutDialog->addWidget(_matchesTable);
-      layoutDialog->addWidget(addButton);
-      layoutDialog->addWidget(validButton);
-
-      int resultDialog = matchesDialog->exec();
-
-      QMap<QString, QString> matches;
-
-      if (resultDialog==QDialog::Accepted) {
-    for (int i=0;i<_listDialog->rowCount(); ++i)
-      matches.insert(_listDialog->data(_listDialog->index(i,0)).toString(), _listDialog->data(_listDialog->index(i,1)).toString());
-      }
-      addNewFont(IOManager::FontFileManager::fontFromDirectory(dirpath, matches));
-    }
-
-  saveFontToXml(Context::FontContext::instance()->currentFontPath());
-}
-*/
 
 void
 DocCreator::addNewFont(Models::Font *font)
@@ -904,25 +845,6 @@ DocCreator::addNewFont(Models::Font *font)
   _keyboardView->drawKeyboard(font);
 }
 
-/*
-void DocCreator::saveCurrentFont()
-{
-  saveFontToXml(Context::FontContext::instance()->currentFontPath());
-}
-
-void DocCreator::saveCurrentFontAs()
-{
-  QString filepath = QFileDialog::getSaveFileName (this, tr("Save current font as..."), QString(), tr("Xml Old font (*.of *.xml)"));
-
-  if (!filepath.isEmpty())
-    saveFontToXml(filepath);
-}
-
-void DocCreator::saveFontToXml(const QString &filepath)
-{
-  IOManager::FontFileManager::fontToXml(Context::FontContext::instance()->getCurrentFont(), filepath);
-}
-*/
 
 void
 DocCreator::importBackground()
@@ -1717,31 +1639,33 @@ DocCreator::synthetiseImage()
           const QString fontName = ocrDialog.saveFont();
 	  if (! fontName.isEmpty()) {
 	    Models::Font *font =
-	      IOManager::FontFileManager::fontFromXml(fontName);
-	    assert(font);
-	    addNewFont(font);
-	    //B:TODO:ugly: we save to disk and reload !!!
-	    //B:TODO:addNewFont will add the font to the application ! We do not want that !?
-	    // we just want to add the font to the style of the document ? (cf
-	    // RandomDocumentGenerator.cpp)
-	    // or just do :
-	    // FontContext::instance()->setCurrentFont(FontFileManager::fontFromXml(fontName));
-	    // //?
-	    //B: Do we need to set the font here ? before StructureDialog ?
+	      IOManager::FontFileManager::readFont(fontName);
+	    if (font != nullptr) {
+	      addNewFont(font);
+	      //B:TODO:ugly: we save to disk and reload !!!
+	      //
+	      //B:TODO:addNewFont will add the font to the application ! We do not want that !?
+	      // we just want to add the font to the style of the document ? (cf
+	      // RandomDocumentGenerator.cpp)
+	      // or just do :
+	      // FontContext::instance()->setCurrentFont(FontFileManager::readFont(fontName));
+	      // //?
+	      //B: Do we need to set the font here ? before StructureDialog ?
 
-	    //B:TODO !!!!!
-	    //const int newLineSpacing = computeLineSpacing(font);
+	      //B:TODO !!!!!
+	      //const int newLineSpacing = computeLineSpacing(font);
 
-	    StructureDialog structDialog(_docController, this);
+	      StructureDialog structDialog(_docController, this);
 
-	    structDialog.init(imgDocument, binaryImage, background);
+	      structDialog.init(imgDocument, binaryImage, background);
 
-	    if (structDialog.exec()) { // Structure detection
+	      if (structDialog.exec()) { // Structure detection
 
-	      BackGroundChanger changer;
-	      changer.changeBackGroundImage(structDialog.getResultImage());
+		BackGroundChanger changer;
+		changer.changeBackGroundImage(structDialog.getResultImage());
 
-	      structDialog.loremIpsum();
+		structDialog.loremIpsum();
+	      }
 	    }
 	  }
         }
@@ -1822,11 +1746,12 @@ DocCreator::fontExtraction()
       if (ocrDialog.exec()) {
         const QString fontName = ocrDialog.saveFont();
 	if (! fontName.isEmpty()) {
-	  Models::Font *font = IOManager::FontFileManager::fontFromXml(fontName);
-	  assert(font);
-	  addNewFont(font);
-	  const int lineSpacing = computeBestLineSpacing(*font);
-	  _docController->setParagraphLineSpacing(lineSpacing);
+	  Models::Font *font = IOManager::FontFileManager::readFont(fontName);
+	  if (font != nullptr) {
+	    addNewFont(font);
+	    const int lineSpacing = computeBestLineSpacing(*font);
+	    _docController->setParagraphLineSpacing(lineSpacing);
+	  }
 	}
       }
     }

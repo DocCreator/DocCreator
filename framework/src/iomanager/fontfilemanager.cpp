@@ -22,7 +22,26 @@
 #include "models/font.h"
 
 namespace IOManager {
-/*      PUBLIC METHODS      */
+
+
+Models::Font *
+FontFileManager::readFont(const QString &filepath)
+{
+  if (isBOFFile(filepath)) {
+    return fontFromBinary(filepath);
+  }
+  return fontFromXml(filepath);
+}
+
+bool
+FontFileManager::writeFont(const Models::Font *font, const QString &filepath)
+{
+  if (filepath.endsWith(".of", Qt::CaseInsensitive)) {
+    return fontToXml(font, filepath);
+  }
+  return fontToBinary(font, filepath);
+}
+
 Models::Font *
 FontFileManager::fontFromXml(const QString &filepath)
 {
@@ -186,15 +205,17 @@ FontFileManager::fontFromDirectory(const QString &dirpath,
   return font;
 }
 
-void
+bool
 FontFileManager::fontToXml(const Models::Font *font, const QString &filepath)
 {
+  assert(font);
+
   QFile file(filepath);
   const bool ok = file.open(QFile::WriteOnly);
   if (!ok) {
     std::cerr << "Warning: unable to open output font file: " << filepath.toStdString()
               << "\n";
-    return;
+    return false;
   }
 
   QXmlStreamWriter writer;
@@ -216,6 +237,8 @@ FontFileManager::fontToXml(const Models::Font *font, const QString &filepath)
   writer.writeEndDocument();
 
   file.close();
+
+  return true;
 }
 
 /*      PRIVATE METHODS      */
@@ -449,8 +472,6 @@ FontFileManager::characterDataToXml(const Models::CharacterData *charData,
                           QString::number(charData->getImage().height()));
   writer.writeTextElement(QStringLiteral("format"),
                           QString::number(charData->getImage().format()));
-  writer.writeTextElement(QStringLiteral("degradationlevel"),
-                          QString::number(charData->getDegradationLevel()));
   writer.writeStartElement(QStringLiteral("data"));
 
   //B:TODO:OPTIM: storing each pixel as a QString is not clever.
@@ -471,5 +492,158 @@ FontFileManager::characterDataToXml(const Models::CharacterData *charData,
   writer.writeEndElement();
   writer.writeEndElement();
 }
+
+const int HEADER = ('B' << 24 | 'O' << 16 | 'F' << 8);
+const int HEADER_MASK = 0xFFFFFF00;
+
+bool
+FontFileManager::isBOFFile(const QString &filename)
+{
+  QFile file(filename);
+  file.open(QIODevice::ReadOnly);
+  QDataStream in(&file);
+
+  if (in.status() != QDataStream::Ok) {
+    std::cerr<<"ERROR: unable to open: "<<filename.toStdString()<<"\n";
+    return false;
+  }
+  uint32_t h;
+  in >> h;
+  if (in.status() != QDataStream::Ok) {
+    return false;
+  }
+
+  if ((h & HEADER_MASK) != HEADER) {
+    return false;
+  }
+  return true;
+}
+
+
+bool
+FontFileManager::fontToBinary(const Models::Font *font, const QString &filepath)
+{
+  assert(font);
+
+  QFile file(filepath);
+
+  if (! file.open(QFile::WriteOnly)) {
+    std::cerr<<"Error: unable to open output font file: "<<filepath.toStdString()<<"\n";
+    return false;
+  }
+
+  QDataStream out(&file);
+
+  const uint32_t header = HEADER;
+  out << header;
+  if (out.status() != QDataStream::Ok)
+    return false;
+
+  out.setVersion(QDataStream::Qt_4_0);
+
+  out << font->getName();
+
+  const Models::CharacterMap &characters = font->getCharacters();
+  const uint32_t numCharacters = characters.size();
+  out << numCharacters;
+  for (Models::Character *ch : characters) {
+    out<<ch->getCharacterValue();
+    out<<ch->getUpLine()<<ch->getBaseLine()<<ch->getLeftLine()<<ch->getRightLine();
+    const Models::CharacterDataList &cD = ch->getAllCharacterData();
+    const uint32_t numVersions = cD.size();
+    out << numVersions;
+    for (Models::CharacterData *charData : cD) {
+      out<<charData->getId();
+      out<<charData->getImage();
+    }
+
+  }
+
+  if (out.status() != QDataStream::Ok)
+    return false;
+
+  return true;
+}
+
+Models::Font *
+FontFileManager::fontFromBinary(const QString &filepath)
+{
+  QFile file(filepath);
+
+  if (! file.open(QFile::ReadOnly)) {
+    std::cerr<<"Error: unable to open input font file: "<<filepath.toStdString()<<"\n";
+    return nullptr;
+  }
+
+  QDataStream in(&file);
+
+  uint32_t header = 0;
+  in >> header;
+  if (in.status() != QDataStream::Ok)
+    return nullptr;
+  if ((header & HEADER_MASK) != HEADER) {
+    return nullptr;
+  }
+
+  in.setVersion(QDataStream::Qt_4_0);
+
+  QString fontName;
+  in >> fontName;
+
+  uint32_t numCharacters = 0;
+  in >> numCharacters;
+
+  if (numCharacters == 0) {
+    return nullptr;
+  }
+
+  auto font = new Models::Font();
+  font->setName(fontName);
+
+  for (uint32_t i=0; i<numCharacters; ++i) {
+    QString s;
+    in >> s;
+    qreal upLine, baseLine, leftLine, rightLine;
+    in >> upLine >> baseLine >> leftLine >> rightLine;
+    if (in.status() != QDataStream::Ok)
+      break;
+    auto ch = new Models::Character();
+    ch->setCharacterValue(s);
+    ch->setUpLine(upLine);
+    ch->setBaseLine(baseLine);
+    ch->setLeftLine(leftLine);
+    ch->setRightLine(rightLine);
+    uint32_t numVersions = 0;
+    in >> numVersions;
+    for (uint32_t j=0; j<numVersions; ++j) {
+      int id;
+      in >> id;
+      QImage img;
+      in >> img;
+      Models::CharacterData *charData = new Models::CharacterData(img, id);
+      ch->add(charData);
+    }
+
+    if (ch->getCharacterDataCount() == 0) {
+      std::cerr << "Warning: No picture found for letter \""
+		<< s.toStdString()
+		<< "\"\n in font file: " << filepath.toStdString()
+		<< "\n";
+      delete ch;
+    }
+    else {
+      const bool addOk = font->addCharacter(ch);
+      if (!addOk) {
+	std::cerr << "Warning: letter \"" << s.toStdString()
+		  << "\" is present several times in font file: "
+		  << filepath.toStdString() << "\n";
+      }
+    }
+
+  }
+
+  return font;
+}
+
 
 } //namespace IOManager
