@@ -102,6 +102,11 @@ FontFileManager::fontFromXml(const QString &filepath)
 
   file.close();
 
+  if (font->getCharacters().empty()) {
+    delete font;
+    return nullptr;
+  }
+
   return font;
 }
 
