@@ -25,15 +25,149 @@ RangeVector
 Latin_common()
 {
   RangeVector v;
+  /*
   static const QString charactersToSave = "!\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¨éèçà";
   for (int i = 0; i < charactersToSave.size(); ++i) {
     const QChar c = charactersToSave.at(i);
     const int k = (int)c.unicode();
     v.push_back(Range(k, k));
   }
+  */
+
+  //basic letters (upper & lower case), numbers, punctuation and symbols
+  //https://en.wikipedia.org/wiki/Basic_Latin_(Unicode_block)
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U0000
+  v.push_back(Range("0020", "007E"));
+
+  //Latin-1 Supplement: accented characters and symbols
+  //https://en.wikipedia.org/wiki/Latin-1_Supplement_(Unicode_block)
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U0080
+  v.push_back(Range("00A1", "00AC"));
+
   return v;
 }
 
+static
+RangeVector
+Latin_extended1()
+{
+  RangeVector v = Latin_common();
+
+  //other accented letters
+  //https://en.wikipedia.org/wiki/Latin_Extended-A
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U0100
+  v.push_back(Range("0100", "017F"));
+
+  return v;
+}
+
+static
+RangeVector
+Latin_extended2()
+{
+  RangeVector v = Latin_extended1();
+
+  //other accented letters
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U0180
+  v.push_back(Range("0180", "024F"));
+
+  //other accented letters
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U1E00
+  v.push_back(Range("1E00", "1EFF"));
+
+  return v;
+}
+
+static
+RangeVector
+Latin_common_and_ligatures()
+{
+  RangeVector v = Latin_common();
+
+  //https://en.wikipedia.org/wiki/Ligature_(writing)
+  //https://en.wikipedia.org/wiki/Alphabetic_Presentation_Forms
+  v.push_back(Range("FB00", "FB06"));  //ff, fi, fl, ffi, ffl, ft, st
+
+  v.push_back(Range("0152")); //OE
+  v.push_back(Range("0153")); //oe
+  v.push_back(Range("00C6")); //AE
+  v.push_back(Range("00E6")); //ae
+  v.push_back(Range("1E9E")); //fs
+  v.push_back(Range("00DF")); //fz
+
+  v.push_back(Range("017F")); //old S
+
+  return v;
+}
+
+static
+RangeVector
+Greek_and_Coptic_common()
+{
+  RangeVector v;
+
+  //https://en.wikipedia.org/wiki/Greek_and_Coptic
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U0370
+  v.push_back(Range("0370", "03FF"));
+
+  return v;
+}
+
+static
+RangeVector
+Greek_and_Coptic_extended()
+{
+  RangeVector v = Greek_and_Coptic_common();
+
+  //https://en.wikipedia.org/wiki/Greek_Extended
+  //https://fr.wikipedia.org/wiki/Table_des_caract%C3%A8res_Unicode/U1F00
+  v.push_back(Range("1F00", "1FFF"));
+
+  return v;
+}
+
+static
+RangeVector
+Cyrillic_common()
+{
+  RangeVector v;
+
+  //https://en.wikipedia.org/wiki/Cyrillic_script
+  //https://fr.wikipedia.org/wiki/Alphabet_cyrillique
+  v.push_back(Range("0400", "04FF"));
+
+  return v;
+}
+
+static
+RangeVector
+Cyrillic_extended()
+{
+  RangeVector v = Cyrillic_common();
+
+  //https://en.wikipedia.org/wiki/Cyrillic_script
+  //https://fr.wikipedia.org/wiki/Alphabet_cyrillique
+  v.push_back(Range("0500", "052F"));
+  v.push_back(Range("02DE0", "02DFF")); //Cyrillic Extended-A
+  v.push_back(Range("A640", "A69F"));  // //Cyrillic Extended-B
+
+  return v;
+}
+
+static
+RangeVector
+Cyrillic_extended2()
+{
+  RangeVector v = Cyrillic_extended();
+
+  //https://en.wikipedia.org/wiki/Cyrillic_script
+  //https://fr.wikipedia.org/wiki/Alphabet_cyrillique
+  v.push_back(Range("1C80", "1C8F")); //Cyrillic Extended-C
+  v.push_back(Range("1D2B", "1D78")); //Phonetic Extensions
+  v.push_back(Range("FE2E", "FE2F")); //Combining Half Marks
+
+  return v;
+}
 
 static
 RangeVector
@@ -252,18 +386,40 @@ MainWindow::buildGUI()
 void
 MainWindow::populateChoices()
 {
-  m_choicesCB->addItem(tr("Latin common characters"));
+  m_choicesCB->addItem(tr("Latin [common characters and ligatures]"));
+  m_choices.push_back(Latin_common_and_ligatures());
+  m_choicesCB->addItem(tr("Latin [common characters]"));
   m_choices.push_back(Latin_common());
+  m_choicesCB->addItem(tr("Latin [common characters + extension A]"));
+  m_choices.push_back(Latin_extended1());
+  m_choicesCB->addItem(tr("Latin [common characters + extension A,B]"));
+  m_choices.push_back(Latin_extended2());
+
+  m_choicesCB->addItem(tr("Greek and Coptic [common characters]"));
+  m_choices.push_back(Greek_and_Coptic_common());
+  m_choicesCB->addItem(tr("Greek and Coptic [common characters + extension]"));
+  m_choices.push_back(Greek_and_Coptic_extended());
+
+  m_choicesCB->addItem(tr("Cyrillic [common characters]"));
+  m_choices.push_back(Cyrillic_common());
+  m_choicesCB->addItem(tr("Cyrillic [common characters + extensions A,B]"));
+  m_choices.push_back(Cyrillic_extended());
+  m_choicesCB->addItem(tr("Cyrillic [common characters + extensions A,B,C,...]"));
+  m_choices.push_back(Cyrillic_extended2());
+
   m_choicesCB->addItem(tr("Chinese, Japanese, Korean, Vietnamese [common characters]"));
   m_choices.push_back(CJKV_common());
   m_choicesCB->addItem(tr("Chinese, Japanese, Korean, Vietnamese [common characters + extensions A,B,C,D]"));
   m_choices.push_back(CJKV_rare());
   m_choicesCB->addItem(tr("Chinese, Japanese, Korean, Vietnamese [common characters + extensions A,B,C,D,E,F,G]"));
   m_choices.push_back(CJKV_all());
+
   m_choicesCB->addItem(tr("Hebrew characters"));
   m_choices.push_back(hebrew_range());
+
   m_choicesCB->addItem(tr("Arabic characters"));
   m_choices.push_back(arabic_range());
+
   m_choicesCB->addItem(tr("All characters"));
   m_choices.push_back(whole_range());
 
@@ -311,6 +467,9 @@ MainWindow::changeFont(const QFont &font)
 {
   findStyles(font);
   findSizes(font);
+
+  m_characterWidget->updateSize(m_sizeCB->currentText());
+  m_characterWidget->updateStyle(m_styleCB->currentText());
   
   updateOutputFilename(font);
 }
@@ -561,8 +720,9 @@ MainWindow::saveCharacters()
   else
     font.setStyleStrategy(QFont::NoFontMerging);
 
-  //int size = m_sizeCB->currentText().toInt();
+  //const int size = m_sizeCB->currentText().toInt();
   //font.setPointSize(size);
+
   const QString fontName = QFileInfo(filename).completeBaseName();
 
   const int currentChoice = m_choicesCB->currentIndex();
