@@ -62,7 +62,7 @@ QSize CharacterWidget::sizeHint() const
   if (num == 0)
     num = columns*columns;
 
-  return QSize(columns*squareSize, (num / columns) * squareSize);
+  return QSize(columns*squareSize, ((num + columns-1) / columns) * squareSize);
 }
 
 void CharacterWidget::setChoices(const RangeVector &choicesRV)
@@ -87,8 +87,9 @@ void CharacterWidget::mouseMoveEvent(QMouseEvent *event)
 
     QString text = QString::fromLatin1("<p>Character: <span style=\"font-size: 24pt; font-family: %1\">").arg(displayFont.family())
       + QChar(choices[key])
-      + QString::fromLatin1("</span><p>Value: 0x")
-      + QString::number(key, 16);
+      //+ QString::fromLatin1("</span><p>Value: 0x")
+      + QString::fromLatin1("</span><p>Unicode: U+")
+      + QString::number(choices[key], 16);
     QToolTip::showText(event->globalPos(), text, this);
   }
 }
@@ -132,7 +133,7 @@ void CharacterWidget::paintEvent(QPaintEvent *event)
   painter.setPen(QPen(Qt::black));
   for (int row = beginRow; row <= endRow; ++row) {
     for (int column = beginColumn; column <= endColumn; ++column) {
-      uint key = row * columns + column;
+      const uint key = row * columns + column;
       painter.setClipRect(column * squareSize, row * squareSize, squareSize, squareSize);
 
       /*
@@ -143,6 +144,7 @@ void CharacterWidget::paintEvent(QPaintEvent *event)
 
       if (key < choices.size()) {
 	const QChar c(choices[key]);
+
 	painter.drawText(column * squareSize + (squareSize / 2) -
 			 //fontMetrics.horizontalAdvance(QChar(key)) / 2,  //Qt 5.11 only
 			 fontMetrics.width(c) / 2,
