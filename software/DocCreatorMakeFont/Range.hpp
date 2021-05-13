@@ -2,6 +2,7 @@
 #define RANGE_HPP
 
 #include <cassert>
+#include <vector>
 
 static inline
 int
