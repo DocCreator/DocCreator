@@ -368,7 +368,7 @@ MainWindow::buildGUI()
 #else
   connect(m_choicesCB, SIGNAL(currentIndexChanged(int)), this, SLOT(updateChoice(int)));
 #endif //QT_VERSION
-
+  connect(m_choicesCB, SIGNAL(currentIndexChanged(int)), this, SLOT(updateOutputFilename()));
 
   connect(m_outputFileLE, SIGNAL(textChanged(QString)), this, SLOT(updateProcess()));
   connect(m_outputFilePB, SIGNAL(clicked()), this, SLOT(chooseOutputFilename()));
@@ -392,7 +392,7 @@ MainWindow::populateChoices()
   m_choices.push_back(Latin_common());
   m_choicesCB->addItem(tr("Latin [common characters + extension A]"));
   m_choices.push_back(Latin_extended1());
-  m_choicesCB->addItem(tr("Latin [common characters + extension A,B]"));
+  m_choicesCB->addItem(tr("Latin [common characters + extensions A,B]"));
   m_choices.push_back(Latin_extended2());
 
   m_choicesCB->addItem(tr("Greek and Coptic [common characters]"));
@@ -445,7 +445,6 @@ MainWindow::updateProcess()
 void
 MainWindow::chooseOutputFilename()
 {
-  
   QString filename = getOutputFilename(m_fontCB->currentFont());
   filename = QFileDialog::getSaveFileName(this, tr("Output OF filename"), filename, tr("binary OF files (*.bof);;OF files (*.of)"));
   if (! filename.isEmpty()) {
@@ -457,7 +456,12 @@ MainWindow::chooseOutputFilename()
 QString
 MainWindow::getOutputFilename(const QFont &font)
 {
-  QString outputFilename = font.family() + "__" + m_styleCB->currentText() + "__" + m_sizeCB->currentText() + ".bof";
+  QString suffix;
+  if (m_choicesCB->currentText() != tr("All characters")) {
+    suffix = "_"+m_choicesCB->currentText().replace("Chinese, Japanese, Korean, Vietnamese", "CJKV").replace(" + ","_").replace(" ", "_").replace(",", "").replace("[", "").replace("]", "");
+  }
+
+  QString outputFilename = font.family() + "__" + m_styleCB->currentText() + "__" + m_sizeCB->currentText() + suffix+".bof";
   outputFilename.replace(' ', '_');
   return outputFilename;
 }
@@ -616,8 +620,6 @@ saveCharactersFromFont(const RangeVector &rv,
 
       if (fontMetrics.inFont(c)) {
 
-	//qDebug()<<c;
-
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
 	int width = fontMetrics.horizontalAdvance(c);
 #else
@@ -625,19 +627,11 @@ saveCharactersFromFont(const RangeVector &rv,
 #endif
 	int height = fontMetrics.height();
 
-	//std::cerr<<"height="<<height<<"\n";
-	//std::cerr<<"width="<<width<<"\n";
-
 	const QRect boundingRect = fontMetrics.boundingRect(c);
 	if (width == 0)
 	  width = boundingRect.width();
 	if (height == 0)
 	  height = boundingRect.height();
-
-	// std::cerr<<"fontMetrics.horizontalAdvance(c)="<<fontMetrics.horizontalAdvance(c)<<"\n";
-	// std::cerr<<"fontMetrics.width(c)="<<fontMetrics.width(c)<<"\n";
-	// std::cerr<<"boundingRect: x="<<boundingRect.x()<<" y="<<boundingRect.y()<<" w="<<boundingRect.width()<<" h="<<boundingRect.height()<<"\n";
-	// std::cerr<<"fontMetrics.leftBearing(c)="<< fontMetrics.leftBearing(c)<<" fontMetrics.rightBearing(c)="<< fontMetrics.rightBearing(c)<<"\n";
 
 	if (width > 0 && height > 0) {
 
@@ -647,9 +641,6 @@ saveCharactersFromFont(const RangeVector &rv,
 	  p.setFont(font);
 	  p.setPen(QPen(Qt::black));
 	  p.drawText(0, fontMetrics.ascent(), QString(c));
-
-	  //QString outFilename = outputDir+"/"+c+".png";
-	  //img.save(outFilename);
 
 	  qreal upLine = 0;
 	  qreal baseLine = 100;
@@ -675,31 +666,82 @@ saveCharactersFromFont(const RangeVector &rv,
 
   }
 
-  //add space
-  {
-    const int space_width = sumWidths/numChars;
-    const int space_height = sumHeights/numChars;
-    QImage spaceImg(space_width, space_height, QImage::Format_ARGB32);
-    spaceImg.fill(qRgba(0, 0, 0, 0));
-    Models::CharacterData *chd = new Models::CharacterData(spaceImg, 0);
-    qreal upLine = 0;
-    qreal baseLine = 100; //TODO
-    qreal leftLine = 0;
-    qreal rightLine = 100; //TODO
+  //Add space
+  const int spaceUnicode = hex2int("0020");
+  if (! hasValue(rv, spaceUnicode)) {
+    bool spaceAdded = false;
+    const QChar c(spaceUnicode);
+    if (fontMetrics.inFont(c)) {
+      //TODO: take into account fontstyleStrategy ?
+      //if (fontstyleStrategy() == QFont::NoFontMerging) {
 
-    Models::Character *ch = new Models::Character(QStringLiteral(" "),
+      #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+	int width = fontMetrics.horizontalAdvance(c);
+#else
+	int width = fontMetrics.width(c);
+#endif
+	int height = fontMetrics.height();
+
+	const QRect boundingRect = fontMetrics.boundingRect(c);
+	if (width == 0)
+	  width = boundingRect.width();
+	if (height == 0)
+	  height = boundingRect.height();
+
+	if (width > 0 && height > 0) {
+
+	  QImage img(width, height, QImage::Format_ARGB32);
+	  img.fill(qRgba(255,255,255,0));
+	  QPainter p(&img);
+	  p.setFont(font);
+	  p.setPen(QPen(Qt::black));
+	  p.drawText(0, fontMetrics.ascent(), QString(c));
+
+	  qreal upLine = 0;
+	  qreal baseLine = 100;
+	  qreal leftLine = 0;
+	  qreal rightLine = 100;
+	  if (updateLeftRight) {
+	    getLeftRight(img, leftLine, rightLine);
+	    //qDebug()<<"char="<<c<<" leftLine="<<leftLine<<" rightLine="<<rightLine<<"\n";
+	  }
+	  Models::CharacterData *chd = new Models::CharacterData(img, 0);
+
+	  Models::Character *ch = new Models::Character(QString(c),
+							upLine, baseLine, leftLine, rightLine);
+	  ch->add(chd);
+	  docFont.addCharacter(ch);
+
+	  ++numChars;
+	  spaceAdded = true;
+	}
+    }
+    if (! spaceAdded) {
+
+      const int space_width = sumWidths/numChars;
+      const int space_height = sumHeights/numChars;
+      QImage spaceImg(space_width, space_height, QImage::Format_ARGB32);
+      spaceImg.fill(qRgba(0, 0, 0, 0));
+      Models::CharacterData *chd = new Models::CharacterData(spaceImg, 0);
+      qreal upLine = 0;
+      qreal baseLine = 100; //TODO
+      qreal leftLine = 0;
+      qreal rightLine = 100; //TODO
+
+      Models::Character *ch = new Models::Character(QStringLiteral(" "),
 						  upLine, baseLine, leftLine, rightLine);
-    ch->add(chd);
-    docFont.addCharacter(ch);
+      ch->add(chd);
+      docFont.addCharacter(ch);
 
-    ++numChars;
+      ++numChars;
+    }
+
   }
-
-  //TODO: add space ??? cf software/DocCreator/src/Document/ChooseLabelForComponentForm.cpp ???
 
   const bool writeOk = IOManager::FontFileManager::writeFont(&docFont, outputFilename);
   if (! writeOk) {
     qDebug()<<"ERROR: unable to write font: "<<outputFilename;
+    return 0;
   }
 
   return numChars;

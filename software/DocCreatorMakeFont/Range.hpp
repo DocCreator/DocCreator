@@ -47,4 +47,15 @@ struct Range
 
 typedef std::vector<Range> RangeVector;
 
+static inline
+bool
+hasValue(const RangeVector &rv, int v)
+{
+  for (const Range &r : rv) {
+    if (r.start<=v && v<=r.end)
+      return true;
+  }
+  return false;
+}
+
 #endif /* ! RANGE_HPP */
