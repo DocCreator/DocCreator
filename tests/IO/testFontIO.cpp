@@ -18,7 +18,7 @@ checkEqual(const Models::Font *font1, const Models::Font *font2)
   if (font1 == font2) {
     return true;
   }
-  if (font1 == nullptr or font2 == nullptr) {
+  if (font1 == nullptr || font2 == nullptr) {
     return false;
   }  
  
