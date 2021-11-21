@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip> //DEBUG
 #include <iostream>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <vector>

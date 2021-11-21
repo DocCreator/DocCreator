@@ -9,6 +9,7 @@
 #include <cstdlib>  //malloc
 #include <cstring>  //memset
 #include <iostream> //DEBUG
+#include <limits>
 #include <vector>
 
 Mesh::Mesh()
