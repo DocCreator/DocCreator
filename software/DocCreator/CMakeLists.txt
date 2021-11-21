@@ -81,7 +81,7 @@ IF(BUILD_TESSERACT)
     #ENDIF()
 
     #download tessdata
-    SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/master)
+    SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/main)
     IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
       MESSAGE(STATUS "  downloading tesseract language models")
       SET(TESSDATA_ENG_URL "${TESSDATA_URL}/eng.traineddata")
