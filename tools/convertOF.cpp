@@ -43,8 +43,8 @@ main(int argc, char **argv)
 {
   if (argc != 2 && argc != 3) {
     std::cerr << "Usage: " << argv[0]
-              << " inputMeshFilename [outputMeshFilename]\n";
-    std::cerr << "If outputMeshFilename is not provided, output filename will "
+              << " inputFontFilename [outputFontFilename]\n";
+    std::cerr << "If outputFontFilename is not provided, output filename will "
                  "be input filename with a different extension\n";
     exit(10);
   }
