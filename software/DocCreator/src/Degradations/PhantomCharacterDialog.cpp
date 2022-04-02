@@ -31,7 +31,8 @@ getOccurenceProbability(int frequency)
   else if (frequency == 1) {
     occurenceProbability = 0.4f;
   }
-  else if (frequency <= 0) {
+  else {
+    assert(frequency <= 0);
     occurenceProbability = 0.15f;
   }
   return occurenceProbability;
