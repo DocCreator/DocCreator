@@ -79,6 +79,9 @@ Binary packages of Ninja are available from https://github.com/ninja-build/ninja
  Run `ninja --version` (you should have a message preventing the execution). Go to "Apple menu" -> "System Preferences", click "Security & Privacy", then click "General". You should see "ninja" : click "open anyway"
  Run `ninja --version` a second time, you should have a dialog where you can choose "open".
 
+ For Ubuntu:
+ `sudo apt-get install ninja-build`
+
 
 ### Mac
 
