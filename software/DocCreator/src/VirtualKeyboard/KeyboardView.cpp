@@ -345,7 +345,6 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
   //Est-ce que checkedFontCodes sert vraiment à quelquechose ????
 
   const Models::CharacterMap &fontCharsMap = font->getCharacters();
-  auto iter = fontCharsMap.begin();
 
   // fill keyboard mode = lowercase
   if (checkedFontCodes.size() < fontCharsMap.size()) {
@@ -360,7 +359,7 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
         const int fontCode = charButtonView->getFontCode(mode);
         if (fontCode == -1) {
           int indexChar = 0;
-          for (iter = fontCharsMap.begin();
+          for (auto iter = fontCharsMap.begin();
 	       iter != fontCharsMap.end();
 	       ++iter, ++indexChar) { //TODO:OPTIM: on ne veut pas retraverser tous les caracteres pour savoir ceux qui sont alloués !!!
             const int u = iter.key().unicode()->unicode();
@@ -393,7 +392,7 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
 
         if (!charButtonView->hasFontCodeForKbCode(keyboardCode_Uppercase)) {
           int indexChar = 0;
-          for (iter = fontCharsMap.begin(); iter != fontCharsMap.end();
+          for (auto iter = fontCharsMap.begin(); iter != fontCharsMap.end();
                ++iter, ++indexChar) {
             const int u = iter.key().unicode()->unicode();
             if (!checkedFontCodes.contains(u) &&
@@ -425,7 +424,7 @@ KeyboardView::mapKeyboardCodeValuesToFontCodes(const Models::Font *font)
 
         if (!charButtonView->hasFontCodeForKbCode(keyboardCode_Alternate)) {
           int indexChar = 0;
-          for (iter = fontCharsMap.begin(); iter != fontCharsMap.end();
+          for (auto iter = fontCharsMap.begin(); iter != fontCharsMap.end();
                ++iter, ++indexChar) {
             const int u = iter.key().unicode()->unicode();
             if (!checkedFontCodes.contains(u) &&
