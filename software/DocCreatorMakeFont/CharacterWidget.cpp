@@ -146,8 +146,11 @@ void CharacterWidget::paintEvent(QPaintEvent *event)
 	const QChar c(choices[key]);
 
 	painter.drawText(column * squareSize + (squareSize / 2) -
-			 //fontMetrics.horizontalAdvance(QChar(key)) / 2,  //Qt 5.11 only
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)) 
+			 fontMetrics.horizontalAdvance(QChar(key)) / 2,
+#else
 			 fontMetrics.width(c) / 2,
+#endif //QT_VERSION
 			 row * squareSize + 4 + fontMetrics.ascent(),
 			 QString(c));
       }
