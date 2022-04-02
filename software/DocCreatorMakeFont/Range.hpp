@@ -30,7 +30,7 @@ struct Range
     assert(start <= end);
   }
 
-  Range(const char* hexValue)
+  explicit Range(const char* hexValue)
   {
     end = start = hex2int(hexValue);
   }

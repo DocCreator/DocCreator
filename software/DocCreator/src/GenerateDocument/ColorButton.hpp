@@ -21,7 +21,7 @@ public:
    *
    * Button is built with given color.
    */
-  ColorButton(QRgb color, QWidget *parent = NULL);
+  explicit ColorButton(QRgb color, QWidget *parent = NULL);
 
   /**
    * @brief Set color of button.
