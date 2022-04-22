@@ -5,22 +5,35 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  say-hello:
+  build-linux:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: cimg/base:stable
-    # Add steps to the job
+    machine:
+      - image: buntu-2004:current
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+	name: Install dependencies
+      	command: sudo apt-get update && sudo apt-get install -y cmake ninja-build libpng-dev libjpeg-dev libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev libqt5opengl5-dev
+      - run:
+      	name: Clone repository
+      	command: git clone << pipeline.parameters.src-repo-url >> -b << pipeline.parameters.branch-name >>
+      - run:
+      	name: Build
+      	command: |
+	CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
+	cd $CIRCLE_WORKING_DIRECTORY
+	ls 
+	mkdir build
+	cd build
+	cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+	ninja -j 3
+	ninja test
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  build-linux-workflow:
     jobs:
-      - say-hello
+      - build-linux
