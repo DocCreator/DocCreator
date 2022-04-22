@@ -5,46 +5,6 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build-linux:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    machine:
-      image: ubuntu-2004:current
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies (except Qt)
-          command: sudo apt-get update && sudo apt-get install -y cmake ninja-build libpng-dev libjpeg-dev libopencv-dev
-      - run:
-          name: Clone repository
-          command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
-      - run:
-          name: Build only degradations and tests (with make, in Release)
-          command: |
-            CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
-            cd $CIRCLE_WORKING_DIRECTORY
-            ls 
-            mkdir buildD
-            cd buildD
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY_DEGRADATIONS=ON -DBUILD_TESTING=ON
-            make -j 4
-            make test
-            cd ..
-      - run:
-          name: Install dependencies (Qt)
-          command: sudo apt-get install -y qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev libqt5opengl5-dev
-      - run:
-          name: Build all and tests (with ninja, in Release)
-          command: |
-            CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
-            cd $CIRCLE_WORKING_DIRECTORY
-            ls 
-            mkdir build
-            cd build
-            cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON
-            ninja -j 4
-            ninja test
   build-macos:
     macos:
       xcode: 13.3.1
@@ -59,20 +19,8 @@ jobs:
           name: Clone repository
           command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
       - run:
-          name: Build only degradations and tests (with make, in Release)
-          command: |
-            CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
-            cd $CIRCLE_WORKING_DIRECTORY
-            ls 
-            mkdir buildD
-            cd buildD
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY_DEGRADATIONS=ON -DBUILD_TESTING=ON
-            make -j 4
-            make test
-            cd ..
-      - run:
           name: Install dependencies (Qt)
-          command: brew install qt
+          command: brew install qt@5
       - run:
           name: Build all and tests (with make, in Release)
           command: |
@@ -90,5 +38,4 @@ jobs:
 workflows:
   build-linux-workflow:
     jobs:
-      - build-linux
       - build-macos
