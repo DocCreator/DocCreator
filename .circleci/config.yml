@@ -14,8 +14,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
-          command: sudo apt-get update && sudo apt-get install -y cmake ninja-build libpng-dev libjpeg-dev libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev libqt5opengl5-dev
+          name: Install dependencies (except Qt)
+          command: sudo apt-get update && sudo apt-get install -y cmake ninja-build libpng-dev libjpeg-dev libopencv-dev
       - run:
           name: Clone repository
           command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
@@ -31,6 +31,9 @@ jobs:
             make -j 4
             make test
             cd ..
+      - run:
+          name: Install dependencies (Qt)
+          command: sudo apt-get install -y qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev libqt5opengl5-dev
       - run:
           name: Build all and tests (with ninja, in Release)
           command: |
