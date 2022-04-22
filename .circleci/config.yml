@@ -15,7 +15,7 @@ jobs:
           command: |
             brew install cmake
             brew install qt@5
-	    echo "brew --prefix qt" && brew --prefix qt
+            echo "brew --prefix qt" && brew --prefix qt
             brew install opencv
       - run:
           name: Clone repository
