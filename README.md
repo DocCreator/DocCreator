@@ -303,7 +303,9 @@ When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PR
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_TESTING=ON to cmake. It will be build degradations unit tests.
 
+## FAQ 
 
+ See [FAQ.md](FAQ.md).
 
 ## Troubleshooting
 
