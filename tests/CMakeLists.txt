@@ -1,5 +1,7 @@
 
 add_subdirectory(Degradations)
 
-add_subdirectory(IO)
+IF(NOT BUILD_ONLY_DEGRADATIONS)
+  add_subdirectory(IO)
+ENDIF()
 
