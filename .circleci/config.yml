@@ -9,27 +9,27 @@ jobs:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     machine:
-      - image: buntu-2004:current
+      image: ubuntu-2004:current
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - run:
-	name: Install dependencies
-      	command: sudo apt-get update && sudo apt-get install -y cmake ninja-build libpng-dev libjpeg-dev libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev libqt5opengl5-dev
+          name: Install dependencies
+          command: sudo apt-get update && sudo apt-get install -y cmake ninja-build libpng-dev libjpeg-dev libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev libqt5opengl5-dev
       - run:
-      	name: Clone repository
-      	command: git clone << pipeline.parameters.src-repo-url >> -b << pipeline.parameters.branch-name >>
+          name: Clone repository
+          command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
       - run:
-      	name: Build
-      	command: |
-	CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
-	cd $CIRCLE_WORKING_DIRECTORY
-	ls 
-	mkdir build
-	cd build
-	cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-	ninja -j 3
-	ninja test
+          name: Build
+          command: |
+            CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
+            cd $CIRCLE_WORKING_DIRECTORY
+            ls 
+            mkdir build
+            cd build
+            cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+            ninja -j 3
+            ninja test
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
