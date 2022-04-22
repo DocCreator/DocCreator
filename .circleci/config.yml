@@ -15,7 +15,7 @@ jobs:
           command: |
             brew install cmake
             brew install qt@5
-            echo "brew --prefix qt" && brew --prefix qt
+            echo "brew --prefix qt@5" && brew --prefix qt@5
             brew install opencv
       - run:
           name: Clone repository
@@ -33,7 +33,7 @@ jobs:
             echo "ls /usr/local/opt/qt5/lib/cmake" && ls /usr/local/opt/qt5/lib/cmake
             mkdir build
             cd build
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5
             make -j 4
             make test
 

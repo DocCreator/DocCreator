@@ -66,16 +66,6 @@ ADD_CUSTOM_TARGET(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 
 
-FIND_PACKAGE(OpenCV REQUIRED core imgproc highgui photo)
-if( OpenCV_FOUND )
-  if (OpenCV_VERSION VERSION_GREATER 3.0)
-    FIND_PACKAGE(OpenCV QUIET REQUIRED core imgproc highgui imgcodecs photo)
-  else()
-    message(STATUS "Found OpenCV: ${OpenCV_DIR} (found version \"${OpenCV_VERSION}\")")
-  endif()
-  list( APPEND ThirdParty_LIBS ${OpenCV_LIBS} )
-endif( OpenCV_FOUND )
-
 
 
 ########################################################################
@@ -116,6 +106,19 @@ IF(NOT BUILD_ONLY_DEGRADATIONS)
   SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network)
   SET(USE_QT5 TRUE)
 ENDIF()
+
+
+FIND_PACKAGE(OpenCV REQUIRED core imgproc highgui photo)
+if( OpenCV_FOUND )
+  if (OpenCV_VERSION VERSION_GREATER 3.0)
+    FIND_PACKAGE(OpenCV QUIET REQUIRED core imgproc highgui imgcodecs photo)
+  else()
+    message(STATUS "Found OpenCV: ${OpenCV_DIR} (found version \"${OpenCV_VERSION}\")")
+  endif()
+  list( APPEND ThirdParty_LIBS ${OpenCV_LIBS} )
+endif( OpenCV_FOUND )
+
+
 
 OPTION(BUILD_OTHER_PROGS "Build other programs than DocCreator" OFF)
 if (NOT BUILD_OTHER_PROGS)
