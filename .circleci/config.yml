@@ -45,6 +45,44 @@ jobs:
             cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON
             ninja -j 4
             ninja test
+  build-macos:
+    macos:
+      xcode: 13.3.1
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies (OpenCV)
+          command: |
+            brew install cmake
+            brew install opencv
+      - run:
+          name: Clone repository
+          command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
+      - run:
+          name: Build only degradations and tests (with make, in Release)
+          command: |
+            CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
+            cd $CIRCLE_WORKING_DIRECTORY
+            ls 
+            mkdir buildD
+            cd buildD
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY_DEGRADATIONS=ON -DBUILD_TESTING=ON
+            make -j 4
+            make test
+            cd ..
+      - run:
+          name: Install dependencies (Qt)
+          command: brew install qt@5
+      - run:
+          name: Build all and tests (with make, in Release)
+          command: |
+            CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
+            cd $CIRCLE_WORKING_DIRECTORY
+            mkdir build
+            cd build
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5
+            make -j 4
+            make test
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -52,3 +90,4 @@ workflows:
   build-linux-workflow:
     jobs:
       - build-linux
+      - build-macos
