@@ -16,7 +16,7 @@ jobs:
             brew install cmake
             brew install qt@5
             echo "brew --prefix qt@5" && brew --prefix qt@5
-            echo "find /usr/local -name libopenjp2.so" && find /usr/local -name libopenjp2.so
+            echo "find /usr/local -name libopenjp2.dylib" && find /usr/local -name libopenjp2.dylib
             brew install opencv
       - run:
           name: Clone repository
@@ -29,9 +29,6 @@ jobs:
           command: |
             CIRCLE_WORKING_DIRECTORY=$(eval "echo $CIRCLE_WORKING_DIRECTORY")
             cd $CIRCLE_WORKING_DIRECTORY
-            ls 
-            echo "ls /usr/local/opt/qt5" && ls /usr/local/opt/qt5
-            echo "ls /usr/local/opt/qt5/lib/cmake" && ls /usr/local/opt/qt5/lib/cmake
             mkdir build
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5
