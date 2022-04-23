@@ -16,6 +16,7 @@ jobs:
             brew install cmake
             brew install qt@5
             echo "brew --prefix qt@5" && brew --prefix qt@5
+            echo "find /usr/local -name libopenjp2.so" && find /usr/local -name libopenjp2.so
             brew install opencv
       - run:
           name: Clone repository

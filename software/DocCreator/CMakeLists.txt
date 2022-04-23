@@ -280,7 +280,7 @@ IF(BUILD_TESSERACT)
     SET(Tesseract_LIBRARIES "${TESSERACT_LIBRARY};Ws2_32")
   ENDIF()
 
-  #message("Lept_LIBRARIES=${Lept_LIBRARIES}")
+  message("Lept_LIBRARIES=${Lept_LIBRARIES}")
   #message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
 
 
@@ -292,7 +292,7 @@ IF(BUILD_TESSERACT)
 ENDIF()
 
 SET(Tesseract_LIBRARIES "${Tesseract_LIBRARIES};${Lept_LIBRARIES}")
-#message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
+message("Tesseract_LIBRARIES=${Tesseract_LIBRARIES}")
 
 
 ######################################## TESSERACT
@@ -564,7 +564,7 @@ ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/src/Degradations/Distortion3DModel)
 
 SET(EXTRA_LIBS ${QT_LIBRARIES} ${Lipsum4Qt_LIBRARIES} ${DocCreator_LIBRARIES} ${OpenCV_LIBS} ${DOC3D_LIBRARIES} ${Tesseract_LIBRARIES})
 
-#message("EXTRA_LIBS=${EXTRA_LIBS}")
+message("EXTRA_LIBS=${EXTRA_LIBS}")
 
 #IF( APPLE )
 #   ADD_EXECUTABLE(${PROGNAME} MACOSX_BUNDLE ${DocCreator_sources}  ${MOC} ${RCS} ${UI})
