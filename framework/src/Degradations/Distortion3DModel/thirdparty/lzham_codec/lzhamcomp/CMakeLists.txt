@@ -1,5 +1,5 @@
 PROJECT(lzhamcomp)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 # Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
 IF(POLICY CMP0063)
