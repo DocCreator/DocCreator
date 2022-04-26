@@ -199,7 +199,11 @@ or for Visual Studio 2019 (with CMake 3.14.6 or above, in "Developer Command Pro
 ```
 cmake .. -G "Visual Studio 16 2019" -A "x64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
 ```
-<QT_PATH> is the path to installed Qt configuration for this compiler. <QT_PATH> is for example C:/Qt/5.12.4/msvc2017_64
+or for Visual Studio 2022 (with CMake 3.21 or above, in "Developer Command Prompt for VS 2022"):
+```
+cmake .. -G "Visual Studio 17 2022" -A "x64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
+```
+<QT_PATH> is the path to installed Qt configuration for this compiler. <QT_PATH> is for example `C:/Qt/5.12.4/msvc2017_64`.
 You can also pass other options to cmake. See below.  
 
 Then you can open the generated .sln file with Visual Studio.
