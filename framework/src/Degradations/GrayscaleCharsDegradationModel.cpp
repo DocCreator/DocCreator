@@ -615,7 +615,7 @@ namespace dc {
 	  pixel.isBackground = (b[x] != 0);
 
 	  // Compute approximately the transformation distance
-	  pixel.distanceToEdge = calculateApproximatelyDistanceFromBord(pixel);
+	  pixel.distanceToEdge = static_cast<float>(calculateApproximatelyDistanceFromBord(pixel));
 	  //pixel.distanceToEdge = calculateDistanceFromBord(pixel, _is4connected);
 
 	  if (pixel.distanceToEdge > 0) {
@@ -638,11 +638,11 @@ namespace dc {
 		0.5f;
 
 	      pixel.gradient_value = sqrtf(dx * dx + dy * dy);
-	      pixel.gradient_angle = atan2f(dy, dx) * 180 / CV_PI;
+          pixel.gradient_angle = atan2f(dy, dx) * 180.f / static_cast<float>(CV_PI);
 
 	    } else {
-	      pixel.gradient_value = 0;
-	      pixel.gradient_angle = 0;
+	      pixel.gradient_value = 0.f;
+	      pixel.gradient_angle = 0.f;
 	    }
 
 	    if (pixel.gradient_angle == 0) {
@@ -1018,21 +1018,21 @@ namespace dc {
 
 	cv::Point p[4];
 
-	const float k = -tanf(sp.pixel.gradient_angle * CV_PI / 180.0);
+	const float k = -tanf(sp.pixel.gradient_angle * static_cast<float>(CV_PI) / 180.0);
 
 	//B:TODO:OPTIM? we have computed sp.pixel.gradient_angle with atan2() & now we apply tan() !?!
 
 	p[0].x = ax;
-	p[0].y = k * (p[0].x - xo) + yo;
+	p[0].y = static_cast<int>(k * (p[0].x - xo) + yo);
 
 	p[1].y = dy;
-	p[1].x = (p[1].y - yo) / k + xo;
+    p[1].x = static_cast<int>((p[1].y - yo) / k + xo);
 
 	p[2].x = bx;
-	p[2].y = k * (p[2].x - xo) + yo;
+    p[2].y = static_cast<int>(k * (p[2].x - xo) + yo);
 
 	p[3].y = cy;
-	p[3].x = (p[3].y - yo) / k + xo;
+    p[3].x = static_cast<int>((p[3].y - yo) / k + xo);
 
 	std::vector<cv::Point> listOut;
 	listOut.reserve(4); //B
@@ -1132,8 +1132,8 @@ namespace dc {
 	for (const cv::Point &pt : listEdgePoints) {
 
 	  const float dis =
-	    sqrtf((xo - pt.x) * (xo - pt.x) +
-		 (yo - pt.y) * (yo - pt.y)); //B:TODO:OPTIM: avoid sqrt
+	    sqrtf(static_cast<float>((xo - pt.x) * (xo - pt.x) +
+		 (yo - pt.y) * (yo - pt.y))); //B:TODO:OPTIM: avoid sqrt
 	  if (first_min > dis) {
 	    second_min = first_min;
 	    first_min = dis;
@@ -1152,15 +1152,15 @@ namespace dc {
 	cv::Point A, B;
 	const int d_stroke_width_min = getMinStrokeWidthAtASeedPoint(sp, angle, A, B);
 	if (second_min > d_stroke_width_min)
-	  second_min = d_stroke_width_min;
+       second_min = static_cast<float>(d_stroke_width_min);
 
 	//=========DEBUG================
 	//cv::line(_mat_color, A, B, cv::Scalar(255, 0, 0));
 
-	sp.pixel.gradient_angle = angle + rand() % 15 - 7.5; //B ???
+	sp.pixel.gradient_angle = angle + rand() % 15 - 7.5f; //B ???
       }
 
-      sp.b_tache = calculateDistanceFromBord(sp.pixel);
+      sp.b_tache = static_cast<float>(calculateDistanceFromBord(sp.pixel));
 
       if (sp.b_tache > first_min)
 	sp.b_tache = first_min;
@@ -1310,7 +1310,7 @@ namespace dc {
 	const double inv_m0 = 1. / m0;
 	const double mean = m1 * inv_m0;
 	const double stdDev = sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
-	int max_disB = static_cast<int>((mean + stdDev) * 3.34);
+	const int max_disB = static_cast<int>((mean + stdDev) * 3.34f);
 	//B:UGLY: we estimate area of AABB from CC size...
 
 	max_dis = std::max(max_dis, max_disB);
@@ -1343,7 +1343,7 @@ namespace dc {
       //std::cerr<<"min="<<*itMin<<" median="<<*itMed<<" max="<<*itMax<<"  mean="<<mean<<"\n";
 
       //std::cerr<<"max_dis="<<max_dis<<"\n";
-      max_dis = std::min(*itMed * 2, size_t(mean+0.5));
+      max_dis = static_cast<int>(std::min(*itMed * 2, size_t(mean+0.5f)));
       //std::cerr<<"max_dis="<<max_dis<<"\n";
     }
 #endif //0
@@ -1636,7 +1636,7 @@ namespace dc {
       for (Seedpoint &sp : _listSeedPoints) {
 	if (sp.type == 3) {
 	  if (sp.b_tache > _MAX_a0)
-	    sp.b_tache = _MAX_a0;
+        sp.b_tache = static_cast<float>(_MAX_a0);
 
 	  if (sp.pixel.isBackground)
 	    listFirstThreslhold.push_back(sp.b_tache);
@@ -1674,7 +1674,7 @@ namespace dc {
       }
     }
 
-    const int selectedBGSPs = counter;
+    const size_t selectedBGSPs = counter;
     counter = 0;
     if ((nbIndependent - selectedBGSPs) < listSecondThreslhold.size() &&
 	!listSecondThreslhold.empty()) {
@@ -1981,7 +1981,7 @@ namespace dc {
 
 
       // size of ellipse
-      int semi_major_axis = floorf(sp.size + 0.5f);
+      int semi_major_axis = static_cast<int>(floorf(sp.size + 0.5f));
 #if 0
       if (semi_major_axis <= 1)
 	semi_major_axis = 2;
@@ -1989,7 +1989,7 @@ namespace dc {
       if (semi_major_axis < 3) //B: 27/10/2017
 	semi_major_axis = 3;
 #endif
-      const int semi_minor_axis = floorf((1 - _g) * sp.size + 0.5f);
+      const int semi_minor_axis = static_cast<int>(floorf((1 - _g) * sp.size + 0.5f));
 
 
       // Get all pixels inside ellipse
@@ -2057,13 +2057,13 @@ namespace dc {
       // background to foreground
       else {
 	// generate the gray level of the centre
-	int C_gris = var_nor_Forground();
+        int C_gris = static_cast<int>(var_nor_Forground());
 	// The difference between generated number and MEAN is not upper than
 	// SIGMA.
 	int limiter = 0;
 	while (std::max(abs(C_gris - min_B), abs(C_gris - max_B)) >
 	       _MAX_Gradient) {
-	  C_gris = var_nor_Forground();
+          C_gris = static_cast<int>(var_nor_Forground());
 	  ++limiter;
 	  if (limiter > 100)
 	    break;

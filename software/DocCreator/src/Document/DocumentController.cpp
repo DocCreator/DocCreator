@@ -6,8 +6,10 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QXmlSchema>
 #include <QXmlSchemaValidator>
+#endif
 
 #include <core/configurationmanager.h>
 #include <iomanager/documentloaderdirector.h>
@@ -901,9 +903,13 @@ DocumentController::cut()
 void
 DocumentController::paste()
 {
+  //B:TODO: With Qt 6.x, QXmlSchema is not available anymore.
+
   //TODO: tester le clipboard pour coller un texte ou coller un xml
   const QString toPaste = QApplication::clipboard()->text();
   bool isValidXml = false;
+
+  #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 
   QString XsdPath = Core::ConfigurationManager::get(
                       AppConfigMainGroup, AppConfigXmlCheckerFolderKey)
@@ -918,6 +924,8 @@ DocumentController::paste()
     QXmlSchemaValidator validator(schema);
     isValidXml = validator.validate(toPaste.toUtf8());
   }
+
+  #endif
 
   if (!isValidXml) {
     //Plain text

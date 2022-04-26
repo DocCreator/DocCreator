@@ -3,6 +3,8 @@
 #include "CharacterButtonView.hpp"
 #include "ControlButtonView.hpp"
 #include "ModeTypeEnum.hpp"
+#include <QFile>
+#include <QLatin1String>
 #include <QTextStream>
 #include <QXmlStreamReader>
 
@@ -111,11 +113,11 @@ KeyboardViewXmlBuilder::buildControlButtons()
   QXmlStreamReader reader(_controlButtonsXml);
 
   while (!(reader.tokenType() == QXmlStreamReader::EndElement &&
-           reader.name() == "controlbuttons") &&
+           reader.name() == QLatin1String("controlbuttons")) &&
          !reader.atEnd()) {
     QXmlStreamReader::TokenType tokenMain = reader.readNext();
 
-    if (reader.name() == "button" &&
+    if (reader.name() == QLatin1String("button") &&
         tokenMain == QXmlStreamReader::StartElement) {
       const int width = (reader.attributes()
                            .value(QStringLiteral("width"))
@@ -161,11 +163,11 @@ KeyboardViewXmlBuilder::charButtonFromXml(QXmlStreamReader &reader)
   auto charButton = new CharacterButtonView(_keyboardView);
 
   while (!(reader.tokenType() == QXmlStreamReader::EndElement &&
-           reader.name() == "charbutton") &&
+           reader.name() == QLatin1String("charbutton")) &&
          !reader.atEnd()) {
     QXmlStreamReader::TokenType tokenMain = reader.readNext();
 
-    if (reader.name() == "uppercase" &&
+    if (reader.name() == QLatin1String("uppercase") &&
         tokenMain == QXmlStreamReader::StartElement) {
       //const QString s = QString((QChar)reader.attributes().value("value").toString().toInt());
       const int key =
@@ -173,7 +175,7 @@ KeyboardViewXmlBuilder::charButtonFromXml(QXmlStreamReader &reader)
       charButton->addModeCharacter(UpperCase, key);
     }
 
-    if (reader.name() == "lowercase" &&
+    if (reader.name() == QLatin1String("lowercase") &&
         tokenMain == QXmlStreamReader::StartElement) {
       //const QString s = QString((QChar)reader.attributes().value("value").toString().toInt());
       const int key =
@@ -181,7 +183,7 @@ KeyboardViewXmlBuilder::charButtonFromXml(QXmlStreamReader &reader)
       charButton->addModeCharacter(LowerCase, key);
     }
 
-    if (reader.name() == "alternate" &&
+    if (reader.name() == QLatin1String("alternate") &&
         tokenMain == QXmlStreamReader::StartElement) {
       //const QString s = QString((QChar)reader.attributes().value("value").toString().toInt());
       const int key =

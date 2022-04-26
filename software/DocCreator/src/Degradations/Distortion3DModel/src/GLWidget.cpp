@@ -26,8 +26,8 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 
-#include <QDesktopWidget>
 #include <QGuiApplication>
+#include <QScreen>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 #include <QOpenGLContext>
@@ -802,12 +802,12 @@ GLWidget::setHiResSize(int &prevW, int &prevH)
     w = m_tex_width;
     h = m_tex_height;
   } else {
-    QDesktopWidget desktop;
-    w = desktop.geometry().width();
-    h = desktop.geometry().height();
+    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+    w = screenGeometry.width();
+    h = screenGeometry.height();
   }
 
-  GLint dims[2];
+  GLint dims[2] = {0};
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
   w = std::min(w, dims[0]);
   h = std::min(h, dims[1]); //TODO: keep aspect ratio !!!

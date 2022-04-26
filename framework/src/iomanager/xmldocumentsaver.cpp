@@ -1,6 +1,10 @@
 #include "xmldocumentsaver.h"
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QTextCodec>
+#else
+#include <QStringConverter>
+#endif
 #include <QXmlStreamWriter>
 #include <map>
 
@@ -28,7 +32,10 @@ XMLDocumentSaver::createNewDocumentOutput()
   _writer = new QXmlStreamWriter(&_output);
   _writer->setAutoFormatting(true);
   _writer->setAutoFormattingIndent(2);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   _writer->setCodec(QTextCodec::codecForName("utf8"));
+#endif
+
 }
 
 void

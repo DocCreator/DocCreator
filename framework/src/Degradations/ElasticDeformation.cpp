@@ -151,7 +151,7 @@ namespace dc {
 		      Interpolation interpolation,
 		      cv::Mat &map_x, cv::Mat &map_y)
     {
-      const float scale = std::min(img.cols, img.rows);
+      const float scale = static_cast<float>(std::min(img.cols, img.rows));
       alpha *= scale;
       sigma *= scale;
 
@@ -223,9 +223,9 @@ namespace dc {
       const cv::Point center(width/2, height/2);
       const int shift = std::min(width, height)/3;
       cv::Point2f src[3];
-      src[0] = cv::Point2f(center.x+shift, center.y+shift);
-      src[1] = cv::Point2f(center.x+shift, center.y-shift);
-      src[2] = cv::Point2f(center.x-shift, center.y-shift);
+      src[0] = cv::Point2f(static_cast<float>(center.x+shift), static_cast<float>(center.y+shift));
+      src[1] = cv::Point2f(static_cast<float>(center.x+shift), static_cast<float>(center.y-shift));
+      src[2] = cv::Point2f(static_cast<float>(center.x-shift), static_cast<float>(center.y-shift));
 
       std::default_random_engine generator;
       std::uniform_real_distribution<float> distribution(-alphaAffine, alphaAffine);
