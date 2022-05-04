@@ -20,28 +20,28 @@ namespace dc {
     }
 
     static constexpr int
-    fctLinear(int x, int rows, int coeff, int vertical)
+    fctLinear(int x, int rows, float coeff, int vertical)
     {
-      return rows - (x * coeff + vertical);
+      return static_cast<int>(rows - (x * coeff + vertical));
     }
 
     static int
-    fctLog(int x, int rows, int coeff, int vertical)
+    fctLog(int x, int rows, float coeff, int vertical)
     {
-      return rows - (log(x) * coeff + vertical);
+      return static_cast<int>(rows - (logf(static_cast<float>(x)) * coeff + vertical));
     }
 
     static constexpr int
-    fctParabola(int x, int rows, int coeff, int vertical, int horizontal)
+    fctParabola(int x, int rows, float coeff, int vertical, int horizontal)
     {
-      return rows - ((coeff * (x + horizontal) * (x + horizontal)) +
-		     (COEFF_PARABOLA * (x + horizontal)) + vertical);
+      return static_cast<int>(rows - ((coeff * (x + horizontal) * (x + horizontal)) +
+		     (COEFF_PARABOLA * (x + horizontal)) + vertical));
     }
 
     static int
-    fctSinus(int x, int rows, int coeff, int vertical, int horizontal)
+    fctSinus(int x, int rows, float coeff, int vertical, int horizontal)
     {
-      return rows - (coeff * sinf((x + horizontal) / 200.f) + vertical);
+      return static_cast<int>(rows - (coeff * sinf((x + horizontal) / 200.f) + vertical));
     }
 
     static void
@@ -709,9 +709,9 @@ namespace dc {
       }
 
       //compute the diagonal
-      return sqrt(
+      return sqrtf(static_cast<float>(
 		  (((calcRayon.rows / 2) - pixelY) * ((calcRayon.rows / 2) - pixelY)) +
-		  (((calcRayon.cols / 2) - pixelX) * ((calcRayon.cols / 2) - pixelX)));
+		  (((calcRayon.cols / 2) - pixelX) * ((calcRayon.cols / 2) - pixelX))));
     }
 
     static constexpr int MIN_BLUR_FOURIER = 1;

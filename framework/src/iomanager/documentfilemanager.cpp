@@ -1,7 +1,11 @@
 #include "documentfilemanager.h"
 
 #include <QFile>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QTextCodec>
+#else
+#include <QStringConverter>
+#endif
 #include <QTextStream>
 
 #include "TxtDocumentSaver.hpp"
@@ -18,7 +22,11 @@ DocumentFileManager::documentFromXml(const QString &filepath)
   QFile file(filepath);
   file.open(QIODevice::ReadOnly);
   QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   in.setCodec(QTextCodec::codecForName("utf8"));
+#else
+  in.setEncoding(QStringConverter::Utf8);
+#endif
   QString xmlCode = in.readAll();
   file.close();
 
@@ -43,7 +51,11 @@ DocumentFileManager::documentToXml(Doc::Document *document,
   file.open(QIODevice::WriteOnly);
 
   QTextStream out(&file);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   out.setCodec(QTextCodec::codecForName("utf8"));
+#else
+  out.setEncoding(QStringConverter::Utf8);
+#endif
   out << documentOutput;
 
   file.close();

@@ -351,14 +351,14 @@ namespace dc {
 
       const cv::Point2f centerPoint(img2.cols/2.F, img2.rows/2.F);
       const cv::Mat rotatedBackground = getRotatedImage(background, centerPoint, angle);
-      const cv::Mat rotatedBackgroundMask = getRotatedMask(rotatedBackground, centerPoint, angle, 0.95);
+      const cv::Mat rotatedBackgroundMask = getRotatedMask(rotatedBackground, centerPoint, angle, 0.95F);
 
       cv::Mat rotatedBackgroundInpainted;
       const float inpaintedRadius = 2;
       cv::inpaint(rotatedBackground, rotatedBackgroundMask,
 		  rotatedBackgroundInpainted, inpaintedRadius, cv::INPAINT_TELEA);
 
-      const cv::Mat maskBef = getRotatedMask(img2, centerPoint, angle, 0.99);
+      const cv::Mat maskBef = getRotatedMask(img2, centerPoint, angle, 0.99F);
       cv::Mat mask;
       cv::threshold(maskBef, mask, 0, 255, cv::THRESH_BINARY_INV);
 
@@ -407,7 +407,7 @@ namespace dc {
 
       const cv::Point2f centerPoint(img2.cols/2.F, img2.rows/2.F);
       cv::Mat rotatedBackground = getRotatedImage(background, centerPoint, angle);
-      const cv::Mat rotatedBackgroundMask = getRotatedMask(rotatedBackground, centerPoint, angle, 0.95);
+      const cv::Mat rotatedBackgroundMask = getRotatedMask(rotatedBackground, centerPoint, angle, 0.95F);
       
       cv::Mat rotatedBackgroundInpainted;
       const float inpaintedRadius = 2;

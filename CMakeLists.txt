@@ -112,9 +112,17 @@ IF(NOT BUILD_ONLY_DEGRADATIONS)
   set(CMAKE_AUTOMOC ON)
   set(CMAKE_AUTORCC ON)
   set(CMAKE_AUTOUIC ON)
-  FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Xml XmlPatterns PrintSupport OpenGL Network)
-  SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network)
-  SET(USE_QT5 TRUE)
+  FIND_PACKAGE(Qt6 COMPONENTS Widgets Xml PrintSupport OpenGL OpenGLWidgets Network) #XmlPatterns 
+  if (NOT Qt6_FOUND)
+    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Xml XmlPatterns PrintSupport OpenGL Network)
+    SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network)
+    SET(QT_VERSION_MAJOR 5)
+  else()
+    SET(QT_LIBRARIES Qt6::Core Qt6::Widgets Qt6::Xml Qt6::PrintSupport Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network) #Qt6::XmlPatterns 
+    SET(QT_VERSION_MAJOR 6)
+  endif()
+  message(STATUS "Found Qt${QT_VERSION_MAJOR}")
+
 ENDIF()
 
 OPTION(BUILD_OTHER_PROGS "Build other programs than DocCreator" OFF)

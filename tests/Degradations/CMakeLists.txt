@@ -9,32 +9,33 @@ CONFIGURE_FILE(paths.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/paths.hpp @ONLY)
 
 
 SET(TESTS_DEGRADATIONS_SRC
-  testCommon
-  testBleedThrough
-  testBlurDegradation
-  testCharactersDegradation
-  testElasticDeformation
-  testHoleDegradation
-  testGradientDomainDegradation
-  testNoiseDegradation
-  testPhantomCharacter
-  testRotationDegradation
-  testShadowBinding
+  testCommon.cpp
+  testBleedThrough.cpp
+  testBlurDegradation.cpp
+  testCharactersDegradation.cpp
+  testElasticDeformation.cpp
+  testHoleDegradation.cpp
+  testGradientDomainDegradation.cpp
+  testNoiseDegradation.cpp
+  testPhantomCharacter.cpp
+  testRotationDegradation.cpp
+  testShadowBinding.cpp
   )
 
 IF(BUILD_WITH_OSMESA)
-  SET(TESTS_DEGRADATIONS_SRC ${TESTS_DEGRADATIONS_SRC} testDistortion3D)
+  SET(TESTS_DEGRADATIONS_SRC ${TESTS_DEGRADATIONS_SRC} testDistortion3D.cpp)
 ENDIF()
 
 
 
 FOREACH(FILE ${TESTS_DEGRADATIONS_SRC})
-  add_executable(${FILE} ${FILE})
-  target_include_directories(${FILE} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${CATCH_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
-  target_link_libraries (${FILE} DocCreatorDegradations)
-  set_target_properties(${FILE} PROPERTIES CXX_STANDARD 11
+  get_filename_component(TRGT ${FILE} NAME_WE)
+  add_executable(${TRGT} ${FILE})
+  target_include_directories(${TRGT} PRIVATE ${FRAMEWORK_INCLUDE_DIRS} ${CATCH_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
+  target_link_libraries (${TRGT} DocCreatorDegradations)
+  set_target_properties(${TRGT} PROPERTIES CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     )
-  add_test(${FILE} ${FILE})
+  add_test(${TRGT} ${TRGT})
 ENDFOREACH(FILE)

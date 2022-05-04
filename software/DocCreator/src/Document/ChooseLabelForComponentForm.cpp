@@ -567,7 +567,11 @@ ChooseLabelForComponentForm::createNewFont()
     const int pos = character_unicode.indexOf(QStringLiteral("_"));
     const QString display = character_unicode.mid(0, pos);
     const unsigned long unicode =
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
       character_unicode.midRef(pos + 1, character_unicode.size()).toInt();
+#else
+      QStringView(character_unicode).mid(pos + 1, character_unicode.size()).toInt();
+#endif
 
     Models::Character *character =
       new Models::Character(display, _upLine, _baseLine, _leftLine, _rightLine);

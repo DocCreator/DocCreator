@@ -13,7 +13,11 @@
 #include <QImage>
 #include <QRgb>
 #include <QStringList>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QTextCodec>
+#else
+#include <QStringConverter>
+#endif
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
@@ -63,16 +67,16 @@ FontFileManager::fontFromXml(const QString &filepath)
 
   //Reading font from xml
   while (!reader.atEnd()) {
-    if (reader.name() == "font" &&
+    if (reader.name() == QLatin1String("font") &&
         reader.tokenType() == QXmlStreamReader::StartElement) {
       font->setName(
         reader.attributes().value(QStringLiteral("name")).toString());
 
       while (!(reader.tokenType() == QXmlStreamReader::EndElement &&
-               reader.name() == "font") &&
+               reader.name() == QLatin1String("font")) &&
              !reader.atEnd()) {
         QXmlStreamReader::TokenType token = reader.readNext();
-        if (reader.name() == "letter" &&
+        if (reader.name() == QLatin1String("letter") &&
             token == QXmlStreamReader::StartElement) {
           const QString s =
             reader.attributes().value(QStringLiteral("char")).toString();
@@ -226,7 +230,9 @@ FontFileManager::fontToXml(const Models::Font *font, const QString &filepath)
   QXmlStreamWriter writer;
   writer.setAutoFormatting(true);
   writer.setAutoFormattingIndent(2);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   writer.setCodec(QTextCodec::codecForName("utf8"));
+#endif
   writer.setDevice(&file);
 
   writer.writeStartDocument();
@@ -253,41 +259,41 @@ FontFileManager::characterFromXml(QXmlStreamReader &reader)
   auto ch = new Models::Character();
 
   while (!(reader.tokenType() == QXmlStreamReader::EndElement &&
-           reader.name() == "letter") &&
+           reader.name() == QLatin1String("letter")) &&
          !reader.atEnd()) {
     QXmlStreamReader::TokenType tokenMain = reader.readNext();
 
-    if (reader.name() == "anchor" &&
+    if (reader.name() == QLatin1String("anchor") &&
         tokenMain == QXmlStreamReader::StartElement) {
       // GETTING ANCHORS (upLine, baseLine, leftLine, and rightLine)
       //int upLine, baseLine, leftLine, rightLine;
 
       reader.readNext();
       while (!(reader.tokenType() == QXmlStreamReader::EndElement &&
-               reader.name() == "anchor") &&
+               reader.name() == QLatin1String("anchor")) &&
              !reader.atEnd()) {
         QXmlStreamReader::TokenType token = reader.readNext();
         if (token == QXmlStreamReader::StartElement) {
-          if (reader.name() == "upLine") {
+          if (reader.name() == QLatin1String("upLine")) {
             reader.readNext();
             ch->setUpLine(reader.text().toString().toDouble());
           }
-          if (reader.name() == "baseLine") {
+          if (reader.name() == QLatin1String("baseLine")) {
             reader.readNext();
             ch->setBaseLine(reader.text().toString().toDouble());
           }
-          if (reader.name() == "leftLine") {
+          if (reader.name() == QLatin1String("leftLine")) {
             reader.readNext();
             ch->setLeftLine(reader.text().toString().toDouble());
           }
-          if (reader.name() == "rightLine") {
+          if (reader.name() == QLatin1String("rightLine")) {
             reader.readNext();
             ch->setRightLine(reader.text().toString().toDouble());
           }
         }
       }
     }
-    if (reader.name() == "picture" &&
+    if (reader.name() == QLatin1String("picture") &&
         tokenMain == QXmlStreamReader::StartElement) {
       Models::CharacterData *charData = characterDataFromXml(reader);
       ch->add(charData);
@@ -399,23 +405,23 @@ FontFileManager::characterDataFromXml(QXmlStreamReader &reader)
     reader.attributes().value(QStringLiteral("id")).toString().toInt();
 
   while (!(reader.tokenType() == QXmlStreamReader::EndElement &&
-           reader.name() == "imageData") &&
+           reader.name() == QLatin1String("imageData")) &&
          !reader.atEnd()) {
     QXmlStreamReader::TokenType token = reader.readNext();
     if (token == QXmlStreamReader::StartElement) {
-      if (reader.name() == "width") {
+      if (reader.name() == QLatin1String("width")) {
         reader.readNext();
         imgWidth = reader.text().toString().toInt();
       }
-      if (reader.name() == "height") {
+      if (reader.name() == QLatin1String("height")) {
         reader.readNext();
         imgHeight = reader.text().toString().toInt();
       }
-      if (reader.name() == "format") {
+      if (reader.name() == QLatin1String("format")) {
         reader.readNext();
         format = reader.text().toString().toInt();
       }
-      if (reader.name() == "data") {
+      if (reader.name() == QLatin1String("data")) {
         reader.readNext();
         pixelsData = reader.text().toString();
       }

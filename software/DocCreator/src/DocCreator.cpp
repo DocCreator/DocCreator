@@ -22,8 +22,10 @@
 #include <QStatusBar>
 #include <QTableView>
 #include <QToolBar>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QXmlSchema>
 #include <QXmlSchemaValidator>
+#endif
 #include <QtPlugin>
 
 #include "models/font.h"
@@ -63,7 +65,9 @@
 #include "RandomDocument/RandomDocumentParametersDialog.hpp"
 #include "Utils/FontUtils.hpp" //computeBestLineSpacing
 #include "Utils/ImageUtils.hpp"
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include "Utils/MessageHandler.hpp"
+#endif
 #include "VirtualKeyboard/KeyboardController.hpp"
 #include "VirtualKeyboard/KeyboardView.hpp"
 #include "VirtualKeyboard/KeyboardViewDirector.hpp"
@@ -589,11 +593,14 @@ DocCreator::openDocument()
 
     QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
+
     // open XML file
     // added by kvcuong 07/05/2012
     QStringList listStr = filepath.split('.');
     assert(!listStr.isEmpty());
     QString strExtension = listStr.at(listStr.size() - 1);
+
+
     if (strExtension.contains(QStringLiteral("od"), Qt::CaseInsensitive) ||
         strExtension.contains(QStringLiteral("xml"), Qt::CaseInsensitive)) {
       QString XsdPath = Core::ConfigurationManager::get(
@@ -602,6 +609,9 @@ DocCreator::openDocument()
                         Core::ConfigurationManager::get(
                           AppConfigMainGroup, AppConfigDocumentXSDCheckerKey)
                           .toString();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
       QUrl schemaUrl(XsdPath);
       MessageHandler messageHandler;
       QXmlSchema schema;
@@ -619,6 +629,8 @@ DocCreator::openDocument()
                                  ", Column " +
                                  QString::number(messageHandler.column()));
       }
+
+#endif 
 
       /* Open and load the document */
       updateTitle(filepath);

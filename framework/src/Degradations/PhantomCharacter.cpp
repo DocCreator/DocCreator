@@ -513,10 +513,10 @@ namespace dc {
       //Take a slightly greater height
       int yMax = yOrigin + height;
       if (yOrigin - (height * COEFF_HEIGHT_MARGIN) >= 1) {
-	yOrigin -= (height * COEFF_HEIGHT_MARGIN); //Start a little higher
+        yOrigin -= static_cast<int>(height * COEFF_HEIGHT_MARGIN); //Start a little higher
       }
       if (yMax + (height * COEFF_HEIGHT_MARGIN) < outputBin.rows) {
-	yMax += (height * COEFF_HEIGHT_MARGIN); //Search a little lower
+        yMax += static_cast<int>(height * COEFF_HEIGHT_MARGIN); //Search a little lower
       }
       int minX = SPACING_MAX;
       unsigned char currentPix = 0;
@@ -876,8 +876,8 @@ namespace dc {
 	  widthPattern = boundedRand(
 				     minWidth, maxWidth); //rand()% (maxWidth - minWidth) + minWidth ;
 
-	  minHeight = height * COEFF_MIN_HEIGHT;
-	  maxHeight = height * COEFF_MAX_HEIGHT;
+	  minHeight = static_cast<int>(height * COEFF_MIN_HEIGHT);
+	  maxHeight = static_cast<int>(height * COEFF_MAX_HEIGHT);
 
 	  heightPattern = boundedRand(
 				      minHeight, maxHeight); //rand()% (maxHeight - minHeight) + minHeight;

@@ -245,12 +245,13 @@ IF(BUILD_TESSERACT)
     pkg_check_modules(WEBP QUIET libwebp)
     IF(WEBP_FOUND)
       #SET(OTHER_LIBS "${WEBP_LIBRARIES};${OTHER_LIBS}")
-      message("WEBP_FOUND=${WEBP_FOUND} by pkg: $WEBP_LIBRARY=${WEBP_LIBRARY} $WEBP_LIBRARIES=${WEBP_LIBRARIES} WEBP=${WEBP}")
+      #message("WEBP_FOUND=${WEBP_FOUND} by pkg: $WEBP_LIBRARY=${WEBP_LIBRARY} $WEBP_LIBRARIES=${WEBP_LIBRARIES} WEBP=${WEBP}")
     ENDIF()
     pkg_check_modules(JP2K QUIET libopenjp2)
     IF(JP2K_FOUND)
-      #SET(OTHER_LIBS "${JP2K_LIBRARIES};${OTHER_LIBS}")
       # message("JP2K_FOUND=${JP2K_FOUND} by pkg: $JP2K_LIBRARY=${WEBP_LIBRARY} $JP2K_LIBRARIES=${WEBP_LIBRARIES} JP2K=${JP2K}")
+      #SET(OTHER_LIBS "${JP2K_LIBRARIES};${OTHER_LIBS}")
+      SET(OTHER_LIBS "${JP2K_LINK_LIBRARIES};${OTHER_LIBS}") #circleci/macos 22/04/2022
     ENDIF()
   ENDIF()
   if(NOT WEBP)
@@ -616,7 +617,7 @@ TARGET_LINK_LIBRARIES(${PROGNAME} ${EXTRA_LIBS} ${LIBNAME})
 
 
 #B: is there a better way to find the Qt installation path ?
-get_target_property(QtCore_location Qt5::Core LOCATION)
+get_target_property(QtCore_location Qt${QT_VERSION_MAJOR}::Core LOCATION)
 #get_filename_component(QTCORE_INSTALL_PATH "${QtCore_location}" ABSOLUTE)
 #get_filename_component(QT_INSTALL_PATH "${QTCORE_INSTALL_PATH}/.." ABSOLUTE)
 get_filename_component(QT_INSTALL_PATH "${QtCore_location}/../.." ABSOLUTE)
@@ -671,8 +672,8 @@ IF(WIN32)
   
 
   # install qt libraries & folders
-  if(USE_QT5)
-    get_target_property(_qmake_location Qt5::qmake IMPORTED_LOCATION)
+  if(QT_VERSION_MAJOR)
+    get_target_property(_qmake_location Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_path "${_qmake_location}" DIRECTORY)
     find_program(QT_WINDEPLOYQT_EXECUTABLE windeployqt
       HINTS "${_qmake_location}"
@@ -723,7 +724,7 @@ IF(WIN32)
       #We would like to add a dependency on "install" target. Is it possible ???
 
     endif()
-  endif(USE_QT5)
+  endif()
 
 ENDIF(WIN32)
 

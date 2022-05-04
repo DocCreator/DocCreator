@@ -19,9 +19,9 @@ XMLDocumentLoader::createNewDocument()
   int h = 0;
 
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "document") &&
+           _reader->name() == QLatin1String("document")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "document" &&
+    if (_reader->name() == QLatin1String("document") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       w =
         _reader->attributes().value(QStringLiteral("width")).toString().toInt();
@@ -43,9 +43,9 @@ XMLDocumentLoader::buildStyles()
 {
   //Reading styles from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "styles") &&
+           _reader->name() == QLatin1String("styles")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "style" &&
+    if (_reader->name() == QLatin1String("style") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       _output->addStyle(buildStyle());
     }
@@ -58,12 +58,12 @@ XMLDocumentLoader::buildContent()
 {
   //Reading document from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "content") &&
+           _reader->name() == QLatin1String("content")) &&
          !_reader->atEnd()) {
     //QString name = _reader->name().toString();
     //QXmlStreamReader::TokenType token = _reader->tokenType();
 
-    if (_reader->name() == "page" &&
+    if (_reader->name() == QLatin1String("page") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       _output->add(buildPage());
     }
@@ -80,9 +80,9 @@ XMLDocumentLoader::buildStyle()
 
   //Reading style from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "style") &&
+           _reader->name() == QLatin1String("style")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "font" &&
+    if (_reader->name() == QLatin1String("font") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       s->setFontName(_reader->readElementText());
     }
@@ -102,13 +102,13 @@ XMLDocumentLoader::buildPage()
 
   //Reading style from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "page") &&
+           _reader->name() == QLatin1String("page")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "textBlock" &&
+    if (_reader->name() == QLatin1String("textBlock") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       p->add(buildTextBlock());
     }
-    if (_reader->name() == "imageBlock" &&
+    if (_reader->name() == QLatin1String("imageBlock") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       p->add(buildImageBlock());
     }
@@ -164,9 +164,9 @@ XMLDocumentLoader::buildTextBlock()
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "textBlock") &&
+           _reader->name() == QLatin1String("textBlock")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "paragraph" &&
+    if (_reader->name() == QLatin1String("paragraph") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       tb->add(buildParagraph());
     }
@@ -192,9 +192,9 @@ XMLDocumentLoader::buildParagraph()
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "paragraph") &&
+           _reader->name() == QLatin1String("paragraph")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "string" &&
+    if (_reader->name() == QLatin1String("string") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       p->add(buildString());
     }
@@ -214,9 +214,9 @@ XMLDocumentLoader::buildString()
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == "string") &&
+           _reader->name() == QLatin1String("string")) &&
          !_reader->atEnd()) {
-    if (_reader->name() == "char" &&
+    if (_reader->name() == QLatin1String("char") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       s->add(buildCharacter());
     }

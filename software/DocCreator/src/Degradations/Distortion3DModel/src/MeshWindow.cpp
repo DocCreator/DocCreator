@@ -7,7 +7,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
-#include <QDesktopWidget>
+//#include <QDesktopWidget>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -16,6 +16,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 
 #include "GLWidget.hpp"
 #include "RandomScreenshotsParamsDialog.hpp"
@@ -45,9 +46,9 @@ MeshWindow::MeshWindow(QWidget *parent)
 
   m_glWidget->setMinimumSize(800, 600);
 
-  QDesktopWidget desktop;
-  const int h = desktop.geometry().height();
-  const int w = desktop.geometry().width();
+  QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+  const int h = screenGeometry.height();
+  const int w = screenGeometry.width();
   resize(w, h);
 
   mainLayout->addWidget(m_glWidget);

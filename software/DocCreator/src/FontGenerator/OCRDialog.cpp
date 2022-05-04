@@ -474,7 +474,7 @@ OCRDialog::updateTableLetters()
 int
 OCRDialog::indexOfLetterInAlphabet(const QString &label) const
 {
-  int index = m_alphabet.size();
+  int index = static_cast<int>(m_alphabet.size());
   const int asz = (int)m_alphabet.size();
   for (int j = 0; j < asz; ++j) {
     const int ind = m_alphabet[j].index;
@@ -605,8 +605,8 @@ OCRDialog::updateAlphabet()
 	|| col >= ui->tableAlphabet->columnCount()) {
       const size_t indexA = indexOfLetterInAlphabet(m_currentLetter.label);
       if (indexA < m_alphabet.size()) {
-	row = indexA/NUM_COLUMNS;
-	col = indexA-row*NUM_COLUMNS;
+	row = int(indexA/NUM_COLUMNS);
+	col = int(indexA-row*NUM_COLUMNS);
       }
       else {
 	row = 0;
@@ -779,11 +779,11 @@ OCRDialog::getSimilarLetters(const QString &label) const
   // Get symbols with same label
   std::vector<IndiceConfidence> list;
 
-  const int sz = m_font.size();
-  for (int i = 0; i < sz; ++i) {
+  const size_t sz = m_font.size();
+  for (size_t i = 0; i < sz; ++i) {
     const FontLetter f = m_font[i];
     if (f.label == label) {
-      list.emplace_back(IndiceConfidence(i, f.confidence));
+      list.emplace_back(IndiceConfidence((int)i, f.confidence));
     }
   }
 
@@ -908,7 +908,7 @@ OCRDialog::on_apply_clicked()
   //B:TODO: NO: we should not change the m_currentIndex if we have not added all the letters instances to the font.
   
   // Switch to the next symbol
-  const int fontSize = m_font.size();
+  const int fontSize = static_cast<int>(m_font.size());
   if (fontSize == 0)
     return;
 #if 0
@@ -938,8 +938,8 @@ OCRDialog::on_apply_clicked()
 	const int newCurrentIndex = m_alphabet[ind].index;
 	assert((size_t)(newCurrentIndex) < m_font.size());
 	m_currentIndex = newCurrentIndex;
-	const int lrow = ind/NUM_COLUMNS;
-	const int lcol = ind%NUM_COLUMNS;
+	const int lrow = static_cast<int>(ind/NUM_COLUMNS);
+	const int lcol = static_cast<int>(ind%NUM_COLUMNS);
 	ui->tableAlphabet->setCurrentCell(lrow, lcol);
 	ui->tableLetters->setCurrentCell(0, 0); //to have the right selection on the next updateView()/updateTableLetters()
       }
@@ -980,7 +980,7 @@ OCRDialog::on_deleteButton_clicked()
   ui->tableLetters->removeRow(m_currentIndex);
   m_font.erase(m_font.begin() + m_currentIndex);
 
-  const int fontSize = m_font.size();
+  const int fontSize = static_cast<int>(m_font.size());
   if (m_currentIndex >= fontSize)
     m_currentIndex = 0;
   if (fontSize == 0)
@@ -1005,7 +1005,7 @@ OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
     const FontLetter &f = m_font[i];
     
     if (f.label == label && f.confidence > best_confidence) {
-      m_currentIndex = i;
+      m_currentIndex = (int)i;
       m_currentLetter = m_font[m_currentIndex];
       best_confidence = f.confidence;
     }
@@ -1147,7 +1147,7 @@ OCRDialog::getFont() const
 
       const QImage image = getQImageFromMask(thumb(fls.rect), fls.mask);
 
-      auto *cd = new Models::CharacterData(image, i);
+      auto *cd = new Models::CharacterData(image, (int)i);
       c->add(cd);
 
       sum_spacing_w += fls.rect.width;
@@ -1166,8 +1166,8 @@ OCRDialog::getFont() const
   if (nb > 0) {
     //add space character to font
 
-    const float mean_spacing_w = static_cast<int>(sum_spacing_w / nb + 0.5f);
-    const float mean_spacing_h = static_cast<int>(sum_spacing_h / nb + 0.5f);
+    const float mean_spacing_w = static_cast<float>(static_cast<int>(sum_spacing_w / nb + 0.5f));
+    const float mean_spacing_h = static_cast<float>(static_cast<int>(sum_spacing_h / nb + 0.5f));
 
     const qreal upLine = 0;
     const qreal baseLine = 100;

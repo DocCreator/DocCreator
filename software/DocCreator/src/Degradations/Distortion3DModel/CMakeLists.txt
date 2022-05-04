@@ -62,8 +62,20 @@ ENDIF()
 
 
 
-## Qt5
-FIND_PACKAGE(QtX)
+## Qt
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+FIND_PACKAGE(Qt6 COMPONENTS Widgets Xml PrintSupport OpenGL OpenGLWidgets Network) #XmlPatterns 
+if (NOT Qt6_FOUND)
+  FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Xml XmlPatterns PrintSupport OpenGL Network)
+  SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network)
+  SET(QT_VERSION_MAJOR 5)
+else()
+  SET(QT_LIBRARIES Qt6::Core Qt6::Widgets Qt6::Xml Qt6::PrintSupport Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network) #Qt6::XmlPatterns 
+  SET(QT_VERSION_MAJOR 6)
+endif()
+#message("QT_VERSION_MAJOR=${QT_VERSION_MAJOR}")
 
 #OpenGL
 #B: is it really necessary ? should be found by Qt !?
@@ -77,7 +89,10 @@ SET(EIGEN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen-3.3.7)
 
 # Generate GLWidget.hpp from GLWidget.hpp.in according to Qt version.
 # (Hack: see GLWidget.hpp.in for details)
-if (Qt5Widgets_FOUND)
+if (Qt6Widgets_FOUND)
+    set(QGL_CLASS QOpenGLWidget)
+    message(STATUS "Use QOpenGLWidget as OpenGL widget.")
+elseif (Qt5Widgets_FOUND)
   if (Qt5Widgets_VERSION VERSION_LESS 5.4.0)
     set(QGL_CLASS QGLWidget)
     message(STATUS "Use QGLWidget as OpenGL widget.")
@@ -88,7 +103,7 @@ if (Qt5Widgets_FOUND)
 else()
     set(QGL_CLASS QGLWidget)
     message(STATUS "Use QGLWidget as OpenGL widget.")
-endif(Qt5Widgets_FOUND)
+endif()
 configure_file(src/GLWidget.hpp.in src/GLWidget.hpp @ONLY)
 
 
