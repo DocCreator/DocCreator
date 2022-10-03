@@ -1,6 +1,6 @@
 
 #Download eigen library if not done already
-SET(EIGEN_VERSION "3.3.8")
+SET(EIGEN_VERSION "3.4.0")
 SET(EIGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen-${EIGEN_VERSION}")
 IF (NOT EXISTS ${EIGEN_SRC_DIR})
 
