@@ -55,6 +55,8 @@ jobs:
           command: |
             brew install cmake
             brew install opencv
+            brew deps opencv
+            brew uninstall -f openjpeg
       - run:
           name: Clone repository
           command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
