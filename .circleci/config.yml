@@ -70,7 +70,7 @@ jobs:
             cd buildD
             cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY_DEGRADATIONS=ON -DBUILD_TESTING=ON
             make -j 4
-            make test
+            make runTests
             cd ..
       - run:
           name: Install dependencies (Qt)
@@ -84,7 +84,7 @@ jobs:
             cd build
             cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DBUILD_OTHER_PROGS=ON -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5
             make -j 4
-            make test
+            make runTests
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
