@@ -55,8 +55,8 @@ jobs:
           command: |
             brew install cmake
             brew install opencv
-	    echo 'export DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH":/usr/local/Cellar/openjpeg/2.5.0/lib' >> "$BASH_ENV"
-	    source "$BASH_ENV"
+            echo 'export DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH":/usr/local/Cellar/openjpeg/2.5.0/lib' >> "$BASH_ENV"
+            source "$BASH_ENV"
       - run:
           name: Clone repository
           command: git clone $CIRCLE_REPOSITORY_URL -b $CIRCLE_BRANCH
