@@ -19,7 +19,7 @@ or
 From the docker bash, you can then run the software with:  
 `DocCreator-pybind11/build/software/DocCreator/DocCreator`
 
-Warning: the 3D distortion effect will not work properly this way. It is currently only supported when an Nvidia GPU and nvidia-docker2 is used, see below.
+Warning: the 3D distortion effect will not work properly this way. It is currently only supported in Docker when an Nvidia GPU and nvidia-docker2 is used, see below.
 
 ### docker with an Nvidia GPU 
 
@@ -58,7 +58,4 @@ Then run the docker image (on Ubuntu) with:
 
 Then launch doccreator the same way:  
 `DocCreator-pybind11/build/software/DocCreator/DocCreator`
-
-
-
 
