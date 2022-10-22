@@ -17,7 +17,7 @@
 
 The program has the following dependencies :
 * **OpenCV** (3.x or 4.x)  
-* **Qt 5**  
+* **Qt 5 or 6**  
 * **Tesseract** [optional] If Tesseract is not found on the system, it will be compiled from (provided) sources. 
 However, you will need to have network access during the configuration step to download tessdata, tesseract languages data.
 * **OSMesa** [optional] for OpenGL offscreen rendering for the 3D distortion model.
@@ -33,11 +33,12 @@ It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.1
 On linux, your distribution may provide the binary packages for all required dependencies.
 
 On Ubuntu (14.04 and above), you can install the required binary packages with the following command:  
-`sudo apt-get install libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev cmake`  
+`sudo apt-get install libopencv-dev qtbase5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev cmake g++ git`  
 You may also have to set Qt5 as default with:  
 `sudo apt-get install qt5-default`  
-You can install tesseract with the following command:  
-`sudo apt-get install tesseract-ocr tesseract-ocr-fra libtesseract-dev libleptonica-dev`
+On Ubuntu (22.04 and above), you can install the required binary packages with the following command:  
+`sudo apt-get install libopencv-dev qt6-base-dev qt6-declarative-dev cmake g++ git`  
+
 
 On Fedora (21 or 22), you can install the required binary packages with the following command as root:  
 `yum install opencv-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel cmake`  
