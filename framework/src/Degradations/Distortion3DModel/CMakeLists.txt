@@ -82,12 +82,13 @@ IF(BUILD_WITH_OSMESA)
   FIND_PACKAGE(OSMesa REQUIRED)
 
   #Download GLFW library if not done already
-  SET(GLFW_VERSION "3.3.2")
+  SET(GLFW_VERSION "3.3.8")
   SET(GLFW_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glfw-${GLFW_VERSION}")
   IF (NOT EXISTS ${GLFW_SRC_DIR})
 
      SET(GLFW_ARCHIVE "${GLFW_VERSION}.tar.gz")
-     SET(GLFW_URL "https://github.com/glfw/glfw/archive/${GLFW_ARCHIVE}")
+     #SET(GLFW_URL "https://github.com/glfw/glfw/archive/${GLFW_ARCHIVE}")
+     SET(GLFW_URL "https://github.com/glfw/glfw/archive/refs/tags/${GLFW_ARCHIVE}")
      IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE})
         MESSAGE(STATUS "downloading GLFW")
         FILE(DOWNLOAD ${GLFW_URL} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE} STATUS status LOG log)
