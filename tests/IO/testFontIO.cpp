@@ -29,7 +29,7 @@ checkEqual(const Models::Font *font1, const Models::Font *font2)
   const Models::CharacterMap &characters1 = font1->getCharacters();
   const Models::CharacterMap &characters2 = font2->getCharacters();
   const size_t numCharacters = characters1.size();
-  if (numCharacters != characters2.size()) {
+  if (numCharacters != static_cast<size_t>(characters2.size())) {
     return false;
   }
 
@@ -61,7 +61,7 @@ checkEqual(const Models::Font *font1, const Models::Font *font2)
     const Models::CharacterDataList &cl1 = c1->getAllCharacterData();
     const Models::CharacterDataList &cl2 = c2->getAllCharacterData();
     const size_t numVersions = cl1.size();
-    if (numVersions != cl2.size()) {
+    if (numVersions != static_cast<size_t>(cl2.size())) {
       return false;
     }
     for (size_t j=0; j<numVersions; ++j) {

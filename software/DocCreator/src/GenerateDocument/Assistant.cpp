@@ -4673,7 +4673,7 @@ Hole_degradateImageRandom(QImage &degImg,
   HoleData result;
 
   assert(ind < holePatterns.size());
-  const QString filename = holePatterns[ind];
+  const QString &filename = holePatterns[ind];
   QImage holePattern(filename);
 
   if (!holePattern.isNull()) {
@@ -6510,7 +6510,7 @@ static
 bool
 Rotation_saveFillColorXml(const QString &outputXmlFilename,
 			  const QString &imageFilename,
-			  float angle, QColor color)
+			  float angle, QColor &color)
 {
   QString xml = Rotation_makePrefixXml(imageFilename, "Color", angle);  
   xml += "\t\t<Color>" + color.name() + "</Color>\n";

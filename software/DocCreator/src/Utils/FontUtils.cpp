@@ -11,7 +11,7 @@ template<typename Func>
 void
 traverseFont(const Models::Font &f, Func &func)
 {
-  const Models::CharacterMap cm = f.getCharacters(); //B:TODO:OPTIM:copy
+  const Models::CharacterMap &cm = f.getCharacters(); //B:TODO:OPTIM:copy
 
   for (Models::CharacterMap::const_iterator it = cm.cbegin(); it != cm.cend();
        ++it) {

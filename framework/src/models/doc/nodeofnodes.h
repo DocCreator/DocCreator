@@ -107,8 +107,9 @@ namespace Doc
         //else, we have to split the current element;
         this->_isSplitting = true;
 
-        int currentOffset = this->offset();
-        int offsetOfNext = next->offset();
+        const int currentOffset = this->offset();
+	assert(next);
+        const int offsetOfNext = next->offset();
 
         QList<T*> list = next->splitAtPosition(next->offset());
         this->_elements.removeAt(this->_index);

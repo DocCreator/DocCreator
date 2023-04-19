@@ -988,11 +988,11 @@ makeSphereMesh(float radius,
 
   for (unsigned int r = 0; r < rings; ++r) {
     const float rR = r * R;
-    const float y = sinf(static_cast<float>(-M_PI_2 + M_PI * rR));
-    const float sinPirR = sinf(static_cast<float>(M_PI * rR));
+    const float y = sinf(static_cast<float>(-M_PI_2 + M_PI * (double)rR));
+    const float sinPirR = sinf(static_cast<float>(M_PI * (double)rR));
     for (unsigned int s = 0; s < sectors; ++s) {
       const float sS = s * S;
-      const float sS2Pi = static_cast<float>(2 * M_PI * sS);
+      const float sS2Pi = static_cast<float>(2 * M_PI * (double)sS);
       const float x = sinf(sS2Pi) * sinPirR;
       const float z = cosf(sS2Pi) * sinPirR;
 
@@ -1059,7 +1059,10 @@ makeSphereMesh(float radius,
 namespace std {
 
 template<>
-struct hash<Edge> : public std::unary_function<Edge, std::size_t>
+struct hash<Edge>
+#if __cplusplus <= 199711L
+  : public std::unary_function<Edge, std::size_t>
+#endif
 {
   std::size_t operator()(Edge e) const
   {

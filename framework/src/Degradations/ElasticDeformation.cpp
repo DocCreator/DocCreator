@@ -273,8 +273,8 @@ namespace dc {
 	std::vector<cv::Point2f> out;
 	out.reserve(v.size());
 	for (const auto &p : v) {
-	  cv::Point2f pt(M.at<double>(0, 0)*p.x + M.at<double>(0, 1)*p.y + M.at<double>(0, 2),
-			 M.at<double>(1, 0)*p.x + M.at<double>(1, 1)*p.y + M.at<double>(1, 2));
+	  cv::Point2f pt(static_cast<float>(M.at<double>(0, 0)*static_cast<double>(p.x) + M.at<double>(0, 1)*static_cast<double>(p.y) + M.at<double>(0, 2)),
+			 static_cast<float>(M.at<double>(1, 0)*static_cast<double>(p.x) + M.at<double>(1, 1)*static_cast<double>(p.y) + M.at<double>(1, 2)));
 	  out.push_back(pt);
 	}
 	rects_pts.push_back(out);

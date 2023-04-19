@@ -16,9 +16,7 @@ namespace dc {
 
       const cv::Mat matOut = dc::GradientDomainDegradation::degradation(matIn, stainImageDir.toStdString(), numStainsToInsert, insertType, doRotations);
 
-      const QImage out = Convertor::getQImage(matOut);
-
-      return out;
+      return Convertor::getQImage(matOut);
     }
 
   } //namespace GradientDomainDegradation
@@ -26,7 +24,7 @@ namespace dc {
   QImage
   GradientDomainDegradationQ::apply()
   {
-    const QImage out =
+    QImage out =
       GradientDomainDegradation::degradation(_original, _stainImageDir, _numStainsToInsert, _insertType, _doRotations);
 
     emit imageReady(out);

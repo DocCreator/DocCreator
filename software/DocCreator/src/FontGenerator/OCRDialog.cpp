@@ -1094,7 +1094,7 @@ OCRDialog::saveFont()
   // and thus be able to use it when batch-generating.
 
   const QString filters(QStringLiteral("font files (*.bof *.of)"));
-  const QString filename = QFileDialog::getSaveFileName(
+  QString filename = QFileDialog::getSaveFileName(
     nullptr, QStringLiteral("Save Font"), fontPath, filters);
   if (! filename.isEmpty())
     writeFont(filename);

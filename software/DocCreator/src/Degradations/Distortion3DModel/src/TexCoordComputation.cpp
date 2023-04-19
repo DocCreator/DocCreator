@@ -381,7 +381,7 @@ rotateAroundMean(Mesh &mesh)
 
   //if (p12.x != p12.y)
   {
-    const float angle = static_cast<float>(M_PI / 2 - std::atan2(p12.y, p12.x));
+    const float angle = static_cast<float>(M_PI / 2.0 - std::atan2(p12.y, p12.x));
     //const float angle = 0; //DEBUG
 
 #ifdef DEBUG_TEXCOORDS
@@ -2965,7 +2965,9 @@ computeTexCoords0(Mesh &mesh)
   xzidxs_tmp.reserve(
     36); //arbitrary size [to avoid allocations] //should be the max number of triangles connected to a given vertex //B: I have seen 31 !
 
+#ifdef DEBUG_TEXCOORDS
   static int DBG_nCoords = 0;
+#endif
   //double t100 = (double)cv::getTickCount();
 
   //float dbg_min_y2 = dbg_min_y + (dbg_max_y-dbg_min_y)*0.505;
@@ -3088,7 +3090,10 @@ computeTexCoords0(Mesh &mesh)
         assert(m.find(v_idx0) == m.end());
         //m.insert(std::pair<uint32_t, uint32_t>(v_idx0, t_idx));
         m[v_idx0] = t_idx;
+#ifdef DEBUG_TEXCOORDS
         ++DBG_nCoords;
+#endif
+
 #endif
 
         //if (y >267.5 && y < 268.5) {
@@ -3172,7 +3177,10 @@ computeTexCoords0(Mesh &mesh)
           assert(m.find(v_idx) == m.end());
           //m.insert(std::pair<uint32_t, uint32_t>(v_idx, t_idx));
           m[v_idx] = t_idx;
+#ifdef DEBUG_TEXCOORDS
           ++DBG_nCoords;
+#endif
+
 #endif
           //if (y < 162.008256)
           /*

@@ -133,6 +133,7 @@ namespace Doc
 	  }
         }
 
+	assert(current);
         current->add(e);
         setLength(length()+e->length());
     }

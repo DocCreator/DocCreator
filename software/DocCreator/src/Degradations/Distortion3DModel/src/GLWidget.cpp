@@ -851,7 +851,7 @@ makeFilename(const QString &prefix, size_t i, size_t w, const QString &ext)
 {
   const QString number = QString("%1").arg(i, w, 10, QChar('0'));
 
-  const QString filename = prefix + number + ext;
+  QString filename = prefix + number + ext;
 
   return filename;
 }
@@ -1138,7 +1138,7 @@ GLWidget::wheelEvent(QWheelEvent *e)
 #else
   const int delta = e->angleDelta().y();
 #endif
-  m_camDist *= (delta > 0) ? 1. / 1.02 : 1.02;
+  m_camDist *= (delta > 0) ? 1.f / 1.02f : 1.02f;
   updateCameraLookAt();
   e->accept();
   update();

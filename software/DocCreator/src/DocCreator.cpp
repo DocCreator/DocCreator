@@ -598,7 +598,7 @@ DocCreator::openDocument()
     // added by kvcuong 07/05/2012
     QStringList listStr = filepath.split('.');
     assert(!listStr.isEmpty());
-    QString strExtension = listStr.at(listStr.size() - 1);
+    const QString &strExtension = listStr.at(listStr.size() - 1);
 
 
     if (strExtension.contains(QStringLiteral("od"), Qt::CaseInsensitive) ||

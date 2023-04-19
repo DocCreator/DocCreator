@@ -323,7 +323,7 @@ main(int argc, char *argv[])
 	const cv::Scalar color(0, 0, 0);
 
 	const int sideI = random_in_range(0, 3);
-	dc::HoleDegradation::HoleSide holeSide;
+	dc::HoleDegradation::HoleSide holeSide = dc::HoleDegradation::HoleSide::BORDER_RIGHT;
 	if (holeType == dc::HoleDegradation::HoleType::BORDER) {
 	  if (sideI == 0) {
 	    holeSide = dc::HoleDegradation::HoleSide::BORDER_TOP;
