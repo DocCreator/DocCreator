@@ -48,63 +48,42 @@ IF(BUILD_TESSERACT)
   message(STATUS "Will download and build leptonica and tesseract from sources")
 
   SET(LEPTONICA_VERSION 1.82.0)
-  SET(TESSERACT_VERSION 52)
-  #SET(TESSERACT_ARCHIVE_VERSION 4.1.1)
-  #SET(LEPTONICA_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/leptonica-${LEPTONICA_VERSION}")
-  #SET(TESSERACT_SRC_DIR "${PROJECT_SOURCE_DIR}/thirdparty/tesseract-${TESSERACT_ARCHIVE_VERSION}")
-  #TODO: check that directories exist
+  SET(TESSERACT_VERSION 531)
 
-  #IF (NOT EXISTS ${LEPTONICA_SRC_DIR} OR NOT EXISTS ${TESSERACT_SRC_DIR} OR NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata)
-  IF (NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata)
+  
+  # download tessdata
 
-    #SET(LEPTONICA_URL "https://github.com/DanBloomberg/leptonica/archive/${LEPTONICA_VERSION}.tar.gz")
-    ##SET(LEPTONICA_URL "http://dept-info.labri.fr/~mansenca/leptonica-${LEPTONICA_VERSION}.tar.gz")
-    #SET(TESSERACT_URL "https://github.com/tesseract-ocr/tesseract/archive/${TESSERACT_ARCHIVE_VERSION}.tar.gz")
-    #SET(LEPTONICA_ARCHIVE "leptonica.tar.gz")
-    #SET(TESSERACT_ARCHIVE "tesseract.tar.gz")
-    #IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE})
-      # MESSAGE(STATUS "  downloading leptonica & tesseract")
-      # FILE(DOWNLOAD ${LEPTONICA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${LEPTONICA_ARCHIVE} STATUS status LOG log)
-      # LIST(GET status 0 status_code)
-      # LIST(GET status 1 status_string)
-      # IF(NOT status_code EQUAL 0)
-      #   MESSAGE(FATAL_ERROR "error: downloading ${LEPTONICA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-      # ENDIF()
-      
-      # FILE(DOWNLOAD ${TESSERACT_URL} ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} STATUS status LOG log)
-      # LIST(GET status 0 status_code)
-      # LIST(GET status 1 status_string)
-      # IF(NOT status_code EQUAL 0)
-      #   MESSAGE(FATAL_ERROR "error: downloading ${TESSERACT_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-      # ENDIF()
-      # MESSAGE(STATUS "  downloading done.")
-    #ENDIF()
+  SET(TESSDATA_DST "${CMAKE_SOURCE_DIR}/thirdparty/tessdata")
+  SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/main)
 
-    #download tessdata
-    SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/main)
-    IF(NOT EXISTS ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata)
-      MESSAGE(STATUS "  downloading tesseract language models")
-      SET(TESSDATA_ENG_URL "${TESSDATA_URL}/eng.traineddata")
-      FILE(DOWNLOAD ${TESSDATA_ENG_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/eng.traineddata STATUS status LOG log)
-      LIST(GET status 0 status_code)
-      LIST(GET status 1 status_string)
-      IF(NOT status_code EQUAL 0)
-        MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_ENG_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-      ENDIF()
-
-      SET(TESSDATA_FRA_URL "${TESSDATA_URL}/fra.traineddata")
-      FILE(DOWNLOAD ${TESSDATA_FRA_URL} ${PROJECT_SOURCE_DIR}/thirdparty/tessdata/fra.traineddata STATUS status LOG log)
-      LIST(GET status 0 status_code)
-      LIST(GET status 1 status_string)
-      IF(NOT status_code EQUAL 0)
-        MESSAGE(FATAL_ERROR "error: downloading ${TESSDATA_FRA_URL} failed: status code=${status_code} string=${status_string}, log=${log}")
-      ENDIF()
-      MESSAGE(STATUS "  downloading done.")
+  SET(langname "eng")
+  SET(langmodel "eng.traineddata")
+  SET(src_langmodel_file "${TESSDATA_URL}/${langmodel}")
+  SET(dst_langmodel_file "${TESSDATA_DST}/${langmodel}")
+  IF(NOT EXISTS ${dst_langmodel_file})
+    MESSAGE(STATUS "  downloading tesseract ${langname} language model")
+    FILE(DOWNLOAD ${src_langmodel_file} ${dst_langmodel_file} STATUS status LOG log)
+    LIST(GET status 0 status_code)
+    LIST(GET status 1 status_string)
+    IF(NOT status_code EQUAL 0)
+      MESSAGE(FATAL_ERROR "error: downloading ${src_langmodel_file} failed: status code=${status_code} string=${status_string}, log=${log}")
     ENDIF()
+    MESSAGE(STATUS "  downloading done.")
+  ENDIF()
 
-    # EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${LEPTONICA_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
-    # EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/thirdparty/${TESSERACT_ARCHIVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty )
-    # MESSAGE(STATUS "  decompression done.")
+  SET(langname "fra")
+  SET(langmodel "fra.traineddata")
+  SET(src_langmodel_file "${TESSDATA_URL}/${langmodel}")
+  SET(dst_langmodel_file "${TESSDATA_DST}/${langmodel}")
+  IF(NOT EXISTS ${dst_langmodel_file})
+    MESSAGE(STATUS "  downloading tesseract ${langname} language model")
+    FILE(DOWNLOAD ${src_langmodel_file} ${dst_langmodel_file} STATUS status LOG log)
+    LIST(GET status 0 status_code)
+    LIST(GET status 1 status_string)
+    IF(NOT status_code EQUAL 0)
+      MESSAGE(FATAL_ERROR "error: downloading ${src_langmodel_file} failed: status code=${status_code} string=${status_string}, log=${log}")
+    ENDIF()
+    MESSAGE(STATUS "  downloading done.")
   ENDIF()
 
 
@@ -145,7 +124,8 @@ IF(BUILD_TESSERACT)
     # URL ${LEPTONICA_SRC_DIR}
     GIT_REPOSITORY https://github.com/DanBloomberg/leptonica.git
     #GIT_TAG 5ad7a0a3adcfa8944c082732b69b733917a54242
-    GIT_TAG f4138265b390f1921b9891d6669674d3157887d8  #1.82.0
+    #GIT_TAG f4138265b390f1921b9891d6669674d3157887d8  # 1.82.0
+    GIT_TAG b667978e86c4bf74f7fdd75f833127d2de327550  # 1.83.1
     PREFIX ${PROJECT_BINARY_DIR}/leptonica
     # PATCH_COMMAND patch -p0 < ${PROJECT_SOURCE_DIR}/thirdparty/leptonica-1.80.0.patch
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DSTATIC=ON -DSW_BUILD=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -189,7 +169,8 @@ IF(BUILD_TESSERACT)
     #URL ${TESSERACT_SRC_DIR}
     GIT_REPOSITORY https://github.com/tesseract-ocr/tesseract.git
     #GIT_TAG 8081cae82ee5649cf28a61533aeedee2b4ce4964
-    GIT_TAG 5ad5325a0aa8effc47ca033625b6a51682f82767 #5.2.0
+    #GIT_TAG 5ad5325a0aa8effc47ca033625b6a51682f82767 #5.2.0
+    GIT_TAG 71af4542990adae6d9f31d6657068bc0139c6ec4 #5.3.1
     PREFIX ${PROJECT_BINARY_DIR}/tesseract
     ##CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${ADDITIONAL_FLAG}
     #CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/lib/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DSW_BUILD=OFF -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} ${ADDITIONAL_FLAG}
