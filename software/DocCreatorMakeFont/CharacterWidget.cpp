@@ -81,8 +81,12 @@ void CharacterWidget::setChoices(const RangeVector &choicesRV)
 
 void CharacterWidget::mouseMoveEvent(QMouseEvent *event)
 {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   QPoint widgetPosition = mapFromGlobal(event->globalPos());
-  const uint key = (widgetPosition.y() / squareSize) * columns + widgetPosition.x() / squareSize;
+#else
+  QPointF widgetPosition = mapFromGlobal(event->globalPosition());
+#endif
+  const uint key = static_cast<uint>((widgetPosition.y() / squareSize) * columns + widgetPosition.x() / squareSize);
   if (key < choices.size()) {
 
     QString text = QString::fromLatin1("<p>Character: <span style=\"font-size: 24pt; font-family: %1\">").arg(displayFont.family())
@@ -90,7 +94,11 @@ void CharacterWidget::mouseMoveEvent(QMouseEvent *event)
       //+ QString::fromLatin1("</span><p>Value: 0x")
       + QString::fromLatin1("</span><p>Unicode: U+")
       + QString::number(choices[key], 16);
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QToolTip::showText(event->globalPos(), text, this);
+#else
+    QToolTip::showText(event->globalPosition().toPoint(), text, this);
+#endif
   }
 }
 
