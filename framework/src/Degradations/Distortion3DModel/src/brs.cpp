@@ -540,6 +540,7 @@ readBRS(const std::string &filename, Mesh &mesh)
 
   const bool readOk = readLZHAM(in, (char *)BUF, totalSize);
   if (!readOk) {
+    free(BUF);
     return false;
   }
 
