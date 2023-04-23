@@ -31,9 +31,12 @@ void CharacterWidget::updateSize(const QString &fontSize)
 
 void CharacterWidget::updateStyle(const QString &fontStyle)
 {
-  QFontDatabase fontDatabase;
   const QFont::StyleStrategy oldStrategy = displayFont.styleStrategy();
-  displayFont = fontDatabase.font(displayFont.family(), fontStyle, displayFont.pointSize());
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+  displayFont = QFontDatabase().font(displayFont.family(), fontStyle, displayFont.pointSize());
+#else
+  displayFont = QFontDatabase::font(displayFont.family(), fontStyle, displayFont.pointSize());
+#endif
   displayFont.setStyleStrategy(oldStrategy);
   calculateSquareSize();
   adjustSize();
