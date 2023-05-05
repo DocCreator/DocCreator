@@ -2,7 +2,7 @@
 [![Build Status](https://api.travis-ci.org/DocCreator/DocCreator.svg?branch=master)](https://travis-ci.org/DocCreator/DocCreator)
 
 
- [DocCreator](https://doc-creator.labri.fr/) is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
+ [DocCreator](https://doc-creator.labri.fr) is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
 
  Citation: if you use DocCreator in Reaserch work for publication, please cite:  
  **Journet, N.; Visani, M.; Mansencal, B.; Van-Cuong, K.; Billy, A.**  
