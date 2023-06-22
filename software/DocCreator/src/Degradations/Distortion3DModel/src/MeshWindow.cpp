@@ -394,7 +394,7 @@ MeshWindow::changeTexMat()
   const float sv = m_tex_sv->value();
   const float r = m_tex_r->value();
 
-  const float alpha = r * M_PI / 180.f;
+  const float alpha = static_cast<float>((double)r * M_PI / 180.);
   const float cos_alpha = std::cos(alpha);
   const float sin_alpha = std::sin(alpha);
 
