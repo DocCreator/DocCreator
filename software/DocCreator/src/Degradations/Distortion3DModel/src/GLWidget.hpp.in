@@ -106,7 +106,7 @@ protected:
 
   void updateCameraLookAt();
 
-  void getRayInWorld(QPoint pos,
+  void getRayInWorld(QPointF pos,
                      Eigen::Vector3f &rayOrigin,
                      Eigen::Vector3f &rayDirection);
 
@@ -140,7 +140,11 @@ private:
 
   Mode m_mode;
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   QPoint m_lastMousePos;
+#else
+  QPointF m_lastMousePos;
+#endif
 
   GLCamera m_camera;
   float m_camPhy;

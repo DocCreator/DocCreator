@@ -962,7 +962,7 @@ GLWidget::keyPressEvent(QKeyEvent *event)
 
 //B: à faire dans GLCamera ???
 void
-GLWidget::getRayInWorld(QPoint pos,
+GLWidget::getRayInWorld(QPointF pos,
                         Eigen::Vector3f &rayOrigin,
                         Eigen::Vector3f &rayDirection)
 {
@@ -1069,13 +1069,20 @@ void
 GLWidget::mousePressEvent(QMouseEvent *e)
 {
   if (m_mode == Mode::MOVE_CAMERA) {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     m_lastMousePos = e->pos();
+#else
+    m_lastMousePos = e->position();
+#endif
   } else if (m_mode == Mode::SELECTION_VERTEX) {
     Eigen::Vector3f rayOrigin, rayDirection;
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     getRayInWorld(e->pos(), rayOrigin, rayDirection);
-
     //std::cerr<<"click at ("<<e->pos().x()<<", "<<e->pos().y()<<") : rayDir="<<rayDirection.transpose()<<"\n";
+#else
+    getRayInWorld(e->position(), rayOrigin, rayDirection);
+#endif
 
     const uint32_t ind = getVertexWithRay(m_mesh, rayOrigin, rayDirection);
 
@@ -1094,7 +1101,11 @@ void
 GLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
   if (m_mode == Mode::MOVE_CAMERA) {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     m_lastMousePos = e->pos();
+#else
+    m_lastMousePos = e->position();
+#endif
   } else if (m_mode == Mode::SELECTION_VERTEX) {
   }
 
@@ -1106,24 +1117,34 @@ GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
   if (m_mode == Mode::MOVE_CAMERA) {
     if (e->buttons() & Qt::LeftButton) {
-      m_camPhy += -float(e->x() - m_lastMousePos.x()) / 256.f;
-      m_camTheta += float(e->y() - m_lastMousePos.y()) / 256.f;
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+      const QPoint pos = e->pos();
+#else
+      const QPointF pos = e->position();
+#endif
+      m_camPhy += -float(pos.x() - m_lastMousePos.x()) / 256.f;
+      m_camTheta += float(pos.y() - m_lastMousePos.y()) / 256.f;
       m_camTheta =
         std::min(M_PI_2 - .001, std::max(-M_PI_2 + 0.001, double(m_camTheta)));
       updateCameraLookAt();
-      m_lastMousePos = e->pos();
+      m_lastMousePos = pos;
       e->accept();
       update();
     } else if (e->buttons() & Qt::MiddleButton) {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+      const QPoint pos = e->pos();
+#else
+      const QPointF pos = e->position();
+#endif
       float offset = m_camDist * std::tan(m_camFov / width());
       Eigen::Vector3f z = m_camera.getPosition() - m_camLookAt;
       Eigen::Vector3f x =
         offset * (Eigen::Vector3f::UnitY().cross(z)).normalized();
       Eigen::Vector3f y = offset * (z.cross(x)).normalized();
       m_camLookAt +=
-        -x * (e->x() - m_lastMousePos.x()) + y * (e->y() - m_lastMousePos.y());
+        -x * (pos.x() - m_lastMousePos.x()) + y * (pos.y() - m_lastMousePos.y());
       updateCameraLookAt();
-      m_lastMousePos = e->pos();
+      m_lastMousePos = pos;
       e->accept();
       update();
     }
