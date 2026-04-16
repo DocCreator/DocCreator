@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "@DOCCREATOR_PYTHON_NAME@"
+version = "@DOCCREATOR_PYTHON_VERSION@"
+description = "DocCreator python package"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+  { name = "Boris Mansencal", email = "boris.mansencal@labri.fr" },
+]
+license = { text = "LGPL-3.0-or-later" }
+classifiers = [
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/DocCreator/DocCreator"
+
+[tool.setuptools]
+packages = ["@DOCCREATOR_PYTHON_NAME@"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"@DOCCREATOR_PYTHON_NAME@" = ["$<TARGET_FILE_NAME:DocCreatorPy>"@LIBOSMESA@]

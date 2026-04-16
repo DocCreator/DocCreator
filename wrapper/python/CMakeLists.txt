@@ -73,8 +73,16 @@ IF(BUILD_WITH_OSMESA)
   set(LIBOSMESA ", '${DST_OSMESA_NAME}'") #will be used in setup.py.in
 ENDIF()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py.in)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml.in)
 file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/setup.py INPUT ${CMAKE_CURRENT_BINARY_DIR}/setup.py.in)
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/pyproject.toml INPUT ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml.in)
 
+# Build the wheel via the PEP 517 frontend (python -m build), avoiding
+# direct invocation of setup.py which is deprecated by setuptools.
+# We use --no-isolation so the build reuses the already-available
+# setuptools/wheel from the current Python environment instead of
+# creating an isolated venv and redownloading them.
+set(_python_build_cmd ${PYTHON_EXECUTABLE} -m build --wheel --no-isolation --outdir dist .)
 
 IF(BUILD_WITH_OSMESA)
 
@@ -84,7 +92,8 @@ add_custom_target(python_package ALL
   COMMAND ${CMAKE_COMMAND} -E copy __init__.py ${DOCCREATOR_PYTHON_NAME}/
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:DocCreatorPy> ${DOCCREATOR_PYTHON_NAME}/
   COMMAND ${CMAKE_COMMAND} -E copy ${OSMesa_LIBRARIES} ${DOCCREATOR_PYTHON_NAME}/${DST_OSMESA_NAME} #Force this name
-  COMMAND ${PYTHON_EXECUTABLE} setup.py clean --all bdist_wheel
+  COMMAND ${CMAKE_COMMAND} -E rm -rf build dist ${DOCCREATOR_PYTHON_NAME}.egg-info
+  COMMAND ${_python_build_cmd}
   BYPRODUCTS
   ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}
   ${PACKAGE_DIR}/build
@@ -100,7 +109,8 @@ add_custom_target(python_package ALL
   #COMMAND ${CMAKE_COMMAND} -E copy README.md ${DOCCREATOR_PYTHON_NAME}/
   COMMAND ${CMAKE_COMMAND} -E copy __init__.py ${DOCCREATOR_PYTHON_NAME}/
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:DocCreatorPy> ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${PYTHON_EXECUTABLE} setup.py clean --all bdist_wheel
+  COMMAND ${CMAKE_COMMAND} -E rm -rf build dist ${DOCCREATOR_PYTHON_NAME}.egg-info
+  COMMAND ${_python_build_cmd}
   BYPRODUCTS
   ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}
   ${PACKAGE_DIR}/build
