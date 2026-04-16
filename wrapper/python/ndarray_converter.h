@@ -25,7 +25,7 @@ namespace pybind11 { namespace detail {
 template <> struct type_caster<cv::Mat> {
 public:
     
-    PYBIND11_TYPE_CASTER(cv::Mat, _("numpy.ndarray"));
+    PYBIND11_TYPE_CASTER(cv::Mat, const_name("numpy.ndarray"));
     
     bool load(handle src, bool) {
         return NDArrayConverter::toMat(src.ptr(), value);

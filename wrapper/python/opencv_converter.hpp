@@ -13,7 +13,7 @@ namespace pybind11 { namespace detail{
     // cv::Point <=> tuple (x, y)
     template<>
     struct type_caster<cv::Point>{
-      PYBIND11_TYPE_CASTER(cv::Point, _("tuple_xy"));
+      PYBIND11_TYPE_CASTER(cv::Point, const_name("tuple_xy"));
 
       bool load(handle obj, bool){
 	if(!py::isinstance<py::tuple>(obj)){
@@ -39,7 +39,7 @@ namespace pybind11 { namespace detail{
     // cv::Rect <=> tuple (x, y, w, h)
     template<>
     struct type_caster<cv::Rect>{
-      PYBIND11_TYPE_CASTER(cv::Rect, _("tuple_xywh"));
+      PYBIND11_TYPE_CASTER(cv::Rect, const_name("tuple_xywh"));
       
       bool load(handle obj, bool){
         if(!py::isinstance<py::tuple>(obj)){
@@ -67,7 +67,7 @@ namespace pybind11 { namespace detail{
     //B:TODO: In OpenCV python wrapper, they can use a single int as a Scalar for a grayscale image
     template<>
     struct type_caster<cv::Scalar>{
-      PYBIND11_TYPE_CASTER(cv::Scalar, _("tuple_x_y_z_w"));
+      PYBIND11_TYPE_CASTER(cv::Scalar, const_name("tuple_x_y_z_w"));
 
       bool load(handle obj, bool){
 	if(!py::isinstance<py::tuple>(obj)){

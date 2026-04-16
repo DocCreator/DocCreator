@@ -1,6 +1,6 @@
 
 
-SET(PYBIND11_ARCHIVE_VERSION 2.6.2)
+SET(PYBIND11_ARCHIVE_VERSION 3.0.3)
 SET(PYBIND11_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/pybind11-${PYBIND11_ARCHIVE_VERSION}")
 IF (NOT EXISTS ${PYBIND11_SRC_DIR})
   SET(PYBIND11_URL "https://github.com/pybind/pybind11/archive/v${PYBIND11_ARCHIVE_VERSION}.tar.gz")
@@ -25,7 +25,20 @@ ENDIF()
 
 add_subdirectory(pybind11-${PYBIND11_ARCHIVE_VERSION})
 pybind11_add_module(DocCreatorPy Degradations.cpp ndarray_converter.cpp)
-target_include_directories(DocCreatorPy PRIVATE ${PYTHON_INCLUDE_DIR})
+target_include_directories(DocCreatorPy PRIVATE ${PYTHON_INCLUDE_DIRS})
+
+# NumPy include directory (numpy/ndarrayobject.h is used by ndarray_converter.cpp)
+EXECUTE_PROCESS(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "import numpy; print(numpy.get_include())"
+  OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE _numpy_result)
+IF(NOT _numpy_result EQUAL 0 OR NUMPY_INCLUDE_DIR STREQUAL "")
+  MESSAGE(FATAL_ERROR "NumPy include directory could not be determined via ${PYTHON_EXECUTABLE}. Please install numpy for this Python interpreter.")
+ENDIF()
+MESSAGE(STATUS "NumPy include directory: ${NUMPY_INCLUDE_DIR}")
+target_include_directories(DocCreatorPy PRIVATE ${NUMPY_INCLUDE_DIR})
+
 target_link_libraries(DocCreatorPy PRIVATE DocCreatorDegradations)
 
 MESSAGE("BORIS PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}")
