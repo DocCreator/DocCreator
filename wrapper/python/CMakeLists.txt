@@ -25,6 +25,10 @@ ENDIF()
 
 add_subdirectory(pybind11-${PYBIND11_ARCHIVE_VERSION})
 pybind11_add_module(DocCreatorPy Degradations.cpp ndarray_converter.cpp)
+set_target_properties(DocCreatorPy PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS OFF)
 target_include_directories(DocCreatorPy PRIVATE ${PYTHON_INCLUDE_DIRS})
 
 # NumPy include directory (numpy/ndarrayobject.h is used by ndarray_converter.cpp)

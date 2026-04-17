@@ -28,12 +28,20 @@ PROJECT(DocCreator)
 SET( CMAKE_COLOR_MAKEFILE ON )
 #SET( CMAKE_VERBOSE_MAKEFILE ON )
 
+# Baseline C++ standard for every target in the project (Qt6 requires at
+# least C++17; we align the rest of the tree on the same standard).
+IF(NOT DEFINED CMAKE_CXX_STANDARD)
+  SET(CMAKE_CXX_STANDARD 17)
+ENDIF()
+SET(CMAKE_CXX_STANDARD_REQUIRED YES)
+SET(CMAKE_CXX_EXTENSIONS OFF)
 
-#CMake 2.8.12 & up. 
+
+#CMake 2.8.12 & up.
 # Cf http://www.kitware.com/blog/home/post/510
 # enable @rpath in the install name for any shared library being built
 # note: it is planned that a future version of CMake will enable this by default
-SET(CMAKE_MACOSX_RPATH 1) 
+SET(CMAKE_MACOSX_RPATH 1)
 
 
 
@@ -112,13 +120,13 @@ IF(NOT BUILD_ONLY_DEGRADATIONS)
   set(CMAKE_AUTOMOC ON)
   set(CMAKE_AUTORCC ON)
   set(CMAKE_AUTOUIC ON)
-  FIND_PACKAGE(Qt6 COMPONENTS Widgets Xml PrintSupport OpenGL OpenGLWidgets Network) #XmlPatterns 
+  FIND_PACKAGE(Qt6 COMPONENTS Widgets Xml PrintSupport OpenGL OpenGLWidgets Network) #XmlPatterns
   if (NOT Qt6_FOUND)
     FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Xml XmlPatterns PrintSupport OpenGL Network)
     SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network)
     SET(QT_VERSION_MAJOR 5)
   else()
-    SET(QT_LIBRARIES Qt6::Core Qt6::Widgets Qt6::Xml Qt6::PrintSupport Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network) #Qt6::XmlPatterns 
+    SET(QT_LIBRARIES Qt6::Core Qt6::Widgets Qt6::Xml Qt6::PrintSupport Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Network) #Qt6::XmlPatterns
     SET(QT_VERSION_MAJOR 6)
   endif()
   message(STATUS "Found Qt${QT_VERSION_MAJOR}")
