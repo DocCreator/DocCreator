@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 
+#include <cassert>
 #include <iostream> //DEBUG
 
 GLMesh::GLMesh()

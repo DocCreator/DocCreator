@@ -1,6 +1,7 @@
 
 #include "GLRenderer.hpp"
 
+#include <cassert>
 #include <iostream>
 
 #include <opencv2/highgui/highgui.hpp>

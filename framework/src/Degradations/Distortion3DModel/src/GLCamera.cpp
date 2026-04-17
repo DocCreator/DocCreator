@@ -2,6 +2,7 @@
 
 #include <Eigen/Geometry> //cross
 
+#include <cassert>
 #include <iostream> //DEBUG
 
 GLCamera::GLCamera()
