@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <ctime>
 #include <limits>
 #include <numeric> //accumulate
@@ -473,8 +474,16 @@ namespace dc {
 
       constexpr int NUMBER_NOISE_PER_CC = 2; // the number of noise per ccs
 
-      m_nbSPs_User =
-	NUMBER_NOISE_PER_CC * getNumberOfConnectedComponants() * level / 5;
+      //B: level is documented in [0; 10]. Compute in int64_t, as
+      // NUMBER_NOISE_PER_CC * numCCs * level overflows int for a large level,
+      // and keep m_nbSPs_User positive: the conversions to size_t done on it
+      // (cf. separateSeedPointsByTypes()) are undefined for a negative value.
+      const int64_t nbSPs = (static_cast<int64_t>(NUMBER_NOISE_PER_CC) *
+			     getNumberOfConnectedComponants() * level) / 5;
+      m_nbSPs_User = static_cast<int>(
+	std::min<int64_t>(std::max<int64_t>(nbSPs, 0),
+			  std::numeric_limits<int>::max()));
+      assert(m_nbSPs_User >= 0);
       /*
 	qDebug() << "getNumberOfConnectedComponants()="
 	<< getNumberOfConnectedComponants();
@@ -1555,8 +1564,9 @@ namespace dc {
 
     std::vector<float> listFirstThreslhold;
     std::vector<float> listSecondThreslhold;
-    listFirstThreslhold.reserve(m_nbSPs_User);  //B
-    listSecondThreslhold.reserve(m_nbSPs_User); //B
+    //at most one entry per seed point
+    listFirstThreslhold.reserve(m_listSeedPoints.size());
+    listSecondThreslhold.reserve(m_listSeedPoints.size());
     size_t counter = 0;
     // Only the black seed-point pixels will become disconnection spots
 
@@ -1648,56 +1658,68 @@ namespace dc {
 
     counter = 0;
 
-    if ((nbIndependent / 2) < listFirstThreslhold.size() &&
-	!listFirstThreslhold.empty()) {
+    //B: half of the independent spots are taken from the background pixels.
+    // The three cases below must be kept apart: with nbIndependentBG == 0 we
+    // must select nothing, and indexing with a null offset would read
+    // listFirstThreslhold[listFirstThreslhold.size()].
+    const size_t nbIndependentBG = nbIndependent / 2;
+    if (nbIndependentBG > 0) {
+      if (nbIndependentBG < listFirstThreslhold.size()) {
 
-      std::sort(listFirstThreslhold.begin(), listFirstThreslhold.end());
+	std::sort(listFirstThreslhold.begin(), listFirstThreslhold.end());
 
-      assert(nbIndependent / 2 < listFirstThreslhold.size());
-      const float thres =
-	listFirstThreslhold[listFirstThreslhold.size() - nbIndependent / 2];
+	const float thres =
+	  listFirstThreslhold[listFirstThreslhold.size() - nbIndependentBG];
 
-      for (Seedpoint &sp : m_listSeedPoints) {
-	if (sp.type == 3 && sp.pixel.isBackground && sp.b_tache >= thres) {
-	  sp.type = 0;
-	  ++counter;
+	for (Seedpoint &sp : m_listSeedPoints) {
+	  if (sp.type == 3 && sp.pixel.isBackground && sp.b_tache >= thres) {
+	    sp.type = 0;
+	    ++counter;
+	  }
+	  if (counter > nbIndependentBG)
+	    break;
 	}
-	if (counter > nbIndependent / 2)
-	  break;
-      }
-    } else {
-      for (Seedpoint &sp : m_listSeedPoints) {
-	if (sp.type == 3 && sp.pixel.isBackground) {
-	  sp.type = 0;
-	  ++counter;
+      } else {
+	//more spots wanted than we have candidates: keep them all
+	for (Seedpoint &sp : m_listSeedPoints) {
+	  if (sp.type == 3 && sp.pixel.isBackground) {
+	    sp.type = 0;
+	    ++counter;
+	  }
 	}
       }
     }
 
     const size_t selectedBGSPs = counter;
     counter = 0;
-    if ((nbIndependent - selectedBGSPs) < listSecondThreslhold.size() &&
-	!listSecondThreslhold.empty()) {
+    //B: the remaining independent spots are taken from the foreground pixels.
+    // selectedBGSPs may exceed nbIndependent (the loop above increments
+    // counter before breaking), and this subtraction used to wrap around.
+    const size_t nbIndependentFG =
+      (nbIndependent > selectedBGSPs) ? (nbIndependent - selectedBGSPs) : 0;
+    if (nbIndependentFG > 0) {
+      if (nbIndependentFG < listSecondThreslhold.size()) {
 
-      sort(listSecondThreslhold.begin(), listSecondThreslhold.end());
+	std::sort(listSecondThreslhold.begin(), listSecondThreslhold.end());
 
-      assert((nbIndependent - selectedBGSPs) < listSecondThreslhold.size());
-      const float thres = listSecondThreslhold[listSecondThreslhold.size() -
-					       (nbIndependent - selectedBGSPs)];
+	const float thres =
+	  listSecondThreslhold[listSecondThreslhold.size() - nbIndependentFG];
 
-      for (Seedpoint &sp : m_listSeedPoints) {
-	if (sp.type == 3 && !sp.pixel.isBackground && sp.b_tache >= thres) {
-	  sp.type = 0;
-	  ++counter;
+	for (Seedpoint &sp : m_listSeedPoints) {
+	  if (sp.type == 3 && !sp.pixel.isBackground && sp.b_tache >= thres) {
+	    sp.type = 0;
+	    ++counter;
+	  }
+	  if (counter > nbIndependentFG)
+	    break;
 	}
-	if (counter > (nbIndependent - selectedBGSPs))
-	  break;
-      }
-    } else {
-      for (Seedpoint &sp : m_listSeedPoints) {
-	if (sp.type == 3 && !sp.pixel.isBackground) {
-	  sp.type = 0;
-	  ++counter;
+      } else {
+	//more spots wanted than we have candidates: keep them all
+	for (Seedpoint &sp : m_listSeedPoints) {
+	  if (sp.type == 3 && !sp.pixel.isBackground) {
+	    sp.type = 0;
+	    ++counter;
+	  }
 	}
       }
     }
@@ -1717,7 +1739,8 @@ namespace dc {
 
 	if (listFirstThreslhold.size() < nbNeedMore)
 	  nbNeedMore = listFirstThreslhold.size();
-	assert(nbNeedMore <= listFirstThreslhold.size()); //B
+	//nbNeedMore > 0: it comes from a strict inequality above
+	assert(nbNeedMore > 0 && nbNeedMore <= listFirstThreslhold.size()); //B
 	const float thres =
 	  listFirstThreslhold[listFirstThreslhold.size() - nbNeedMore];
 
@@ -2770,16 +2793,34 @@ namespace dc {
 
     std::sort(listProbability.begin(), listProbability.end());
 
-    const size_t nbSps_Over =
-      static_cast<size_t>(m_nbSPs_User + m_nbSPs_User * percent_independent / 100.f);
+    //B: the number of wanted seed points may legitimately be 0: m_nbSPs_User
+    // is an integer division (cf. degradate_cv()), so a low level on an image
+    // with few connected components gives 0. It could also be negative for a
+    // negative level or ratio. Clamp it to [0; sz], so that the index below is
+    // always valid, and to sz when more seed points are wanted than we have
+    // candidate pixels (all of them are then kept).
+    const float nbSpsOverF =
+      m_nbSPs_User + m_nbSPs_User * percent_independent / 100.f;
+    size_t nbSps_Over = 0;
+    if (nbSpsOverF >= static_cast<float>(sz)) {
+      nbSps_Over = sz;
+    }
+    else if (nbSpsOverF > 0.f) {
+      nbSps_Over = static_cast<size_t>(nbSpsOverF);
+    }
 
-    float flip_random = 0.0000000f;
+    if (nbSps_Over == 0) {
+      //No degradation spot wanted: no seed point.
+      m_listPixels.clear();
+      return;
+    }
+
+    //Keep the pixels with the nbSps_Over highest probabilities:
+    // threshold on the nbSps_Over-th largest one.
     assert(sz == listProbability.size());
     assert(!listProbability.empty());
-    if (nbSps_Over <= sz)
-      flip_random = listProbability[sz - nbSps_Over];
-    else
-      flip_random = listProbability[0];
+    assert(nbSps_Over <= sz);
+    float flip_random = listProbability[sz - nbSps_Over];
 
     if (flip_random > 1) { //B: is it possible ?????
       flip_random = 1;
