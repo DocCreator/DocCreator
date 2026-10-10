@@ -1,6 +1,8 @@
 #ifndef NODEOFNODES_H
 #define NODEOFNODES_H
 
+#include <cassert>
+
 #include <QObject>
 #include <framework_global.h>
 
@@ -112,6 +114,13 @@ namespace Doc
         const int offsetOfNext = next->offset();
 
         QList<T*> list = next->splitAtPosition(next->offset());
+        //B: splitAtPosition() gives nothing for an empty element, and
+        // list.at(0) then threw (or was undefined in release).
+        if (list.size() != 2) {
+            this->_isSplitting = false;
+            return;
+        }
+
         this->_elements.removeAt(this->_index);
         this->setLength(this->length()-next->length());
         this->setOffset(currentOffset - offsetOfNext);
@@ -120,6 +129,9 @@ namespace Doc
         add(element);
         add(list.at(1));
         setOffset(currentOffset+element->length());
+        //B: 'next' has been replaced by the two halves it was split into,
+        // and is not in _elements any more: nothing would delete it.
+        delete next;
         this->_isSplitting = false;
     }
 
