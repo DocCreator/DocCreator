@@ -9,22 +9,31 @@
 class Mesh
 {
 public:
-  uint32_t numVertices;
-  float *vertices;  //3 * numVertices floats
-  float *normals;   //3 * numVertices floats [optional]
-  float *texCoords; //2 * numVertices floats [optional]
+  //Invariant: a null buffer pointer always goes with a zero count.
+  uint32_t numVertices = 0;
+  float *vertices = nullptr;  //3 * numVertices floats
+  float *normals = nullptr;   //3 * numVertices floats [optional]
+  float *texCoords = nullptr; //2 * numVertices floats [optional]
 
-  uint32_t numTriangles;
-  uint32_t *triangles; //3 * numTriangles uint32s
+  uint32_t numTriangles = 0;
+  uint32_t *triangles = nullptr; //3 * numTriangles uint32s
 
 public:
-  Mesh();
+  Mesh() = default;
 
   ~Mesh();
 
-  Mesh(const Mesh &);
+  Mesh(const Mesh &m);
 
-  Mesh &operator=(const Mesh &);
+  Mesh &operator=(const Mesh &m);
+
+  /*
+    After the move, @a m is left empty (and thus valid: it can be
+    destroyed, cleared or assigned to again).
+   */
+  Mesh(Mesh &&m) noexcept;
+
+  Mesh &operator=(Mesh &&m) noexcept;
 
   void allocateVertices(uint32_t numVerts);
   void allocateNormals();
@@ -40,9 +49,9 @@ public:
   bool hasTexCoords() const { return texCoords != nullptr; }
   bool hasNormals() const { return normals != nullptr; }
 
-  void copyTo(Mesh &m);
+  void copyTo(Mesh &m) const;
   void copyFrom(const Mesh &m);
-  void swap(Mesh &m);
+  void swap(Mesh &m) noexcept;
 
   /*
     Free all memory and become invalid.

@@ -12,15 +12,6 @@
 #include <limits>
 #include <vector>
 
-Mesh::Mesh()
-  : numVertices(0)
-  , vertices(nullptr)
-  , normals(nullptr)
-  , texCoords(nullptr)
-  , numTriangles(0)
-  , triangles(nullptr)
-{}
-
 Mesh::~Mesh()
 {
   clear();
@@ -31,18 +22,40 @@ Mesh::copyFrom(const Mesh &m)
 {
   assert(&m != this);
 
+  const size_t numVerts = m.numVertices;
+  const size_t numTris = m.numTriangles;
+
   allocateVertices(m.numVertices);
-  memcpy(vertices, m.vertices, 3 * m.numVertices * sizeof(float));
+  if (numVerts > 0 && vertices != nullptr) {
+    memcpy(vertices, m.vertices, 3 * numVerts * sizeof(float));
+  }
+
+  //B: we must also drop our own normals/texCoords when @a m has none,
+  // otherwise the copy would not be equal to the source.
   if (m.hasNormals()) {
     allocateNormals();
-    memcpy(normals, m.normals, 3 * m.numVertices * sizeof(float));
+    if (normals != nullptr) {
+      memcpy(normals, m.normals, 3 * numVerts * sizeof(float));
+    }
   }
+  else {
+    freeNormals();
+  }
+
   if (m.hasTexCoords()) {
     allocateTexCoords();
-    memcpy(texCoords, m.texCoords, 2 * m.numVertices * sizeof(float));
+    if (texCoords != nullptr) {
+      memcpy(texCoords, m.texCoords, 2 * numVerts * sizeof(float));
+    }
   }
+  else {
+    freeTexCoords();
+  }
+
   allocateTriangles(m.numTriangles);
-  memcpy(triangles, m.triangles, 3 * m.numTriangles * sizeof(uint32_t));
+  if (numTris > 0 && triangles != nullptr) {
+    memcpy(triangles, m.triangles, 3 * numTris * sizeof(uint32_t));
+  }
 }
 
 Mesh::Mesh(const Mesh &m)
@@ -55,6 +68,47 @@ Mesh::operator=(const Mesh &m)
 {
   if (this != &m) {
     copyFrom(m);
+  }
+  return *this;
+}
+
+Mesh::Mesh(Mesh &&m) noexcept
+  : numVertices(m.numVertices)
+  , vertices(m.vertices)
+  , normals(m.normals)
+  , texCoords(m.texCoords)
+  , numTriangles(m.numTriangles)
+  , triangles(m.triangles)
+{
+  //leave @a m empty: it owns nothing anymore
+  m.numVertices = 0;
+  m.vertices = nullptr;
+  m.normals = nullptr;
+  m.texCoords = nullptr;
+  m.numTriangles = 0;
+  m.triangles = nullptr;
+}
+
+Mesh &
+Mesh::operator=(Mesh &&m) noexcept
+{
+  if (this != &m) {
+    clear(); //release our own buffers first
+
+    numVertices = m.numVertices;
+    vertices = m.vertices;
+    normals = m.normals;
+    texCoords = m.texCoords;
+    numTriangles = m.numTriangles;
+    triangles = m.triangles;
+
+    //leave @a m empty: it owns nothing anymore
+    m.numVertices = 0;
+    m.vertices = nullptr;
+    m.normals = nullptr;
+    m.texCoords = nullptr;
+    m.numTriangles = 0;
+    m.triangles = nullptr;
   }
   return *this;
 }
@@ -80,7 +134,8 @@ Mesh::allocateVertices(uint32_t numVerts)
     numVertices = numVerts;
 
     if (numVertices > 0) {
-      const size_t s = numVertices * 3 * sizeof(float);
+      //size_t arithmetic: numVertices * 3 would wrap as uint32_t
+      const size_t s = static_cast<size_t>(numVertices) * 3 * sizeof(float);
       vertices = static_cast<float *>( malloc(s) );
       if (vertices == nullptr) {
 	numVertices = 0;
@@ -95,8 +150,10 @@ Mesh::allocateNormals()
   freeNormals();
 
   if (numVertices > 0) {
-    const size_t s = numVertices * 3 * sizeof(float);
+    const size_t s = static_cast<size_t>(numVertices) * 3 * sizeof(float);
     normals = static_cast<float *>( malloc(s) );
+    //On failure, normals stays nullptr and hasNormals() is false:
+    // callers must check (cf. computeNormals(), copyFrom()).
   }
 }
 
@@ -106,8 +163,10 @@ Mesh::allocateTexCoords()
   freeTexCoords();
 
   if (numVertices > 0) {
-    const size_t s = numVertices * 2 * sizeof(float);
+    const size_t s = static_cast<size_t>(numVertices) * 2 * sizeof(float);
     texCoords = static_cast<float *>( malloc(s) );
+    //On failure, texCoords stays nullptr and hasTexCoords() is false:
+    // callers must check (cf. copyFrom()).
   }
 }
 
@@ -119,8 +178,12 @@ Mesh::allocateTriangles(uint32_t numTris)
 
     numTriangles = numTris;
     if (numTris > 0) {
-      const size_t s = numTris * 3 * sizeof(uint32_t);
-      triangles = (uint32_t *)malloc(s);
+      //size_t arithmetic: numTris * 3 would wrap as uint32_t
+      const size_t s = static_cast<size_t>(numTris) * 3 * sizeof(uint32_t);
+      triangles = static_cast<uint32_t *>( malloc(s) );
+      if (triangles == nullptr) {
+        numTriangles = 0; //keep the count consistent with the buffer
+      }
     }
   }
 }
@@ -130,6 +193,7 @@ Mesh::freeVertices()
 {
   free(vertices);
   vertices = nullptr;
+  numVertices = 0; //a null buffer must never keep a non-zero count
 }
 
 void
@@ -153,44 +217,19 @@ Mesh::freeTriangles()
 {
   free(triangles);
   triangles = nullptr;
+  numTriangles = 0; //a null buffer must never keep a non-zero count
 }
 
 void
-Mesh::copyTo(Mesh &m)
+Mesh::copyTo(Mesh &m) const
 {
-  m.allocateVertices(numVertices);
-  if (hasNormals())
-    m.allocateNormals();
-  if (hasTexCoords())
-    m.allocateTexCoords();
-  m.allocateTriangles(numTriangles);
-
-  const uint32_t numTriangles3 = numTriangles * 3;
-  for (uint32_t i = 0; i < numTriangles3; ++i) {
-    m.triangles[i] = triangles[i];
-  }
-
-  const uint32_t numVertices3 = numVertices * 3;
-  for (uint32_t i = 0; i < numVertices3; ++i) {
-    m.vertices[i] = vertices[i];
-  }
-  if (hasNormals()) {
-    for (uint32_t i = 0; i < numVertices3; ++i) {
-      m.normals[i] = normals[i];
-    }
-    assert(m.hasNormals());
-  }
-  if (hasTexCoords()) {
-    const uint32_t numVertices2 = numVertices * 2;
-    for (uint32_t i = 0; i < numVertices2; ++i) {
-      m.texCoords[i] = texCoords[i];
-    }
-    assert(m.hasTexCoords());
+  if (&m != this) {
+    m.copyFrom(*this);
   }
 }
 
 void
-Mesh::swap(Mesh &m)
+Mesh::swap(Mesh &m) noexcept
 {
   std::swap(m.vertices, vertices);
   std::swap(m.normals, normals);
@@ -199,9 +238,8 @@ Mesh::swap(Mesh &m)
   std::swap(m.numTriangles, numTriangles);
   std::swap(m.triangles, triangles);
 
-  assert(m.isValid() == isValid());
-  assert(m.hasNormals() == hasNormals());
-  assert(m.hasTexCoords() == hasTexCoords());
+  //B: no postcondition to check here: the two meshes need not have the same
+  // shape, and swapping six members cannot fail.
 }
 
 void
@@ -254,8 +292,13 @@ Mesh::normalizeNormals()
 void
 Mesh::computeNormals()
 {
-  if (normals == nullptr)
+  if (normals == nullptr) {
     allocateNormals();
+    if (normals == nullptr) {
+      std::cerr << "ERROR: Mesh::computeNormals(): unable to allocate normals\n";
+      return;
+    }
+  }
 
   assert(normals);
 
@@ -279,7 +322,7 @@ Mesh::computeNormals()
   */
 
   //set all (vertex) normals to zero
-  memset(normals, 0, numVertices * 3 * sizeof(float));
+  memset(normals, 0, static_cast<size_t>(numVertices) * 3 * sizeof(float));
 
   //compute face normals and accumulate in vertex normals
   const size_t numTris = numTriangles;
@@ -353,9 +396,9 @@ Mesh::removeDegenerateTrianglesIndices()
 
     bool toKeep = true;
 
-    int i1 = tri[2];
+    uint32_t i1 = tri[2];
     for (int k = 0; k < 3; ++k) {
-      int i2 = tri[k];
+      const uint32_t i2 = tri[k];
       if (i1 == i2) {
         toKeep = false;
         break;
@@ -371,14 +414,20 @@ Mesh::removeDegenerateTrianglesIndices()
     tri += 3;
   }
 
-  const uint32_t newNumTriangles = (dst - m.triangles) / 3;
+  const uint32_t newNumTriangles =
+    static_cast<uint32_t>((dst - m.triangles) / 3);
+  assert(newNumTriangles <= numTriangles);
   if (newNumTriangles != numTriangles) {
 
     std::cerr << "!!!!!! removeDegenerateTrianglesIndices numTriangles old="
               << numTriangles << " new=" << newNumTriangles << "\n";
 
-    std::swap(m.numTriangles, numTriangles);
+    //Take m's buffer, which holds exactly newNumTriangles valid triangles
+    // (it was allocated for the old count, so it keeps some unused slack),
+    // and leave our own buffer to @a m, which will free it.
     std::swap(m.triangles, triangles);
+    m.numTriangles = numTriangles;
+    numTriangles = newNumTriangles; //B: this was missing
   }
 
   assert(isValid());
@@ -397,6 +446,17 @@ Mesh::copyToWithNewIndices(Mesh &m,
   if (hasTexCoords())
     m.allocateTexCoords();
   m.allocateTriangles(numTriangles);
+
+  //bail out rather than write through a failed allocation
+  const bool allocOk = (newNumVertices == 0 || m.vertices != nullptr) &&
+                       (numTriangles == 0 || m.triangles != nullptr) &&
+                       (!hasNormals() || m.hasNormals()) &&
+                       (!hasTexCoords() || m.hasTexCoords());
+  if (!allocOk) {
+    std::cerr << "ERROR: Mesh::copyToWithNewIndices(): allocation failed\n";
+    m.clear();
+    return;
+  }
 
   const uint32_t INVALID = -1;
 
