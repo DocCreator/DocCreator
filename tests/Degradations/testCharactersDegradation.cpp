@@ -233,6 +233,34 @@ testLevelOutOfRange(int imageType)
 }
 
 
+static
+void
+testLargeComponents(int imageType)
+{
+  //The maximum component size is derived from the number of pixels of the
+  //components, and its square used to overflow an int: the wrapped value
+  //being negative, no component was accepted and the image came back
+  //untouched. Components of 400x400 pixels are enough.
+
+  const int SIDE = 400;
+  cv::Mat img(1500, 1500, imageType, cv::Scalar(210, 210, 210, 255));
+  for (int i = 0; i < 4; ++i) {
+    cv::rectangle(img,
+                  cv::Rect(30 + (i % 2) * 700, 30 + (i / 2) * 700, SIDE, SIDE),
+                  cv::Scalar(50, 50, 50, 255),
+                  -1);
+  }
+  const cv::Mat imgClone = img.clone();
+
+  const cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, 8);
+
+  REQUIRE( out.type() == imageType );
+  REQUIRE( out.size() == img.size() );
+  REQUIRE( checkEqual(img, imgClone) );  //input not modified
+  REQUIRE_FALSE( checkEqual(out, img) ); //and something was degraded
+}
+
+
 TEST_CASE( "Testing CharactersDegradation" )
 { 
 
@@ -259,6 +287,13 @@ TEST_CASE( "Testing CharactersDegradation" )
     testNoDegradationAtLevelZero(CV_8UC1);
     testNoDegradationAtLevelZero(CV_8UC3);
     testNoDegradationAtLevelZero(CV_8UC4);
+  }
+
+  SECTION("Testing Characters Degradation on large connected components")
+  {
+    testLargeComponents(CV_8UC1);
+    testLargeComponents(CV_8UC3);
+    testLargeComponents(CV_8UC4);
   }
 
   SECTION("Testing Characters Degradation preserves the alpha channel")

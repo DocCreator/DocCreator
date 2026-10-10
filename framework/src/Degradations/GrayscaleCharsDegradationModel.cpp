@@ -1308,7 +1308,15 @@ namespace dc {
 #endif //0
 
 
-    const int max_dis_square = max_dis * max_dis;
+    /*
+      B: int64_t. max_dis comes from the number of pixels of the connected
+      components (cf. above), which reaches a few million on an image with
+      large components, and its square then overflows an int. The wrapped
+      value being negative, no component was accepted at all and the image
+      came back untouched.
+    */
+    const int64_t max_dis_square =
+      static_cast<int64_t>(max_dis) * static_cast<int64_t>(max_dis);
 
     for (const CC &ccItem : ccsInfo) {
 
@@ -1339,7 +1347,9 @@ namespace dc {
 	const int cc_width = max_x - min_x;
 	const int cc_height = max_y - min_y;
 
-	const int dis_square = (cc_width * cc_width + cc_height * cc_height);
+	const int64_t dis_square =
+	  static_cast<int64_t>(cc_width) * static_cast<int64_t>(cc_width) +
+	  static_cast<int64_t>(cc_height) * static_cast<int64_t>(cc_height);
 
 	//remove boundary connected componants //B???
 
