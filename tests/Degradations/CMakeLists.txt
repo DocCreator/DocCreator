@@ -13,6 +13,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testBleedThrough.cpp
   testBlurDegradation.cpp
   testCharactersDegradation.cpp
+  testColorUtils.cpp
   testElasticDeformation.cpp
   testHoleDegradation.cpp
   testGradientDomainDegradation.cpp
