@@ -1,7 +1,14 @@
 #include "GrayscaleCharsDegradationModel.hpp"
 
+//Define TIMING to print the duration of each step on std::cerr.
+//#define TIMING 1
+
 #include <algorithm>
 #include <cassert>
+#ifdef TIMING
+#include <chrono>   //B: must be included outside of namespace dc
+#include <iostream>
+#endif
 #include <cmath>
 #include <cstdint>
 #include <ctime>
@@ -96,6 +103,7 @@ namespace dc {
     void extractConnectedComponantInfos();
 
     int calculateDistanceFromBord(const Pixel &pixel) const;
+
     int calculateApproximatelyDistanceFromBord(const Pixel &pixel) const;
 
     std::vector<float*> getEllipsePoints(cv::Rect &rec,int &max_B, int &min_B, cv::Point centre, double semi_minor_axis, double semi_major_axis, double theta);
@@ -173,10 +181,7 @@ namespace dc {
   static constexpr int NO_CC = -1;
   //B:TODO: Do we really need this constant ???
 
-  //#define TIMING 1
-#ifdef TIMING
-#include <chrono>
-#endif
+  //cf. TIMING at the top of this file
 
 
   GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
@@ -2244,6 +2249,13 @@ namespace dc {
 
     int minDist = 0;
 
+    /*
+      B: the walks below move by one row at a time, so they move the pointer
+      by one step instead of recomputing (data + step * row) at each pixel,
+      as m_mat_contour.at<uchar>(row, col) does.
+    */
+    const ptrdiff_t stride = static_cast<ptrdiff_t>(m_mat_contour.step);
+
     int dist = 0;
     const int x0 = std::max(x - m_local_zone, 0);
     {
@@ -2278,117 +2290,120 @@ namespace dc {
 
     dist = 0;
     const int y0 = std::max(y - m_local_zone, 0);
-    for (int i = y; i >= y0; --i) {
-      assert(i >= 0);
-      assert(i >= 0 && i < m_mat_contour.rows && x >= 0 && x < m_mat_contour.cols);
-      if (m_mat_contour.at<uchar>(i, x) == WHITE) {
-	break;
-      }
-      ++dist; // 90 degree
-      if (dist >= minDist) {
-	break;
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = y; i >= y0; --i, p -= stride) {
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // 90 degree
+	if (dist >= minDist) {
+	  break;
+	}
       }
     }
     minDist = std::min(dist, minDist);
 
     dist = 0;
     const int y1 = std::min(y + m_local_zone, m_height);
-    for (int i = y; i < y1; ++i) {
-      assert(i < m_height);
-      assert(i >= 0 && i < m_mat_contour.rows && x >= 0 && x < m_mat_contour.cols);
-      if (m_mat_contour.at<uchar>(i, x) == WHITE) {
-	break;
-      }
-      ++dist; // 90 degree
-      if (dist >= minDist) {
-	break;
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = y; i < y1; ++i, p += stride) {
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // 90 degree
+	if (dist >= minDist) {
+	  break;
+	}
       }
     }
     minDist = std::min(dist, minDist);
 
     dist = 0;
     int j = y;
-    for (int i = x; i < x1; ++i) {
-      --j;
-      if (j >= y0) {
-	assert(i < m_width);
-	assert(j >= 0 && j < m_mat_contour.rows && i >= 0 &&
-	       i < m_mat_contour.cols);
-	if (m_mat_contour.at<uchar>(j, i) == WHITE) {
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i < x1; ++i) {
+	--j;
+	p -= stride; //one row up, same column on the first step
+	if (j < y0) {
+	  break;
+	}
+	if (*p == WHITE) {
 	  break;
 	}
 	++dist; //45 degree
 	if (dist >= minDist) {
 	  break;
 	}
-      }
-      else {
-	break;
+	++p; //and one column right for the next step
       }
     }
     minDist = std::min(dist, minDist);
 
     dist = 0;
     j = y;
-    for (int i = x; i < x1; ++i) {
-      ++j;
-      if (j < y1) {
-	assert(i < m_width);
-	assert(j >= 0 && j < m_mat_contour.rows && i >= 0 &&
-	       i < m_mat_contour.cols);
-	if (m_mat_contour.at<uchar>(j, i) == WHITE) {
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i < x1; ++i) {
+	++j;
+	p += stride;
+	if (j >= y1) {
+	  break;
+	}
+	if (*p == WHITE) {
 	  break;
 	}
 	++dist; // -45 degree
 	if (dist >= minDist) {
 	  break;
 	}
-      }
-      else {
-	break;
+	++p;
       }
     }
     minDist = std::min(dist, minDist);
 
     dist = 0;
     j = y;
-    for (int i = x; i >= x0; --i) {
-      ++j;
-      if (j < y1) {
-	assert(i >= 0);
-	assert(j >= 0 && j < m_mat_contour.rows && i >= 0 &&
-	       i < m_mat_contour.cols);
-	if (m_mat_contour.at<uchar>(j, i) == WHITE)
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i >= x0; --i) {
+	++j;
+	p += stride;
+	if (j >= y1) {
 	  break;
+	}
+	if (*p == WHITE) {
+	  break;
+	}
 	++dist; // 45 degree
 	if (dist >= minDist) {
 	  break;
 	}
-      }
-      else {
-	break;
+	--p;
       }
     }
     minDist = std::min(dist, minDist);
 
     dist = 0;
     j = y;
-    for (int i = x; i >= x0; --i) {
-      --j;
-      if (j > y0) {
-	assert(i >= 0);
-	assert(j >= 0 && j < m_mat_contour.rows && i >= 0 &&
-	       i < m_mat_contour.cols);
-	if (m_mat_contour.at<uchar>(j, i) == WHITE) {
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i >= x0; --i) {
+	--j;
+	p -= stride;
+	if (j <= y0) { //B: the bound of this one is strict
+	  break;
+	}
+	if (*p == WHITE) {
 	  break;
 	}
 	++dist; // -45 degree
 	if (dist >= minDist) {
 	  break;
 	}
-      }
-      else {
-	break;
+	--p;
       }
     }
     minDist = std::min(dist, minDist);
@@ -2726,8 +2741,6 @@ namespace dc {
     }
     assert(m_listPixels.size() == listProbability.size());
 
-    std::sort(listProbability.begin(), listProbability.end());
-
     //B: the number of wanted seed points may legitimately be 0: m_nbSPs_User
     // is an integer division (cf. degradate_cv()), so a low level on an image
     // with few connected components gives 0. It could also be negative for a
@@ -2752,10 +2765,14 @@ namespace dc {
 
     //Keep the pixels with the nbSps_Over highest probabilities:
     // threshold on the nbSps_Over-th largest one.
+    //B: only that one element is needed, no need to sort the whole vector:
+    // std::nth_element() is linear where std::sort() is n*log(n).
     assert(sz == listProbability.size());
     assert(!listProbability.empty());
     assert(nbSps_Over <= sz);
-    float flip_random = listProbability[sz - nbSps_Over];
+    const auto itNth = listProbability.begin() + (sz - nbSps_Over);
+    std::nth_element(listProbability.begin(), itNth, listProbability.end());
+    float flip_random = *itNth;
 
     if (flip_random > 1) { //B: is it possible ?????
       flip_random = 1;
