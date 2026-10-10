@@ -2083,7 +2083,11 @@ namespace dc {
 	else if (C_gris > WHITE)
 	  C_gris = WHITE;
 
-	if (lines.size() == 1 && (lines[0])[0] < 4) {
+	//B: getEllipsePoints() may return no line at all, hence the size check
+	// before indexing. A line holds (2 * numPoints + 3) floats, with
+	// numPoints > 0, so its first element is >= 5: the single pixel case
+	// below cannot currently happen.
+	if (lines.size() == 1 && lines[0][0] < 4) {
 	  m_mat_output.at<uchar>(sp.pixel.pos.y, sp.pixel.pos.x) = meanB;
 	} else {
 	  for (const float *line : lines) {
@@ -2111,7 +2115,9 @@ namespace dc {
 	else if (C_gris > WHITE)
 	  C_gris = WHITE;
 
-	if (lines.size() <= 1 && (lines.at(0))[0] < 4) {
+	//B: same as above. This test used "lines.size() <= 1" and
+	// lines.at(0), which threw std::out_of_range for an empty vector.
+	if (lines.size() == 1 && lines[0][0] < 4) {
 	  m_mat_output.at<uchar>(sp.pixel.pos.y, sp.pixel.pos.x) = meanF;
 	} else {
 	  for (const float *line : lines) {
