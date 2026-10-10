@@ -1,5 +1,6 @@
 #include "BleedThrough.hpp"
 
+#include <cassert>
 #include <iostream>
 
 
@@ -30,6 +31,16 @@ namespace dc {
 			 + c3 * (iyn -  current));
 	
     const int g = static_cast<int>(dt * delta + current);
+
+    /*
+      No saturation needed here: the coefficients are close to 1 only when the
+      neighbour is close to @a u, which makes the corresponding difference to
+      @a current small. Brute forcing the whole domain (every u, current and
+      neighbour value in [0; 255], the four neighbours being independent)
+      gives g in [0; 255], the bounds being reached for u=0, current=0 and
+      current=255.
+    */
+    assert(0 <= g && g <= 255);
 
     return g;
   }

@@ -2114,8 +2114,11 @@ namespace dc {
 
 	const double dis = sqrt((B1.x - Centre.x) * (B1.x - Centre.x) +
 				(B1.y - Centre.y) * (B1.y - Centre.y));
-	imgGrayOutput.at<uchar>(B1.y, B1.x) =
-	  Centre_gray + (B_gris - Centre_gray) * dis / deltaDis;
+	//B: unlike DegradedLine(), which clamps to [BLACK; WHITE], nothing
+	// bounded this value: converting an out of range double to uchar is
+	// undefined.
+	imgGrayOutput.at<uchar>(B1.y, B1.x) = cv::saturate_cast<uchar>(
+	  Centre_gray + (B_gris - Centre_gray) * dis / deltaDis);
       }
     }
   }
