@@ -2,6 +2,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <vector>
+
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "Degradations/GrayscaleCharsDegradationModel.hpp"
@@ -80,7 +82,7 @@ testSimple2(int imageType)
 */
 static
 cv::Mat
-makeImageWithComponents(int numComponents, int imageType)
+makeImageWithComponents(int numComponents, int imageType, int alpha = 255)
 {
   const int ROWS = 120;
   const int COLS = 120;
@@ -93,16 +95,97 @@ makeImageWithComponents(int numComponents, int imageType)
   cv::Mat img(ROWS,
               COLS,
               imageType,
-              cv::Scalar(BACKGROUND, BACKGROUND, BACKGROUND, 255));
+              cv::Scalar(BACKGROUND, BACKGROUND, BACKGROUND, alpha));
   for (int i = 0; i < numComponents; ++i) {
     const int x = 10 + (i % 4) * 28;
     const int y = 10 + (i / 4) * 28;
     cv::rectangle(img,
                   cv::Rect(x, y, 14, 14),
-                  cv::Scalar(FOREGROUND, FOREGROUND, FOREGROUND, 255),
+                  cv::Scalar(FOREGROUND, FOREGROUND, FOREGROUND, alpha),
                   -1);
   }
   return img;
+}
+
+
+static
+void
+testLowLevelOnFewComponents(int imageType)
+{
+  //The number of degradation spots is (2 * nbConnectedComponents * level / 5),
+  //an integer division that gives 0 for level 1 on an image with a single
+  //connected component. One spot is now always requested for a positive
+  //level. [It used to request none, and to read one element past the end of
+  //a vector while doing so.]
+  //
+  //B:TODO: we cannot check here that the image really changed: a single spot
+  // covers a handful of pixels and often writes values equal to the ones
+  // already there, and the random generator is seeded on the current time,
+  // so the result is not reproducible. A seed parameter on degradation()
+  // would make this testable.
+
+  for (int level = 1; level <= 3; ++level) {
+    const cv::Mat img = makeImageWithComponents(1, imageType);
+    const cv::Mat imgClone = img.clone();
+
+    const cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, level);
+
+    REQUIRE( out.type() == imageType );
+    REQUIRE( out.size() == img.size() );
+    REQUIRE( checkEqual(img, imgClone) ); //input not modified
+  }
+}
+
+
+static
+void
+testNoDegradationAtLevelZero(int imageType)
+{
+  //A null level means no degradation spot: the image must come back
+  //unchanged. [The input is grey, so the conversion to grayscale and back
+  //is lossless.]
+
+  const cv::Mat img = makeImageWithComponents(3, imageType);
+  const cv::Mat imgClone = img.clone();
+
+  const cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, 0);
+
+  REQUIRE( out.type() == imageType );
+  REQUIRE( out.size() == img.size() );
+  REQUIRE( checkEqual(img, imgClone) );  //input not modified
+  REQUIRE( checkEqual(out, img) );       //and nothing degraded
+}
+
+
+static
+void
+testAlphaIsPreserved()
+{
+  //The degradation works on a grayscale image: the alpha channel of a
+  //4-channel input must be restored as is in the output.
+  //[cv::cvtColor(COLOR_GRAY2BGRA) used to set it to 255.]
+
+  const int alphas[] = { 0, 37, 128, 255 };
+
+  for (int alpha : alphas) {
+    const cv::Mat img = makeImageWithComponents(3, CV_8UC4, alpha);
+    const cv::Mat imgClone = img.clone();
+
+    const cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, 5);
+
+    REQUIRE( out.type() == CV_8UC4 );
+    REQUIRE( out.size() == img.size() );
+    REQUIRE( checkEqual(img, imgClone) ); //input not modified
+
+    std::vector<cv::Mat> inChannels;
+    std::vector<cv::Mat> outChannels;
+    cv::split(img, inChannels);
+    cv::split(out, outChannels);
+    REQUIRE( inChannels.size() == 4 );
+    REQUIRE( outChannels.size() == 4 );
+
+    REQUIRE( cv::countNonZero(inChannels[3] != outChannels[3]) == 0 );
+  }
 }
 
 
@@ -162,6 +245,25 @@ TEST_CASE( "Testing CharactersDegradation" )
     testSimple2(CV_8UC1);
     testSimple2(CV_8UC3);
     testSimple2(CV_8UC4);
+  }
+
+  SECTION("Testing Characters Degradation with a low level on few components")
+  {
+    testLowLevelOnFewComponents(CV_8UC1);
+    testLowLevelOnFewComponents(CV_8UC3);
+    testLowLevelOnFewComponents(CV_8UC4);
+  }
+
+  SECTION("Testing Characters Degradation does not degrade at level 0")
+  {
+    testNoDegradationAtLevelZero(CV_8UC1);
+    testNoDegradationAtLevelZero(CV_8UC3);
+    testNoDegradationAtLevelZero(CV_8UC4);
+  }
+
+  SECTION("Testing Characters Degradation preserves the alpha channel")
+  {
+    testAlphaIsPreserved();
   }
 
   SECTION("Testing Characters Degradation for every level")

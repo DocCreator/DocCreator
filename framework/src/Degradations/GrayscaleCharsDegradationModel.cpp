@@ -120,6 +120,7 @@ namespace dc {
     cv::Mat m_mat_output;
     //cv::Mat _mat_input;
     cv::Mat m_mat_gray;
+    cv::Mat m_mat_alpha; //alpha channel of input, if it has one
     cv::Mat m_mat_binary;
 
     cv::Mat m_mat_reduce_pixels;
@@ -316,6 +317,9 @@ namespace dc {
     m_inputType = imgInput.type();
     if (imgInput.channels() == 4) {
       cvtColor(imgInput, m_mat_gray, cv::COLOR_BGRA2GRAY);
+      //The degradation works on a grayscale image, thus the alpha channel
+      //would be lost: keep it to restore it in the output.
+      cv::extractChannel(imgInput, m_mat_alpha, 3);
     }
     else if (imgInput.channels() == 3) {
       cvtColor(imgInput, m_mat_gray, cv::COLOR_BGR2GRAY);
@@ -480,10 +484,16 @@ namespace dc {
       // (cf. separateSeedPointsByTypes()) are undefined for a negative value.
       const int64_t nbSPs = (static_cast<int64_t>(NUMBER_NOISE_PER_CC) *
 			     getNumberOfConnectedComponants() * level) / 5;
+      //B: that division truncates, and gave no spot at all for a low level on
+      // an image with few connected components. A positive level must produce
+      // at least one degradation spot. A null (or negative) level still
+      // produces none.
+      const int64_t minNbSPs = (level > 0) ? 1 : 0;
       m_nbSPs_User = static_cast<int>(
-	std::min<int64_t>(std::max<int64_t>(nbSPs, 0),
+	std::min<int64_t>(std::max<int64_t>(nbSPs, minNbSPs),
 			  std::numeric_limits<int>::max()));
       assert(m_nbSPs_User >= 0);
+      assert(level <= 0 || m_nbSPs_User >= 1);
       /*
 	qDebug() << "getNumberOfConnectedComponants()="
 	<< getNumberOfConnectedComponants();
@@ -575,6 +585,11 @@ namespace dc {
       if (m_inputType == CV_8UC4) {
 	cv::Mat out;
 	cvtColor(m_mat_output, out, cv::COLOR_GRAY2BGRA);
+	//cvtColor() sets the alpha channel to 255: restore the input one.
+	if (!m_mat_alpha.empty()) {
+	  assert(m_mat_alpha.size() == out.size());
+	  cv::insertChannel(m_mat_alpha, out, 3);
+	}
 	m_mat_output = out;
       }
       else if (m_inputType == CV_8UC3) {
