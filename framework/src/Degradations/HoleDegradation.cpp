@@ -1,5 +1,7 @@
 #include "HoleDegradation.hpp"
 
+#include "Random.hpp"
+
 #include <cassert>
 #include <cmath> //cos, sin
 #include <random>
@@ -458,15 +460,12 @@ namespace dc {
 
 
     namespace {
-      std::random_device rd;
-      std::mt19937 mt(rd());
-      
       //return a random value in [rMin; rMax]
       int
-      random_in_range(int rMin, int rMax)
+      random_in_range(RandomEngine &rng, int rMin, int rMax)
       {
-	std::uniform_int_distribution<int> dist(rMin, rMax);
-	return dist(mt);
+	assert(rMin <= rMax);
+	return rng.uniform(rMin, rMax + 1); //cv::RNG::uniform() is [a; b[
       }
     } //anonymous namespace
 
@@ -571,8 +570,12 @@ namespace dc {
 	return cv::Point(imgW/2, imgH/2);
       }
 
-      const int xOrigin = random_in_range(startX, endX-1);
-      const int yOrigin = random_in_range(startY, endY-1);
+      //B: one generator per call. A std::mt19937 used to be shared by the
+      // whole program here, without any lock: two threads degrading two
+      // images at the same time were a data race.
+      RandomEngine rng = makeRandomEngine();
+      const int xOrigin = random_in_range(rng, startX, endX-1);
+      const int yOrigin = random_in_range(rng, startY, endY-1);
       //std::cerr<<"x in ["<<startX<<"; "<<endX-1<<"] => xOrigin="<<xOrigin<<" ; y in ["<<startY<<"; "<<endY-1<<"] => yOrigin="<<yOrigin<<"\n";
 
       return cv::Point(xOrigin, yOrigin);

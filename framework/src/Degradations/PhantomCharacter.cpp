@@ -1,4 +1,5 @@
 #include "PhantomCharacter.hpp"
+#include "Random.hpp"
 
 #include <cassert>
 #include <cmath> //sqrt
@@ -599,11 +600,12 @@ namespace dc {
       }
     }
 
+    //@return a random value in [minV; maxV]
     static int
-    boundedRand(int minV, int maxV)
+    boundedRand(RandomEngine &rng, int minV, int maxV)
     {
-      const int r = static_cast<int>(
-				     minV + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (maxV - minV + 1)));
+      assert(minV <= maxV);
+      const int r = rng.uniform(minV, maxV + 1); //cv::RNG::uniform() is [a; b[
       assert(minV <= r && r <= maxV);
       return r;
     }
@@ -780,7 +782,8 @@ namespace dc {
      * @param[in,out] output
      */
     static bool
-    degradeComposant(cv::Mat &output,
+    degradeComposant(RandomEngine &rng,
+		     cv::Mat &output,
 		     const CC &degradedCC,
 		     const CCs &ccs,
 		     int posDegraded
@@ -838,12 +841,12 @@ namespace dc {
 
       for (int side = firstSide; side <= lastSide; ++side) { //0 = left, 1 = right
 
-	const int apply = rand() % 2;
+	const int apply = rng.uniform(0, 2);
 	if (apply == 1) { // apply degradation on this side or not
 
 	  const int yPattern = minY;
 
-	  const int pattern = rand() % numPatterns; //choice of pattern
+	  const int pattern = rng.uniform(0, numPatterns); //choice of pattern
 	  assert((size_t)pattern < patterns.size());
 	  const std::string patternFilename = makePath(phantomPatternsPath, patterns.at(pattern));
 #if CV_MAJOR_VERSION < 4
@@ -873,14 +876,12 @@ namespace dc {
 	    maxWidth = minWidth + 1;
 	  }
 
-	  widthPattern = boundedRand(
-				     minWidth, maxWidth); //rand()% (maxWidth - minWidth) + minWidth ;
+	  widthPattern = boundedRand(rng, minWidth, maxWidth);
 
 	  minHeight = static_cast<int>(height * COEFF_MIN_HEIGHT);
 	  maxHeight = static_cast<int>(height * COEFF_MAX_HEIGHT);
 
-	  heightPattern = boundedRand(
-				      minHeight, maxHeight); //rand()% (maxHeight - minHeight) + minHeight;
+	  heightPattern = boundedRand(rng, minHeight, maxHeight);
 
 	  if (widthPattern == 0) {
 	    widthPattern = minWidth;
@@ -1027,7 +1028,7 @@ namespace dc {
 	      }
 	    }
 
-	    const int xPattern = boundedRand(
+	    const int xPattern = boundedRand(rng,
 					     xMinPattern,
 					     xMaxPattern); //(int) (rand()%(xMaxPattern - xMinPattern) +  xMinPattern); //random
 
@@ -1109,8 +1110,11 @@ namespace dc {
       std::swap(ccs, filteredCCs);
       //sz = ccs.size();
 
-      //Create default
-      srand(time(nullptr)); // initialization //B:TODO:UGLY
+      //B: one generator for the whole degradation, seeded non
+      // deterministically. srand() used to be called here, which reset a
+      // generator shared with the whole program, and seeding on the current
+      // time made two runs started in the same second identical.
+      RandomEngine rng = makeRandomEngine();
 
 #ifdef SAVE_DEGRADATIONS_IMAGE
       cv::Mat degrads(img.rows,
@@ -1121,11 +1125,12 @@ namespace dc {
 
       for (int unsigned i = 0; i < ccs.size(); ++i) {
 	//Random : choose if we apply a default on this characters or not
-	const float chosen = rand() / static_cast<float>(RAND_MAX); // random number between 0 and 100
+	const float chosen = rng.uniform(0.f, 1.f);
 
 	if (chosen < occurenceProbability) { // if random number is included in the x % (x
 	  // which was chosen by the user)
-	  degradeComposant(output,
+	  degradeComposant(rng,
+			   output,
 			   ccs[i],
 			   ccs,
 			   i

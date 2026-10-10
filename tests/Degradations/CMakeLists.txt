@@ -19,6 +19,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testGradientDomainDegradation.cpp
   testNoiseDegradation.cpp
   testPhantomCharacter.cpp
+  testRandomness.cpp
   testRotationDegradation.cpp
   testShadowBinding.cpp
   )

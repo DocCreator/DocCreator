@@ -4,6 +4,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "ColorUtils.hpp" //dc::isGray()
+#include "Random.hpp"
 
 namespace dc {
   namespace NoiseDegradation {
@@ -12,9 +13,10 @@ namespace dc {
     // negative as well as positive). We use 16 bit signed
     // images as otherwise we would lose precision.
   
-    cv::Mat makeRandnNoise(const cv::Mat &image,
-			   double average, double standardDeviation,
-			   AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS)
+    static cv::Mat makeRandnNoise(RandomEngine &rng,
+				  const cv::Mat &image,
+				  double average, double standardDeviation,
+				  AddNoiseType addType)
     {
       const int type = CV_MAKETYPE(CV_16S, image.channels());
       cv::Mat noise_image(image.size(), type);
@@ -28,11 +30,13 @@ namespace dc {
 					   && (image.type() != CV_8UC1));
 
       if (! sameNoiseOnAllChannels) {
-	cv::randn(noise_image, cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
+	rng.fill(noise_image, cv::RNG::NORMAL,
+		 cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
       }
       else {
 	cv::Mat noise_image1(image.size(), CV_16SC1);
-	cv::randn(noise_image1, cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
+	rng.fill(noise_image1, cv::RNG::NORMAL,
+		 cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
 	if (image.channels() == 3) {
 	  int from_to[] = {0,0,
 			   0,1,
@@ -59,7 +63,9 @@ namespace dc {
       cv::Mat dst;
 
       const int type = CV_MAKETYPE(CV_16S, image.channels());
-      cv::Mat noise_image = makeRandnNoise(image, (double)average, (double)standardDeviation, addType);
+      RandomEngine rng = makeRandomEngine();
+      cv::Mat noise_image =
+	makeRandnNoise(rng, image, (double)average, (double)standardDeviation, addType);
   
       cv::Mat temp_image;
       image.convertTo(temp_image, type);
@@ -83,7 +89,9 @@ namespace dc {
       cv::Mat dst;
 
       const int type = CV_MAKETYPE(CV_16S, image.channels());
-      cv::Mat noise_image = makeRandnNoise(image, average, standardDeviation, addType);
+      RandomEngine rng = makeRandomEngine();
+      cv::Mat noise_image =
+	makeRandnNoise(rng, image, average, standardDeviation, addType);
   
       cv::Mat temp_image, temp_image2;
       image.convertTo(temp_image, type);
@@ -105,8 +113,9 @@ namespace dc {
 
       cv::Mat dst;
 
+      RandomEngine rng = makeRandomEngine();
       cv::Mat noise(image.rows, image.cols, CV_8UC1); //image.type());
-      cv::randu(noise, 0, 255);
+      rng.fill(noise, cv::RNG::UNIFORM, 0, 255);
 
       const int blackThreshold = static_cast<int>(255*amount*ratio + 0.5f);
       const int whiteThreshold = static_cast<int>(255 - 255*amount*(1.f-ratio) + 0.5f);

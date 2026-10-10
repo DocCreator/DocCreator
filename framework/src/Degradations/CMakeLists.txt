@@ -23,6 +23,7 @@ SET(
   RotationDegradation.hpp
   ShadowBinding.hpp
   ConnectedComponent.hpp
+  Random.hpp
   ColorUtils.hpp
   FileUtils.hpp
   )
@@ -41,6 +42,7 @@ SET(
   RotationDegradation.cpp
   ShadowBinding.cpp
   ConnectedComponent.cpp
+  Random.cpp
   ColorUtils.cpp
   FileUtils.cpp
   )

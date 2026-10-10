@@ -11,6 +11,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "ConnectedComponent.hpp"
+#include "Random.hpp"
 
 namespace dc {
 
@@ -123,6 +124,8 @@ namespace dc {
     cv::Mat m_mat_alpha; //alpha channel of input, if it has one
     cv::Mat m_mat_binary;
 
+    RandomEngine m_rng;
+
     cv::Mat m_mat_ellipse; //scratch buffer to draw the noise region ellipse
     cv::Mat m_mat_reduce_pixels;
     cv::Mat m_mat_CCs;
@@ -169,78 +172,6 @@ namespace dc {
   static constexpr int NO_CC = -1;
   //B:TODO: Do we really need this constant ???
 
-#if 0
-
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
-  //#include <boost/algorithm/string.hpp>
-
-  using MyRNG = boost::mt19937;
-
-  struct NormalDistribution
-  {
-    NormalDistribution(MyRNG &rng, double mean, double sigma)
-      : m_distribution(mean, sigma),
-	m_generator(rng, m_distribution)
-    {}
-
-    double operator()() { return m_generator(); }
-
-    boost::normal_distribution<> m_distribution;
-    boost::variate_generator<MyRNG&, boost::normal_distribution<> > m_generator;
-  };
-
-  struct UniformDistribution
-  {
-    UniformDistribution(MyRNG &rng, double a, double b)
-      : m_distribution(a, b),
-	m_generator(rng, m_distribution)
-    {}
-
-    double operator()() { return m_generator(); }
-
-    boost::uniform_real<> m_distribution;
-    boost::variate_generator<MyRNG&, boost::uniform_real<> > m_generator;
-  };
-
-#else
-
-  using MyRNG = cv::RNG;
-
-  struct NormalDistribution
-  {
-    NormalDistribution(MyRNG &rng, double mean, double sigma)
-      : m_rng(rng)
-      , m_mean(mean)
-      , m_sigma(sigma)
-    {}
-
-    double operator()() { return m_rng.gaussian(m_sigma) + m_mean; }
-
-  private:
-    MyRNG m_rng;
-    double m_mean;
-    double m_sigma;
-  };
-
-  struct UniformDistribution
-  {
-    UniformDistribution(MyRNG &rng, double a, double b)
-      : m_rng(rng)
-      , m_a(a)
-      , m_b(b)
-    {}
-
-    double operator()() { return m_rng.uniform(m_a, m_b); }
-
-  private:
-    MyRNG m_rng;
-    double m_a;
-    double m_b;
-  };
-
-#endif
-
   //#define TIMING 1
 #ifdef TIMING
 #include <chrono>
@@ -249,7 +180,8 @@ namespace dc {
 
   GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
 								 const cv::Mat &img)
-    : m_width(0)
+    : m_rng(makeRandomEngine())
+    , m_width(0)
     , m_height(0)
     , m_avgBackground(0)
     , m_avgForeground(0)
@@ -1182,7 +1114,7 @@ namespace dc {
 	//=========DEBUG================
 	//cv::line(_mat_color, A, B, cv::Scalar(255, 0, 0));
 
-	sp.pixel.gradient_angle = angle + rand() % 15 - 7.5f; //B ???
+	sp.pixel.gradient_angle = angle + m_rng.uniform(-7.5f, 7.5f);
       }
 
       sp.b_tache = static_cast<float>(calculateDistanceFromBord(sp.pixel));
@@ -1872,7 +1804,7 @@ namespace dc {
     if (!sp.pixel.isBackground) {
 
     // generate the gray level of the centre
-    int C_gris=var_nor_Background();
+    int C_gris=static_cast<int>(m_rng.gaussian(m_sigma_gaussian) + meanB);
     // The difference between generated number and MEAN is not upper than SIGMA.
 
     if (std::max(abs(C_gris - min_B), abs(C_gris - max_B))>m_MAX_Gradient && C_gris>(m_avgBackground - 15))
@@ -1899,7 +1831,7 @@ namespace dc {
     // background to foreground
     else{
     // generate the gray level of the centre
-    int C_gris=var_nor_Forground();
+    int C_gris=static_cast<int>(m_rng.gaussian(m_sigma_gaussian) + meanF);
     // The difference between generated number and MEAN is not upper than SIGMA.
     if (std::max(abs(C_gris - min_B), abs(C_gris - max_B))>m_MAX_Gradient)
     C_gris = m_avgForeground;
@@ -1965,11 +1897,7 @@ namespace dc {
     int meanB = m_avgBackground;
     int meanF = m_avgForeground;
 
-    MyRNG rng(static_cast<unsigned int>(time(nullptr)));
-    // generator for background
-    NormalDistribution var_nor_Background(rng, meanB, m_sigma_gaussian);
-    // generator for foreground
-    NormalDistribution var_nor_Forground(rng, meanF, m_sigma_gaussian);
+    //B: m_rng is seeded once per degradation, cf. the constructor.
 
     for (const Seedpoint &sp : m_listSeedPoints) {
 
@@ -1993,13 +1921,12 @@ namespace dc {
       //        rgb->x=255;rgb->y=0;rgb->z=0;
 
       // flattenning factor : need for overlapping and disconnection spots
-      NormalDistribution var_nor_g(rng, mean_g, sigma_g);
-      m_g = var_nor_g();
+      m_g = static_cast<float>(m_rng.gaussian(sigma_g) + mean_g);
       int limite_g = 0;
       //while (m_g<=(mean_g-sigma_g) || m_g>=(mean_g+sigma_g || m_g <0 || m_g>1) ) {
       while (m_g <= (mean_g - sigma_g) || m_g >= (mean_g + sigma_g) || m_g < 0 ||
 	     m_g > 1) { //B ???
-	m_g = var_nor_g();
+	m_g = static_cast<float>(m_rng.gaussian(sigma_g) + mean_g);
 	++limite_g;
 	if (limite_g > 500) {
 	  m_g = 0.5f;
@@ -2067,14 +1994,14 @@ namespace dc {
       if (!sp.pixel.isBackground) {
 
 	// generate the gray level of the centre
-	int C_gris = var_nor_Background();
+	int C_gris = static_cast<int>(m_rng.gaussian(m_sigma_gaussian) + meanB);
 	// The difference between generated number and MEAN is not upper than
 	// SIGMA.
 	int limiter = 0;
 	while (std::max(abs(C_gris - min_B), abs(C_gris - max_B)) >
                m_MAX_Gradient &&
 	       C_gris > (m_avgBackground - 15)) {
-	  C_gris = var_nor_Background();
+	  C_gris = static_cast<int>(m_rng.gaussian(m_sigma_gaussian) + meanB);
 	  ++limiter;
 	  if (limiter > 1000)
 	    break;
@@ -2100,13 +2027,13 @@ namespace dc {
       // background to foreground
       else {
 	// generate the gray level of the centre
-        int C_gris = static_cast<int>(var_nor_Forground());
+        int C_gris = static_cast<int>(static_cast<int>(m_rng.gaussian(m_sigma_gaussian) + meanF));
 	// The difference between generated number and MEAN is not upper than
 	// SIGMA.
 	int limiter = 0;
 	while (std::max(abs(C_gris - min_B), abs(C_gris - max_B)) >
 	       m_MAX_Gradient) {
-          C_gris = static_cast<int>(var_nor_Forground());
+          C_gris = static_cast<int>(static_cast<int>(m_rng.gaussian(m_sigma_gaussian) + meanF));
 	  ++limiter;
 	  if (limiter > 100)
 	    break;
@@ -2200,8 +2127,6 @@ namespace dc {
 					       cv::Mat &imgGrayOutput,
 					       bool isFtoB)
   {
-    MyRNG rng(static_cast<unsigned int>(time(nullptr)));
-
     const int n = Line[0];
     const float deltaDis = Line[1];
     int B_gris = Line[2];
@@ -2237,15 +2162,14 @@ namespace dc {
 	} //C_gris + (B_gris - C_gris)*dis/deltaDis;
 
 	//NUMBER GENERATOR : normal distribution
-	NormalDistribution var_nor_ForPixelEcllipse(
-						    rng, B1_moyen_gris, pixel_signma);
-
-	int grisGenerator = var_nor_ForPixelEcllipse();
+	int grisGenerator =
+	  static_cast<int>(m_rng.gaussian(pixel_signma) + B1_moyen_gris);
 
 	if (isFtoB) {
 	  while (grisGenerator < (B1_moyen_gris - pixel_signma) ||
 		 grisGenerator > (B1_moyen_gris + sigma_gaussien)) {
-	    grisGenerator = var_nor_ForPixelEcllipse();
+	    grisGenerator =
+	      static_cast<int>(m_rng.gaussian(pixel_signma) + B1_moyen_gris);
 	    ++limiter1;
 	    if (limiter1 > 100) {
 	      break;
@@ -2256,7 +2180,8 @@ namespace dc {
 	  while (grisGenerator < 0 ||
 		 grisGenerator < (B1_moyen_gris - pixel_signma) ||
 		 grisGenerator > (B1_moyen_gris + pixel_signma)) {
-	    grisGenerator = var_nor_ForPixelEcllipse();
+	    grisGenerator =
+	      static_cast<int>(m_rng.gaussian(pixel_signma) + B1_moyen_gris);
 	    ++limiter1;
 	    if (limiter1 > 100) {
 	      break;
@@ -2738,8 +2663,7 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::calculatePixelsProbability()
   {
-    MyRNG rng(static_cast<unsigned int>(time(nullptr)));
-    UniformDistribution generator(rng, 0, 50);
+    //B: m_rng is seeded once per degradation, cf. the constructor.
 
     m_beta = 0.000;
     m_alpha = 0.000;
@@ -2754,14 +2678,14 @@ namespace dc {
 
       if (!pixel.isBackground) { // FORGROUND
 
-	m_beta = generator();
+	m_beta = m_rng.uniform(0.0, 50.0);
 
 	//P(0|d, beta, f) = exp(-beta*d*d)
 	pixel.probability = m_beta0 * static_cast<float>(exp((-m_beta) * d * d)) + m_nf;
 
       } else { // BACKGROUND
 
-	m_alpha = generator();
+	m_alpha = m_rng.uniform(0.0, 50.0);
 
 	//P(1|d, anpha, f) = exp(-alpha*d*d)
 	pixel.probability = m_alpha0 * static_cast<float>(exp((-m_alpha) * d * d)) + m_nb;

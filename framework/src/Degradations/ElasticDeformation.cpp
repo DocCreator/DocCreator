@@ -5,6 +5,8 @@
 
 #include <iostream>//DEBUG
 
+#include "Random.hpp"
+
 namespace dc {
   namespace ElasticDeformation {
 
@@ -155,10 +157,14 @@ namespace dc {
       alpha *= scale;
       sigma *= scale;
 
+      //B: cv::randu() draws from a generator shared by the whole thread
+      // (cf. cv::theRNG()), which the caller cannot seed.
+      RandomEngine rng = makeRandomEngine();
+
       cv::Mat dx(img.size(), CV_32FC1);
-      cv::randu(dx, -1.0f, 1.0f);
+      rng.fill(dx, cv::RNG::UNIFORM, -1.0f, 1.0f);
       cv::Mat dy(img.size(), CV_32FC1);
-      cv::randu(dy, -1.0f, 1.0f);
+      rng.fill(dy, cv::RNG::UNIFORM, -1.0f, 1.0f);
 
       cv::GaussianBlur(dx, dx, cv::Size(), sigma);
       cv::GaussianBlur(dy, dy, cv::Size(), sigma);
@@ -227,13 +233,14 @@ namespace dc {
       src[1] = cv::Point2f(static_cast<float>(center.x+shift), static_cast<float>(center.y-shift));
       src[2] = cv::Point2f(static_cast<float>(center.x-shift), static_cast<float>(center.y-shift));
 
-      std::default_random_engine generator;
-      std::uniform_real_distribution<float> distribution(-alphaAffine, alphaAffine);
+      //B: the generator used to be default constructed, that is seeded with
+      // a fixed value, so this affine jitter was the same on every call.
+      RandomEngine rng = makeRandomEngine();
 
       cv::Point2f dst[3];
-      for (int i=0; i<3; ++i) 
-	dst[i] = cv::Point2f(src[i].x + distribution(generator),
-			     src[i].y + distribution(generator));
+      for (int i=0; i<3; ++i)
+	dst[i] = cv::Point2f(src[i].x + rng.uniform(-alphaAffine, alphaAffine),
+			     src[i].y + rng.uniform(-alphaAffine, alphaAffine));
 
       M = cv::getAffineTransform(src, dst);
 

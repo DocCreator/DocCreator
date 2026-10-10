@@ -10,6 +10,7 @@
 
 #include "FileUtils.hpp"
 #include "ColorUtils.hpp" //dc::isGray()
+#include "Random.hpp"
 
 namespace dc {
   namespace GradientDomainDegradation {
@@ -17,8 +18,8 @@ namespace dc {
 /*
   draw @a numToDraw indices in the range [rangeMin, rangeMax[
  */
-std::vector<size_t>
-drawIndices(size_t numToDraw, size_t rangeMin, size_t rangeMax)
+static std::vector<size_t>
+drawIndices(RandomEngine &rng, size_t numToDraw, size_t rangeMin, size_t rangeMax)
 {
   std::vector<size_t> indices;
   assert(rangeMin < rangeMax);
@@ -32,10 +33,7 @@ drawIndices(size_t numToDraw, size_t rangeMin, size_t rangeMax)
   }
   assert(indices.size() >= numToDraw);
     
-  std::random_device random_dev;
-  std::mt19937 generator(random_dev());
-
-  std::shuffle(indices.begin(), indices.end(), generator);
+  std::shuffle(indices.begin(), indices.end(), RandomBitGenerator(rng));
 
   indices.resize(numToDraw);
 
@@ -256,7 +254,11 @@ degradation(const cv::Mat &img,
     return out;
   }
   
-  std::vector<size_t> indices = drawIndices(numStainsToInsert, 0, stainFiles.size());
+  //B: one generator for the whole degradation
+  RandomEngine rng = makeRandomEngine();
+
+  std::vector<size_t> indices =
+    drawIndices(rng, numStainsToInsert, 0, stainFiles.size());
   assert(indices.size() == numStainsToInsert);
 
   //cv::seamlessClone() needs 3-channel image
@@ -267,10 +269,7 @@ degradation(const cv::Mat &img,
     cv::cvtColor(out, out, cv::COLOR_BGRA2BGR);
   }
   
-  std::random_device rd; // obtain a random number from hardware
-  std::mt19937 eng(rd()); // seed the generator
-  std::uniform_int_distribution<> distrX(0, img.cols);
-  std::uniform_int_distribution<> distrY(0, img.rows);
+
 
   bool isImgGray = false;
   if (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY) {
@@ -279,7 +278,6 @@ degradation(const cv::Mat &img,
   const bool haveToConvert = (insertType == InsertType::INSERT_AS_GRAY
 			      || (insertType == InsertType::INSERT_AS_GRAY_IF_GRAY && isImgGray));
 
-  std::uniform_int_distribution<> distrAngle(0, 3); //angles [0, 90, 180, 270]
   
   const size_t numIndices = indices.size();
   for (size_t i=0; i<numIndices; ++i) {
@@ -298,7 +296,7 @@ degradation(const cv::Mat &img,
       cv::cvtColor(stain, stain, cv::COLOR_GRAY2BGR); //because cv::seamlessClone() needs 3-channel image
     }
     if (doRotations) {
-      const size_t indAngle = distrAngle(eng);
+      const int indAngle = rng.uniform(0, 4); //angles [0, 90, 180, 270]
       if (indAngle == 1) { //90° clockwise
 	cv::transpose(stain, stain);
 	cv::flip(stain, stain, 1);
@@ -313,7 +311,8 @@ degradation(const cv::Mat &img,
     }
 
     
-    const cv::Point pos(distrX(eng), distrY(eng));
+    //cv::RNG::uniform() is [a; b[, so the position stays inside the image
+    const cv::Point pos(rng.uniform(0, img.cols), rng.uniform(0, img.rows));
 
     assert(out.type() == CV_8UC3);
     assert(stain.type() == CV_8UC3);
