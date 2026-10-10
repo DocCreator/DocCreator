@@ -123,6 +123,7 @@ namespace dc {
     cv::Mat m_mat_alpha; //alpha channel of input, if it has one
     cv::Mat m_mat_binary;
 
+    cv::Mat m_mat_ellipse; //scratch buffer to draw the noise region ellipse
     cv::Mat m_mat_reduce_pixels;
     cv::Mat m_mat_CCs;
     cv::Mat m_mat_contour;
@@ -2495,66 +2496,83 @@ namespace dc {
 						   double semi_major_axis,
 						   double theta)
   {
-    //B: This code is UGLY & very slow !!!
-    //1) We allocate a BIG cv::Mat each time
-    //2) We draw instead of finding values mathematically
-    //3) There is a lot of overdraw each time we draw the lines.
-    //   Thus there are a lot of duplicate points in returned vector
-    //4) Returned vector contains malloced lines that we must free... Not cache friendly at all...
+    /*
+      We only ever look at a window of (2*m_local_zone) pixels around the
+      centre, thus:
+      1) the filled ellipse is drawn in a small buffer of that size, kept from
+         one call to the next, instead of a buffer as big as the whole image
+         allocated (and cleared) for each seed point;
+      2) the points of each line, from the centre to a point of the ellipse
+         contour, are walked with a Bresenham iterator instead of being drawn
+         in that buffer and searched back by their color.
+
+      Coordinates are kept in the frame of the former full-image buffer,
+      that is image coordinates translated by (half, half), as the returned
+      @a rec is expressed in it.
+    */
 
     std::vector<float *> Ls;
 
-    const int ex = semi_major_axis + 10;
-    cv::Mat box = cv::Mat::zeros(cv::Size(m_width + ex, m_height + ex),
-				 CV_8UC1); //B: TOO BIG ??????
-    const cv::Point newCentre(centre.x + ex / 2, centre.y + ex / 2);
+    const int ex = static_cast<int>(semi_major_axis) + 10;
+    const int half = ex / 2;
+    const int boxCols = m_width + ex;
+    const int boxRows = m_height + ex;
+    const cv::Point newCentre(centre.x + half, centre.y + half);
 
-    cv::ellipse(box,
-		newCentre,
-		cv::Size(semi_major_axis, semi_minor_axis),
+    //window of interest, clipped to the former buffer
+    const int localZone2 = 2 * m_local_zone;
+    const int xr = std::max(newCentre.x - localZone2, 0);
+    const int yr = std::max(newCentre.y - localZone2, 0);
+    const int wr = (newCentre.x - xr) + std::min(localZone2, boxCols - newCentre.x);
+    const int hr = (newCentre.y - yr) + std::min(localZone2, boxRows - newCentre.y);
+    assert(wr > 0 && wr <= 2 * localZone2);
+    assert(hr > 0 && hr <= 2 * localZone2);
+    const cv::Rect r(xr, yr, wr, hr);
+
+    if (m_mat_ellipse.empty()) {
+      m_mat_ellipse.create(2 * localZone2, 2 * localZone2, CV_8UC1);
+    }
+    //Drawing the ellipse directly in the window clips it exactly as drawing
+    //it in the whole image and cropping the window did.
+    cv::Mat win = m_mat_ellipse(cv::Rect(0, 0, r.width, r.height));
+    win.setTo(cv::Scalar(0));
+    cv::ellipse(win,
+		cv::Point(newCentre.x - r.x, newCentre.y - r.y),
+		cv::Size(static_cast<int>(semi_major_axis),
+			 static_cast<int>(semi_minor_axis)),
 		theta,
 		0,
 		360,
-		cv::Scalar(WHITE, WHITE, WHITE),
+		cv::Scalar(WHITE),
 		-1);
 
-    const int localZone2 = 2 * m_local_zone;
-    const int xr =
-      (newCentre.x - localZone2) >= 0 ? (newCentre.x - localZone2) : (0);
-    const int yr =
-      (newCentre.y - localZone2) >= 0 ? (newCentre.y - localZone2) : (0);
-
-    const int wo = (newCentre.x - localZone2) >= 0 ? (localZone2) : (newCentre.x);
-    const int ho = (newCentre.y - localZone2) >= 0 ? (localZone2) : (newCentre.y);
-    const int wr =
-      wo + ((newCentre.x + localZone2) < box.cols ? (localZone2)
-	    : (box.cols - newCentre.x));
-    const int hr =
-      ho + ((newCentre.y + localZone2) < box.rows ? (localZone2)
-	    : (box.rows - newCentre.y));
-
-    const cv::Rect r(xr, yr, wr, hr);
-
-    cv::Mat mask = box(r);
-
-    std::vector<std::vector<cv::Point>> contours(1);
+    std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
-    cv::findContours(mask,
+    cv::findContours(win,
 		     contours,
 		     hierarchy,
 		     cv::RETR_TREE,
 		     cv::CHAIN_APPROX_NONE,
 		     cv::Point(0, 0));
-    mask.release();
 
-    assert(contours.size() > 0);
+    if (contours.empty()) { //B: the ellipse is entirely outside the window
+      rec = cv::Rect(0, 0, 0, 0);
+      return Ls;
+    }
+
     const std::vector<cv::Point> &v = contours[0];
-    uchar scalar = 10;
+    Ls.reserve(v.size());
+
     int min_x = INT_MAX, min_y = INT_MAX;
     int max_x = INT_MIN, max_y = INT_MIN;
-    for (cv::Point p : v) {
-      p.x = p.x + r.x;
-      p.y = p.y + r.y;
+
+    std::vector<cv::Point> pointInLine;
+    pointInLine.reserve(localZone2);
+
+    for (const cv::Point &pWin : v) {
+
+      //contour point, in the former buffer frame
+      const cv::Point p(pWin.x + r.x, pWin.y + r.y);
 
       if (min_x > p.x)
 	min_x = p.x;
@@ -2565,56 +2583,25 @@ namespace dc {
       if (max_y < p.y)
 	max_y = p.y;
 
-      // draw a line
-      cv::line(box, newCentre, p, cv::Scalar(scalar, scalar, scalar));
-      //
-
-      //std::cerr<<"min_x="<<min_x<<" max_x="<<max_x<<" ; min_y="<<min_y<<" max_y="<<max_y<<"\n";
-
-      //B:BUG ? Why do we search with a partial bounding box ????? [AABB not yet fully computed !!!]
-      // Shouldn't we search along the line ???
-
-      std::vector<cv::Point> pointInLine;
+      //Points of the segment from the centre to the contour point, in image
+      //coordinates. cv::LineIterator walks the very pixels cv::line() would
+      //draw, and clips the segment to the image.
+      pointInLine.clear();
       {
-	const int y0 = std::max(std::max(min_y - 5, 0), ex / 2);
-	const int y1 = std::min(std::min(max_y + 5, box.rows), m_mat_gray.rows + ex / 2);
-	const int x0 = std::max(std::max(min_x - 5, 0), ex / 2);
-	const int x1 = std::min(std::min(max_x + 5, box.cols), m_mat_gray.cols + ex / 2);
-	for (int y = y0; y < y1; ++y) {
-	  const uchar *b = box.ptr<uchar>(y);
-	  const int yt = y - ex / 2;
-	  assert(yt >= 0 && yt < m_mat_gray.rows);
-
-	  for (int x = x0; x < x1; ++x) {
-	    assert(y >= 0 && y < box.rows && x >= 0 && x < box.cols); //B
-	    if (b[x] == scalar) {
-	      const int xt = x - ex / 2;
-	      assert(yt >= 0 &&
-		     yt < m_mat_gray.rows &&
-		     xt >= 0 &&
-		     xt < m_mat_gray.cols);
-	      //B: added 05/2015: to avoid point outside image
-	      pointInLine.emplace_back(xt, yt);
-	    }
-	  }
+	cv::LineIterator lineIt(m_mat_gray, centre, cv::Point(p.x - half, p.y - half), 8);
+	for (int i = 0; i < lineIt.count; ++i, ++lineIt) {
+	  const cv::Point px = lineIt.pos();
+	  assert(px.x >= 0 && px.x < m_mat_gray.cols &&
+		 px.y >= 0 && px.y < m_mat_gray.rows);
+	  pointInLine.push_back(px);
 	}
       }
 
       // new line
       if (!pointInLine.empty()) {
 
-	//B: added 03/2015 : check translated point is really in image
-	cv::Point pt;
-	pt.x = p.x - ex / 2;
-	pt.y = p.y - ex / 2;
-
-#if 0  //#ifndef NDEBUG
-	if (! (pt.y >= 0 && pt.y < m_mat_gray.rows 
-	       && pt.x >= 0 && pt.x < m_mat_gray.cols)) {
-	  std::cerr<<"pt.x="<<pt.x<<" m_mat_gray.cols="<<m_mat_gray.cols<<"\n";
-	  std::cerr<<"pt.y="<<pt.y<<" m_mat_gray.rows="<<m_mat_gray.rows<<"\n";
-	}
-#endif //NDEBUG
+	//B: check translated point is really in image
+	cv::Point pt(p.x - half, p.y - half);
 
 	if (pt.y >= m_mat_gray.rows)
 	  pt.y = m_mat_gray.rows - 1;
@@ -2643,17 +2630,13 @@ namespace dc {
 	  ++id;
       //1
 	  //B: should we use p or pt here ???
-	  line[id] = sqrtf((p.x - newCentre.x) * (p.x - newCentre.x) +
-			  (p.y - newCentre.y) * (p.y - newCentre.y));
+	  line[id] = sqrtf(static_cast<float>((p.x - newCentre.x) * (p.x - newCentre.x) +
+					      (p.y - newCentre.y) * (p.y - newCentre.y)));
 	  ++id;
       //2
 	  line[id] = gray;
 	  ++id;
 	  for (const cv::Point &px : pointInLine) {
-
-	    assert(px.y >= 0 && px.y < m_mat_gray.rows && px.x >= 0 &&
-		   px.x < m_mat_gray.cols); //B
-
 	    line[id] = px.x;
 	    ++id;
 	    line[id] = px.y;
@@ -2663,20 +2646,12 @@ namespace dc {
 	  Ls.push_back(line);
 	}
       }
-
-      //pointInLine.clear();
-
-      ++scalar;
     }
 
-    rec.x = min_x - ex / 2;
-    rec.y = min_y - ex / 2;
+    rec.x = min_x - half;
+    rec.y = min_y - half;
     rec.width = max_x - min_x;
     rec.height = max_y - min_y;
-
-    //contours.clear();
-
-    //box.release();
 
     return Ls;
   }
