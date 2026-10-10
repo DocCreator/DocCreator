@@ -7,7 +7,7 @@
 #include "element.h"
 #include "docstyle.h"
 
-#include <iostream>//DEBUG
+#include <cassert>
 
 namespace Doc
 {
@@ -180,12 +180,11 @@ namespace Doc
         if (pos < 0 || pos > _elements.count())
             return;
 	
-#ifndef NDEBUG
+	//B: exit() here used to throw away the document being edited.
+	assert(! _elements.contains(element));
 	if (_elements.contains(element)) {
-	  std::cerr<<"ERROR: Node<T>::insertElement("<<pos<<", "<<element<<") : element already present\n";
-	  exit(12);
+	  return;
 	}
-#endif //NDEBUG
 
         _index = pos;
         _elements.insert(pos, element);

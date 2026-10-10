@@ -125,10 +125,11 @@ GLRenderer::GLRenderer(int width, int height) :
 
     if (! glfwInit()) {
       std::cerr<<"ERROR: glfwInit() failed\n";
-      exit(EXIT_FAILURE);
+      return; //the renderer stays invalid
     }
   }
   ms_initialized += 1;
+  m_glfwInitialized = true;
 
   int window_width = width;
   int window_height = height;
@@ -181,9 +182,9 @@ GLRenderer::GLRenderer(int width, int height) :
 
   m_window = glfwCreateWindow(window_width, window_height, "GLRenderer", NULL, NULL);
   if (!m_window) {
-    std::cerr<<"ERROR: unable to create window\n";
-    glfwTerminate();
-    exit(EXIT_FAILURE);
+    std::cerr<<"ERROR: unable to create window ("<<window_width<<"x"
+	     <<window_height<<")\n";
+    return; //the renderer stays invalid
   }
 
   glfwSetWindowUserPointer(m_window, this); //for framebufferSize_callback
@@ -238,13 +239,16 @@ GLRenderer::~GLRenderer()
 {
   delete m_object;
   delete m_meshGL;
-  
-  glfwDestroyWindow(m_window);
 
-  assert(ms_initialized > 0);
-  ms_initialized-=1;
-  if (ms_initialized == 0) {
-    glfwTerminate();
+  //B: the constructor may have given up half way, so only undo what was done.
+  glfwDestroyWindow(m_window); //a no-op for a null window
+
+  if (m_glfwInitialized) {
+    assert(ms_initialized > 0);
+    ms_initialized-=1;
+    if (ms_initialized == 0) {
+      glfwTerminate();
+    }
   }
 }
 
@@ -300,8 +304,8 @@ void GLRenderer::initializeGL()
   const bool ok = m_program.loadFromStrings(vs_simple, fs_simple);
 #endif
   if (! ok) {
-    std::cout<<"ERROR: unable to load shaders\n";
-    exit(10);
+    std::cerr<<"ERROR: unable to load shaders\n";
+    return; //the renderer stays invalid
   }  
 
   GL_CHECK_ERROR_ALWAYS();
@@ -318,8 +322,8 @@ void GLRenderer::initializeGL()
   const bool okP = m_backgroundProgram.loadFromStrings(vs_background, fs_background);
 #endif
   if (! okP) {
-    std::cout<<"ERROR: unable to load (background) shaders\n";
-    exit(10);
+    std::cerr<<"ERROR: unable to load (background) shaders\n";
+    return; //the renderer stays invalid
   }  
 
   m_backgroundMesh = makePlane();
@@ -334,6 +338,8 @@ void GLRenderer::initializeGL()
 
 
   GL_CHECK_ERROR_ALWAYS();
+
+  m_valid = true;
 }
 
 bool

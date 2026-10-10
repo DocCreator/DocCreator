@@ -212,8 +212,10 @@ GLWidget::initializeGL()
 #include "shader_simple.hpp"
   const bool ok = m_program.loadFromStrings(vs_simple, fs_simple);
   if (!ok) {
+    //B: exit() here used to take the whole application down, unsaved
+    // document included.
     std::cerr << "ERROR: unable to load shaders\n";
-    exit(10);
+    return;
   }
 
   GL_CHECK_ERROR_ALWAYS();
@@ -224,7 +226,7 @@ GLWidget::initializeGL()
   const bool okS = m_sphereProgram.loadFromStrings(vs_sphere, fs_sphere);
   if (!okS) {
     std::cerr << "ERROR: unable to load (sphere) shaders\n";
-    exit(10);
+    return;
   }
 
   assert(m_sphere.isValid());
@@ -246,7 +248,7 @@ GLWidget::initializeGL()
   const bool okP = m_backgroundProgram.loadFromStrings(vs_background, fs_background);
   if (!okP) {
     std::cerr << "ERROR: unable to load (background) shaders\n";
-    exit(10);
+    return;
   }
 
   m_backgroundMesh = makePlane();

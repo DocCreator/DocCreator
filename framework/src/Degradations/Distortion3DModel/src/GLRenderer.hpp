@@ -20,6 +20,14 @@ public:
   
   ~GLRenderer();
 
+  /*
+    Tells whether the renderer could be created. When it could not (no
+    OpenGL context available, shaders that do not compile...), nothing else
+    may be called on it. [It used to call exit() instead, killing the whole
+    program, interpreter included.]
+  */
+  bool isValid() const { return m_valid; }
+
   void update();
   
   bool loadMesh(const std::string &meshFilename);
@@ -92,6 +100,9 @@ private:
   Eigen::Vector3f m_diffuse;
   Eigen::Vector3f m_specular;
   float m_specularExponent;
+  bool m_valid = false;
+  bool m_glfwInitialized = false;
+
   bool m_useTexture;
   Eigen::Matrix3f m_texMat;
 

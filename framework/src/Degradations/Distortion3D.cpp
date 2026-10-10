@@ -20,6 +20,10 @@ namespace dc {
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
+      if (! w.isValid()) {
+	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
+	return cv::Mat();
+      }
       const bool loadMeshOk = w.loadMesh(meshFilename);
       if (! loadMeshOk) {
 	return cv::Mat();
@@ -59,6 +63,10 @@ namespace dc {
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
+      if (! w.isValid()) {
+	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
+	return;
+      }
       const bool loadMeshOk = w.loadMesh(meshFilename);
       if (! loadMeshOk) {
 	return;
@@ -100,6 +108,10 @@ namespace dc {
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
+      if (! w.isValid()) {
+	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
+	return cv::Mat();
+      }
       const bool loadMeshOk = w.loadMesh(meshFilename);
       if (! loadMeshOk) {
 	return cv::Mat();
@@ -130,6 +142,10 @@ namespace dc {
     {
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
+      if (! w.isValid()) {
+	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
+	return;
+      }
       const bool loadMeshOk = w.loadMesh(meshFilename);
       if (! loadMeshOk) {
 	return;

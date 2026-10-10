@@ -1,6 +1,7 @@
 #include "RandomDocumentCreator.hpp"
 
 #include <cassert>
+#include <iostream>
 //#define TIMING 1
 #ifdef TIMING
 #include <chrono> //DEBUG
