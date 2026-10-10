@@ -1,19 +1,40 @@
 #include "xmldocumentloader.h"
+
+#include <iostream>
+
 #include <QDebug>
 #include <QXmlStreamReader>
 
 namespace IOManager {
 XMLDocumentLoader::XMLDocumentLoader(const QString &input)
   : DocumentLoader(input)
+  , _reader(std::make_unique<QXmlStreamReader>(_input))
+{}
+
+XMLDocumentLoader::~XMLDocumentLoader() = default;
+
+/*
+  The reading loops below stop on the end of the document as well as on a
+  parse error: tell them apart, otherwise a truncated file silently gives a
+  truncated document.
+*/
+void
+XMLDocumentLoader::reportError() const
 {
-  _reader = new QXmlStreamReader(_input);
+  if (_reader->hasError()) {
+    std::cerr << "ERROR: unable to read the document: "
+	      << _reader->errorString().toStdString() << " (line "
+	      << _reader->lineNumber() << ", column " << _reader->columnNumber()
+	      << ")\n";
+  }
 }
 
 void
 XMLDocumentLoader::createNewDocument()
 {
   DocumentLoader::createNewDocument();
-  _reader = new QXmlStreamReader(_input);
+  //B: the reader built by the constructor used to be leaked here
+  _reader = std::make_unique<QXmlStreamReader>(_input);
 
   int w = 0;
   int h = 0;
@@ -33,6 +54,8 @@ XMLDocumentLoader::createNewDocument()
     }
     _reader->readNext();
   }
+  reportError();
+
   qDebug() << " loader w,h = " << w << ", " << h;
   _output->setPageWidth(w);
   _output->setPageHeight(h);
@@ -51,6 +74,8 @@ XMLDocumentLoader::buildStyles()
     }
     _reader->readNext();
   }
+
+  reportError();
 }
 
 void
@@ -69,6 +94,8 @@ XMLDocumentLoader::buildContent()
     }
     _reader->readNext();
   }
+
+  reportError();
 }
 
 //protected:

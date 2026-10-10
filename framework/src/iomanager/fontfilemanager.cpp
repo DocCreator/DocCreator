@@ -95,6 +95,7 @@ FontFileManager::fontFromXml(const QString &filepath)
               std::cerr << "Warning: letter \"" << s.toStdString()
                         << "\" is present several times in font file: "
                         << filepath.toStdString() << "\n";
+              delete ch; //B: not added, thus not owned by the font
             }
           }
         }
@@ -511,14 +512,13 @@ bool
 FontFileManager::isBOFFile(const QString &filename)
 {
   QFile file(filename);
-  file.open(QIODevice::ReadOnly);
-  QDataStream in(&file);
-
-  if (in.status() != QDataStream::Ok) {
+  if (! file.open(QIODevice::ReadOnly)) {
     std::cerr<<"ERROR: unable to open: "<<filename.toStdString()<<"\n";
     return false;
   }
-  uint32_t h;
+
+  QDataStream in(&file);
+  uint32_t h = 0;
   in >> h;
   if (in.status() != QDataStream::Ok) {
     return false;
@@ -604,7 +604,20 @@ FontFileManager::fontFromBinary(const QString &filepath)
   uint32_t numCharacters = 0;
   in >> numCharacters;
 
-  if (numCharacters == 0) {
+  if (in.status() != QDataStream::Ok || numCharacters == 0) {
+    return nullptr;
+  }
+
+  /*
+    B: a count read from the file must be checked against the file itself:
+    "numVersions = 0xFFFFFFFF" used to make the loop below allocate four
+    billion CharacterData until the process ran out of memory. Each record
+    holds at least its own fields, so there cannot be more records than bytes
+    left in the file.
+  */
+  if (numCharacters > static_cast<uint32_t>(file.size() - file.pos())) {
+    std::cerr << "Error: corrupt font file (it announces " << numCharacters
+	      << " characters): " << filepath.toStdString() << "\n";
     return nullptr;
   }
 
@@ -626,11 +639,23 @@ FontFileManager::fontFromBinary(const QString &filepath)
     ch->setRightLine(rightLine);
     uint32_t numVersions = 0;
     in >> numVersions;
+    if (in.status() != QDataStream::Ok ||
+	numVersions > static_cast<uint32_t>(file.size() - file.pos())) {
+      std::cerr << "Warning: corrupt font file (letter \"" << s.toStdString()
+		<< "\" announces " << numVersions
+		<< " versions): " << filepath.toStdString() << "\n";
+      delete ch;
+      break;
+    }
+
     for (uint32_t j=0; j<numVersions; ++j) {
-      int id;
+      int id = 0; //B: left untouched by a failed read, and then used
       in >> id;
       QImage img;
       in >> img;
+      if (in.status() != QDataStream::Ok) {
+	break;
+      }
       Models::CharacterData *charData = new Models::CharacterData(img, id);
       ch->add(charData);
     }
@@ -648,6 +673,7 @@ FontFileManager::fontFromBinary(const QString &filepath)
 	std::cerr << "Warning: letter \"" << s.toStdString()
 		  << "\" is present several times in font file: "
 		  << filepath.toStdString() << "\n";
+	delete ch; //B: not added, thus not owned by the font
       }
     }
 
