@@ -227,7 +227,8 @@ degradation(const cv::Mat &img,
 	    const std::string &stainDirName,
 	    const size_t numStainsToInsert,
 	    InsertType insertType,
-	    bool doRotations)
+	    bool doRotations,
+	    std::optional<uint32_t> seed)
 {
   cv::Mat out = img.clone();
   if (img.depth() != CV_8U) {
@@ -255,7 +256,7 @@ degradation(const cv::Mat &img,
   }
   
   //B: one generator for the whole degradation
-  RandomEngine rng = makeRandomEngine();
+  RandomEngine rng = makeRandomEngine(seed);
 
   std::vector<size_t> indices =
     drawIndices(rng, numStainsToInsert, 0, stainFiles.size());

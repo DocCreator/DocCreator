@@ -476,7 +476,8 @@ namespace dc {
 		      const cv::Size &holePatternSize,
 		      HoleType type,
 		      float ratioOutside,
-		      HoleSide side)
+		      HoleSide side,
+		      std::optional<uint32_t> seed)
     {
       //B: we want to draw xOrigin in [startX, endX] and yOrigin in [startY, endY]
       
@@ -573,7 +574,7 @@ namespace dc {
       //B: one generator per call. A std::mt19937 used to be shared by the
       // whole program here, without any lock: two threads degrading two
       // images at the same time were a data race.
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
       const int xOrigin = random_in_range(rng, startX, endX-1);
       const int yOrigin = random_in_range(rng, startY, endY-1);
       //std::cerr<<"x in ["<<startX<<"; "<<endX-1<<"] => xOrigin="<<xOrigin<<" ; y in ["<<startY<<"; "<<endY-1<<"] => yOrigin="<<yOrigin<<"\n";
@@ -592,13 +593,15 @@ namespace dc {
 		    const cv::Scalar &color,
 		    const cv::Mat &matBelow,
 		    int shadowBorderWidth,
-		    float shadowBorderIntensity)
+		    float shadowBorderIntensity,
+		    std::optional<uint32_t> seed)
     {
       const cv::Point pos = getRandomPosition(img.size(),
 					      holePattern.size(),
 					      type,
 					      ratioOutside,
-					      side);
+					      side,
+					      seed);
 
       //std::cerr<<"addHoleAtRandom pos="<<pos<<"\n";
       return addHole(img,

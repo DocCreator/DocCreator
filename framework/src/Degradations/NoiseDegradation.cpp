@@ -56,14 +56,15 @@ namespace dc {
 
     cv::Mat addGaussianNoise(const cv::Mat &image,
 			     float average, float standardDeviation,
-			     AddNoiseType addType)
+			     AddNoiseType addType,
+			     std::optional<uint32_t> seed)
     {
       assert(image.depth() == CV_8U);
   
       cv::Mat dst;
 
       const int type = CV_MAKETYPE(CV_16S, image.channels());
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
       cv::Mat noise_image =
 	makeRandnNoise(rng, image, (double)average, (double)standardDeviation, addType);
   
@@ -82,14 +83,15 @@ namespace dc {
 
     cv::Mat addSpeckleNoise(const cv::Mat &image,
 			    float average, float standardDeviation,
-			    AddNoiseType addType)
+			    AddNoiseType addType,
+			    std::optional<uint32_t> seed)
     {
       assert(image.depth() == CV_8U);
   
       cv::Mat dst;
 
       const int type = CV_MAKETYPE(CV_16S, image.channels());
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
       cv::Mat noise_image =
 	makeRandnNoise(rng, image, average, standardDeviation, addType);
   
@@ -107,13 +109,14 @@ namespace dc {
 
     
     cv::Mat addSaltAndPepperNoise(const cv::Mat &image,
-				  float amount, float ratio)
+				  float amount, float ratio,
+				  std::optional<uint32_t> seed)
     {
       assert(image.depth() == CV_8U);
 
       cv::Mat dst;
 
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
       cv::Mat noise(image.rows, image.cols, CV_8UC1); //image.type());
       rng.fill(noise, cv::RNG::UNIFORM, 0, 255);
 

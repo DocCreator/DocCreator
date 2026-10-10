@@ -324,6 +324,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	Interpolation : DocCreatorPy.ElasticInterpolation
 		Interpolation method.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -333,7 +338,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
  	py::arg("img"),
  	py::arg("alpha") = 2.0f, py::arg("sigma") = 0.08f,
  	py::arg("borderMode") = dc::ElasticDeformation::BorderReplication::BLACK,
- 	py::arg("interpolation") = dc::ElasticDeformation::Interpolation::BILINEAR);
+ 	py::arg("interpolation") = dc::ElasticDeformation::Interpolation::BILINEAR,
+	py::arg("seed") = py::none());
   
   m.def("elasticTransform2",
 	&dc::ElasticDeformation::transform2, R"pbdoc(
@@ -369,6 +375,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	Interpolation : DocCreatorPy.ElasticInterpolation
 		Interpolation method.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -380,7 +391,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("sigma") = 0.08f,
 	py::arg("alphaAffine") = 9.0f,
  	py::arg("borderMode") = dc::ElasticDeformation::BorderReplication::BLACK,
- 	py::arg("interpolation") = dc::ElasticDeformation::Interpolation::BILINEAR);
+ 	py::arg("interpolation") = dc::ElasticDeformation::Interpolation::BILINEAR,
+	py::arg("seed") = py::none());
 
   //--------------
 
@@ -426,6 +438,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	doRotations : bool
 		Indicates whether stain images are rotated before insertion.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -440,7 +457,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("stainImageDir"),
 	py::arg("numStainsToInsert"),
 	py::arg("insertType") = dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY,
-	py::arg("doRotations") = true);
+	py::arg("doRotations") = true,
+	py::arg("seed") = py::none());
 
   //TODO:GDD: Do not pass @a numStainsToInsert
   //but have an automatic value computed according to image size
@@ -516,6 +534,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	overlappingSpotsRatio : float
 		Ratio of overlapping spots, in [0.0; 1.0]
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -524,7 +547,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	)pbdoc",
 	py::arg("img"), py::arg("level"),
 	py::arg("indepentSpotsRatio"),
-	py::arg("overlappingSpotsRatio"));
+	py::arg("overlappingSpotsRatio"),
+	py::arg("seed") = py::none());
 
   
   //--------------
@@ -657,6 +681,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 		color/image is multiplied to obtain the shadow value on
 		hole border. The closer to 0, the darker the shadow.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -670,7 +699,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("belowColor") = cv::Scalar(0., 0., 0., 255.),
 	py::arg("belowImg") = cv::Mat(),
 	py::arg("shadowBorderWidth") = 0,
-	py::arg("shadowBorderIntensity") = 0.1f);
+	py::arg("shadowBorderIntensity") = 0.1f,
+	py::arg("seed") = py::none());
   
   //--------------
 
@@ -701,6 +731,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 		Tells whether noise may or may not change image into a
 		color image.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -709,7 +744,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("img"),
 	py::arg("average") = 0.0f, 
 	py::arg("standardDeviation") = 10.0f, 
-	py::arg("addType") = dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS);
+	py::arg("addType") = dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS,
+	py::arg("seed") = py::none());
   
   m.def("addSpeckleNoise",
 	&dc::NoiseDegradation::addSpeckleNoise, R"pbdoc(
@@ -732,6 +768,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 		Tells whether noise may or may not change image into a
 		color image.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -740,7 +781,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("img"),
 	py::arg("average") = 0.0f, 
 	py::arg("standardDeviation") = 1.0f, 
-	py::arg("addType") = dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS);
+	py::arg("addType") = dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS,
+	py::arg("seed") = py::none());
   
   m.def("addSaltAndPepperNoise",
 	&dc::NoiseDegradation::addSaltAndPepperNoise, R"pbdoc(
@@ -763,6 +805,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 		Ratio of black pixels, in [0.0; 1.0].
 		Ratio of white pixels will be 1.0-ratio.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -770,7 +817,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	)pbdoc",
 	py::arg("img"),
 	py::arg("amount") = 0.15f, 
-	py::arg("ratio") = 0.5f);
+	py::arg("ratio") = 0.5f,
+	py::arg("seed") = py::none());
 
   //--------------
 
@@ -793,6 +841,11 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	phantomPatternsPath : str
 		Directory to load phantom patterns from.
 
+	seed : int, optional
+		Seed of the random generator. If None, a non reproducible
+		seed is used. Two calls with the same seed and the same
+		parameters give the same result.
+
 	Returns
 	-------
 	ndarray
@@ -800,7 +853,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	)pbdoc",
 	py::arg("img"),
 	py::arg("occurenceProbability") = 0.5f, 
-	py::arg("phantomPatternsPath"));
+	py::arg("phantomPatternsPath"),
+	py::arg("seed") = py::none());
 
   //--------------
 

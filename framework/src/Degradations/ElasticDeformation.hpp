@@ -1,6 +1,9 @@
 #ifndef ELASTICDEFORMATION_HPP
 #define ELASTICDEFORMATION_HPP
 
+#include <cstdint>
+#include <optional>
+
 #include <framework_global.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -42,13 +45,15 @@ namespace dc {
        @param sigma  elasticity coefficiant (standard deviation of Gaussian).
        @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
        @param interpolation interpolation method. See OpenCV cv::resize().
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
      */    
     extern FRAMEWORK_EXPORT cv::Mat transform(const cv::Mat &img,
 					      float alpha = 2.0f,
 					      float sigma = 0.08f,
 					      BorderReplication borderMode = BorderReplication::BLACK,
-					      Interpolation interpolation = Interpolation::BILINEAR);
+					      Interpolation interpolation = Interpolation::BILINEAR,
+					      std::optional<uint32_t> seed = std::nullopt);
 
     /**
        Apply elastic deformation to @a img as described in [Simard2003].
@@ -63,6 +68,7 @@ namespace dc {
        @param sigma  elasticity coefficiant (standard deviation of Gaussian).
        @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
        @param interpolation interpolation method. See OpenCV cv::resize().
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
 
     */
@@ -72,7 +78,8 @@ namespace dc {
 						    float alpha = 2.0f,
 						    float sigma = 0.08f,
 						    BorderReplication borderMode = BorderReplication::BLACK,
-						    Interpolation interpolation = Interpolation::BILINEAR);
+						    Interpolation interpolation = Interpolation::BILINEAR,
+						    std::optional<uint32_t> seed = std::nullopt);
 
 
     /**
@@ -88,6 +95,7 @@ namespace dc {
        @param alphaAffine scaling factor of initial affine transformation.
        @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
        @param interpolation interpolation method. See OpenCV cv::resize().
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat transform2(const cv::Mat &img,
@@ -95,7 +103,8 @@ namespace dc {
 					       float sigma = 0.08f,
 					       float alphaAffine = 9.0f,
 					       BorderReplication borderMode = BorderReplication::BLACK,
-					       Interpolation interpolation = Interpolation::BILINEAR);
+					       Interpolation interpolation = Interpolation::BILINEAR,
+					       std::optional<uint32_t> seed = std::nullopt);
     
     /**
        Apply elastic deformation to @a img as described in [Simard2003],
@@ -112,6 +121,7 @@ namespace dc {
        @param alphaAffine scaling factor of initial affine transformation.
        @param borderMode  border pixel interpolation method. See OpenCV cv::BorderTypes.
        @param interpolation interpolation method. See OpenCV cv::resize().
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat transform2_rects(const cv::Mat &img,
@@ -121,7 +131,8 @@ namespace dc {
 						     float sigma = 0.08f,
 						     float alphaAffine = 9.0f,
 						     BorderReplication borderMode = BorderReplication::BLACK,
-						     Interpolation interpolation = Interpolation::BILINEAR);
+						     Interpolation interpolation = Interpolation::BILINEAR,
+						     std::optional<uint32_t> seed = std::nullopt);
 
     /**
        Get oriented bounding rectangles from rectangles points.

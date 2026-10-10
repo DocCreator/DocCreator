@@ -1060,7 +1060,7 @@ namespace dc {
     }
 
     cv::Mat
-    phantomCharacter(const cv::Mat &img, float occurenceProbability, const std::string &phantomPatternsPath)
+    phantomCharacter(const cv::Mat &img, float occurenceProbability, const std::string &phantomPatternsPath, std::optional<uint32_t> seed)
     {
       assert(0.0f <= occurenceProbability && occurenceProbability <= 1.0f);
 
@@ -1114,7 +1114,7 @@ namespace dc {
       // deterministically. srand() used to be called here, which reset a
       // generator shared with the whole program, and seeding on the current
       // time made two runs started in the same second identical.
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
 
 #ifdef SAVE_DEGRADATIONS_IMAGE
       cv::Mat degrads(img.rows,

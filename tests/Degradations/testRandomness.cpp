@@ -162,6 +162,98 @@ TEST_CASE("Testing that the degradations are random")
 }
 
 
+
+TEST_CASE("Testing that a seed makes the degradations reproducible")
+{
+  //Same seed and same parameters: same result. Different seeds: different
+  //results. This is what makes a generated dataset reproducible.
+  const cv::Mat img = makeTextLikeImage();
+  constexpr uint32_t SEED = 1234;
+  constexpr uint32_t OTHER_SEED = 1235;
+
+  SECTION("characters degradation")
+  {
+    const cv::Mat a = dc::GrayscaleCharsDegradation::degradation(img, 8, .33f, .33f, SEED);
+    const cv::Mat b = dc::GrayscaleCharsDegradation::degradation(img, 8, .33f, .33f, SEED);
+    const cv::Mat c = dc::GrayscaleCharsDegradation::degradation(img, 8, .33f, .33f, OTHER_SEED);
+
+    REQUIRE( checkEqual(a, b) );
+    REQUIRE_FALSE( checkEqual(a, c) );
+    REQUIRE_FALSE( checkEqual(a, img) );
+  }
+
+  SECTION("gaussian noise")
+  {
+    using dc::NoiseDegradation::addGaussianNoise;
+    using dc::NoiseDegradation::AddNoiseType;
+    const AddNoiseType t = AddNoiseType::ADD_NOISE_AS_IS;
+    REQUIRE( checkEqual(addGaussianNoise(img, 0.f, 10.f, t, SEED),
+			addGaussianNoise(img, 0.f, 10.f, t, SEED)) );
+    REQUIRE_FALSE( checkEqual(addGaussianNoise(img, 0.f, 10.f, t, SEED),
+			      addGaussianNoise(img, 0.f, 10.f, t, OTHER_SEED)) );
+  }
+
+  SECTION("salt and pepper noise")
+  {
+    using dc::NoiseDegradation::addSaltAndPepperNoise;
+    REQUIRE( checkEqual(addSaltAndPepperNoise(img, 0.1f, 0.5f, SEED),
+			addSaltAndPepperNoise(img, 0.1f, 0.5f, SEED)) );
+    REQUIRE_FALSE( checkEqual(addSaltAndPepperNoise(img, 0.1f, 0.5f, SEED),
+			      addSaltAndPepperNoise(img, 0.1f, 0.5f, OTHER_SEED)) );
+  }
+
+  SECTION("elastic deformation")
+  {
+    using dc::ElasticDeformation::transform;
+    using dc::ElasticDeformation::transform2;
+    using dc::ElasticDeformation::BorderReplication;
+    using dc::ElasticDeformation::Interpolation;
+    const BorderReplication b = BorderReplication::BLACK;
+    const Interpolation i = Interpolation::BILINEAR;
+
+    REQUIRE( checkEqual(transform(img, 2.f, .08f, b, i, SEED),
+			transform(img, 2.f, .08f, b, i, SEED)) );
+    REQUIRE_FALSE( checkEqual(transform(img, 2.f, .08f, b, i, SEED),
+			      transform(img, 2.f, .08f, b, i, OTHER_SEED)) );
+
+    REQUIRE( checkEqual(transform2(img, 2.f, .08f, 9.f, b, i, SEED),
+			transform2(img, 2.f, .08f, 9.f, b, i, SEED)) );
+    REQUIRE_FALSE( checkEqual(transform2(img, 2.f, .08f, 9.f, b, i, SEED),
+			      transform2(img, 2.f, .08f, 9.f, b, i, OTHER_SEED)) );
+  }
+
+  SECTION("phantom characters")
+  {
+    using dc::PhantomCharacter::phantomCharacter;
+    REQUIRE( checkEqual(phantomCharacter(img, .8f, PHANTOM_PATTERNS_PATH, SEED),
+			phantomCharacter(img, .8f, PHANTOM_PATTERNS_PATH, SEED)) );
+    REQUIRE_FALSE( checkEqual(phantomCharacter(img, .8f, PHANTOM_PATTERNS_PATH, SEED),
+			      phantomCharacter(img, .8f, PHANTOM_PATTERNS_PATH, OTHER_SEED)) );
+  }
+
+  SECTION("gradient domain degradation")
+  {
+    using dc::GradientDomainDegradation::degradation;
+    using dc::GradientDomainDegradation::InsertType;
+    const InsertType t = InsertType::INSERT_AS_GRAY_IF_GRAY;
+    REQUIRE( checkEqual(degradation(img, STAIN_IMAGES_PATH, 2, t, true, SEED),
+			degradation(img, STAIN_IMAGES_PATH, 2, t, true, SEED)) );
+  }
+
+  SECTION("hole position")
+  {
+    using dc::HoleDegradation::getRandomPosition;
+    using dc::HoleDegradation::HoleType;
+    using dc::HoleDegradation::HoleSide;
+    const cv::Size imgSize(500, 400), holeSize(40, 30);
+    const cv::Point a = getRandomPosition(imgSize, holeSize, HoleType::CENTER,
+					  .5f, HoleSide::BORDER_TOP, SEED);
+    const cv::Point b = getRandomPosition(imgSize, holeSize, HoleType::CENTER,
+					  .5f, HoleSide::BORDER_TOP, SEED);
+    REQUIRE( a == b );
+  }
+}
+
 TEST_CASE("Testing makeRandomEngine")
 {
   SECTION("the same seed gives the same sequence")

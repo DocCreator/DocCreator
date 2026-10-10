@@ -66,7 +66,8 @@ namespace dc {
   class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
   {
   public:
-    explicit GrayscaleCharsDegradationModel(const cv::Mat &img);
+    explicit GrayscaleCharsDegradationModel(const cv::Mat &img,
+					    std::optional<uint32_t> seed = std::nullopt);
     ~GrayscaleCharsDegradationModel();
 
     cv::Mat degradate_cv(int level = 1, float I = 33, float O = 33, float D = 34);
@@ -179,8 +180,9 @@ namespace dc {
 
 
   GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
-								 const cv::Mat &img)
-    : m_rng(makeRandomEngine())
+								 const cv::Mat &img,
+								 std::optional<uint32_t> seed)
+    : m_rng(makeRandomEngine(seed))
     , m_width(0)
     , m_height(0)
     , m_avgBackground(0)
@@ -2764,7 +2766,7 @@ namespace dc {
 
   namespace GrayscaleCharsDegradation {
 
-    cv::Mat degradation(const cv::Mat &img, int level, float indepentSpotsRatio, float overlappingSpotsRatio)
+    cv::Mat degradation(const cv::Mat &img, int level, float indepentSpotsRatio, float overlappingSpotsRatio, std::optional<uint32_t> seed)
     {
       assert(0.0<=indepentSpotsRatio && indepentSpotsRatio<=1.0);
       assert(0.0<=overlappingSpotsRatio && overlappingSpotsRatio<=1.0);
@@ -2773,7 +2775,7 @@ namespace dc {
       const float percentOfOverlappingSpots = 100.f*overlappingSpotsRatio;
       const float percentageOfDisconnectionSpots = 100.f - percentOfIndepentSpots - percentOfOverlappingSpots;
 
-      GrayscaleCharsDegradationModel cdm(img);
+      GrayscaleCharsDegradationModel cdm(img, seed);
       return cdm.degradate_cv(level, percentOfIndepentSpots, percentOfOverlappingSpots, percentageOfDisconnectionSpots);
     }
 

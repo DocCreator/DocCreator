@@ -1,6 +1,9 @@
 #ifndef HOLEDEGRADATION_HPP
 #define HOLEDEGRADATION_HPP
 
+#include <cstdint>
+#include <optional>
+
 #include <framework_global.h>
 #include <opencv2/core/core.hpp>
 
@@ -50,7 +53,8 @@ namespace dc {
 							const cv::Size &holePatternSize,
 							HoleType type,
 							float ratioOutside,
-							HoleSide side);
+							HoleSide side,
+							std::optional<uint32_t> seed = std::nullopt);
 
     /*
       Add hole to an image at a random position.
@@ -73,7 +77,7 @@ namespace dc {
       @param shadowBorderIntensity intensity in [0; 1] by which the original below color/image is multiplied to obtain shadow value on hole border. The closer to 0, the darker the shadow.
       @return modified image
      */
-    extern FRAMEWORK_EXPORT cv::Mat addHoleAtRandom(const cv::Mat &img, const cv::Mat &holePattern, int size, HoleType type, float ratioOutside, HoleSide side, const cv::Scalar &color = cv::Scalar(0, 0, 0, 255), const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=1000.f);
+    extern FRAMEWORK_EXPORT cv::Mat addHoleAtRandom(const cv::Mat &img, const cv::Mat &holePattern, int size, HoleType type, float ratioOutside, HoleSide side, const cv::Scalar &color = cv::Scalar(0, 0, 0, 255), const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=1000.f, std::optional<uint32_t> seed = std::nullopt);
 
 
     

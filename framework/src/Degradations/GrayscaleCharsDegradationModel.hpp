@@ -2,6 +2,8 @@
 #define GRAYSCALECHARSDEGRADATIONMODEL_HPP
 
 
+#include <cstdint>
+#include <optional>
 #include <vector>
 
 #include <opencv2/core/core.hpp>
@@ -40,11 +42,13 @@ namespace dc {
      @param level scale factor, in [0; 10]. The number of degradation spots will be determined according to the number of connected components in image and multiplied by this scale factor. The higher the level, the higher the number of degradation spots.
      @param indepentSpotsRatio ratio of independent spots, in [0.0; 1.0]
      @param overlappingSpotsRatio ratio of overlapping spots, in [0.0; 1.0]
+      @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
 
   */
     extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img, int level = 1,
 						float indepentSpotsRatio = 0.33f,
-						float overlappingSpotsRatio = 0.33);
+						float overlappingSpotsRatio = 0.33,
+						std::optional<uint32_t> seed = std::nullopt);
 
   } //namespace GrayscaleCharsDegradation
 

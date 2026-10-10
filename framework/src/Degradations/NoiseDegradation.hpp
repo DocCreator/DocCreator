@@ -1,6 +1,9 @@
 #ifndef NOISEDEGRADATION_HPP
 #define NOISEDEGRADATION_HPP
 
+#include <cstdint>
+#include <optional>
+
 #include <framework_global.h>
 #include <opencv2/core/core.hpp>
 
@@ -28,12 +31,14 @@ namespace dc {
        @param average average of the Gaussian distribution
        @param standardDeviation standard deviation of the Gaussian distribution
        @param addType  tells whether noise may or may not change image into a color image
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
      */
     extern FRAMEWORK_EXPORT cv::Mat addGaussianNoise(const cv::Mat &img,
 						     float average=0.0f,
 						     float standardDeviation=10.0f,
-						     AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS);
+						     AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS,
+						     std::optional<uint32_t> seed = std::nullopt);
 
     /**
        Add multiplicative noise using 
@@ -47,12 +52,14 @@ namespace dc {
        @param average average of the Gaussian distribution
        @param standardDeviation standard deviation of the Gaussian distribution
        @param addType  tells whether noise may or may not change image into a color image
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
      */
     extern FRAMEWORK_EXPORT cv::Mat addSpeckleNoise(const cv::Mat &img,
 						    float average=0.0f,
 						    float standardDeviation=1.0f,
-						    AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS);
+						    AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS,
+						    std::optional<uint32_t> seed = std::nullopt);
 
 
     /**
@@ -66,11 +73,13 @@ namespace dc {
        @param img input image.
        @param amount amount of noise (in [0; 1]).
        @param ratio ratio of black spots (in [0; 1]). Ratio of white points will be 1-ratio.
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
      */
     extern FRAMEWORK_EXPORT cv::Mat addSaltAndPepperNoise(const cv::Mat &img,
 							  float amount=0.15f,
-							  float ratio=0.5f);
+							  float ratio=0.5f,
+							  std::optional<uint32_t> seed = std::nullopt);
 
 
   } //namespace NoiseDegradation

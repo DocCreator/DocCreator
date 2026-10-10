@@ -1,6 +1,9 @@
 #ifndef GRADIENTDOMAINDEGRADATION_HPP
 #define GRADIENTDOMAINDEGRADATION_HPP
 
+#include <cstdint>
+#include <optional>
+
 #include <framework_global.h>
 #include <opencv2/core/core.hpp>
 
@@ -35,13 +38,15 @@ namespace dc {
        @param numStainsToInsert number of stain images to insert. 
        @param insertType tells whether stain images must be converted to gray.
        @param doRotations indicates whether stain images are rotated before insertion.
+       @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
        @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img,
 						const std::string &stainImageDir,
 						size_t numStainsToInsert = 20,
 						InsertType insertType = InsertType::INSERT_AS_GRAY_IF_GRAY,
-						bool doRotations = true);
+						bool doRotations = true,
+						std::optional<uint32_t> seed = std::nullopt);
 
     /*
       Copy stain image @a stainImg onto destination image @a img at position @a pos.

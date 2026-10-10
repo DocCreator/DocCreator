@@ -1,6 +1,9 @@
 #ifndef PHANTOMCHARACTER_HPP
 #define PHANTOMCHARACTER_HPP
 
+#include <cstdint>
+#include <optional>
+
 #include <framework_global.h>
 #include <opencv2/core/core.hpp>
 
@@ -20,12 +23,14 @@ namespace dc {
       @param img input image to degrade.
       @param occurenceProbability probability of occurence of phantom characters. Must be in [0; 1].
       @param phantomPatternsPath directory to load phantom patterns from. Phantom patterns are loaded as grayscale images.
+      @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
 
       @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &img,
 						     float occurenceProbability,
-						     const std::string &phantomPatternsPath);
+						     const std::string &phantomPatternsPath,
+						     std::optional<uint32_t> seed = std::nullopt);
 
 
   } //namespace PhantomCharacter

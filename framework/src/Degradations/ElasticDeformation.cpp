@@ -151,7 +151,8 @@ namespace dc {
     cv::Mat transform(const cv::Mat &img, float alpha, float sigma,
 		      BorderReplication borderMode,
 		      Interpolation interpolation,
-		      cv::Mat &map_x, cv::Mat &map_y)
+		      cv::Mat &map_x, cv::Mat &map_y,
+		      std::optional<uint32_t> seed)
     {
       const float scale = static_cast<float>(std::min(img.cols, img.rows));
       alpha *= scale;
@@ -159,7 +160,7 @@ namespace dc {
 
       //B: cv::randu() draws from a generator shared by the whole thread
       // (cf. cv::theRNG()), which the caller cannot seed.
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
 
       cv::Mat dx(img.size(), CV_32FC1);
       rng.fill(dx, cv::RNG::UNIFORM, -1.0f, 1.0f);
@@ -196,10 +197,11 @@ namespace dc {
 
     cv::Mat transform(const cv::Mat &img, float alpha, float sigma,
 		      BorderReplication borderMode,
-		      Interpolation interpolation)
+		      Interpolation interpolation,
+		      std::optional<uint32_t> seed)
     {
       cv::Mat map_x, map_y;
-      return transform(img, alpha, sigma, borderMode, interpolation, map_x, map_y);
+      return transform(img, alpha, sigma, borderMode, interpolation, map_x, map_y, seed);
     }
 
     cv::Mat transform_rects(const cv::Mat &img,
@@ -207,10 +209,11 @@ namespace dc {
 			    std::vector<std::vector<cv::Point2f> > &rects_pts,
 			    float alpha, float sigma,
 			    BorderReplication borderMode,
-			    Interpolation interpolation)
+			    Interpolation interpolation,
+			    std::optional<uint32_t> seed)
     {
       cv::Mat map_x, map_y;
-      cv::Mat img2 = transform(img, alpha, sigma, borderMode, interpolation, map_x, map_y);
+      cv::Mat img2 = transform(img, alpha, sigma, borderMode, interpolation, map_x, map_y, seed);
 
       getTransformedRects(map_x, map_y, rects, rects_pts);
 
@@ -222,7 +225,8 @@ namespace dc {
 		       float alpha, float sigma, float alphaAffine,
 		       BorderReplication borderMode,
 		       Interpolation interpolation,
-		       cv::Mat &map_x, cv::Mat &map_y, cv::Mat &M)
+		       cv::Mat &map_x, cv::Mat &map_y, cv::Mat &M,
+		       std::optional<uint32_t> seed)
     {
       const int width = img.cols;
       const int height = img.rows;
@@ -235,7 +239,7 @@ namespace dc {
 
       //B: the generator used to be default constructed, that is seeded with
       // a fixed value, so this affine jitter was the same on every call.
-      RandomEngine rng = makeRandomEngine();
+      RandomEngine rng = makeRandomEngine(seed);
 
       cv::Point2f dst[3];
       for (int i=0; i<3; ++i)
@@ -249,16 +253,19 @@ namespace dc {
       cv::Mat img2;
       cv::warpAffine(img, img2, M, img.size(), borderModeCV);
 
-      return transform(img2, alpha, sigma, borderMode, interpolation, map_x, map_y);
+      //B: the generator is seeded again for the elastic part: with a seed,
+      // the result stays reproducible.
+      return transform(img2, alpha, sigma, borderMode, interpolation, map_x, map_y, seed);
     }
 
     cv::Mat transform2(const cv::Mat &img, float alpha, float sigma, float alphaAffine,
 		       BorderReplication borderMode,
-		       Interpolation interpolation)
+		       Interpolation interpolation,
+		       std::optional<uint32_t> seed)
 
     {
       cv::Mat map_x, map_y, M;
-      return transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M);
+      return transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M, seed);
     }
 
     cv::Mat transform2_rects(const cv::Mat &img,
@@ -266,11 +273,12 @@ namespace dc {
 			     std::vector<std::vector<cv::Point2f> > &rects_pts,
 			     float alpha, float sigma, float alphaAffine,
 			     BorderReplication borderMode,
-			     Interpolation interpolation)
+			     Interpolation interpolation,
+			     std::optional<uint32_t> seed)
 
     {
       cv::Mat map_x, map_y, M;
-      cv::Mat res = transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M);
+      cv::Mat res = transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M, seed);
 
       std::vector<std::vector<cv::Point2f> > rects_pts0;
       getTransformedRects(map_x, map_y, rects, rects_pts0);
