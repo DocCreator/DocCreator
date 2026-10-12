@@ -32,11 +32,14 @@ checkTexCoords(const Mesh &mesh)
 
     if (t_id_0 > numtexcoords || t_id_1 > numtexcoords ||
         t_id_2 > numtexcoords) {
+      //B: exit() here used to take the whole application down, unsaved
+      // document included, for a mesh file with an invalid index.
       std::cerr << "ERROR: invalid texcoord for triangle i=" << i
                 << " t_id_0=" << t_id_0 << " t_id_1=" << t_id_1
                 << " t_id_2=" << t_id_2 << " for numtexcoords=" << numtexcoords
                 << "\n";
-      exit(10);
+      assert(false);
+      return;
     }
 
     float v0_tx = mesh.texCoords[2 * t_id_0 + 0];

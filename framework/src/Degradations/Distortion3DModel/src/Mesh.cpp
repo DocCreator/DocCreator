@@ -601,8 +601,12 @@ checkIndices(uint32_t numVertices, uint32_t numIndices, uint32_t *indices)
       break;
     }
   }
+  //B: exit() in library code kills the process of whoever calls us
+  // (the GUI, or a python interpreter). This checker is compiled in
+  // debug builds only: assert() is what it wants.
+  assert(! hasError);
   if (hasError) {
-    exit(10);
+    return;
   }
   std::cerr << "all indices ok\n";
 }
@@ -1682,7 +1686,8 @@ checkEdges(std::vector<Edge> &edges)
       std::cerr << "ERROR: invalid edge " << i
                 << ": e0=" << edges[i].vertexIndex[0]
                 << " >= e1=" << edges[i].vertexIndex[1] << "\n";
-      exit(10);
+      assert(false);
+      return;
     }
     for (size_t j = i + 1; j < sz; ++j) {
       if (!(edges[i].vertexIndex[0] < edges[j].vertexIndex[0] ||
@@ -1694,7 +1699,8 @@ checkEdges(std::vector<Edge> &edges)
                   << " e1=" << edges[i].vertexIndex[1] << " ; " << j
                   << ": e0=" << edges[j].vertexIndex[0]
                   << " e1=" << edges[j].vertexIndex[1] << "\n";
-        exit(10);
+        assert(false);
+        return;
       }
     }
   }
@@ -1711,7 +1717,8 @@ checkEdgesLight(std::vector<Edge> &edges)
       std::cerr << "ERROR: invalid edge " << i
                 << ": e0=" << edges[i].vertexIndex[0]
                 << " >= e1=" << edges[i].vertexIndex[1] << "\n";
-      exit(10);
+      assert(false);
+      return;
     }
   }
 }
@@ -1727,7 +1734,8 @@ compareEdges(std::vector<Edge> &edges1, std::vector<Edge> &edges2)
   if (edges1.size() != edges2.size()) {
     std::cerr << "ERROR: edges have not the same size : " << edges1.size()
               << " vs " << edges2.size() << "\n";
-    exit(10);
+    assert(false);
+    return;
   }
 
   std::sort(edges1.begin(), edges1.end(), EdgeSorter());
@@ -1740,7 +1748,8 @@ compareEdges(std::vector<Edge> &edges1, std::vector<Edge> &edges2)
                 << edges1[i].vertexIndex[1] << "]\n";
       std::cerr << "edges2[" << i << "]=[" << edges2[i].vertexIndex[0] << ", "
                 << edges2[i].vertexIndex[1] << "]\n";
-      exit(10);
+      assert(false);
+      return;
     }
   }
 }
@@ -2050,11 +2059,14 @@ getBorderPointsB(const Mesh &mesh)
         std::swap(e1, e2);
 
       if (e1 == e2) {
-        std::cerr << "i=" << i << " mesh.triangles "
-                  << mesh.triangles[3 * i + 0] << " "
+        //B: a degenerate triangle in a mesh file used to exit(10) here,
+        // that is to kill the process of the caller.
+        // cf Mesh::removeDegenerateTriangles().
+        std::cerr << "ERROR: getBorderPointsB: degenerate triangle i=" << i
+                  << " mesh.triangles " << mesh.triangles[3 * i + 0] << " "
                   << mesh.triangles[3 * i + 1] << " "
                   << mesh.triangles[3 * i + 2] << "\n";
-        exit(10);
+        return std::vector<uint32_t>();
       }
 
       Edge &edge = edges[edgeCount];
