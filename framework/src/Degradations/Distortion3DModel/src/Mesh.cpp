@@ -255,7 +255,11 @@ Mesh::unitize()
     dim[k] = maxB[k] - minB[k];
   }
 
-  const float scale = 2.0f / std::max(dim[0], std::max(dim[1], dim[2]));
+  //B: a planar or single point mesh has a null largest dimension: dividing
+  // by it would move every vertex to inf or NaN. Such a mesh is only
+  // translated to the origin.
+  const float maxDim = std::max(dim[0], std::max(dim[1], dim[2]));
+  const float scale = (maxDim > 0.f) ? (2.0f / maxDim) : 1.0f;
 
   for (uint32_t i = 0; i < numVertices; ++i) {
     for (int k = 0; k < 3; ++k) {
@@ -365,6 +369,13 @@ Mesh::computeNormals()
 void
 Mesh::getAABB(float minB[3], float maxB[3]) const
 {
+  if (numVertices == 0) {
+    //B: vertices may be null here, it must not be dereferenced.
+    for (int k = 0; k < 3; ++k)
+      maxB[k] = minB[k] = 0.f;
+    return;
+  }
+
   for (int k = 0; k < 3; ++k)
     maxB[k] = minB[k] = vertices[3 * 0 + k];
 

@@ -80,12 +80,11 @@ public:
    */
   void normalizeNormals();
 
+  /**
+     Compute the axis aligned bounding box of the mesh.
+     @a minB and @a maxB are left to 0 for an empty mesh.
+   */
   void getAABB(float minB[3], float maxB[3]) const;
-
-  void align();
-  void align0();
-  void alignB();
-  void alignC();
 
   /*
     Optimize indices of triangles to be more vertex cache friendly.

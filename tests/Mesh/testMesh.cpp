@@ -13,6 +13,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <utility>
 
 #include "Mesh.hpp"
@@ -307,6 +308,70 @@ TEST_CASE("Mesh handles empty meshes")
 
   moved.clear();
   REQUIRE(isEmpty(moved));
+}
+
+TEST_CASE("getAABB does not dereference the vertices of an empty mesh")
+{
+  const Mesh empty;
+  REQUIRE(empty.vertices == nullptr);
+
+  float minB[3] = { 1.f, 2.f, 3.f };
+  float maxB[3] = { 4.f, 5.f, 6.f };
+  empty.getAABB(minB, maxB);
+
+  for (int k = 0; k < 3; ++k) {
+    REQUIRE(minB[k] == 0.f);
+    REQUIRE(maxB[k] == 0.f);
+  }
+}
+
+TEST_CASE("unitize keeps the vertices of a degenerate mesh finite")
+{
+  SECTION("an empty mesh")
+  {
+    Mesh m;
+    m.unitize();
+    REQUIRE(m.numVertices == 0);
+  }
+
+  SECTION("a single vertex")
+  {
+    Mesh m;
+    m.allocateVertices(1);
+    m.vertices[0] = 10.f;
+    m.vertices[1] = -20.f;
+    m.vertices[2] = 30.f;
+
+    m.unitize();
+
+    //the vertex is moved to the origin, and not to NaN by a division by the
+    //null largest dimension
+    for (int k = 0; k < 3; ++k) {
+      REQUIRE(std::isfinite(m.vertices[k]));
+      REQUIRE(m.vertices[k] == 0.f);
+    }
+  }
+
+  SECTION("a planar mesh")
+  {
+    //all the vertices in the z=5 plane
+    Mesh m;
+    m.allocateVertices(3);
+    const float verts[9] = { 0.f, 0.f, 5.f,
+			     2.f, 0.f, 5.f,
+			     0.f, 4.f, 5.f };
+    std::copy(verts, verts + 9, m.vertices);
+
+    m.unitize();
+
+    for (uint32_t i = 0; i < 3 * m.numVertices; ++i) {
+      REQUIRE(std::isfinite(m.vertices[i]));
+    }
+    //the largest dimension is 4, so the mesh fits in [-1; 1]
+    for (uint32_t i = 0; i < 3 * m.numVertices; ++i) {
+      REQUIRE(std::abs(m.vertices[i]) <= 1.f);
+    }
+  }
 }
 
 TEST_CASE("Mesh never keeps a non-zero count with a null buffer")
