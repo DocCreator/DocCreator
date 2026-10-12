@@ -620,7 +620,7 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
               const QImage charImage =
                 character->getCharacterDataOrFirst(c->getId()).getImage();
 
-#ifndef NEBUG
+#ifndef NDEBUG
               if (charImage.isNull())
                 std::cerr << "charImage.isNull() !!!!! character=" << character
                           << " id=" << c->getId() << " \n";
