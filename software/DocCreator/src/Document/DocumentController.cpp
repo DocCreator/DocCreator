@@ -418,7 +418,7 @@ DocumentController::addCharacter(const QString &s, int id)
     return;
   }
   if (id == -1) {
-    id = character->getRandomCharacterData()->getId();
+    id = character->getRandomCharacterData().getId();
   }
 
   assert(_document);
@@ -505,12 +505,11 @@ DocumentController::addCharacters(const QList<QString> &charList)
       }
 
       //B: no (direct) dynamic allocation till we are sure that the character will fit in the text block
-      const Models::CharacterData *charData =
+      const Models::CharacterData &charData =
         character->getRandomCharacterData();
-      assert(charData);
 
       qreal right = _cursorRightLine +
-                    (charData->width() *
+                    (charData.width() *
                      (character->getRightLine() - character->getLeftLine())) /
                       100;
       if (right >=
@@ -519,7 +518,7 @@ DocumentController::addCharacters(const QList<QString> &charList)
         _cursorBaseLine += lineSpacing;
         _cursorRightLine = currentTextBlock->marginLeft();
         right = _cursorRightLine +
-                (charData->width() *
+                (charData.width() *
                  (character->getRightLine() - character->getLeftLine())) /
                   100;
         if (right >=
@@ -530,10 +529,10 @@ DocumentController::addCharacters(const QList<QString> &charList)
           break;
         }
       }
-      //const qreal base = _cursorBaseLine - (charData->height() * character->getBaseLine())/100;
-      //const qreal left = _cursorRightLine - (charData->width() * character->getLeftLine())/100;
+      //const qreal base = _cursorBaseLine - (charData.height() * character->getBaseLine())/100;
+      //const qreal left = _cursorRightLine - (charData.width() * character->getLeftLine())/100;
       Doc::DocCharacter *docChar =
-        new Doc::DocCharacter(s, charData->getId(), _document);
+        new Doc::DocCharacter(s, charData.getId(), _document);
       _document->add(docChar);
       _cursorRightLine = right;
     }

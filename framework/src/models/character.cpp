@@ -51,6 +51,12 @@ Character::~Character()
 void
 Character::add(CharacterData *cd)
 {
+  //B: a null would make the list non empty while the accessors have
+  // nothing to return.
+  if (cd == nullptr) {
+    return;
+  }
+
   auto it = _dataList.begin();
   const auto itEnd = _dataList.end();
   for (; it != itEnd; ++it) {
@@ -111,18 +117,25 @@ Character::setAllBaseLines(qreal up, qreal base, qreal left, qreal right)
 //        return _unicode;
 //    }
 
-const CharacterData *
+const CharacterData &
 Character::getRandomCharacterData() const
 {
-  if (_dataList.isEmpty())
-    return nullptr;
+  /*
+    B: this returned nullptr for a character holding no image, and not one
+    of the fourteen call sites tested it. The empty character is not a
+    state the program can reach: nothing removes an image from a character,
+    both font readers drop a letter that has none, and add() ignores a null
+    image. Returning a reference says so, instead of asking fourteen call
+    sites to handle a case that cannot happen.
+  */
+  assert(! _dataList.isEmpty());
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
   const int randomIndex = qrand() % _dataList.size();
 #else
   const int randomIndex = QRandomGenerator::global()->bounded(_dataList.size());
 #endif
-  return _dataList.at(randomIndex);
+  return *_dataList.at(randomIndex);
 }
 
 bool

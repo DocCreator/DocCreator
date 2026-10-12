@@ -477,7 +477,7 @@ KeyboardView::drawKeyboard(Models::Font *font)
         charButtonView->setEnabled(true);
         charButtonView->setText(charValue);
         charButtonView->setIcon(
-          QIcon(QPixmap::fromImage(c->getRandomCharacterData()->getImage())));
+          QIcon(QPixmap::fromImage(c->getRandomCharacterData().getImage())));
       } else {
         charButtonView->setEnabled(false);
       }

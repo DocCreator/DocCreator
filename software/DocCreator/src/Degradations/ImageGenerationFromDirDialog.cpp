@@ -240,9 +240,9 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
           if (detaMaxBaseLine < fabs(normalBaseLine - character->getBaseLine()))
             detaMaxBaseLine = fabs(normalBaseLine - character->getBaseLine());
 
-          const Models::CharacterData *charData =
+          const Models::CharacterData &charData =
             character->getRandomCharacterData();
-          const QImage charImage = charData->getImage();
+          const QImage charImage = charData.getImage();
 
           if (maxCharHeight < charImage.height())
             maxCharHeight = charImage.height();
@@ -607,9 +607,9 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
           if (detaMaxBaseLine < fabs(normalBaseLine - character->getBaseLine()))
             detaMaxBaseLine = fabs(normalBaseLine - character->getBaseLine());
 
-          const Models::CharacterData *charData =
+          const Models::CharacterData &charData =
             character->getRandomCharacterData();
-          const QImage charImage = charData->getImage();
+          const QImage charImage = charData.getImage();
 
           const int h = charImage.height();
           if (maxCharHeight < h)
@@ -717,9 +717,9 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
             const Models::Character *character =
               _font->getCharacter(tmpP->charList.at(i));
             if (character != nullptr) {
-              const Models::CharacterData *charData =
+              const Models::CharacterData &charData =
                 character->getRandomCharacterData();
-              const QImage charImage = charData->getImage();
+              const QImage charImage = charData.getImage();
               wordLong += charImage.width();
             }
           }
@@ -857,7 +857,7 @@ ImageGenerationFromDirDialog::loadFont()
 
     for (Models::CharacterData *charData : charsDataList) {
       if (charData != nullptr) {
-        const QImage charImage = charData->getImage();
+        const QImage charImage = charData.getImage();
         if (!charImage.isNull()) {
           _word_height += charImage.height();
           _Char_Format = charImage.format();
@@ -948,8 +948,8 @@ ImageGenerationFromDirDialog::createATextBox(Doc::Document *document,
 QImage
 ImageGenerationFromDirDialog::getCharacterImage(const Models::Character *ch)
 {
-  const Models::CharacterData *charData = ch->getRandomCharacterData();
-  const QImage charImage = charData->getImage();
+  const Models::CharacterData &charData = ch->getRandomCharacterData();
+  const QImage charImage = charData.getImage();
   return charImage;
 }
 
@@ -985,7 +985,7 @@ ImageGenerationFromDirDialog::bindTextForATextBox(QStringList &textLines,
 
       if (character != nullptr) {
 
-        const int char_ID = character->getRandomCharacterData()->getId();
+        const int char_ID = character->getRandomCharacterData().getId();
         const QImage charImage = getCharacterImage(character);
 
         // int lx=0, rx=0, by = 0;
@@ -1177,9 +1177,9 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
           if (detaMaxBaseLine < fabs(normalBaseLine - character->getBaseLine()))
             detaMaxBaseLine = fabs(normalBaseLine - character->getBaseLine());
 
-          const Models::CharacterData *charData =
+          const Models::CharacterData &charData =
             character->getRandomCharacterData();
-          const QImage charImage = charData->getImage();
+          const QImage charImage = charData.getImage();
 
           const int h = charImage.height();
           if (maxCharHeight < h)
@@ -1299,9 +1299,9 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
             const Models::Character *character =
               _font->getCharacter(tmpLine->charList.at(i));
             if (character != nullptr) {
-              const Models::CharacterData *charData =
+              const Models::CharacterData &charData =
                 character->getRandomCharacterData();
-              const QImage charImage = charData->getImage();
+              const QImage charImage = charData.getImage();
               wordLong += charImage.width();
             }
           }
@@ -1450,16 +1450,16 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
       const Models::Character *character = _font->getCharacter(s);
 
       if (character != nullptr) {
-        const Models::CharacterData *charData =
+        const Models::CharacterData &charData =
           character->getRandomCharacterData();
 
-        const QImage charImage = charData->getImage();
+        const QImage charImage = charData.getImage();
 
         int lx = (0 - character->getLeftLine() / 100) * charImage.width();
         int rx = (character->getRightLine() / 100 - 1) * charImage.width();
 
         Doc::DocCharacter *docChar =
-          new Doc::DocCharacter(s, charData->getId(), document);
+          new Doc::DocCharacter(s, charData.getId(), document);
         docChar->setX(x + lx);
         docChar->setY(y);
         docChar->setWidth(charImage.width());

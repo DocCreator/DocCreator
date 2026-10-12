@@ -35,11 +35,45 @@ TEST_CASE("Character::hasCharacterData()")
   Models::Character empty;
   REQUIRE_FALSE( empty.hasCharacterData() );
   REQUIRE( empty.getCharacterDataCount() == 0 );
-  REQUIRE( empty.getRandomCharacterData() == nullptr );
 
   Models::Character *ch = makeCharacter(QStringLiteral("a"), { 7 });
   REQUIRE( ch->hasCharacterData() );
   REQUIRE( ch->getCharacterDataCount() == 1 );
+  delete ch;
+}
+
+TEST_CASE("Character::add() ignores a null CharacterData")
+{
+  /*
+    A null in the list would make the character look like it holds an image
+    while getRandomCharacterData() has nothing to return. It is the only way
+    the list could hold one, as nothing ever removes an image.
+  */
+  Models::Character ch(QStringLiteral("a"), 0, 100, 0, 100);
+
+  ch.add(nullptr);
+  REQUIRE_FALSE( ch.hasCharacterData() );
+  REQUIRE( ch.getCharacterDataCount() == 0 );
+
+  QImage img(4, 4, QImage::Format_ARGB32);
+  img.fill(Qt::black);
+  ch.add(new Models::CharacterData(img, 1));
+  ch.add(nullptr);
+  REQUIRE( ch.hasCharacterData() );
+  REQUIRE( ch.getCharacterDataCount() == 1 );
+}
+
+TEST_CASE("Character::getRandomCharacterData() returns one of the versions")
+{
+  Models::Character *ch = makeCharacter(QStringLiteral("a"), { 3, 12, 40 });
+
+  for (int i = 0; i < 50; ++i) {
+    const Models::CharacterData &data = ch->getRandomCharacterData();
+    const int gray = grayOf(data);
+    REQUIRE( (gray == 3 || gray == 12 || gray == 40) );
+    REQUIRE( ch->getCharacterData(data.getId()) == &data );
+  }
+
   delete ch;
 }
 

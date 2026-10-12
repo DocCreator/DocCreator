@@ -60,12 +60,12 @@ CharEditScene::setCenterChar(const Models::Character *ch)
 {
   _centerChar = ch;
   //TODO: choose a median character
-  const Models::CharacterData *charData = ch->getRandomCharacterData();
+  const Models::CharacterData &charData = ch->getRandomCharacterData();
 
   if (_centerCharItem != nullptr)
     removeItem(_centerCharItem);
 
-  const QImage charImg = charData->getImage();
+  const QImage charImg = charData.getImage();
   _centerCharItem = new QGraphicsPixmapItem(QPixmap::fromImage(charImg));
   _centerCharItem->setZValue(0);
 
@@ -95,12 +95,12 @@ CharEditScene::setLeftChar(const Models::Character *ch)
 
   _leftChar = ch;
   //TODO: choose a median character
-  const Models::CharacterData *charData = ch->getRandomCharacterData();
+  const Models::CharacterData &charData = ch->getRandomCharacterData();
 
   if (_leftCharItem != nullptr)
     removeItem(_leftCharItem);
 
-  const QImage charImg = charData->getImage();
+  const QImage charImg = charData.getImage();
   _leftCharItem = new QGraphicsPixmapItem(QPixmap::fromImage(charImg));
   _leftCharItem->setZValue(0);
 
@@ -118,12 +118,12 @@ CharEditScene::setRightChar(const Models::Character *ch)
 
   _rightChar = ch;
   //TODO: choose a median character
-  const Models::CharacterData *charData = ch->getRandomCharacterData();
+  const Models::CharacterData &charData = ch->getRandomCharacterData();
 
   if (_rightCharItem != nullptr)
     removeItem(_rightCharItem);
 
-  const QImage charImg = charData->getImage();
+  const QImage charImg = charData.getImage();
   _rightCharItem = new QGraphicsPixmapItem(QPixmap::fromImage(charImg));
   _rightCharItem->setZValue(0);
 

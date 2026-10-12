@@ -31,7 +31,7 @@ public:
   ~Character();
 
   /**
-   * Add Character @a cd if not already present.
+   * Add Character @a cd if not already present. A null @a cd is ignored.
    *
    * @warning take ownership of @a cd.
    */
@@ -53,7 +53,15 @@ public:
    */
   bool hasCharacterData() const;
 
-  const CharacterData *getRandomCharacterData() const;
+  /**
+   * @return one of the images of the character, drawn at random.
+   *
+   * @warning the character must hold at least one CharacterData, cf
+   * hasCharacterData(). A character held by a Font always does: the two
+   * font readers reject a letter without any, and add() ignores a null
+   * one.
+   */
+  const CharacterData &getRandomCharacterData() const;
 
   /**
    * @return the CharacterData with id @a id, or nullptr if the character
