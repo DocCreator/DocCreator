@@ -53,38 +53,29 @@ IF(BUILD_TESSERACT)
   
   # download tessdata
 
+  INCLUDE(DownloadVerified)
+
   SET(TESSDATA_DST "${CMAKE_SOURCE_DIR}/thirdparty/tessdata")
-  SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/main)
+  #The commit is pinned, and not "main", so that the models we check the
+  #SHA256 of are the ones that are downloaded.
+  SET(TESSDATA_COMMIT "e12c65a915945e4c28e237a9b52bc4a8f39a0cec")
+  SET(TESSDATA_URL https://github.com/tesseract-ocr/tessdata_best/raw/${TESSDATA_COMMIT})
 
   SET(langname "eng")
   SET(langmodel "eng.traineddata")
-  SET(src_langmodel_file "${TESSDATA_URL}/${langmodel}")
-  SET(dst_langmodel_file "${TESSDATA_DST}/${langmodel}")
-  IF(NOT EXISTS ${dst_langmodel_file})
-    MESSAGE(STATUS "  downloading tesseract ${langname} language model")
-    FILE(DOWNLOAD ${src_langmodel_file} ${dst_langmodel_file} STATUS status LOG log)
-    LIST(GET status 0 status_code)
-    LIST(GET status 1 status_string)
-    IF(NOT status_code EQUAL 0)
-      MESSAGE(FATAL_ERROR "error: downloading ${src_langmodel_file} failed: status code=${status_code} string=${status_string}, log=${log}")
-    ENDIF()
-    MESSAGE(STATUS "  downloading done.")
-  ENDIF()
+  SET(langmodel_sha256 "8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba")
+  DOWNLOAD_VERIFIED("${TESSDATA_URL}/${langmodel}"
+                    "${TESSDATA_DST}/${langmodel}"
+                    ${langmodel_sha256}
+                    "tesseract ${langname} language model")
 
   SET(langname "fra")
   SET(langmodel "fra.traineddata")
-  SET(src_langmodel_file "${TESSDATA_URL}/${langmodel}")
-  SET(dst_langmodel_file "${TESSDATA_DST}/${langmodel}")
-  IF(NOT EXISTS ${dst_langmodel_file})
-    MESSAGE(STATUS "  downloading tesseract ${langname} language model")
-    FILE(DOWNLOAD ${src_langmodel_file} ${dst_langmodel_file} STATUS status LOG log)
-    LIST(GET status 0 status_code)
-    LIST(GET status 1 status_string)
-    IF(NOT status_code EQUAL 0)
-      MESSAGE(FATAL_ERROR "error: downloading ${src_langmodel_file} failed: status code=${status_code} string=${status_string}, log=${log}")
-    ENDIF()
-    MESSAGE(STATUS "  downloading done.")
-  ENDIF()
+  SET(langmodel_sha256 "907743d98915c91a3906dfbf6e48b97598346698fe53aaa797e1a064ffcac913")
+  DOWNLOAD_VERIFIED("${TESSDATA_URL}/${langmodel}"
+                    "${TESSDATA_DST}/${langmodel}"
+                    ${langmodel_sha256}
+                    "tesseract ${langname} language model")
 
 
 
