@@ -9,6 +9,7 @@
 
 #include "ConnectedComponent.hpp"
 #include "FileUtils.hpp"
+#include "Validate.hpp"
 #include "Degradations/BlurFilter.hpp"
 
 namespace dc {
@@ -1062,7 +1063,9 @@ namespace dc {
     cv::Mat
     phantomCharacter(const cv::Mat &img, float occurenceProbability, const std::string &phantomPatternsPath, std::optional<uint32_t> seed)
     {
-      assert(0.0f <= occurenceProbability && occurenceProbability <= 1.0f);
+      static const char *func = "dc::PhantomCharacter::phantomCharacter";
+      require8UC134(img, "img", func);
+      requireInRange(occurenceProbability, 0.0, 1.0, "occurenceProbability", func);
 
       cv::Mat output = img.clone();
 

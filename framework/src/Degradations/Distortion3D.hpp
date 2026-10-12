@@ -19,7 +19,7 @@ namespace dc {
       In : 2013 12th International Conference on Document Analysis and Recognition (ICDAR). IEEE, 2013. p. 489-493.
 
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. 
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
       Output image will be of the same type and size than @a img.
 
       The background will be black.
@@ -37,7 +37,7 @@ namespace dc {
     /*
       Apply different 3D distortions to an image and save them as png images.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. 
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
       Output image will be of the same type and size than @a img.
 
       The background will be black.
@@ -57,7 +57,7 @@ namespace dc {
     /*
       Apply 3D distortion to an image, with another image in the background.
 
-      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. 
+      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
       Output image will have the largest of the two input images types.
       Output image will be of the same type and size than @a img.
       
@@ -74,7 +74,7 @@ namespace dc {
     /*
       Apply different 3D distortions to an image, with another image in the background, and save them as png images.
 
-      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. 
+      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
       Output image will have the largest of the two input images types.
       Output image will be of the same type and size than @a img.
 

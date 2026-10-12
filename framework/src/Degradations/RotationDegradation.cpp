@@ -5,6 +5,7 @@
 #include <opencv2/photo/photo.hpp> //cv::inpaint
 
 #include "GradientDomainDegradation.hpp" //copyOnto
+#include "Validate.hpp"
 
 #include <iostream>//DEBUG
 
@@ -16,6 +17,8 @@ namespace dc {
 			    float angle,
 			    const cv::Scalar &color)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillColor");
+
       cv::Mat rotatedImg;
       const cv::Point2f centerPoint(img.cols/2.F, img.rows/2.F);
       const float scale = 1.F;
@@ -78,6 +81,11 @@ namespace dc {
 			    float angle,
 			    const cv::Mat &backgroundImg)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillImage");
+      if (! backgroundImg.empty()) {
+	require8UC134(backgroundImg, "backgroundImg", "dc::RotationDegradation::rotateFillImage");
+      }
+
       if (backgroundImg.empty())
 	return rotateFillColor(img, angle, cv::Scalar(0, 0, 0));
 
@@ -106,6 +114,11 @@ namespace dc {
 			    const cv::Mat &backgroundImg,
 			    int repeats)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillImageN");
+      if (! backgroundImg.empty()) {
+	require8UC134(backgroundImg, "backgroundImg", "dc::RotationDegradation::rotateFillImageN");
+      }
+
       if (backgroundImg.empty())
 	return rotateFillColor(img, angle, cv::Scalar(0, 0, 0));
 
@@ -131,6 +144,11 @@ namespace dc {
 			     float angle,
 			     const std::vector<cv::Mat> &backgroundImgs)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillImages");
+      for (const cv::Mat &backgroundImg : backgroundImgs) {
+	require8UC134(backgroundImg, "backgroundImgs", "dc::RotationDegradation::rotateFillImages");
+      }
+
       const size_t sz = backgroundImgs.size();
       if (sz == 0) {
 	return rotateFillColor(img, angle, cv::Scalar(0,0,0,0));
@@ -155,6 +173,8 @@ namespace dc {
 			     float angle,
 			     BorderReplication borderMode)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillBorder");
+
       cv::Mat rotatedImg;
       const cv::Point2f centerPoint(img.cols/2.F, img.rows/2.F);
       const float scale = 1.F;
@@ -222,6 +242,8 @@ namespace dc {
 			       float angle,
 			       float inpaintingRatio)
     {      
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillInpaint1");
+
       //cv::inpaint does not work on 4-channel images.
       cv::Mat img2 = img;
       cv::Mat alpha;
@@ -335,6 +357,11 @@ namespace dc {
 			       float angle,
 			       const cv::Mat &backgroundImg)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillInpaint2");
+      if (! backgroundImg.empty()) {
+	require8UC134(backgroundImg, "backgroundImg", "dc::RotationDegradation::rotateFillInpaint2");
+      }
+
       //cv::inpaint does not work on 4-channel images.
       cv::Mat img2 = img;
       cv::Mat alpha;
@@ -386,6 +413,11 @@ namespace dc {
 			       float angle,
 			       const cv::Mat &backgroundImg)
     {
+      require8UC134(img, "img", "dc::RotationDegradation::rotateFillInpaint3");
+      if (! backgroundImg.empty()) {
+	require8UC134(backgroundImg, "backgroundImg", "dc::RotationDegradation::rotateFillInpaint3");
+      }
+
       //cv::inpaint does not work on 4-channel images.
       //dc::GradientDomainDegradation::copyOnto() only works on 3-channel images
       cv::Mat img2 = img;

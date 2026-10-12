@@ -24,6 +24,7 @@ SET(
   ShadowBinding.hpp
   ConnectedComponent.hpp
   Random.hpp
+  Validate.hpp
   ColorUtils.hpp
   FileUtils.hpp
   )
@@ -43,6 +44,7 @@ SET(
   ShadowBinding.cpp
   ConnectedComponent.cpp
   Random.cpp
+  Validate.cpp
   ColorUtils.cpp
   FileUtils.cpp
   )

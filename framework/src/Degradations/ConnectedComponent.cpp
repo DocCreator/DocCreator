@@ -3,8 +3,11 @@
 #include <algorithm>
 #include <cassert>
 #include <deque>
+#include <stdexcept>
 
 #include <opencv2/imgproc/imgproc.hpp>
+
+#include "Validate.hpp"
 
 namespace dc {
 
@@ -123,8 +126,10 @@ namespace dc {
 				CCs &ccs,
 				int connectivity)
   {
-    assert(input.type() == CV_8U);
-    assert(connectivity == 4 || connectivity==8);
+    require8UC1(input, "input", "dc::ConnectedComponent::extractAllConnectedComponents");
+    if (connectivity != 4 && connectivity != 8) {
+      throw std::invalid_argument("dc::ConnectedComponent::extractAllConnectedComponents: connectivity must be 4 or 8");
+    }
 
     ccs.clear();
     ccs.reserve(input.rows); //arbitrary

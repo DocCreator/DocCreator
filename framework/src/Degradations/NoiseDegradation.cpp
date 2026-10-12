@@ -5,6 +5,7 @@
 
 #include "ColorUtils.hpp" //dc::isGray()
 #include "Random.hpp"
+#include "Validate.hpp"
 
 namespace dc {
   namespace NoiseDegradation {
@@ -59,7 +60,7 @@ namespace dc {
 			     AddNoiseType addType,
 			     std::optional<uint32_t> seed)
     {
-      assert(image.depth() == CV_8U);
+      require8UC134(image, "img", "dc::NoiseDegradation::addGaussianNoise");
   
       cv::Mat dst;
 
@@ -86,7 +87,7 @@ namespace dc {
 			    AddNoiseType addType,
 			    std::optional<uint32_t> seed)
     {
-      assert(image.depth() == CV_8U);
+      require8UC134(image, "img", "dc::NoiseDegradation::addSpeckleNoise");
   
       cv::Mat dst;
 
@@ -112,7 +113,7 @@ namespace dc {
 				  float amount, float ratio,
 				  std::optional<uint32_t> seed)
     {
-      assert(image.depth() == CV_8U);
+      require8UC134(image, "img", "dc::NoiseDegradation::addSaltAndPepperNoise");
 
       cv::Mat dst;
 

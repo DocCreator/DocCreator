@@ -5,6 +5,8 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "Validate.hpp"
+
 
 namespace dc {
   namespace BlurFilter {
@@ -432,8 +434,9 @@ namespace dc {
 		 Method method,
 		 int kernelSize)
     {
-      assert(patternMat.type() == CV_8UC1);
-      assert(originalMat.type() == CV_8UC3 || originalMat.type() == CV_8UC4 || originalMat.type() == CV_8UC1);
+      static const char *func = "dc::BlurFilter::applyPattern";
+      require8UC134(originalMat, "originalMat", func);
+      require8UC1(patternMat, "patternMat", func);
 
       if (originalMat.type() == CV_8UC3) {
 	return applyPattern<cv::Vec3b>(originalMat, patternMat,
@@ -461,6 +464,8 @@ namespace dc {
 		int horizontal,
 		int radius)
     {
+      require8UC134(originalMat, "originalMat", "dc::BlurFilter::makePattern");
+
       cv::Mat resultMat =
 	cv::Mat::zeros(originalMat.rows, originalMat.cols, CV_8UC1);
 
@@ -547,6 +552,10 @@ namespace dc {
     cv::Mat
     blur(const cv::Mat &img, Method method, int kernelSize)
     {
+      static const char *func = "dc::BlurFilter::blur";
+      require8UC134(img, "img", func);
+      requireArgument(kernelSize > 0, "kernelSize must be positive", func);
+
       //B: (tested with OpenCV 2.4.12)
       //If kernelSize(=kSize) == 1 : the three functions do nothing
       //If kernelSize(=kSize) == 2 : GaussianBlur & medianBlur assert, but blur() seems ok
@@ -584,7 +593,7 @@ namespace dc {
 	 int horizontal,
 	 int radius)
     {
-      assert(img.type() == CV_8UC3 || img.type() == CV_8UC4 || img.type() == CV_8UC1);
+      require8UC134(img, "img", "dc::BlurFilter::blurArea");
 
       //B:TODO:OPTIM:
       // we apply the blur on the whole image
@@ -612,12 +621,22 @@ namespace dc {
     float
     getRadiusFourier(const cv::Mat &img)
     {
-      assert(img.type() == CV_8UC3);
+      require8UC134(img, "img", "dc::BlurFilter::getRadiusFourier");
 
+      //B: this used to assert() CV_8UC3 and then call cvtColor(BGR2GRAY),
+      // which throws a cv::Exception on a 1-channel image. The assertion
+      // being inert in a NDEBUG build, a grayscale image coming from the C++
+      // or python API ended up in cvtColor().
       cv::Mat originalMat;
-      cv::cvtColor(img,
-		   originalMat,
-		   cv::COLOR_BGR2GRAY); //To get a grayscale image
+      if (img.channels() == 1) {
+	originalMat = img;
+      }
+      else if (img.channels() == 4) {
+	cv::cvtColor(img, originalMat, cv::COLOR_BGRA2GRAY);
+      }
+      else {
+	cv::cvtColor(img, originalMat, cv::COLOR_BGR2GRAY); //To get a grayscale image
+      }
 
       cv::Mat padded; //expand input image to optimal size
       const int m = cv::getOptimalDFTSize(originalMat.rows);
@@ -727,6 +746,8 @@ namespace dc {
     int
     searchFitFourier(const cv::Mat &img, float dstRadius)
     {
+      require8UC134(img, "img", "dc::BlurFilter::searchFitFourier");
+
       bool found = false;
       int kernelSize = 0;
 

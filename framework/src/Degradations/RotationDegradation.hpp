@@ -10,7 +10,7 @@ namespace dc {
     /**
        Rotate an image and fill appearing background pixels with uniform color.
        
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade
@@ -24,7 +24,7 @@ namespace dc {
     /**
        Rotate an image and fill appearing background pixels with given background image.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Background image may be converted to the same type. 
        In particular if input image is grayscale, background image will be converted to gray.
        Background image may also be resized to the size of input img.
@@ -43,7 +43,7 @@ namespace dc {
 
        The background image is inserted (@a repeats + 1) times. First at angle 0, then at angle (@a angle/(@a repeast + 1)), ...
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Background image may be converted to the same type. 
        In particular if input image is grayscale, background image will be converted to gray.
        Background image may also be resized to the size of input img.
@@ -65,7 +65,7 @@ namespace dc {
        The background images are inserted once each. @a backgroundImgs[0] is inserted at angle 0, then @a backgroundImgs[1] at angle (@a angle/@a backgroundImgs.size()), ...
        If @a backgroundImgs is empty, black background pixels are used.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Background image may be converted to the same type. 
        In particular if input image is grayscale, background image will be converted to gray.
        Background image may also be resized to the size of input img.
@@ -90,7 +90,7 @@ namespace dc {
     /**
        Rotate in image and fill appearing background pixels replicating input image.
        
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade
@@ -107,7 +107,7 @@ namespace dc {
 
        @a img pixels are used for inpainting, according to @a inpaintingRatio.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade
@@ -127,7 +127,7 @@ namespace dc {
 
        @img is rotated and copied onto rotated background.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Background image may be converted to the same type. 
        In particular if input image is grayscale, background image will be converted to gray.
        Background image may also be resized to the size of input img.
@@ -150,7 +150,7 @@ namespace dc {
 
        @img is rotated and copied onto rotated background with dc::GradientDomainDegradation::copyOnto().
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Background image may be converted to the same type. 
        In particular if input image is grayscale, background image will be converted to gray.
        Background image may also be resized to the size of input img.

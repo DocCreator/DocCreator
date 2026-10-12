@@ -6,6 +6,7 @@
 #include <iostream>//DEBUG
 
 #include "Random.hpp"
+#include "Validate.hpp"
 
 namespace dc {
   namespace ElasticDeformation {
@@ -154,6 +155,8 @@ namespace dc {
 		      cv::Mat &map_x, cv::Mat &map_y,
 		      std::optional<uint32_t> seed)
     {
+      require8UC134(img, "img", "dc::ElasticDeformation::transform");
+
       const float scale = static_cast<float>(std::min(img.cols, img.rows));
       alpha *= scale;
       sigma *= scale;
@@ -228,6 +231,8 @@ namespace dc {
 		       cv::Mat &map_x, cv::Mat &map_y, cv::Mat &M,
 		       std::optional<uint32_t> seed)
     {
+      require8UC134(img, "img", "dc::ElasticDeformation::transform2");
+
       const int width = img.cols;
       const int height = img.rows;
       const cv::Point center(width/2, height/2);

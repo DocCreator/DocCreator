@@ -1,6 +1,7 @@
 #include "HoleDegradation.hpp"
 
 #include "Random.hpp"
+#include "Validate.hpp"
 
 #include <cassert>
 #include <cmath> //cos, sin
@@ -393,8 +394,12 @@ namespace dc {
 	    int shadowBorderWidth,
 	    float shadowBorderIntensity)
     {
-      assert(matBelow.empty() || matBelow.type() == img.type());
-      assert(holePattern.type() == CV_8UC1 || holePattern.type() == CV_8UC3 || holePattern.type() == CV_8UC4);
+      static const char *func = "dc::HoleDegradation::addHole";
+      require8UC134(img, "img", func);
+      require8UC134(holePattern, "holePattern", func);
+      if (! matBelow.empty()) {
+	requireSameType(matBelow, img, "belowImg", "img", func);
+      }
       //std::cerr<<"img.size()="<<img.size()<<" holePattern.size()="<<holePattern.size()<<"\n";
       //std::cerr<<"img.type()="<<img.type()<<" holePattern.type()="<<holePattern.type()<<" CV_8UC3="<<CV_8UC3<<" CV_8UC4="<<CV_8UC4<<"\n";
 
@@ -596,6 +601,10 @@ namespace dc {
 		    float shadowBorderIntensity,
 		    std::optional<uint32_t> seed)
     {
+      static const char *func = "dc::HoleDegradation::addHoleAtRandom";
+      require8UC134(img, "img", func);
+      require8UC134(holePattern, "holePattern", func);
+
       const cv::Point pos = getRandomPosition(img.size(),
 					      holePattern.size(),
 					      type,

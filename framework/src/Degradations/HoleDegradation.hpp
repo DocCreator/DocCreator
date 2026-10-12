@@ -16,7 +16,7 @@ namespace dc {
     /*
       Add hole to an image at a given position.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
       Output image will be of the same type.
       @a holePattern may be of type CV_8UC1, CV_8UC3 or CV_8UC4 and will be converted to grayscale and used as a binary mask.
 
@@ -59,7 +59,7 @@ namespace dc {
     /*
       Add hole to an image at a random position.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
       Output image will be of the same type.
       @a holePattern may be of type CV_8UC1, CV_8UC3 or CV_8UC4 and will be converted to grayscale and used as a binary mask.
 

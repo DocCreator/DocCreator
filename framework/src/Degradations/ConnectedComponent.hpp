@@ -23,7 +23,7 @@ namespace dc {
        @a is considered binarized. All non-white pixels may serve as a 
        region growing algorithm seed.
 
-       @a input must be of type CV_8UC1.
+       @a input must be of type CV_8UC1. An std::invalid_argument exception is thrown otherwise.
        @a connectivity must be 4 or 8.
     */
     extern FRAMEWORK_EXPORT void extractAllConnectedComponents(

@@ -18,6 +18,7 @@ namespace dc {
       
       @a frontImg and @a backImg must have the same type.
       Accepted type are CV_8UC1, CV_8UC3, CV_8UC4.
+      An std::invalid_argument exception is thrown otherwise.
       Output image is of the same type than @a frontImg.
       
       Bleedthrough effect is applied only on the overlapping part 
@@ -39,6 +40,7 @@ namespace dc {
       
       @a originalFrontImg, @a frontImg and @a backImg must have the same type.
       Accepted type are CV_8UC1, CV_8UC3, CV_8UC4.
+      An std::invalid_argument exception is thrown otherwise.
       Output image is of the same type than @a frontImg.
       @a originalFrontImg and @a frontImg must have the same size.
       

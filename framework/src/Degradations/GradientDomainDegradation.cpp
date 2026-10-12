@@ -11,6 +11,7 @@
 #include "FileUtils.hpp"
 #include "ColorUtils.hpp" //dc::isGray()
 #include "Random.hpp"
+#include "Validate.hpp"
 
 namespace dc {
   namespace GradientDomainDegradation {
@@ -176,8 +177,9 @@ copyOntoAux(const cv::Mat &stainImg,
 
       //cv::seamlessClone() needs 3-channel src and dst images
 
-      assert(dstImg.type() == CV_8UC1 || dstImg.type() == CV_8UC3 || dstImg.type() == CV_8UC4);
-      assert(stainImg.type() == CV_8UC1 || stainImg.type() == CV_8UC3 || stainImg.type() == CV_8UC4);
+      static const char *func = "dc::GradientDomainDegradation::copyOnto";
+      require8UC134(dstImg, "img", func);
+      require8UC134(stainImg, "stainImg", func);
 
       cv::Mat dstImg2;
       if (dstImg.channels() == 3) {
@@ -230,11 +232,9 @@ degradation(const cv::Mat &img,
 	    bool doRotations,
 	    std::optional<uint32_t> seed)
 {
+  require8UC134(img, "img", "dc::GradientDomainDegradation::degradation");
+
   cv::Mat out = img.clone();
-  if (img.depth() != CV_8U) {
-    std::cerr<<"Warning: no stain inserted. Input image is not a 8-bit image.\n";
-    return out;
-  }
 
 #if CV_MAJOR_VERSION < 3
 

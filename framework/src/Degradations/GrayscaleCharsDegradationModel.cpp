@@ -19,6 +19,7 @@
 
 #include "ConnectedComponent.hpp"
 #include "Random.hpp"
+#include "Validate.hpp"
 
 namespace dc {
 
@@ -2798,8 +2799,13 @@ namespace dc {
 
     cv::Mat degradation(const cv::Mat &img, int level, float indepentSpotsRatio, float overlappingSpotsRatio, std::optional<uint32_t> seed)
     {
-      assert(0.0<=indepentSpotsRatio && indepentSpotsRatio<=1.0);
-      assert(0.0<=overlappingSpotsRatio && overlappingSpotsRatio<=1.0);
+      static const char *func = "dc::GrayscaleCharsDegradation::degradation";
+      require8UC134(img, "img", func);
+      requireInRange(indepentSpotsRatio, 0.0, 1.0, "indepentSpotsRatio", func);
+      requireInRange(overlappingSpotsRatio, 0.0, 1.0, "overlappingSpotsRatio", func);
+      requireArgument(indepentSpotsRatio + overlappingSpotsRatio <= 1.0f,
+		      "indepentSpotsRatio + overlappingSpotsRatio must be at most 1",
+		      func);
 
       const float percentOfIndepentSpots = 100.f*indepentSpotsRatio;
       const float percentOfOverlappingSpots = 100.f*overlappingSpotsRatio;

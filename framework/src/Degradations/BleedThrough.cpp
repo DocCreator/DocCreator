@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "Validate.hpp"
+
 
 /*
   Code inspired from original Cuong's code.
@@ -339,6 +341,11 @@ namespace dc {
   cv::Mat
   bleedThrough(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos, int numThreads)
   {
+    static const char *func = "dc::BleedThrough::bleedThrough";
+    require8UC134(frontImg, "frontImg", func);
+    require8UC134(backImg, "backImg", func);
+    requireSameType(frontImg, backImg, "frontImg", "backImg", func);
+
     cv::Mat res = frontImg.clone();
 
     cv::Rect backROI;
@@ -361,7 +368,11 @@ namespace dc {
   cv::Mat
   bleedThroughInc(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos, int numThreads)
   {
-    assert(originalFrontImg.size() == frontImg.size());
+    static const char *func = "dc::BleedThrough::bleedThroughInc";
+    require8UC134(frontImg, "frontImg", func);
+    require8UC134(backImg, "backImg", func);
+    requireSameType(frontImg, backImg, "frontImg", "backImg", func);
+    requireSameTypeAndSize(originalFrontImg, frontImg, "originalFrontImg", "frontImg", func);
 
     cv::Mat res = frontImg.clone();
 

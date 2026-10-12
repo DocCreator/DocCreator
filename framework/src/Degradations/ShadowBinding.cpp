@@ -8,6 +8,8 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "Validate.hpp"
+
 namespace dc {
   namespace ShadowBinding {
   
@@ -73,6 +75,8 @@ namespace dc {
 		  float intensity,
 		  float angle)
     {
+      require8UC134(img, "img", "dc::ShadowBinding::shadowBinding");
+
       cv::Mat matOut = img.clone();
       
       cv::Rect rec;
@@ -134,6 +138,8 @@ namespace dc {
 		   float intensity,
 		   float angle)
     {
+      require8UC134(img, "img", "dc::ShadowBinding::shadowBinding2");
+
       const int distance =
 	getDistance(border, distanceRatio, img.cols, img.rows);
 

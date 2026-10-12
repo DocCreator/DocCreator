@@ -36,7 +36,7 @@ namespace dc {
      spots.
      Ratio of disconnection spots will be determined as (1.0 - @a indepentSpotsRatio - @a overlappingSpotsRatio).
 
-     @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+     @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
      Output image will be of the same type.
 
      @param level scale factor, in [0; 10]. The number of degradation spots will be determined according to the number of connected components in image and multiplied by this scale factor. The higher the level, the higher the number of degradation spots.

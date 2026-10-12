@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "Validate.hpp"
+
 #ifdef USE_NATIVE_OSMESA
 
 #include <iomanip>
@@ -18,6 +20,8 @@ namespace dc {
 
     cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random)
     {
+      require8UC134(img, "img", "dc::Distortion3D::degrade3D");
+
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
@@ -61,6 +65,8 @@ namespace dc {
     
     void degrade3DN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
     {
+      require8UC134(img, "img", "dc::Distortion3D::degrade3DN");
+
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
@@ -106,6 +112,11 @@ namespace dc {
 
     cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random)
     {
+      require8UC134(img, "img", "dc::Distortion3D::degrade3DWithBackground");
+      if (! backgroundImg.empty()) {
+	require8UC134(backgroundImg, "backgroundImg", "dc::Distortion3D::degrade3DWithBackground");
+      }
+
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
@@ -140,6 +151,11 @@ namespace dc {
     
     void degrade3DWithBackgroundN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
     {
+      require8UC134(img, "img", "dc::Distortion3D::degrade3DWithBackgroundN");
+      if (! backgroundImg.empty()) {
+	require8UC134(backgroundImg, "backgroundImg", "dc::Distortion3D::degrade3DWithBackgroundN");
+      }
+
 #ifdef USE_NATIVE_OSMESA
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {

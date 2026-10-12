@@ -33,7 +33,7 @@ namespace dc {
        Proc. of the International Conference on Document Analysis and
        Recognition, 2003.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
 
        @a sigma and @a alpha are multiplied with min(width, height) of @a img.
@@ -86,7 +86,7 @@ namespace dc {
        Apply elastic deformation to @a img as described in [Simard2003],
        after a first affine transformation.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
 
        @param img input image.

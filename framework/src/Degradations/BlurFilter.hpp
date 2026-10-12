@@ -18,7 +18,7 @@ namespace dc {
     /*
       Apply blur to whole image
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. Output image will be of the same type.
 
       @param img image to apply effect onto.
       @param method applied blur method.
@@ -30,7 +30,7 @@ namespace dc {
     /*
       Apply blur to specific image area
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. Output image will be of the same type.
 
       @param img image to apply effect onto.
       @param method applied blur method.
@@ -43,6 +43,8 @@ namespace dc {
 
     /*
       return a CV_8UC1 mat the same size than @a originalMat.
+
+      @a originalMat must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
      */
     extern FRAMEWORK_EXPORT cv::Mat makePattern(const cv::Mat &originalMat, Function function, Area area, float coeff1, int vertical, int horizontal, int radius = 10);
 
@@ -50,6 +52,8 @@ namespace dc {
       @param method applied blur method.
       @param kernelSize blur filter kernel size. It must be positive and odd.
       @param patternMat CV_8UC1 mat. Blur will be applied only at white pixels.
+
+      @a originalMat must be of type CV_8UC1, CV_8UC3 or CV_8UC4, and @a patternMat of type CV_8UC1. An std::invalid_argument exception is thrown otherwise.
      */
     extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int kernelSize);
 
@@ -60,6 +64,8 @@ namespace dc {
 
       If distance between two radiusFourier is inferior to FOURIER_INTERVAL,
       we consider that images look alike.
+
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
     */
     extern FRAMEWORK_EXPORT float getRadiusFourier(const cv::Mat &img);
 
@@ -70,6 +76,8 @@ namespace dc {
       @a dstRadius may have been computed with getRadiusFourier() on dst image.
 
       The obtained filter size can then be used as kernelSize parameter of blurFilter() function, with method=Method::GAUSSIAN.
+
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
     */
     extern FRAMEWORK_EXPORT int searchFitFourier(const cv::Mat &img, float dstRadius);
 

@@ -13,7 +13,7 @@ namespace dc {
     /*
       Insert "phantom characters" on border of characters.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. Output image will be of the same type.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. Output image will be of the same type.
 
       With an @a occurenceProbability of 0.15, phantom characters will appear rarely.
       With an @a occurenceProbability of 0.40, phantom characters will appear rather frequently.

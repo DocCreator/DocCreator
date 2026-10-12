@@ -30,7 +30,7 @@ namespace dc {
 
        @warning This implementation is rather slow.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
 
        @param img input image to degrade.
@@ -51,7 +51,7 @@ namespace dc {
     /*
       Copy stain image @a stainImg onto destination image @a img at position @a pos.
       
-      @a img and @stainImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      @a img and @stainImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
       Output image will be of the same type and size than the input img.
 
       If there is no overlap between images, with given position, there is no copy.
