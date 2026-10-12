@@ -258,3 +258,124 @@ TEST_CASE( "Testing a corrupt binary font file" )
 {
   testCorrupt();
 }
+
+/*
+  @return the path of a .of file holding one letter whose image announces
+  @a width, @a height and @a format, and holds @a numValues pixel values.
+*/
+static
+QString
+writeOF(const QString &filename, int width, int height, int format, int numValues)
+{
+  QString data;
+  for (int i = 0; i < numValues; ++i) {
+    if (i != 0) {
+      data += QLatin1String(",");
+    }
+    data += QString::number(0xff804020u);
+  }
+
+  const QString xml =
+    QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		   "<font name=\"corrupt\">\n"
+		   "  <letter char=\"a\">\n"
+		   "    <anchor><upLine>0</upLine><baseLine>100</baseLine>"
+		   "<leftLine>0</leftLine><rightLine>100</rightLine></anchor>\n"
+		   "    <picture id=\"0\">\n"
+		   "      <imageData>\n"
+		   "        <width>%1</width>\n"
+		   "        <height>%2</height>\n"
+		   "        <format>%3</format>\n"
+		   "        <data>%4</data>\n"
+		   "      </imageData>\n"
+		   "    </picture>\n"
+		   "  </letter>\n"
+		   "</font>\n")
+      .arg(width).arg(height).arg(format).arg(data);
+
+  QFile file(filename);
+  REQUIRE( file.open(QFile::WriteOnly | QFile::Truncate) );
+  file.write(xml.toUtf8());
+  file.close();
+
+  return filename;
+}
+
+TEST_CASE( "Testing a corrupt XML font file" )
+{
+  /*
+    Everything the reader took from the file used to be used as it was. A
+    file announcing more pixels than it holds aborted the process with a
+    std::bad_alloc, and so did one whose width times height overflowed an
+    int.
+  */
+
+  SECTION("a well formed file, as a control")
+  {
+    const QString filename =
+      writeOF(QStringLiteral("tmp_corrupt_ok.of"), 4, 4, QImage::Format_ARGB32, 16);
+    Models::Font *font = IOManager::FontFileManager::fontFromXml(filename);
+    REQUIRE( font != nullptr );
+    REQUIRE( font->getCharacters().size() == 1 );
+
+    const Models::CharacterDataList &versions =
+      font->getCharacters().constBegin().value()->getAllCharacterData();
+    REQUIRE( versions.size() == 1 );
+    const QImage img = versions.at(0)->getImage();
+    REQUIRE( img.width() == 4 );
+    REQUIRE( img.height() == 4 );
+    REQUIRE( img.format() == QImage::Format_ARGB32 );
+    delete font;
+  }
+
+  SECTION("fewer pixel values than the announced size")
+  {
+    //on the QImage::Format_ARGB32 path, which writes through scanLine()
+    const QString filename =
+      writeOF(QStringLiteral("tmp_corrupt_short.of"), 4, 4, QImage::Format_ARGB32, 3);
+    REQUIRE( IOManager::FontFileManager::fontFromXml(filename) == nullptr );
+  }
+
+  SECTION("fewer pixel values than the announced size, on the setPixel path")
+  {
+    const QString filename =
+      writeOF(QStringLiteral("tmp_corrupt_short2.of"), 4, 4,
+	      QImage::Format_ARGB32_Premultiplied, 3);
+    REQUIRE( IOManager::FontFileManager::fontFromXml(filename) == nullptr );
+  }
+
+  SECTION("more pixel values than the announced size")
+  {
+    const QString filename =
+      writeOF(QStringLiteral("tmp_corrupt_long.of"), 2, 2, QImage::Format_ARGB32, 16);
+    REQUIRE( IOManager::FontFileManager::fontFromXml(filename) == nullptr );
+  }
+
+  SECTION("a size whose product overflows an int")
+  {
+    const QString filename =
+      writeOF(QStringLiteral("tmp_corrupt_overflow.of"), 65536, 65536,
+	      QImage::Format_ARGB32, 4);
+    REQUIRE( IOManager::FontFileManager::fontFromXml(filename) == nullptr );
+  }
+
+  SECTION("a null or negative size")
+  {
+    REQUIRE( IOManager::FontFileManager::fontFromXml(
+	       writeOF(QStringLiteral("tmp_corrupt_zero.of"), 0, 4,
+		       QImage::Format_ARGB32, 0)) == nullptr );
+    REQUIRE( IOManager::FontFileManager::fontFromXml(
+	       writeOF(QStringLiteral("tmp_corrupt_negative.of"), -4, 4,
+		       QImage::Format_ARGB32, 16)) == nullptr );
+  }
+
+  SECTION("an image format that does not exist")
+  {
+    REQUIRE( IOManager::FontFileManager::fontFromXml(
+	       writeOF(QStringLiteral("tmp_corrupt_format0.of"), 4, 4,
+		       QImage::Format_Invalid, 16)) == nullptr );
+    REQUIRE( IOManager::FontFileManager::fontFromXml(
+	       writeOF(QStringLiteral("tmp_corrupt_format255.of"), 4, 4,
+		       255, 16)) == nullptr );
+  }
+}

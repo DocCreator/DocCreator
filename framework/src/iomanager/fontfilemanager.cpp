@@ -297,7 +297,11 @@ FontFileManager::characterFromXml(QXmlStreamReader &reader)
     if (reader.name() == QLatin1String("picture") &&
         tokenMain == QXmlStreamReader::StartElement) {
       Models::CharacterData *charData = characterDataFromXml(reader);
-      ch->add(charData);
+      //B: null for a corrupt image; Character::add() stored it and every
+      // user of the list dereferenced it.
+      if (charData != nullptr) {
+	ch->add(charData);
+      }
     }
   }
   return ch;
@@ -429,18 +433,49 @@ FontFileManager::characterDataFromXml(QXmlStreamReader &reader)
     }
   }
 
+  /*
+    B: the three values below come from the file and were used as they
+    were. The dimensions were only warned about, the format was cast to a
+    QImage::Format without a test, and the number of values was merely
+    asserted, so it was not checked at all in a release build and the
+    iterator below ran past the end of the list: a file announcing 4x4
+    pixels and holding 3 values aborted the process. A font is a file one
+    receives, like the .bof files fontFromBinary() reads.
+  */
   if (imgWidth <= 0 || imgHeight <= 0) {
-    qDebug()<<"Warning: while reading font, found invalid image dimensions: imgWidth="<<imgWidth<<" imgHeight="<<imgHeight<<" pixels.size()="<<pixelsData.split(QStringLiteral(",")).size()<<"\n";
+    std::cerr << "Error: corrupt font file (a character image announces "
+	      << imgWidth << "x" << imgHeight << " pixels)\n";
+    return nullptr;
   }
 
-  //building QImage
-  QImage img(imgWidth, imgHeight, static_cast<QImage::Format>(format));
+  if (format <= QImage::Format_Invalid || format >= QImage::NImageFormats) {
+    std::cerr << "Error: corrupt font file (a character image announces the "
+		 "image format "
+	      << format << ")\n";
+    return nullptr;
+  }
 
   //B:TODO:OPTIM: who thought it would be a good idea to save images in ASCII format ???...
   // We should save a binary blob, or even better, a compressed png image...
 
-  QStringList pixels = pixelsData.split(QStringLiteral(","));
-  assert(pixels.size() == imgWidth * imgHeight);
+  const QStringList pixels = pixelsData.split(QStringLiteral(","));
+
+  //the product is computed in qint64: 65536x65536 overflows an int to 0
+  if (static_cast<qint64>(imgWidth) * imgHeight != pixels.size()) {
+    std::cerr << "Error: corrupt font file (a character image announces "
+	      << imgWidth << "x" << imgHeight << " pixels and holds "
+	      << pixels.size() << ")\n";
+    return nullptr;
+  }
+
+  //building QImage
+  QImage img(imgWidth, imgHeight, static_cast<QImage::Format>(format));
+  if (img.isNull()) {
+    std::cerr << "Error: unable to allocate a " << imgWidth << "x" << imgHeight
+	      << " character image\n";
+    return nullptr;
+  }
+
   QStringList::const_iterator it = pixels.constBegin();
 
   if (img.format() == QImage::Format_ARGB32) {
