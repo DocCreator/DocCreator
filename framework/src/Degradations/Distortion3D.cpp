@@ -1,7 +1,9 @@
 #include "Distortion3D.hpp"
 
 #include <iostream>
+#include <mutex>
 
+#include "Random.hpp"
 #include "Validate.hpp"
 
 #ifdef USE_NATIVE_OSMESA
@@ -18,11 +20,26 @@
 namespace dc {
   namespace Distortion3D {
 
-    cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random)
+#ifdef USE_NATIVE_OSMESA
+    /*
+      B: GLFW requires that its windows and its contexts be used by one
+      thread at a time, and GLRenderer counts its instances in a static to
+      know when to call glfwInit() and glfwTerminate(). Two threads
+      rendering at the same time corrupted that count and shared one
+      context. The four functions below take this lock, so that a library
+      used from several threads, as the python module is, is safe; they do
+      not run in parallel.
+    */
+    static std::mutex rendererMutex;
+#endif //USE_NATIVE_OSMESA
+
+    cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random, std::optional<uint32_t> seed)
     {
       require8UC134(img, "img", "dc::Distortion3D::degrade3D");
 
 #ifdef USE_NATIVE_OSMESA
+      const std::lock_guard<std::mutex> lock(rendererMutex);
+
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
 	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
@@ -33,7 +50,8 @@ namespace dc {
 	return cv::Mat();
       }
       w.setTexture(img);
-      const cv::Mat out = w.render(random);
+      RandomEngine rng = makeRandomEngine(seed);
+      const cv::Mat out = w.render(random, rng);
       return out;
 #else
 
@@ -45,6 +63,7 @@ namespace dc {
       (void)img;
       (void)meshFilename;
       (void)random;
+      (void)seed;
       
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
       return img;
@@ -63,11 +82,13 @@ namespace dc {
 #endif //USE_NATIVE_OSMESA
 
     
-    void degrade3DN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random)
+    void degrade3DN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random, std::optional<uint32_t> seed)
     {
       require8UC134(img, "img", "dc::Distortion3D::degrade3DN");
 
 #ifdef USE_NATIVE_OSMESA
+      const std::lock_guard<std::mutex> lock(rendererMutex);
+
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
 	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
@@ -79,10 +100,16 @@ namespace dc {
       }
       w.setTexture(img);
 
+      /*
+	B: one engine for the whole series, so that the N images differ from
+	each other while the series stays reproducible from one seed.
+      */
+      RandomEngine rng = makeRandomEngine(seed);
+
       const std::string ext=".png";
       const int numberWidth = computeNumberWidth(numOutputImages);
       for (size_t i=0; i<numOutputImages; ++i) {
-	const cv::Mat out = w.render(random);
+	const cv::Mat out = w.render(random, rng);
 	if (! out.empty()) {
 	  std::stringstream ss;
 	  ss << outputPrefix << "_" << std::setfill('0') << std::setw(numberWidth)<<i<<ext;
@@ -104,13 +131,14 @@ namespace dc {
       (void)meshFilename;
       (void)outputPrefix;
       (void)random;
+      (void)seed;
       
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
 #endif //USE_NATIVE_OSMESA
       
     }
 
-    cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random)
+    cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random, std::optional<uint32_t> seed)
     {
       require8UC134(img, "img", "dc::Distortion3D::degrade3DWithBackground");
       if (! backgroundImg.empty()) {
@@ -118,6 +146,8 @@ namespace dc {
       }
 
 #ifdef USE_NATIVE_OSMESA
+      const std::lock_guard<std::mutex> lock(rendererMutex);
+
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
 	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
@@ -129,7 +159,8 @@ namespace dc {
       }
       w.setTexture(img);
       w.setBackgroundTexture(backgroundImg);
-      const cv::Mat out = w.render(random);
+      RandomEngine rng = makeRandomEngine(seed);
+      const cv::Mat out = w.render(random, rng);
       return out;
 #else
 #ifdef _MSC_VER
@@ -149,7 +180,7 @@ namespace dc {
 
     }
     
-    void degrade3DWithBackgroundN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random)
+    void degrade3DWithBackgroundN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random, std::optional<uint32_t> seed)
     {
       require8UC134(img, "img", "dc::Distortion3D::degrade3DWithBackgroundN");
       if (! backgroundImg.empty()) {
@@ -157,6 +188,8 @@ namespace dc {
       }
 
 #ifdef USE_NATIVE_OSMESA
+      const std::lock_guard<std::mutex> lock(rendererMutex);
+
       GLRenderer w(img.cols, img.rows);
       if (! w.isValid()) {
 	std::cerr<<"ERROR: unable to create the OpenGL renderer\n";
@@ -169,10 +202,16 @@ namespace dc {
       w.setTexture(img);
       w.setBackgroundTexture(backgroundImg);
 
+      /*
+	B: one engine for the whole series, so that the N images differ from
+	each other while the series stays reproducible from one seed.
+      */
+      RandomEngine rng = makeRandomEngine(seed);
+
       const std::string ext=".png";
       const int numberWidth = computeNumberWidth(numOutputImages);
       for (size_t i=0; i<numOutputImages; ++i) {
-	const cv::Mat out = w.render(random);
+	const cv::Mat out = w.render(random, rng);
 	if (! out.empty()) {
 	  std::stringstream ss;
 	  ss << outputPrefix << "_" << std::setfill('0') << std::setw(numberWidth)<<i<<ext;
@@ -195,6 +234,7 @@ namespace dc {
       (void)backgroundImg;
       (void)outputPrefix;
       (void)random;
+      (void)seed;
       
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
 #endif //USE_NATIVE_OSMESA

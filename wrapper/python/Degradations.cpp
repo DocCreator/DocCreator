@@ -133,6 +133,10 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	random : bool
 		Indicates if a random lighting and orientation must be
 		used.
+	seed : int, optional
+		Seed of the random lighting and orientation. If None, a non
+		reproducible seed is used. Two calls with the same seed and
+		the same parameters give the same result.
 
 	Returns
 	-------
@@ -141,7 +145,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
 	)pbdoc",
 	py::arg("img"), py::arg("meshFilename"),
-	py::arg("random") = true);
+	py::arg("random") = true,
+	py::arg("seed") = py::none());
   
   m.def("degrade3DN", &dc::Distortion3D::degrade3DN, R"pbdoc(
 	Apply 3D distortion to an image and save N output images.
@@ -176,6 +181,10 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	random : bool
 		Indicates if a random lighting and orientation must be
 		used.
+	seed : int, optional
+		Seed of the random lighting and orientation. If None, a non
+		reproducible seed is used. Two calls with the same seed and
+		the same parameters give the same result.
 
 	Returns
 	-------
@@ -185,7 +194,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	)pbdoc",
 	py::arg("img"), py::arg("numOutputImages"),
 	py::arg("meshFilename"),
- 	py::arg("outputPrefix"), py::arg("random") = true);
+ 	py::arg("outputPrefix"), py::arg("random") = true,
+	py::arg("seed") = py::none());
 
   m.def("degrade3DWithBackground",
 	&dc::Distortion3D::degrade3DWithBackground, R"pbdoc(
@@ -217,6 +227,10 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	random : bool
 		Indicates if a random lighting and orientation must be
 		used.
+	seed : int, optional
+		Seed of the random lighting and orientation. If None, a non
+		reproducible seed is used. Two calls with the same seed and
+		the same parameters give the same result.
 
 	Returns
 	-------
@@ -227,7 +241,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	)pbdoc",
 	py::arg("img"), py::arg("meshFilename"),
 	py::arg("backgroundImg"),
- 	py::arg("random") = true);
+ 	py::arg("random") = true,
+	py::arg("seed") = py::none());
   
   m.def("degrade3DWithBackgroundN",
 	&dc::Distortion3D::degrade3DWithBackgroundN, R"pbdoc(
@@ -264,6 +279,10 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	random : bool
 		Indicates if a random lighting and orientation must be
 		used.
+	seed : int, optional
+		Seed of the random lighting and orientation. If None, a non
+		reproducible seed is used. Two calls with the same seed and
+		the same parameters give the same result.
 
 	Returns
 	-------
@@ -274,7 +293,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("img"), py::arg("numOutputImages"),
 	py::arg("meshFilename"),
  	py::arg("backgroundImg"),
- 	py::arg("outputPrefix"), py::arg("random") = true);
+ 	py::arg("outputPrefix"), py::arg("random") = true,
+	py::arg("seed") = py::none());
   
  //--------------
 

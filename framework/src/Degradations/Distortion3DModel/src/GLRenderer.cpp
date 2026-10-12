@@ -542,14 +542,21 @@ GLRenderer::updateCameraLookAt()
   //std::cout<<"camera.viewMatrix:\n"<<m_camera.getViewMatrix()<<"\n";
 }
 
+/*
+  B: this used rand(), whose sequence belongs to the whole program: two
+  threads rendering at the same time drew from the same state, and nothing
+  could reproduce a rendering. The engine is now one object per call, like
+  the one the other degradations take a seed for.
+*/
 static float
-P_bounded_rand(float min, float max)
+P_bounded_rand(cv::RNG &rng, float min, float max)
 {
-  return (min + (static_cast<float>(rand()) / RAND_MAX * (max - min)));
+  return static_cast<float>(rng.uniform(static_cast<double>(min),
+					static_cast<double>(max)));
 }
 
 
-void GLRenderer::paintGL(bool random)
+void GLRenderer::paintGL(bool random, cv::RNG &rng)
 {
 
   glfwMakeContextCurrent(m_window);
@@ -557,16 +564,16 @@ void GLRenderer::paintGL(bool random)
 
   if (random) {
     
-    m_lightPos(0) = P_bounded_rand(DEFAULT_RANDOM_MIN_LIGHT_X, DEFAULT_RANDOM_MAX_LIGHT_X);
-    m_lightPos(1) = P_bounded_rand(DEFAULT_RANDOM_MIN_LIGHT_Y, DEFAULT_RANDOM_MAX_LIGHT_Y);
-    m_lightPos(2) = P_bounded_rand(DEFAULT_RANDOM_MIN_LIGHT_Z, DEFAULT_RANDOM_MAX_LIGHT_Z);
-    m_ambient = Eigen::Vector3f::Constant(P_bounded_rand(DEFAULT_RANDOM_MIN_AMBIENT, DEFAULT_RANDOM_MAX_AMBIENT));
-    m_diffuse = Eigen::Vector3f::Constant(P_bounded_rand(DEFAULT_RANDOM_MIN_DIFFUSE, DEFAULT_RANDOM_MAX_DIFFUSE));
-    m_specular = Eigen::Vector3f::Constant(P_bounded_rand(DEFAULT_RANDOM_MIN_SPECULAR, DEFAULT_RANDOM_MAX_SPECULAR));
+    m_lightPos(0) = P_bounded_rand(rng, DEFAULT_RANDOM_MIN_LIGHT_X, DEFAULT_RANDOM_MAX_LIGHT_X);
+    m_lightPos(1) = P_bounded_rand(rng, DEFAULT_RANDOM_MIN_LIGHT_Y, DEFAULT_RANDOM_MAX_LIGHT_Y);
+    m_lightPos(2) = P_bounded_rand(rng, DEFAULT_RANDOM_MIN_LIGHT_Z, DEFAULT_RANDOM_MAX_LIGHT_Z);
+    m_ambient = Eigen::Vector3f::Constant(P_bounded_rand(rng, DEFAULT_RANDOM_MIN_AMBIENT, DEFAULT_RANDOM_MAX_AMBIENT));
+    m_diffuse = Eigen::Vector3f::Constant(P_bounded_rand(rng, DEFAULT_RANDOM_MIN_DIFFUSE, DEFAULT_RANDOM_MAX_DIFFUSE));
+    m_specular = Eigen::Vector3f::Constant(P_bounded_rand(rng, DEFAULT_RANDOM_MIN_SPECULAR, DEFAULT_RANDOM_MAX_SPECULAR));
     //m_specularExponent = DEFAULT_SPECULAR_EXPONENT;
 
-    m_camPhy = P_bounded_rand(DEFAULT_RANDOM_MIN_PHY, DEFAULT_RANDOM_MAX_PHY);
-    m_camTheta = P_bounded_rand(DEFAULT_RANDOM_MIN_THETA, DEFAULT_RANDOM_MAX_THETA);
+    m_camPhy = P_bounded_rand(rng, DEFAULT_RANDOM_MIN_PHY, DEFAULT_RANDOM_MAX_PHY);
+    m_camTheta = P_bounded_rand(rng, DEFAULT_RANDOM_MIN_THETA, DEFAULT_RANDOM_MAX_THETA);
     updateCameraLookAt();
   }
 
@@ -711,9 +718,9 @@ void GLRenderer::paintGL(bool random)
 
 
 cv::Mat
-GLRenderer::render(bool random)
+GLRenderer::render(bool random, cv::RNG &rng)
 {
-  paintGL(random);
+  paintGL(random, rng);
 
   assert (glGetError () == GL_NO_ERROR);
   glFlush();
@@ -759,8 +766,11 @@ GLRenderer::render(bool random)
 void GLRenderer::update()
 {
   //std::cout<<"-- update()\n";
-  
-  paintGL();
+
+  //the generator is only used to draw the light and the camera, which this
+  //does not do
+  cv::RNG unused;
+  paintGL(false, unused);
 }
 
 

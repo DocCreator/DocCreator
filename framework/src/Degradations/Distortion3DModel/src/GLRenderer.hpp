@@ -51,7 +51,15 @@ public:
   void setBackgroundTextureMatrix(const Eigen::Matrix3f &texMat);
 
 
-  cv::Mat render(bool random);
+  /**
+     Render the mesh.
+
+     @param random  draw the light and the camera at random.
+     @param rng     the generator that drawing uses. It belongs to the
+     caller, so that a series of renderings can be reproduced from one
+     seed. Unused when @a random is false.
+  */
+  cv::Mat render(bool random, cv::RNG &rng);
 
   
   void resizeGL(int w, int h);
@@ -62,7 +70,7 @@ protected:
   void initializeGL();
   
   
-  void paintGL(bool random=false);
+  void paintGL(bool random, cv::RNG &rng);
 
   
   void printGLInfos();
