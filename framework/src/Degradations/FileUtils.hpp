@@ -9,7 +9,8 @@
 namespace dc {
 
   /*
-    list files in @a dirname (except "." and "..", and not recursively)
+    list the entries of @a dirname (except "." and "..", and not
+    recursively). Sub-directories are listed as well.
     
     returned filenames are not with absolute path.
   */

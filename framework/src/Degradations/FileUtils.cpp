@@ -74,8 +74,10 @@ namespace dc {
 
     while ((entry = readdir(dp)) != nullptr) {
 
-      if (strncmp(entry->d_name, ".", 1) != 0
-	  && strncmp(entry->d_name, "..", 2) != 0) {
+      //B: strncmp(d_name, ".", 1) skipped every file whose name begins with
+      // a dot, and made the comparison with ".." unreachable.
+      const std::string name = entry->d_name;
+      if (name != "." && name != "..") {
 	entries.push_back(entry->d_name);
       }
     }
@@ -176,8 +178,9 @@ namespace dc {
 	_tprintf(TEXT("  %s \n"), FindFileData.cFileName);
       */
       const char *entry = FindFileData.cFileName;
-      if (strncmp(entry, ".", 1) != 0
-	  && strncmp(entry, "..", 2) != 0) {
+      //B: cf the POSIX version above.
+      const std::string name = entry;
+      if (name != "." && name != "..") {
 		//std::cerr<<entry<<"\n";
 		entries.push_back(entry);
       }

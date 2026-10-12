@@ -20,6 +20,9 @@
 namespace {
 
   const char *DIRNAME = "tmp_testFileUtils_dir";
+  //a directory of its own, so that the files written here are not listed by
+  //the other tests
+  const char *DOTDIRNAME = "tmp_testFileUtils_dotfiles";
 
   void
   writeFile(const std::string &path, const std::string &content)
@@ -102,6 +105,26 @@ TEST_CASE("listImageFiles() only returns the image files")
   REQUIRE( symlink("nowhere.png", link.c_str()) == 0 );
   REQUIRE( dc::listImageFiles(DIRNAME).size() == 2 );
 #endif
+}
+
+TEST_CASE("listDirectory() only skips \".\" and \"..\"")
+{
+#ifdef WIN32
+  _mkdir(DOTDIRNAME);
+#else
+  mkdir(DOTDIRNAME, 0755);
+#endif
+  writeFile(dc::makePath(DOTDIRNAME, ".hidden"), "a dotfile");
+  writeFile(dc::makePath(DOTDIRNAME, ".hidden.png"), "a dotfile too");
+
+  const std::vector<std::string> all = dc::listDirectory(DOTDIRNAME);
+
+  //strncmp(d_name, ".", 1) skipped every name starting with a dot
+  REQUIRE( contains(all, ".hidden") );
+  REQUIRE( contains(all, ".hidden.png") );
+
+  REQUIRE_FALSE( contains(all, ".") );
+  REQUIRE_FALSE( contains(all, "..") );
 }
 
 TEST_CASE("listImageFiles() on a directory that does not exist")
