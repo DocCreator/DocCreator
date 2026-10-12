@@ -16,12 +16,16 @@ namespace dc {
     // negative as well as positive). We use 16 bit signed
     // images as otherwise we would lose precision.
 
+    /*
+      Build a noise image of the size of @a image, with @a depth as depth.
+    */
     static cv::Mat makeRandnNoise(RandomEngine &rng,
 				  const cv::Mat &image,
+				  int depth,
 				  double average, double standardDeviation,
 				  AddNoiseType addType)
     {
-      const int type = CV_MAKETYPE(CV_16S, image.channels());
+      const int type = CV_MAKETYPE(depth, image.channels());
       cv::Mat noise_image(image.size(), type);
 
       bool isImgGray = false;
@@ -37,7 +41,7 @@ namespace dc {
 		 cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
       }
       else {
-	cv::Mat noise_image1(image.size(), CV_16SC1);
+	cv::Mat noise_image1(image.size(), CV_MAKETYPE(depth, 1));
 	rng.fill(noise_image1, cv::RNG::NORMAL,
 		 cv::Scalar::all(average), cv::Scalar::all(standardDeviation));
 	if (image.channels() == 3) {
@@ -88,7 +92,7 @@ namespace dc {
       const int type = CV_MAKETYPE(CV_16S, image.channels());
       RandomEngine rng = makeRandomEngine(seed);
       cv::Mat noise_image =
-	makeRandnNoise(rng, image, (double)average, (double)standardDeviation, addType);
+	makeRandnNoise(rng, image, CV_16S, (double)average, (double)standardDeviation, addType);
   
       cv::Mat temp_image;
       image.convertTo(temp_image, type);
@@ -113,16 +117,20 @@ namespace dc {
   
       cv::Mat dst;
 
-      const int type = CV_MAKETYPE(CV_16S, image.channels());
+      //B: the noise is a multiplicative factor, thus a real number: in
+      // CV_16S, a standard deviation below 0.5 is rounded to a noise of 0
+      // everywhere, and image*noise saturates at 32767 as soon as the
+      // standard deviation is large.
+      const int type = CV_MAKETYPE(CV_32F, image.channels());
       RandomEngine rng = makeRandomEngine(seed);
       cv::Mat noise_image =
-	makeRandnNoise(rng, image, average, standardDeviation, addType);
+	makeRandnNoise(rng, image, CV_32F, average, standardDeviation, addType);
   
       cv::Mat temp_image, temp_image2;
       image.convertTo(temp_image, type);
       cv::multiply(temp_image, noise_image, temp_image2);
       cv::add(temp_image, temp_image2, temp_image);
-      temp_image.convertTo(dst, image.type());
+      temp_image.convertTo(dst, image.type()); //saturates to [0; 255]
       restoreAlpha(image, dst);
 
       assert(dst.type() == image.type());

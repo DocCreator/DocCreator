@@ -155,6 +155,46 @@ testAlphaIsPreserved(int imageType)
   }
 }
 
+static
+void
+testSpeckleNoiseAmount(int imageType)
+{
+  //The noise of addSpeckleNoise() is a multiplicative factor, thus a real
+  //number: a standard deviation below 0.5 must still change the image, and
+  //must not drive most of the pixels to 0 or 255.
+  //It was computed in CV_16S, that is rounded to an integer: a standard
+  //deviation of 0.1 gave a factor of 0 everywhere, thus an unchanged image.
+
+  const int ROWS = 200;
+  const int COLS = 200;
+
+  //a uniform image, so that everything in the output comes from the noise
+  const cv::Mat img(ROWS, COLS, imageType, cv::Scalar::all(128));
+
+  const cv::Mat out = dc::NoiseDegradation::addSpeckleNoise(img, 0.f, 0.1f, dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS, 42);
+
+  REQUIRE( out.type() == imageType );
+  REQUIRE( ! checkEqual(out, img) );
+
+  //cv::meanStdDev() gives one value per channel
+  cv::Scalar mean, stddev;
+  cv::meanStdDev(out, mean, stddev);
+
+  std::vector<cv::Mat> channels;
+  cv::split(out, channels);
+
+  const int numColorChannels = std::min(out.channels(), 3);
+  for (int c = 0; c < numColorChannels; ++c) {
+    //the mean is unchanged and the standard deviation is 0.1*128
+    REQUIRE( std::abs(mean[c] - 128.0) < 2.0 );
+    REQUIRE( std::abs(stddev[c] - 12.8) < 2.0 );
+
+    //and almost no pixel is clamped
+    const cv::Mat extreme = (channels[c] == 0) | (channels[c] == 255);
+    REQUIRE( cv::countNonZero(extreme) < 0.01 * channels[c].total() );
+  }
+}
+
 TEST_CASE( "Testing NoiseDegradation" )
 { 
 
@@ -182,6 +222,13 @@ TEST_CASE( "Testing NoiseDegradation" )
   SECTION("Testing NoiseDegradation does not modify the alpha channel")
   {
     testAlphaIsPreserved(CV_8UC4);
+  }
+
+  SECTION("Testing NoiseDegradation::addSpeckleNoise applies the asked amount of noise")
+  {
+    testSpeckleNoiseAmount(CV_8UC1);
+    testSpeckleNoiseAmount(CV_8UC3);
+    testSpeckleNoiseAmount(CV_8UC4);
   }
 
 }

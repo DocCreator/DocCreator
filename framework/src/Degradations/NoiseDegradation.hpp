@@ -44,7 +44,7 @@ namespace dc {
     /**
        Add multiplicative noise using 
        out = image + n*image,
-       where n is uniform noise with specified mean & variance.
+       where n is a Gaussian noise with specified mean & standard deviation.
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
