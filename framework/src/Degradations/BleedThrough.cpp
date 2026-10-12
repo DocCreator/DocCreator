@@ -61,8 +61,14 @@ namespace dc {
 
     void operator()(const cv::Range &r) const override;
 
-    //update @a out on Rect(x,y,w,h)
-    void process(int _x, int _y, int _w, int _h) const;
+    /*
+      Update @a out on the pixels [x0; x1[ x [y0; y1[.
+
+      B: these were named _x, _y, _w and _h, and the last two are not a
+      width and a height but the first column and the first row that are
+      left out.
+    */
+    void process(int x0, int y0, int x1, int y1) const;
   
   private:
     const cv::Mat &_originalFrontImg;
@@ -114,7 +120,7 @@ namespace dc {
 
   //bleedThrough4b
   template <typename T>
-  void BleedThroughDiffusionThreadA<T>::process(int _x, int _y, int _w, int _h) const
+  void BleedThroughDiffusionThreadA<T>::process(int x0, int y0, int x1, int y1) const
   {
     assert(_back.size() == _front.size());
     assert(_back.size() == _originalFrontImg.size());
@@ -126,7 +132,7 @@ namespace dc {
   
     const int numChan = _back.channels();
   
-    for (int y = _y; y<_h; ++y) {
+    for (int y = y0; y<y1; ++y) {
       const T *v = _back.ptr<T>(y);
       const T *sr = _originalFrontImg.ptr<T>(y);
       const T *r = _front.ptr<T>(y);
@@ -138,7 +144,7 @@ namespace dc {
       const T *v_py = _back.ptr<T>(py);
       const T *v_ny = _back.ptr<T>(ny);
     
-      for (int x=_x; x<_w; ++x) {
+      for (int x=x0; x<x1; ++x) {
 
 	const T &r_v = r[x];
 	const T &sr_v = sr[x];
@@ -172,7 +178,7 @@ namespace dc {
 
   //bleedThrough4b
   template <>
-  void BleedThroughDiffusionThreadA<uchar>::process(int _x, int _y, int _w, int _h) const
+  void BleedThroughDiffusionThreadA<uchar>::process(int x0, int y0, int x1, int y1) const
   {
     assert(_back.size() == _front.size());
     assert(_back.size() == _originalFrontImg.size());
@@ -184,7 +190,7 @@ namespace dc {
   
     assert(_back.type() == CV_8UC1);
   
-    for (int y = _y; y<_h; ++y) {
+    for (int y = y0; y<y1; ++y) {
       const uchar *v = _back.ptr<uchar>(y);
       const uchar *sr = _originalFrontImg.ptr<uchar>(y);
       const uchar *r = _front.ptr<uchar>(y);
@@ -196,7 +202,7 @@ namespace dc {
       const uchar *v_py = _back.ptr<uchar>(py);
       const uchar *v_ny = _back.ptr<uchar>(ny);
     
-      for (int x=_x; x<_w; ++x) {
+      for (int x=x0; x<x1; ++x) {
 
 	const int current = r[x];
 	const int u = sr[x];
