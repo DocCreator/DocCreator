@@ -245,8 +245,13 @@ ChooseLabelForComponentForm::fillScanlineToImage(QImage &image,
   //B:TODO:OPTIM: remove checks from loops & take into account that scanlines are ordered !!!???
   while (it != sls.constEnd()) {
     const int y = it.key();
+    //B: these two tests used "<= height()" and "<= width()", so the first
+    // row and the first column outside of the image were written to. Qt
+    // rejected them with a warning per pixel, which is what kept the
+    // result right.
+    const int yd = y - Y + dy;
 
-    if ((y - Y + dy) <= image.height()) {
+    if (yd >= 0 && yd < image.height()) {
 
       const std::vector<int> &Xs = it.value();
       if (Xs.size() > 1) {
@@ -256,9 +261,9 @@ ChooseLabelForComponentForm::fillScanlineToImage(QImage &image,
           const int x1 = Xs[m] - X;
 
           for (int k = x0; k <= x1; ++k) {
-            if (k + dx <= image.width())
-              image.setPixel(
-                k + dx, y - Y + dy, _originalImage.pixel(k + X, y));
+            const int xd = k + dx;
+            if (xd >= 0 && xd < image.width())
+              image.setPixel(xd, yd, _originalImage.pixel(k + X, y));
           }
         }
       }
