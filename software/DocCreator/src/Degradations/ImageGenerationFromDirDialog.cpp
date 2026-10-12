@@ -146,8 +146,9 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
 
   QVector<std::string> lines;
   if (file.is_open()) {
-    while (file.good()) {
-      getline(file, line);
+    //B: "while (file.good()) { getline(...); }" ran one extra iteration, on
+    // the line left over by the failed read.
+    while (getline(file, line)) {
 
       const size_t lineSize = line.size();
       int lineLong = 0;
@@ -494,8 +495,8 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   int maxLineLong = 0;
 
   if (file.is_open()) {
-    while (file.good()) {
-      getline(file, line);
+    //B: cf fileSplit(): one extra iteration, which built an extra LineText.
+    while (getline(file, line)) {
       LineText *tmpLine = new LineText;
       tmpLine->Height = 0;
       tmpLine->Long = 0;
@@ -986,8 +987,8 @@ ImageGenerationFromDirDialog::readTextFile(const QString &filePath)
   std::ifstream file(filePath.toStdString().c_str());
   QStringList textLines;
   if (file.is_open()) {
-    while (file.good()) {
-      getline(file, line);
+    //B: cf fileSplit().
+    while (getline(file, line)) {
       if (!line.empty())
         textLines.push_back(QString::fromStdString(line));
     }
@@ -1064,8 +1065,8 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   int maxLineLong = 0;
 
   if (file.is_open()) {
-    while (file.good()) {
-      getline(file, line);
+    //B: cf fileSplit(): one extra iteration, which built an extra LineText.
+    while (getline(file, line)) {
       LineText *tmpLine = new LineText;
       tmpLine->Height = 0;
       tmpLine->Long = 0;
