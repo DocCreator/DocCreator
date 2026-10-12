@@ -83,12 +83,6 @@ namespace Doc
     }
 
     template< class T >
-    Node<T>* clone()
-    {
-        return new Node<T>();
-    }
-
-    template< class T >
     int Node<T>::removeSelection()
     {
         int offset = this->offset();
