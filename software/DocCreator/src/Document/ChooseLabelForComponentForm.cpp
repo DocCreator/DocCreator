@@ -272,6 +272,17 @@ ChooseLabelForComponentForm::fillScanlineToImage(QImage &image,
   const int X = dc->x();
   const int Y = dc->y();
 
+  /*
+    B: setPixel() stores its argument as it is. On a premultiplied image it
+    must thus be given a premultiplied pixel, and QImage::pixel() returns a
+    plain one: a background with an alpha channel, like
+    data/background/worn-paper.png, used to give components whose color
+    channels were above their alpha, which is not a valid premultiplied
+    pixel, and which Qt draws wrong.
+  */
+  const bool premultiplied =
+    (image.format() == QImage::Format_ARGB32_Premultiplied);
+
   //B:TODO:OPTIM: remove checks from loops & take into account that scanlines are ordered !!!???
   while (it != sls.constEnd()) {
     const int y = it.key();
@@ -292,8 +303,12 @@ ChooseLabelForComponentForm::fillScanlineToImage(QImage &image,
 
           for (int k = x0; k <= x1; ++k) {
             const int xd = k + dx;
-            if (xd >= 0 && xd < image.width())
-              image.setPixel(xd, yd, _originalImage.pixel(k + X, y));
+            if (xd >= 0 && xd < image.width()) {
+              const QRgb pixel = _originalImage.pixel(k + X, y);
+              image.setPixel(xd,
+                             yd,
+                             premultiplied ? qPremultiply(pixel) : pixel);
+            }
           }
         }
       }
