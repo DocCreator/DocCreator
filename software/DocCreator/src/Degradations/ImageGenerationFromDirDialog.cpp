@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
+#include <QFileInfo>
 
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "Document/DocumentController.hpp"
@@ -77,6 +78,10 @@ ImageGenerationFromDirDialog::degrade(
 
     QString filePath = folder.absoluteFilePath(f);
     QImage input(filePath);
+    if (input.isNull()) {
+      qDebug() << "WARNING: unable to read image, skipped: " << filePath;
+      continue;
+    }
 
     float percentOfIndepentSpots = 33, percentOfOverlappingSpots = 33;
     if (level <= 4) {
@@ -93,11 +98,14 @@ ImageGenerationFromDirDialog::degrade(
     }
     QImage out = dc::CharactersDegradation::degradation(input, level, percentOfIndepentSpots, percentOfOverlappingSpots);
 
-    QString fileImageOut = filePath;
-    QString str_degradation_level =
-      "_degradation_level_" +
-      QString::number(this->ui->hsSliderLevel->value()) + ".png";
-    fileImageOut.replace(QStringLiteral(".png"), str_degradation_level);
+    //B: QString::replace() replaced every ".png" of the whole path: a
+    // directory with ".png" in its name gave an output path pointing
+    // elsewhere.
+    const QFileInfo fileInfo(filePath);
+    const QString fileImageOut =
+      fileInfo.dir().absoluteFilePath(fileInfo.completeBaseName() +
+				      "_degradation_level_" +
+				      QString::number(level) + ".png");
 
     out.save(fileImageOut);
 
