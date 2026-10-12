@@ -1,4 +1,7 @@
+#include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -110,6 +113,48 @@ testSimple0c(int imageType)
  
 }
 
+static
+void
+testAlphaIsPreserved(int imageType)
+{
+  //The three degradations must not change the alpha channel of a CV_8UC4
+  //image.
+
+  const int ROWS = 64;
+  const int COLS = 48;
+
+  cv::Mat img(ROWS, COLS, imageType);
+  cv::randu(img, 0, 256);
+
+  const uint32_t SEED = 42;
+
+  std::vector<cv::Mat> outs;
+  outs.push_back(dc::NoiseDegradation::addGaussianNoise(img, 0.f, 30.f, dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS, SEED));
+  outs.push_back(dc::NoiseDegradation::addSpeckleNoise(img, 0.f, 1.f, dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS, SEED));
+  outs.push_back(dc::NoiseDegradation::addSaltAndPepperNoise(img, 0.5f, 0.5f, SEED));
+  //with the same noise on all channels
+  outs.push_back(dc::NoiseDegradation::addGaussianNoise(img, 0.f, 30.f, dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY, SEED));
+  outs.push_back(dc::NoiseDegradation::addSpeckleNoise(img, 0.f, 1.f, dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY, SEED));
+
+  std::vector<cv::Mat> inChannels;
+  cv::split(img, inChannels);
+
+  for (const cv::Mat &out : outs) {
+    REQUIRE( out.type() == imageType );
+
+    std::vector<cv::Mat> outChannels;
+    cv::split(out, outChannels);
+    REQUIRE( checkEqual(outChannels[3], inChannels[3]) );
+
+    //and the color channels did change
+    bool changed = false;
+    for (int c = 0; c < 3; ++c) {
+      changed = changed || ! checkEqual(outChannels[c], inChannels[c]);
+    }
+    REQUIRE( changed );
+  }
+}
+
 TEST_CASE( "Testing NoiseDegradation" )
 { 
 
@@ -132,6 +177,11 @@ TEST_CASE( "Testing NoiseDegradation" )
     testSimple0c(CV_8UC1);
     testSimple0c(CV_8UC3);
     testSimple0c(CV_8UC4);
+  }
+
+  SECTION("Testing NoiseDegradation does not modify the alpha channel")
+  {
+    testAlphaIsPreserved(CV_8UC4);
   }
 
 }

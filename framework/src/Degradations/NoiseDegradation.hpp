@@ -26,6 +26,7 @@ namespace dc {
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
+       For a CV_8UC4 image, the alpha channel is left unchanged.
 
        @param img input image.
        @param average average of the Gaussian distribution
@@ -47,6 +48,7 @@ namespace dc {
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
+       For a CV_8UC4 image, the alpha channel is left unchanged.
 
        @param img input image.
        @param average average of the Gaussian distribution
@@ -69,6 +71,7 @@ namespace dc {
 
        @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
        Output image will be of the same type and size than the input img.
+       For a CV_8UC4 image, the alpha channel is left unchanged.
 
        @param img input image.
        @param amount amount of noise (in [0; 1]).

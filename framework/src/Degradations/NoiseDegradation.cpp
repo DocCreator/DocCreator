@@ -1,6 +1,8 @@
 #include "NoiseDegradation.hpp"
 
 #include <cassert>
+#include <vector>
+
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "ColorUtils.hpp" //dc::isGray()
@@ -13,7 +15,7 @@ namespace dc {
     // We need to work with signed images (as noise can be
     // negative as well as positive). We use 16 bit signed
     // images as otherwise we would lose precision.
-  
+
     static cv::Mat makeRandnNoise(RandomEngine &rng,
 				  const cv::Mat &image,
 				  double average, double standardDeviation,
@@ -55,6 +57,25 @@ namespace dc {
       return noise_image;
     }
 
+    /*
+      Copy the alpha channel of @a src onto @a dst, that must have the same
+      size and type. Does nothing if the images have no alpha channel.
+
+      The noise is meant to degrade the colors of an image, not to make
+      parts of it transparent.
+    */
+    static void restoreAlpha(const cv::Mat &src, cv::Mat &dst)
+    {
+      assert(src.type() == dst.type());
+      assert(src.size() == dst.size());
+
+      if (src.channels() != 4) {
+	return;
+      }
+      int from_to[] = {3, 3};
+      cv::mixChannels(&src, 1, &dst, 1, from_to, 1);
+    }
+
     cv::Mat addGaussianNoise(const cv::Mat &image,
 			     float average, float standardDeviation,
 			     AddNoiseType addType,
@@ -74,6 +95,7 @@ namespace dc {
       cv::add(temp_image, noise_image, temp_image);
   
       temp_image.convertTo(dst, image.type());
+      restoreAlpha(image, dst);
   
       assert(dst.type() == image.type());
       assert(dst.size() == image.size());
@@ -101,6 +123,7 @@ namespace dc {
       cv::multiply(temp_image, noise_image, temp_image2);
       cv::add(temp_image, temp_image2, temp_image);
       temp_image.convertTo(dst, image.type());
+      restoreAlpha(image, dst);
 
       assert(dst.type() == image.type());
       assert(dst.size() == image.size());
@@ -128,8 +151,21 @@ namespace dc {
       cv::Mat white = noise > whiteThreshold;
 
       dst = image.clone();
-      dst.setTo(255, white);
-      dst.setTo(0, black);
+      if (dst.channels() == 4) {
+	//B: setTo() with a mask writes every channel: the alpha channel of
+	// the selected pixels would be set to 0 or 255 too.
+	std::vector<cv::Mat> channels;
+	cv::split(dst, channels);
+	for (int c = 0; c < 3; ++c) {
+	  channels[c].setTo(255, white);
+	  channels[c].setTo(0, black);
+	}
+	cv::merge(channels, dst);
+      }
+      else {
+	dst.setTo(255, white);
+	dst.setTo(0, black);
+      }
 
       assert(dst.type() == image.type());
       assert(dst.size() == image.size());
