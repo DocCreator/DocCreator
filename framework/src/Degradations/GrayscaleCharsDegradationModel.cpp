@@ -1907,10 +1907,6 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::grayscaleDegradationByTypes()
   {
-
-    std::vector<cv::Rect> listRecs;
-    listRecs.reserve(m_listSeedPoints.size());
-
     // calculate mean by region
     int meanB = m_avgBackground;
     int meanF = m_avgForeground;
@@ -1987,7 +1983,6 @@ namespace dc {
 						    semi_minor_axis,
 						    semi_major_axis,
 						    sp.pixel.gradient_angle);
-      listRecs.push_back(rec);
 
       //std::cerr<<"semi_major_axis="<<semi_major_axis<<" semi_minor_axis="<<semi_minor_axis<<" pos="<<sp.pixel.pos<<" gradient_angle="<<sp.pixel.gradient_angle<<" => rec="<<rec<<" min_B="<<min_B<<" max_B="<<max_B<<"\n";
 
@@ -2078,34 +2073,10 @@ namespace dc {
       lines.clear();
     }
 
-    //=========== APPLY THE FILTER GAUSIAN AT A NOISE REGION =================
-    constexpr int mask = 1;
-    for (const cv::Rect &r : listRecs) {
-      if (r.x >= 0 && r.y >= 0 && (r.x + r.width) < m_width &&
-	  (r.y + r.height) < m_height && r.width >= mask && r.height >= mask) {
-	assert((r.x + r.width) >= 0);
-	assert((r.y + r.height) >= 0);
-	cv::Mat roiImg = m_mat_output(r);
-	cv::Mat roiImg_Blur;
-	cv::GaussianBlur(roiImg, roiImg_Blur, cv::Size(mask, mask), 0);
-
-	//copy roiImg in m_mat_output
-	for (int y = 0; y < r.height; ++y) {
-	  uchar *dst = m_mat_output.ptr<uchar>(r.y + y);
-	  const uchar *src = roiImg_Blur.ptr<uchar>(y);
-	  for (int x = 0; x < r.width; ++x) {
-	    assert((r.y + y) < m_height && (r.y + y) >= 0 && (r.x + x) < m_width &&
-		   (r.x + x) >= 0);
-	    dst[r.x + x] = src[x];
-	  }
-	}
-      }
-    }
-    //B: Can we have overlapping rectangles ?
-    // If we have overlapping rectangles, the same pixels may be blurred several
-    // times...
-
-    listRecs.clear();
+    //B: a Gaussian blur was applied on the bounding rectangle of every
+    // ellipse here, with a 1x1 kernel. Such a kernel is the identity: the
+    // blur, the extraction of each region of interest and the copy back
+    // cost time and change nothing.
   }
 
   void
