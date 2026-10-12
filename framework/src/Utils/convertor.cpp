@@ -102,6 +102,25 @@ QImage Convertor::pixToQImage(PIX *pixImage){
 QImage
 Convertor::getQImage(const cv::Mat &image)
 {
+  if (image.empty()) {
+    return QImage();
+  }
+
+  /*
+    B: an image of a type none of the branches below handles used to be
+    returned as it was built, that is with whatever was on the heap: the
+    GUI then displayed it, and could save it to disk. Tell the caller
+    instead. The type has to be checked before cvtColor(), which throws for
+    a depth it does not handle (CV_32S, CV_64F).
+  */
+  const int type = image.type();
+  if (type != CV_8UC1 && type != CV_8UC3 && type != CV_8UC4
+      && type != CV_32FC1 && type != CV_32FC3) {
+    std::cerr << "ERROR: Convertor::getQImage(): unhandled image type: "
+	      << image.channels() << " channel(s), depth " << image.depth()
+	      << "\n";
+    return QImage();
+  }
 
   cv::Mat rgb;
   if (image.channels() == 1) {
@@ -110,12 +129,18 @@ Convertor::getQImage(const cv::Mat &image)
   else {
     rgb = image;
   }
-  assert(rgb.channels() == 3 || rgb.channels() == 4);
+  assert(rgb.type() == CV_8UC3 || rgb.type() == CV_8UC4
+	 || rgb.type() == CV_32FC3);
 
   const int h = rgb.rows;
   const int w = rgb.cols;
 
   QImage qimg(w, h, QImage::Format_ARGB32);
+  if (qimg.isNull()) {
+    std::cerr << "ERROR: Convertor::getQImage(): unable to allocate a "
+	      << w << "x" << h << " image\n";
+    return qimg;
+  }
 
   if (rgb.type() == CV_32FC3) {
 
@@ -123,14 +148,15 @@ Convertor::getQImage(const cv::Mat &image)
       const float *img = rgb.ptr<float>(i);
       QRgb *dst = (QRgb *)qimg.scanLine(i);
       for (int j = 0; j < w; ++j) {
-        //suppose image in BGR format
-        uchar b = *img;
+        //suppose image in BGR format, with values in [0.f; 255.f]
+        //B: the conversion of a float outside [0; 256) to an integral type
+        // is undefined behaviour: saturate.
+        uchar b = cv::saturate_cast<uchar>(*img);
         ++img;
-        uchar g = *img;
+        uchar g = cv::saturate_cast<uchar>(*img);
         ++img;
-        uchar r = *img;
+        uchar r = cv::saturate_cast<uchar>(*img);
         ++img;
-        //Are values in image in [0.f; 225.f] or [0.f; 1.f] ???
 
         *dst = qRgb(r, g, b);
         ++dst;
@@ -151,8 +177,6 @@ Convertor::getQImage(const cv::Mat &image)
         ++img;
         uchar r = *img;
         ++img;
-        //shoud we cv::saturate_cast() ???
-
         *dst = qRgb(r, g, b);
         ++dst;
       }
@@ -177,8 +201,6 @@ Convertor::getQImage(const cv::Mat &image)
         ++img;
         uchar a = *img;
         ++img;
-        //shoud we cv::saturate_cast() ???
-
         *dst = qRgba(r, g, b, a);
         ++dst;
       }
@@ -186,8 +208,7 @@ Convertor::getQImage(const cv::Mat &image)
 
   }
   else {
-    std::cerr << "ERROR: Convertor::getQImage() : unknown type \n";
-    assert(false);
+    assert(false); //the type was checked above
   }
 
   return qimg;
