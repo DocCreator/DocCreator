@@ -6,6 +6,7 @@ CONFIGURE_FILE(paths.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/paths.hpp @ONLY)
 
 
 SET(TESTS_IO_SRC
+  testDocumentIO.cpp
   testFontIO.cpp
   )
 

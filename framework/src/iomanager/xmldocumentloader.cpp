@@ -1,6 +1,8 @@
 #include "xmldocumentloader.h"
 
+#include <algorithm>
 #include <iostream>
+#include <limits>
 
 #include <QDebug>
 #include <QXmlStreamReader>
@@ -29,6 +31,35 @@ XMLDocumentLoader::reportError() const
   }
 }
 
+int
+XMLDocumentLoader::readIntAttribute(const QString &name,
+				    int minValue,
+				    int maxValue) const
+{
+  const QString value = _reader->attributes().value(name).toString();
+  if (value.isEmpty()) {
+    return 0;
+  }
+
+  bool ok = false;
+  const int v = value.toInt(&ok);
+  if (! ok) {
+    std::cerr << "Warning: attribute " << name.toStdString() << "=\""
+	      << value.toStdString() << "\" is not an integer (line "
+	      << _reader->lineNumber() << ")\n";
+    return 0;
+  }
+
+  if (v < minValue || v > maxValue) {
+    std::cerr << "Warning: attribute " << name.toStdString() << "=" << v
+	      << " is out of [" << minValue << "; " << maxValue
+	      << "] (line " << _reader->lineNumber() << "): it is clamped\n";
+    return std::min(std::max(v, minValue), maxValue);
+  }
+
+  return v;
+}
+
 void
 XMLDocumentLoader::createNewDocument()
 {
@@ -44,12 +75,8 @@ XMLDocumentLoader::createNewDocument()
          !_reader->atEnd()) {
     if (_reader->name() == QLatin1String("document") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      w =
-        _reader->attributes().value(QStringLiteral("width")).toString().toInt();
-      h = _reader->attributes()
-            .value(QStringLiteral("height"))
-            .toString()
-            .toInt();
+      w = readIntAttribute(QStringLiteral("width"), 0);
+      h = readIntAttribute(QStringLiteral("height"), 0);
       break;
     }
     _reader->readNext();
@@ -151,12 +178,10 @@ XMLDocumentLoader::buildImageBlock()
   auto ib = new Doc::DocImageBlock(
     _reader->attributes().value(QStringLiteral("filePath")).toString());
 
-  ib->setX(_reader->attributes().value(QStringLiteral("x")).toString().toInt());
-  ib->setY(_reader->attributes().value(QStringLiteral("y")).toString().toInt());
-  ib->setWidth(
-    _reader->attributes().value(QStringLiteral("width")).toString().toInt());
-  ib->setHeight(
-    _reader->attributes().value(QStringLiteral("height")).toString().toInt());
+  ib->setX(readIntAttribute(QStringLiteral("x")));
+  ib->setY(readIntAttribute(QStringLiteral("y")));
+  ib->setWidth(readIntAttribute(QStringLiteral("width"), 0));
+  ib->setHeight(readIntAttribute(QStringLiteral("height"), 0));
 
   return ib;
 }
@@ -166,28 +191,14 @@ XMLDocumentLoader::buildTextBlock()
 {
   auto tb = new Doc::DocTextBlock(_output);
 
-  tb->setX(_reader->attributes().value(QStringLiteral("x")).toString().toInt());
-  tb->setY(_reader->attributes().value(QStringLiteral("y")).toString().toInt());
-  tb->setWidth(
-    _reader->attributes().value(QStringLiteral("width")).toString().toInt());
-  tb->setHeight(
-    _reader->attributes().value(QStringLiteral("height")).toString().toInt());
-  tb->setMarginTop(_reader->attributes()
-                     .value(QStringLiteral("marginTop"))
-                     .toString()
-                     .toInt());
-  tb->setMarginBottom(_reader->attributes()
-                        .value(QStringLiteral("marginBottom"))
-                        .toString()
-                        .toInt());
-  tb->setMarginLeft(_reader->attributes()
-                      .value(QStringLiteral("marginLeft"))
-                      .toString()
-                      .toInt());
-  tb->setMarginRight(_reader->attributes()
-                       .value(QStringLiteral("marginRight"))
-                       .toString()
-                       .toInt());
+  tb->setX(readIntAttribute(QStringLiteral("x")));
+  tb->setY(readIntAttribute(QStringLiteral("y")));
+  tb->setWidth(readIntAttribute(QStringLiteral("width"), 0));
+  tb->setHeight(readIntAttribute(QStringLiteral("height"), 0));
+  tb->setMarginTop(readIntAttribute(QStringLiteral("marginTop"), 0));
+  tb->setMarginBottom(readIntAttribute(QStringLiteral("marginBottom"), 0));
+  tb->setMarginLeft(readIntAttribute(QStringLiteral("marginLeft"), 0));
+  tb->setMarginRight(readIntAttribute(QStringLiteral("marginRight"), 0));
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
@@ -208,14 +219,8 @@ XMLDocumentLoader::buildParagraph()
 {
   auto p = new Doc::DocParagraph(_output);
 
-  p->setLineSpacing(_reader->attributes()
-                      .value(QStringLiteral("lineSpacing"))
-                      .toString()
-                      .toInt());
-  p->setTabulationSize(_reader->attributes()
-                         .value(QStringLiteral("tabulationSize"))
-                         .toString()
-                         .toInt());
+  p->setLineSpacing(readIntAttribute(QStringLiteral("lineSpacing"), 0));
+  p->setTabulationSize(readIntAttribute(QStringLiteral("tabulationSize"), 0));
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
@@ -256,18 +261,15 @@ XMLDocumentLoader::buildString()
 Doc::DocCharacter *
 XMLDocumentLoader::buildCharacter()
 {
-  const int id =
-    _reader->attributes().value(QStringLiteral("id")).toString().toInt();
+  const int id = readIntAttribute(QStringLiteral("id"),
+				  0,
+				  std::numeric_limits<int>::max());
   const QString display =
     _reader->attributes().value(QStringLiteral("display")).toString();
-  const int x =
-    _reader->attributes().value(QStringLiteral("x")).toString().toInt();
-  const int y =
-    _reader->attributes().value(QStringLiteral("y")).toString().toInt();
-  const int w =
-    _reader->attributes().value(QStringLiteral("width")).toString().toInt();
-  const int h =
-    _reader->attributes().value(QStringLiteral("height")).toString().toInt();
+  const int x = readIntAttribute(QStringLiteral("x"));
+  const int y = readIntAttribute(QStringLiteral("y"));
+  const int w = readIntAttribute(QStringLiteral("width"), 0);
+  const int h = readIntAttribute(QStringLiteral("height"), 0);
   Doc::DocCharacter *c = new Doc::DocCharacter(display, id, _output);
   c->setX(x);
   c->setY(y);
