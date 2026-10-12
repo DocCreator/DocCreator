@@ -249,9 +249,12 @@ degradation(const cv::Mat &img,
 
 
   
-  std::vector<std::string> stainFiles = dc::listDirectory(stainDirName);
+  //B: cv::imread() used to be called on every entry of the directory,
+  // whatever it was. The image decoders have no business seeing files that
+  // do not even claim to be images.
+  std::vector<std::string> stainFiles = dc::listImageFiles(stainDirName);
   if (stainFiles.empty()) {
-    std::cerr<<"Warning: No file found in stain directory: "<<stainDirName<<"\n";
+    std::cerr<<"Warning: No image file found in stain directory: "<<stainDirName<<"\n";
     return out;
   }
   

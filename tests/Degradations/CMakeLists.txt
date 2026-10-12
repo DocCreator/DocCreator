@@ -15,6 +15,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testCharactersDegradation.cpp
   testColorUtils.cpp
   testElasticDeformation.cpp
+  testFileUtils.cpp
   testHoleDegradation.cpp
   testGradientDomainDegradation.cpp
   testNoiseDegradation.cpp

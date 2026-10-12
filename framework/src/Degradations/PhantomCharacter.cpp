@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath> //sqrt
 #include <ctime> //time
+#include <iostream>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -834,7 +835,8 @@ namespace dc {
 	return false;
       }
 
-      const std::vector<std::string> patterns = dc::listDirectory(phantomPatternsPath);
+      //B: cv::imread() used to be called on every entry of the directory
+      const std::vector<std::string> patterns = dc::listImageFiles(phantomPatternsPath);
       if (patterns.empty()) {
 	return false;
       }
@@ -856,7 +858,13 @@ namespace dc {
 	  constexpr int grayFlag = cv::IMREAD_GRAYSCALE;
 #endif
 	  patternMat = cv::imread(patternFilename, grayFlag);
-	  assert(!patternMat.empty());
+	  if (patternMat.empty()) {
+	    //B: the assert() here was inert in the default build, and the
+	    // empty pattern was then used.
+	    std::cerr<<"Warning: unable to read phantom pattern image: "
+		     <<patternFilename<<"\n";
+	    continue;
+	  }
      
 	  int widthPattern=0, maxWidth=0, minWidth=0;
 	  int heightPattern=0, minHeight=0, maxHeight=0;
