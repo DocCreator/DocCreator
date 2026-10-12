@@ -1,4 +1,9 @@
+#include <functional>
 #include <iostream>
+
+#include <QDataStream>
+#include <QFile>
+#include <QImage>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -122,6 +127,124 @@ testSimple()
 }
 
 
+namespace {
+
+  const uint32_t BOF_HEADER = ('B' << 24 | 'O' << 16 | 'F' << 8);
+
+  /*
+    Writes a .bof file whose header is valid and whose content is given by
+    @a fill, and returns its path.
+  */
+  QString
+  writeBOF(const QString &filename,
+	   const std::function<void (QDataStream &)> &fill)
+  {
+    QFile file(filename);
+    REQUIRE( file.open(QFile::WriteOnly | QFile::Truncate) );
+    QDataStream out(&file);
+    out << BOF_HEADER;
+    out.setVersion(QDataStream::Qt_4_0);
+    fill(out);
+    file.close();
+    return filename;
+  }
+
+} //namespace
+
+static
+void
+testCorrupt()
+{
+  /*
+    A count read from a font file used to be trusted: a 70-byte file
+    announcing 0xFFFFFFFF versions made the reader allocate until the
+    process was killed (it did not complete in 20s under a 2GB limit).
+    cf review sections 1.10 and 8.3.
+  */
+
+  SECTION("a file that is not a font")
+  {
+    const QString filename = QStringLiteral("tmp_corrupt_notafont.bof");
+    QFile file(filename);
+    REQUIRE( file.open(QFile::WriteOnly | QFile::Truncate) );
+    file.write("this is not a font at all", 25);
+    file.close();
+
+    REQUIRE( ! IOManager::FontFileManager::isBOFFile(filename) );
+    REQUIRE( IOManager::FontFileManager::fontFromBinary(filename) == nullptr );
+  }
+
+  SECTION("a file that holds nothing but a header")
+  {
+    const QString filename = writeBOF(QStringLiteral("tmp_corrupt_header.bof"),
+				      [](QDataStream &) {});
+    REQUIRE( IOManager::FontFileManager::isBOFFile(filename) );
+    REQUIRE( IOManager::FontFileManager::fontFromBinary(filename) == nullptr );
+  }
+
+  SECTION("a huge number of characters announced")
+  {
+    const QString filename =
+      writeBOF(QStringLiteral("tmp_corrupt_numcharacters.bof"),
+	       [](QDataStream &out) {
+		 out << QStringLiteral("corrupt");
+		 out << uint32_t(0xFFFFFFFF);
+	       });
+    REQUIRE( IOManager::FontFileManager::fontFromBinary(filename) == nullptr );
+  }
+
+  SECTION("a huge number of versions announced for a letter")
+  {
+    const QString filename =
+      writeBOF(QStringLiteral("tmp_corrupt_numversions.bof"),
+	       [](QDataStream &out) {
+		 out << QStringLiteral("corrupt");
+		 out << uint32_t(1);            //one character
+		 out << QStringLiteral("a");    //its value
+		 out << qreal(10) << qreal(20) << qreal(0) << qreal(10);
+		 out << uint32_t(0xFFFFFFFF);   //its number of versions
+	       });
+    REQUIRE( IOManager::FontFileManager::fontFromBinary(filename) == nullptr );
+  }
+
+  SECTION("a file truncated in the middle of a letter")
+  {
+    const QString filename =
+      writeBOF(QStringLiteral("tmp_corrupt_truncated.bof"),
+	       [](QDataStream &out) {
+		 out << QStringLiteral("corrupt");
+		 out << uint32_t(4);            //four characters announced
+		 out << QStringLiteral("a");
+		 out << qreal(10) << qreal(20); //and then nothing
+	       });
+    REQUIRE( IOManager::FontFileManager::fontFromBinary(filename) == nullptr );
+  }
+
+  SECTION("the same letter twice")
+  {
+    //both letters are read, the second one is rejected and deleted
+    const QString filename =
+      writeBOF(QStringLiteral("tmp_corrupt_duplicate.bof"),
+	       [](QDataStream &out) {
+		 for (int i = 0; i < 2; ++i) {
+		   if (i == 0) {
+		     out << QStringLiteral("duplicate");
+		     out << uint32_t(2);        //two characters
+		   }
+		   out << QStringLiteral("a");
+		   out << qreal(10) << qreal(20) << qreal(0) << qreal(10);
+		   out << uint32_t(1);          //one version
+		   out << int(0);               //its id
+		   out << QImage(4, 4, QImage::Format_ARGB32);
+		 }
+	       });
+    Models::Font *font = IOManager::FontFileManager::fontFromBinary(filename);
+    REQUIRE( font != nullptr );
+    REQUIRE( font->getCharacters().size() == 1 );
+    delete font;
+  }
+}
+
 TEST_CASE( "Testing IO" )
 { 
 
@@ -130,4 +253,9 @@ TEST_CASE( "Testing IO" )
     testSimple();
   }
   
+}
+
+TEST_CASE( "Testing a corrupt binary font file" )
+{
+  testCorrupt();
 }

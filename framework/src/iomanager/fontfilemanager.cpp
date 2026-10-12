@@ -615,7 +615,7 @@ FontFileManager::fontFromBinary(const QString &filepath)
     holds at least its own fields, so there cannot be more records than bytes
     left in the file.
   */
-  if (numCharacters > static_cast<uint32_t>(file.size() - file.pos())) {
+  if (static_cast<qint64>(numCharacters) > file.size() - file.pos()) {
     std::cerr << "Error: corrupt font file (it announces " << numCharacters
 	      << " characters): " << filepath.toStdString() << "\n";
     return nullptr;
@@ -640,7 +640,7 @@ FontFileManager::fontFromBinary(const QString &filepath)
     uint32_t numVersions = 0;
     in >> numVersions;
     if (in.status() != QDataStream::Ok ||
-	numVersions > static_cast<uint32_t>(file.size() - file.pos())) {
+	static_cast<qint64>(numVersions) > file.size() - file.pos()) {
       std::cerr << "Warning: corrupt font file (letter \"" << s.toStdString()
 		<< "\" announces " << numVersions
 		<< " versions): " << filepath.toStdString() << "\n";
@@ -677,6 +677,15 @@ FontFileManager::fontFromBinary(const QString &filepath)
       }
     }
 
+  }
+
+  if (font->getCharacters().empty()) {
+    //B: as fontFromXml() does. A corrupt file used to give an empty font,
+    // which every caller then used as if it held characters.
+    std::cerr << "Error: no letter read from font file: "
+	      << filepath.toStdString() << "\n";
+    delete font;
+    return nullptr;
   }
 
   return font;
