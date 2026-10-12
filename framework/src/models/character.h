@@ -47,8 +47,37 @@ public:
   void setAllBaseLines(qreal up, qreal base, qreal left, qreal right);
 
   /* Getters */
+
+  /**
+   * @return true if the character holds at least one CharacterData.
+   */
+  bool hasCharacterData() const;
+
   const CharacterData *getRandomCharacterData() const;
+
+  /**
+   * @return the CharacterData with id @a id, or nullptr if the character
+   * does not hold it.
+   *
+   * An id is not an index: it identifies one version of the character, and
+   * a document stores it to be redrawn with that very version. A document
+   * opened against a font edited since may thus ask for an id that is gone.
+   */
   const CharacterData *getCharacterData(int id) const;
+
+  /**
+   * @return the CharacterData with id @a id if the character holds it, and
+   * its first one otherwise.
+   *
+   * For the places where a missing id must not stop the drawing. Unlike
+   * getRandomCharacterData(), the replacement is the same on every call, so
+   * a document is drawn the same way each time it is opened.
+   *
+   * @warning the character must hold at least one CharacterData, cf
+   * hasCharacterData().
+   */
+  const CharacterData &getCharacterDataOrFirst(int id) const;
+
   const CharacterDataList &getAllCharacterData() const;
   int getCharacterDataCount() const;
 
@@ -71,6 +100,10 @@ private:
   qreal _upLine;
   qreal _leftLine;
   qreal _rightLine;
+
+  //true once getCharacterDataOrFirst() has warned, so that it warns once
+  //per character and not once per drawn letter
+  mutable bool _warnedOnMissingId = false;
 };
 } // Models
 

@@ -31,9 +31,10 @@ GraphicsCharacterItem::GraphicsCharacterItem(const Models::Character *character,
   , _mustDeleteCharacter(mustDeleteCharacter)
 {
   assert(_character);
-  const Models::CharacterData *charData = _character->getCharacterData(_cId);
-  assert(charData);
-  _img = charData->getImage();
+  //B: the assert() that was here was the only guard, and it is gone in a
+  // release build: a document that pins a version its font does not hold
+  // anymore gave a null pointer here.
+  _img = _character->getCharacterDataOrFirst(_cId).getImage();
   //buildHighlightedImage(); //we don't do it here. We do it on demand.
 
   setPixmap(QPixmap::fromImage(_img));

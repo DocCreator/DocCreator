@@ -617,14 +617,13 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
 
               const Models::Character *character =
                 currentFont->getCharacter(cDisplay);
-              const Models::CharacterData *charData =
-                character->getCharacterData(c->getId());
-              const QImage charImage = charData->getImage();
+              const QImage charImage =
+                character->getCharacterDataOrFirst(c->getId()).getImage();
 
 #ifndef NEBUG
               if (charImage.isNull())
                 std::cerr << "charImage.isNull() !!!!! character=" << character
-                          << " charData=" << charData << " \n";
+                          << " id=" << c->getId() << " \n";
 #endif //NDEBUG
 
               if (

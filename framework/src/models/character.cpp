@@ -1,6 +1,10 @@
 #include "character.h"
 
 #include "characterdata.h"
+
+#include <cassert>
+#include <iostream>
+
 #include <QDateTime>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 #include <QRandomGenerator>
@@ -121,6 +125,12 @@ Character::getRandomCharacterData() const
   return _dataList.at(randomIndex);
 }
 
+bool
+Character::hasCharacterData() const
+{
+  return ! _dataList.isEmpty();
+}
+
 const CharacterData *
 Character::getCharacterData(int id) const
 {
@@ -131,6 +141,34 @@ Character::getCharacterData(int id) const
       return *it;
   }
   return nullptr;
+}
+
+const CharacterData &
+Character::getCharacterDataOrFirst(int id) const
+{
+  assert(! _dataList.isEmpty());
+
+  const CharacterData *data = getCharacterData(id);
+  if (data != nullptr) {
+    return *data;
+  }
+
+  /*
+    B: the id comes from the document, which pins the version of the
+    character it was written with. A font edited since may not hold that
+    version anymore. Drawing the first one is better than not drawing the
+    character at all, but it is not what the document asks for, so it is
+    said once per character.
+  */
+  if (! _warnedOnMissingId) {
+    _warnedOnMissingId = true;
+    std::cerr << "Warning: the font does not hold the version " << id
+	      << " of the character \"" << _charValue.toStdString()
+	      << "\" the document asks for; its first version is used"
+		 " instead\n";
+  }
+
+  return *_dataList.first();
 }
 
 const CharacterDataList &

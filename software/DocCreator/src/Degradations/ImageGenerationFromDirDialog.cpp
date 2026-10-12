@@ -448,9 +448,9 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
                           chDisplay.isEmpty())
                         continue;
 
-                      const Models::CharacterData *charData =
-                        character->getCharacterData(ch->getId());
-                      const QImage charImage = charData->getImage();
+                      const QImage charImage =
+                        character->getCharacterDataOrFirst(ch->getId())
+                          .getImage();
 
                       wo = charImage.width();
                       ho = charImage.height();
@@ -479,9 +479,9 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
                         _font->getCharacter(cDisplay);
 
                       if (character != nullptr && !cDisplay.isEmpty()) {
-                        const Models::CharacterData *charData =
-                          character->getCharacterData(c->getId());
-                        const QImage charImage = charData->getImage();
+                        const QImage charImage =
+                          character->getCharacterDataOrFirst(c->getId())
+                            .getImage();
 
                         if (ho > 0)
                           posY += ho - charImage.height();
