@@ -11,6 +11,7 @@ ENDIF()
 
 SET(
   Degradations_headers
+  Degradations.hpp
   BleedThrough.hpp
   BlurFilter.hpp
   Distortion3D.hpp

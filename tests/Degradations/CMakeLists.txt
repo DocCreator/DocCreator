@@ -14,6 +14,7 @@ SET(TESTS_DEGRADATIONS_SRC
   testBlurDegradation.cpp
   testCharactersDegradation.cpp
   testColorUtils.cpp
+  testConcurrency.cpp
   testElasticDeformation.cpp
   testFileUtils.cpp
   testHoleDegradation.cpp
