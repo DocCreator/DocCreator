@@ -23,7 +23,7 @@ namespace dc {
     Black pixels (0) are considered foreground, 
     white pixels (255) are considered background.
   */
-  void
+  static void
   extractConnectedComponent(cv::Mat &input,
 			    const cv::Point &seed,
 			    CC &cc,

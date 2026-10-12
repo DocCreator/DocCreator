@@ -14,7 +14,7 @@ namespace dc {
     static constexpr int COEFF_PARABOLA = 4;
 
   
-    void
+    static void
     calcSolutions(float a, float b, float discr, float &y1, float &y2)
     {
       y1 = (-b + sqrtf(discr)) / (2 * a);
