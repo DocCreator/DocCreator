@@ -231,6 +231,36 @@ ChooseLabelForComponentForm::isSelectAll()
     }
 }
 
+/*
+  @return @a topImg stacked over @a bottomImg, separated by @a gap pixels,
+  each of them centered horizontally.
+*/
+static QImage
+stackCharacterImages(const QImage &topImg, const QImage &bottomImg, int gap)
+{
+  const int w = std::max(topImg.width(), bottomImg.width());
+  const int h = topImg.height() + gap + bottomImg.height();
+
+  QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
+  img.fill(Qt::transparent);
+
+  /*
+    B: QPainter premultiplies what it writes. setPixel() was used here, and
+    it stores its argument as it is: the character images are
+    Format_ARGB32, which is not premultiplied, so every pixel whose alpha
+    was neither 0 nor 255 was stored with color channels above its alpha,
+    which is not a valid premultiplied pixel. Half transparent red,
+    qRgba(255, 0, 0, 128), was stored as such and drawn gray, (127, 127,
+    127), instead of pink, (255, 127, 127).
+  */
+  QPainter painter(&img);
+  painter.drawImage((w - topImg.width()) / 2, 0, topImg);
+  painter.drawImage(
+    (w - bottomImg.width()) / 2, topImg.height() + gap, bottomImg);
+
+  return img;
+}
+
 void
 ChooseLabelForComponentForm::fillScanlineToImage(QImage &image,
                                                  const Doc::DocComponent *dc,
@@ -762,63 +792,18 @@ ChooseLabelForComponentForm::btnLabelingClicked()
       // could we use QImage.copy(Rect()) ?
 
       QImage img_FinalCharData;
+      //the smaller of the two images, by area, is the one on top
+      const bool firstIsSmaller =
+        img_CharData_1.width() * img_CharData_1.height() <
+        img_CharData_2.width() * img_CharData_2.height();
+      const int delta_h =
+        std::min(img_CharData_1.height(), img_CharData_2.height()) / 3;
+
       if (_cbPositions->currentText() == QLatin1String("Top")) { // top position
-        int delta_h = img_CharData_1.height() / 3;
-        if (img_CharData_1.height() > img_CharData_2.height()) {
-          delta_h = img_CharData_2.height() / 3;
-	}
-
-        int h = delta_h + img_CharData_1.height() + img_CharData_2.height();
-        int w = img_CharData_1.width();
-        if (w < img_CharData_2.width()) {
-          w = img_CharData_2.width();
-	}
-
-        img_FinalCharData = QImage(w, h, QImage::Format_ARGB32_Premultiplied);
-        img_FinalCharData.fill(
-          Qt::
-            transparent); //B:TODO:OPTIM: USELESS ? as we fill with qRgba(0, 0, 0, 0) afterwards ???
-        img_FinalCharData.fill(qRgba(0, 0, 0, 0));
-
-        //B:TODO:OPTIM: do not use pixel()/setPixel()
-        if (img_CharData_1.width() * img_CharData_1.height() <
-            img_CharData_2.width() * img_CharData_2.height()) {
-
-          for (int y = 0; y < img_CharData_1.height(); ++y) {
-            for (int x = 0; x < img_CharData_1.width(); ++x) {
-              img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
-                                         y,
-                                         img_CharData_1.pixel(x, y));
-	    }
-	  }
-
-          for (int y = 0; y < img_CharData_2.height(); ++y) {
-            for (int x = 0; x < img_CharData_2.width(); ++x) {
-              img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
-                                         y + img_CharData_1.height() + delta_h,
-                                         img_CharData_2.pixel(x, y));
-	    }
-	  }
-
-        }
-	else {
-
-          for (int y = 0; y < img_CharData_2.height(); ++y) {
-            for (int x = 0; x < img_CharData_2.width(); ++x) {
-              img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
-                                         y,
-                                         img_CharData_2.pixel(x, y));
-	    }
-	  }
-
-          for (int y = 0; y < img_CharData_1.height(); ++y) {
-            for (int x = 0; x < img_CharData_1.width(); ++x) {
-              img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
-                                         y + img_CharData_2.height() + delta_h,
-                                         img_CharData_1.pixel(x, y));
-	    }
-	  }
-        }
+        img_FinalCharData =
+          stackCharacterImages(firstIsSmaller ? img_CharData_1 : img_CharData_2,
+                               firstIsSmaller ? img_CharData_2 : img_CharData_1,
+                               delta_h);
         char_w = img_FinalCharData.width();
         char_h = img_FinalCharData.height();
 
@@ -829,61 +814,11 @@ ChooseLabelForComponentForm::btnLabelingClicked()
       }
       else if (_cbPositions->currentText() ==
                  QLatin1String("Bottom")) { //bottom position
-        int delta_h = img_CharData_1.height() / 3;
-        if (img_CharData_1.height() > img_CharData_2.height()) {
-          delta_h = img_CharData_2.height() / 3;
-	}
-
-        int h = delta_h + img_CharData_1.height() + img_CharData_2.height();
-        int w = img_CharData_1.width();
-        if (w < img_CharData_2.width()) {
-          w = img_CharData_2.width();
-	}
-
-        img_FinalCharData = QImage(w, h, QImage::Format_ARGB32_Premultiplied);
-        img_FinalCharData.fill(
-          Qt::
-            transparent); //B:TODO:OPTIM: USELESS ? as we fill with qRgba(0, 0, 0, 0) afterwards ???
-        img_FinalCharData.fill(qRgba(0, 0, 0, 0));
-
-        //B:TODO:OPTIM: do not use pixel()/setPixel()
-        if (img_CharData_1.width() * img_CharData_1.height() <
-            img_CharData_2.width() * img_CharData_2.height()) {
-          for (int y = 0; y < img_CharData_1.height(); ++y) {
-            for (int x = 0; x < img_CharData_1.width(); ++x) {
-              img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
-                                         y + img_CharData_2.height() + delta_h,
-                                         img_CharData_1.pixel(x, y));
-	    }
-	  }
-
-          for (int y = 0; y < img_CharData_2.height(); ++y) {
-            for (int x = 0; x < img_CharData_2.width(); ++x) {
-              img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
-                                         y,
-                                         img_CharData_2.pixel(x, y));
-	    }
-	  }
-
-        }
-	else {
-
-          for (int y = 0; y < img_CharData_2.height(); ++y) {
-            for (int x = 0; x < img_CharData_2.width(); ++x) {
-              img_FinalCharData.setPixel(x + (w - img_CharData_2.width()) / 2,
-                                         y + img_CharData_1.height() + delta_h,
-                                         img_CharData_2.pixel(x, y));
-	    }
-	  }
-
-          for (int y = 0; y < img_CharData_1.height(); ++y) {
-            for (int x = 0; x < img_CharData_1.width(); ++x) {
-              img_FinalCharData.setPixel((x + (w - img_CharData_1.width()) / 2),
-                                         y,
-                                         img_CharData_1.pixel(x, y));
-	    }
-	  }
-        }
+        //the other way round than for the top position
+        img_FinalCharData =
+          stackCharacterImages(firstIsSmaller ? img_CharData_2 : img_CharData_1,
+                               firstIsSmaller ? img_CharData_1 : img_CharData_2,
+                               delta_h);
         char_w = img_FinalCharData.width();
         char_h = img_FinalCharData.height();
       }
