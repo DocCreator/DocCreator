@@ -1,5 +1,6 @@
 #include "GradientDomainDegradation.hpp"
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <random>
@@ -18,12 +19,16 @@ namespace dc {
 
 /*
   draw @a numToDraw indices in the range [rangeMin, rangeMax[
+
+  Returns an empty vector for an empty range.
  */
 static std::vector<size_t>
 drawIndices(RandomEngine &rng, size_t numToDraw, size_t rangeMin, size_t rangeMax)
 {
   std::vector<size_t> indices;
-  assert(rangeMin < rangeMax);
+  if (rangeMin >= rangeMax) {
+    return indices;
+  }
 
   const size_t reserve = ((numToDraw + (rangeMax-rangeMin - 1)) / (rangeMax-rangeMin))*(rangeMax-rangeMin);
   indices.reserve(reserve);
