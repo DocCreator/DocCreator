@@ -3,6 +3,8 @@
 
 //inspired from https://github.com/pybind/pybind11/issues/2004
 
+#include <cassert>
+
 #include <opencv2/core/core.hpp>
 #include <pybind11/pybind11.h>
 
@@ -17,13 +19,11 @@ namespace pybind11 { namespace detail{
 
       bool load(handle obj, bool){
 	if(!py::isinstance<py::tuple>(obj)){
-	  std::logic_error("Point(x,y) should be a tuple!");
-	  return false;
+	  return false; //pybind11 reports the expected type, cf const_name() above
         }
 
 	py::tuple pt = reinterpret_borrow<py::tuple>(obj);
         if(pt.size()!=2){
-	  std::logic_error("Point(x,y) tuple should be size of 2");
 	  return false;
         }
 
@@ -43,12 +43,10 @@ namespace pybind11 { namespace detail{
       
       bool load(handle obj, bool){
         if(!py::isinstance<py::tuple>(obj)){
-	  std::logic_error("Rect should be a tuple!");
-	  return false;
+	  return false; //pybind11 reports the expected type, cf const_name() above
         }
         py::tuple rect = reinterpret_borrow<py::tuple>(obj);
         if(rect.size()!=4){
-	  std::logic_error("Rect (x,y,w,h) tuple should be size of 4");
 	  return false;
         }
 	
@@ -71,13 +69,13 @@ namespace pybind11 { namespace detail{
 
       bool load(handle obj, bool){
 	if(!py::isinstance<py::tuple>(obj)){
-	  std::logic_error("Scalar(x[,y[,z[,w]]]) should be a tuple!");
-	  return false;
+	  return false; //pybind11 reports the expected type, cf const_name() above
         }
 
 	py::tuple sc = reinterpret_borrow<py::tuple>(obj);
-        if(sc.size()>4){
-	  std::logic_error("Scalar(x[,y[,z[,w]]]) tuple should be size of 1, 2, 3 or 4.");
+        if(sc.size()<1 || sc.size()>4){
+	  //B: a tuple of size 0 used to match no branch below and to be
+	  // silently converted to cv::Scalar(), that is (0, 0, 0, 0).
 	  return false;
         }
 
@@ -90,7 +88,8 @@ namespace pybind11 { namespace detail{
 	else if (sc.size() == 3) {
 	  value = cv::Scalar(sc[0].cast<double>(), sc[1].cast<double>(), sc[2].cast<double>());
 	}
-	else if (sc.size() == 4) {
+	else {
+	  assert(sc.size() == 4);
 	  value = cv::Scalar(sc[0].cast<double>(), sc[1].cast<double>(), sc[2].cast<double>(), sc[3].cast<double>());
 	}
 	
