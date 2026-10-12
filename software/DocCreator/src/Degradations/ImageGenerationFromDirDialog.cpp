@@ -477,14 +477,18 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
                       columnSpacing * (nbColumns - 1)) /
                      nbColumns;
   int columnsHeight = (height - pageMarginTop - pageMarginBottom);
-  // create new document
-  auto document = new Doc::Document();
-  Context::DocumentContext::instance()->setCurrentDocument(document);
   if (_docController == nullptr) {
     qDebug() << "ERROR: file not saved because _docController is NULL: "
              << filePath;
-    return; //B
+    //B: the document used to be allocated and registered in the
+    // DocumentContext singleton before this test: it was leaked here, and
+    // the singleton was left pointing at it.
+    return;
   }
+
+  // create new document
+  auto document = new Doc::Document();
+  Context::DocumentContext::instance()->setCurrentDocument(document);
   _docController->setDocument(document);
 
   // add font style
