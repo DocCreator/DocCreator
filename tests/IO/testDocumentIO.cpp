@@ -13,7 +13,7 @@
 /*
   The geometry of a document was read from the file and used as is: the
   sizes end up in the allocations of the generation path, and a non
-  numerical value silently gave 0. cf review sections 8.4 and 1.12.
+  numerical value silently gave 0.
 */
 
 namespace {

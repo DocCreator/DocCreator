@@ -21,7 +21,7 @@
 /*
   The preconditions documented on the exported degradations used to be
   checked with assert() only, thus not at all in the default build type
-  (RelWithDebInfo defines NDEBUG). cf review sections 1.16 and 8.1.
+  (RelWithDebInfo defines NDEBUG).
 */
 
 namespace {

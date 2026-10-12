@@ -159,7 +159,6 @@ testCorrupt()
     A count read from a font file used to be trusted: a 70-byte file
     announcing 0xFFFFFFFF versions made the reader allocate until the
     process was killed (it did not complete in 20s under a 2GB limit).
-    cf review sections 1.10 and 8.3.
   */
 
   SECTION("a file that is not a font")
