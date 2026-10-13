@@ -251,6 +251,17 @@ bool NDArrayConverter::toMat(PyObject *o, Mat &m)
         failmsg("%s dimensionality (=%d) is too high", info.name, ndims);
         return false;
     }
+    /*
+      B: a one-dimensional array went through as an image of one column,
+      although every binding documents an input of two dimensions, or of
+      three with one, three or four channels. It is refused here, with the
+      name of the argument, like any other array that is not an image.
+    */
+    if(ndims < 2)
+    {
+        failmsg("%s has fewer than 2 dimensions (=%d)", info.name, ndims);
+        return false;
+    }
 
     int size[CV_MAX_DIM+1];
     size_t step[CV_MAX_DIM+1];

@@ -12,6 +12,26 @@ namespace py = pybind11;
 
 namespace pybind11 { namespace detail{
 
+    /*
+      The casters below read the elements of a tuple one by one. An element
+      that cannot be converted must make load() return false, so that
+      pybind11 reports an argument of the wrong type and names the one it
+      expected; handle::cast<T>() instead throws, and the caller saw a
+      RuntimeError about a C++ type named '?'.
+    */
+    template <typename T>
+    bool
+    loadElement(handle obj, T &out)
+    {
+      try {
+	out = obj.template cast<T>();
+      }
+      catch (const cast_error &) {
+	return false;
+      }
+      return true;
+    }
+
     // cv::Point <=> tuple (x, y)
     template<>
     struct type_caster<cv::Point>{
@@ -27,7 +47,13 @@ namespace pybind11 { namespace detail{
 	  return false;
         }
 
-	value = cv::Point(pt[0].cast<int>(), pt[1].cast<int>());
+	int x = 0;
+	int y = 0;
+	if (! loadElement(pt[0], x) || ! loadElement(pt[1], y)) {
+	  return false;
+	}
+
+	value = cv::Point(x, y);
         return true;
       }
 
@@ -50,7 +76,14 @@ namespace pybind11 { namespace detail{
 	  return false;
         }
 	
-        value = cv::Rect(rect[0].cast<int>(), rect[1].cast<int>(), rect[2].cast<int>(), rect[3].cast<int>());
+	int v[4] = { 0, 0, 0, 0 };
+	for (int i = 0; i < 4; ++i) {
+	  if (! loadElement(rect[i], v[i])) {
+	    return false;
+	  }
+	}
+
+        value = cv::Rect(v[0], v[1], v[2], v[3]);
         return true;
       }
 
@@ -79,20 +112,15 @@ namespace pybind11 { namespace detail{
 	  return false;
         }
 
-	if (sc.size() == 1) {
-	  value = cv::Scalar(sc[0].cast<double>());
+	double v[4] = { 0., 0., 0., 0. };
+	for (size_t i = 0; i < sc.size(); ++i) {
+	  if (! loadElement(sc[i], v[i])) {
+	    return false;
+	  }
 	}
-	else if (sc.size() == 2) {
-	  value = cv::Scalar(sc[0].cast<double>(), sc[1].cast<double>());
-	}
-	else if (sc.size() == 3) {
-	  value = cv::Scalar(sc[0].cast<double>(), sc[1].cast<double>(), sc[2].cast<double>());
-	}
-	else {
-	  assert(sc.size() == 4);
-	  value = cv::Scalar(sc[0].cast<double>(), sc[1].cast<double>(), sc[2].cast<double>(), sc[3].cast<double>());
-	}
-	
+
+	value = cv::Scalar(v[0], v[1], v[2], v[3]);
+
         return true;
       }
 

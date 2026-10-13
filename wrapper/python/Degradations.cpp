@@ -23,6 +23,26 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   NDArrayConverter::init_numpy();
 
+  m.doc() = R"pbdoc(
+	Document image degradations.
+
+	Every function below takes an image as a numpy array of dtype
+	uint8, of shape (rows, cols) or (rows, cols, channels) with one,
+	three or four channels, and gives back a degraded copy; the input
+	is never modified. Anything else -- another dtype, two channels,
+	fewer than two or more than three dimensions, an empty array --
+	raises an exception instead of being reinterpreted.
+
+	An image of shape (rows, cols, 1) comes back as (rows, cols): a
+	single channel image has no channel axis once it has been through
+	the library.
+
+	The degradations that draw random numbers take a seed. Two calls
+	with the same seed and the same parameters give the same image,
+	which is what makes a generated corpus reproducible; without a
+	seed, each call gives a different one.
+  )pbdoc";
+
   //--------------
 
   m.def("bleedThrough", &dc::BleedThrough::bleedThrough, R"pbdoc(

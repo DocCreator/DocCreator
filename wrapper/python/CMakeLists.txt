@@ -20,36 +20,27 @@ IF (NOT EXISTS ${PYBIND11_SRC_DIR})
 ENDIF()
 
 
+# Python is looked for here, and not left to pybind11: it is added with
+# ADD_SUBDIRECTORY() below, so the variables its own FIND_PACKAGE() sets
+# live in its directory scope and are empty here. PYTHON_EXECUTABLE was
+# read from here anyway, which made the NumPy lookup below run "" -c ...
+# and fail with a message naming no interpreter at all.
+# NumPy is a component: numpy/ndarrayobject.h is included by
+# ndarray_converter.cpp.
+SET(PYBIND11_FINDPYTHON ON)
+FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+MESSAGE(STATUS "Using Python ${Python_VERSION}: ${Python_EXECUTABLE}")
+MESSAGE(STATUS "NumPy include directory: ${Python_NumPy_INCLUDE_DIRS}")
+
 add_subdirectory(pybind11-${PYBIND11_ARCHIVE_VERSION})
 pybind11_add_module(DocCreatorPy Degradations.cpp ndarray_converter.cpp)
 set_target_properties(DocCreatorPy PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
   CXX_EXTENSIONS OFF)
-target_include_directories(DocCreatorPy PRIVATE ${PYTHON_INCLUDE_DIRS})
-
-# NumPy include directory (numpy/ndarrayobject.h is used by ndarray_converter.cpp)
-EXECUTE_PROCESS(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "import numpy; print(numpy.get_include())"
-  OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  RESULT_VARIABLE _numpy_result)
-IF(NOT _numpy_result EQUAL 0 OR NUMPY_INCLUDE_DIR STREQUAL "")
-  MESSAGE(FATAL_ERROR "NumPy include directory could not be determined via ${PYTHON_EXECUTABLE}. Please install numpy for this Python interpreter.")
-ENDIF()
-MESSAGE(STATUS "NumPy include directory: ${NUMPY_INCLUDE_DIR}")
-target_include_directories(DocCreatorPy PRIVATE ${NUMPY_INCLUDE_DIR})
+target_include_directories(DocCreatorPy PRIVATE ${Python_NumPy_INCLUDE_DIRS})
 
 target_link_libraries(DocCreatorPy PRIVATE DocCreatorDegradations)
-
-MESSAGE("BORIS PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}")
-message("BORIS PYTHONLIBS_FOUND=${PYTHONLIBS_FOUND}")
-message("BORIS PYTHON_INCLUDE_PATH=${PYTHON_INCLUDE_PATH}")
-message("BORIS PYTHON_INCLUDE_DIR=${PYTHON_INCLUDE_DIR}")
-message("BORIS PYTHON_INCLUDE_DIRS=${PYTHON_INCLUDE_DIRS}")
-message("BORIS PYTHON_LIBRARIES=${PYTHON_LIBRARIES}")
-message("BORIS $<TARGET_FILE:DocCreatorPy>=$<TARGET_FILE:DocCreatorPy>")
-message("BORIS $<TARGET_FILE_NAME:DocCreatorPy>=$<TARGET_FILE_NAME:DocCreatorPy>")
 
 set(DOCCREATOR_PYTHON_NAME "DocCreatorPy") #B:TODO
 set(DOCCREATOR_PYTHON_VERSION "0.0") #${DocCreatorMajorVersion}.${DocCreatorMinorVersion}") #B:TODO
@@ -62,8 +53,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README.md ${CMAKE_CURRENT_BINARY_DIR}
 
 IF(BUILD_WITH_OSMESA)
   FIND_PACKAGE(OSMesa REQUIRED) #ugly, second find
-  message("BORIS OSMesa_LIBRARIES=${OSMesa_LIBRARIES}")
-  #names dynamically searched/opened in glfw-3.3.2/src/osmesa_context.c
+    #names dynamically searched/opened in glfw-3.3.2/src/osmesa_context.c
   IF (WIN32)
     set(DST_OSMESA_NAME "OSMesa.dll")
   ELSEIF(APPLE)
@@ -83,7 +73,7 @@ file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/pyproject.toml I
 # We use --no-isolation so the build reuses the already-available
 # setuptools/wheel from the current Python environment instead of
 # creating an isolated venv and redownloading them.
-set(_python_build_cmd ${PYTHON_EXECUTABLE} -m build --wheel --no-isolation --outdir dist .)
+set(_python_build_cmd ${Python_EXECUTABLE} -m build --wheel --no-isolation --outdir dist .)
 
 IF(BUILD_WITH_OSMESA)
 

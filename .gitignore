@@ -1,2 +1,6 @@
 build*/
 review_*.md
+
+#python bytecode, written next to the test files when pytest runs
+__pycache__/
+*.pyc

@@ -144,7 +144,13 @@ namespace dc {
 				  float amount, float ratio,
 				  std::optional<uint32_t> seed)
     {
-      require8UC134(image, "img", "dc::NoiseDegradation::addSaltAndPepperNoise");
+      static const char *func = "dc::NoiseDegradation::addSaltAndPepperNoise";
+      require8UC134(image, "img", func);
+      //B: both are documented in [0; 1] and were used as they came: an
+      // amount of 5 made every pixel black or white, a negative one made
+      // thresholds that select nothing or everything.
+      requireInRange(amount, 0.0, 1.0, "amount", func);
+      requireInRange(ratio, 0.0, 1.0, "ratio", func);
 
       cv::Mat dst;
 

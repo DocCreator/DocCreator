@@ -13,3 +13,8 @@ IF(TARGET Distortion3DMesh)
   add_subdirectory(Mesh)
 ENDIF()
 
+#DocCreatorPy is only built when the python wrapper is
+IF(TARGET DocCreatorPy)
+  add_subdirectory(python)
+ENDIF()
+
