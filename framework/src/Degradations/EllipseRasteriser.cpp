@@ -59,8 +59,15 @@ namespace dc {
     assert(hr > 0 && hr <= 2 * localZone2);
     const cv::Rect r(xr, yr, wr, hr);
 
-    if (m_ellipse.empty()) {
-      m_ellipse.create(2 * localZone2, 2 * localZone2, CV_8UC1);
+    /*
+      The buffer is kept from one call to the next, and only grows: it was
+      allocated on the first call alone, so a later call with a larger
+      localZone asked for a window bigger than the buffer.
+    */
+    if (m_ellipse.rows < r.height || m_ellipse.cols < r.width) {
+      m_ellipse.create(std::max(2 * localZone2, m_ellipse.rows),
+		       std::max(2 * localZone2, m_ellipse.cols),
+		       CV_8UC1);
     }
     //Drawing the ellipse directly in the window clips it exactly as drawing
     //it in the whole image and cropping the window did.
