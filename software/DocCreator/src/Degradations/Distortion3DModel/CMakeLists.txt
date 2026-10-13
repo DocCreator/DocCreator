@@ -148,7 +148,12 @@ SET(DOC3D_INCLUDE_DIRS "${DOC3D_INCLUDE_DIRS_LOCAL}" PARENT_SCOPE)
 #ENDIF(WIN32)
 
 
-ADD_DEFINITIONS(-DSRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}") #PROJECT_SOURCE_DIR}")
+#B: ADD_DEFINITIONS(-DSRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}") was here. It
+# put the absolute path of this directory on the command line of every
+# source it compiles, and not one of them names SRC_DIR. The only code that
+# does is the USE_SHADER_FILES branch of
+# framework/src/Degradations/Distortion3DModel/src/GLRenderer.cpp, which
+# belongs to another target, and would not have seen this define anyway.
 
 SET(DOC3D_AUX_LIBRARIES "${QT_QTMAIN_LIBRARY};${QT_LIBRARIES};${OPENGL_LIBRARIES};surface_mesh;Distortion3DCommon;${DocCreator_LIBRARIES}")
 

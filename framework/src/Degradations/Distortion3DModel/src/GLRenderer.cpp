@@ -277,6 +277,15 @@ void GLRenderer::printGLInfos()
   
 }
 
+/*
+  Uncomment to read the shaders from the files of shaders/ at each run,
+  instead of the strings compiled in below, which are generated from them.
+
+  B: as it stands this does not compile: the branches it opens name a
+  SRC_DIR that no target defines for this file. Whoever wants it back
+  should make it a CMake option that sets the directory on this target,
+  rather than a define carrying an absolute path into every build.
+*/
 //#define USE_SHADER_FILES
 
 /*
