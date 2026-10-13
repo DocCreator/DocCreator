@@ -16,6 +16,7 @@
 #include <QFileInfo>
 
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
+#include "DocumentTextLayout.hpp"
 #include "Document/DocumentController.hpp"
 #include "context/backgroundcontext.h"
 #include "context/documentcontext.h"
@@ -206,63 +207,15 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
                      nbColumns;
   int columnsHeight = (height - pageMarginTop - pageMarginBottom);
 
-  std::string line;
-  std::ifstream file(filePath.toStdString().c_str());
+  const TextMeasurement measurement = measureText(filePath, *_font);
+  const QVector<std::string> &lines = measurement.rawLines;
 
-  const int normalBaseLine = 100;
-  int detaMaxBaseLine = 0;
-  int meanCharHeight = 0;
-  int maxCharHeight = 0;
-  size_t charCounter = 0;
-  int totalLineLong = 0;
-  int maxLineLong = 0;
+  const int meanCharHeight = measurement.meanCharHeight;
+  const int maxLineLong = measurement.maxLineLong;
+  const int totalLineLong = measurement.totalLineLong;
 
-  QVector<std::string> lines;
-  if (file.is_open()) {
-    //B: "while (file.good()) { getline(...); }" ran one extra iteration, on
-    // the line left over by the failed read.
-    while (getline(file, line)) {
-
-      const size_t lineSize = line.size();
-      int lineLong = 0;
-      charCounter += lineSize;
-
-      lines.push_back(line);
-
-      for (size_t i = 0; i < lineSize; ++i) {
-
-        QString charDisplay(line.at(i));
-        const Models::Character *character = _font->getCharacter(charDisplay);
-
-        if (character != nullptr &&
-            !charDisplay.isEmpty()) { // if the character exist in the font, get
-                                      // this character.
-          if (detaMaxBaseLine < fabs(normalBaseLine - character->getBaseLine()))
-            detaMaxBaseLine = fabs(normalBaseLine - character->getBaseLine());
-
-          const Models::CharacterData &charData =
-            character->getRandomCharacterData();
-          const QImage charImage = charData.getImage();
-
-          if (maxCharHeight < charImage.height())
-            maxCharHeight = charImage.height();
-
-          meanCharHeight += charImage.height();
-          lineLong += charImage.width();
-        }
-      }
-      if (maxLineLong < lineLong)
-        maxLineLong = lineLong;
-
-      totalLineLong += lineLong;
-    }
-  }
-  file.close();
-  // check if height of all paragraph > columns height
-  assert(charCounter > 0); //B
-  meanCharHeight =
-    meanCharHeight / charCounter; //B: do we really want integer division ???
-  const int lineSpacing = (maxCharHeight * 1.2f); //B: implicit cast ???
+  assert(! measurement.isEmpty()); //B
+  const int lineSpacing = (measurement.maxCharHeight * 1.2f); //B: implicit cast ???
 
   if (maxLineLong < columnsWidth) { // re-form background and columns width
     //        int delta = columnsWidth - maxLineLong;
@@ -311,8 +264,6 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
       openFileOut.close();
     }
   }
-  lines.clear();
-
   return listFilesOut;
 }
 
@@ -574,67 +525,14 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   auto style = new Doc::DocStyle(fontName);
   document->addStyle(style);
   // read string line from txt file
-  std::string line;
-  std::ifstream file(filePath.toStdString().c_str());
-  QList<LineText *> text;
-  const int normalBaseLine = 100;
-  int detaMaxBaseLine = 0;
-  int meanCharHeight = 0;
-  int maxCharHeight = 0;
-  int itemCounter = 0;
-  int totalLineLong = 0;
-  int maxLineLong = 0;
+  TextMeasurement measurement = measureText(filePath, *_font);
+  QList<LineText> &text = measurement.lines;
 
-  if (file.is_open()) {
-    //B: cf fileSplit(): one extra iteration, which built an extra LineText.
-    while (getline(file, line)) {
-      LineText *tmpLine = new LineText;
-      tmpLine->Height = 0;
-      tmpLine->Long = 0;
-      tmpLine->meanCharHeight = 0;
-      int lineLong = 0;
-      const size_t lineSize = line.size();
-      itemCounter += lineSize;
-
-      for (size_t i = 0; i < lineSize; ++i) {
-
-        QString charDisplay(line.at(i));
-        const Models::Character *character = _font->getCharacter(charDisplay);
-
-        if (character != nullptr &&
-            !charDisplay.isEmpty()) { // if the character exist in the font, get
-                                      // this character.
-          if (detaMaxBaseLine < fabs(normalBaseLine - character->getBaseLine()))
-            detaMaxBaseLine = fabs(normalBaseLine - character->getBaseLine());
-
-          const Models::CharacterData &charData =
-            character->getRandomCharacterData();
-          const QImage charImage = charData.getImage();
-
-          const int h = charImage.height();
-          if (maxCharHeight < h)
-            maxCharHeight = h;
-
-          meanCharHeight += h;
-          tmpLine->meanCharHeight += h;
-          lineLong += charImage.width();
-          tmpLine->charList.push_back(charDisplay);
-        }
-      }
-      if (maxLineLong < lineLong)
-        maxLineLong = lineLong;
-      tmpLine->Long = lineLong;
-      tmpLine->meanCharHeight = tmpLine->meanCharHeight / line.size();
-
-      totalLineLong += lineLong;
-      text.push_back(tmpLine);
-    }
-  }
-  file.close();
-  // check if height of all paragraph > columns height
-  assert(itemCounter > 0); //B
-  meanCharHeight = meanCharHeight / itemCounter;
-  int lineSpacing = (maxCharHeight * 1.2f);
+  assert(! measurement.isEmpty()); //B
+  const int meanCharHeight = measurement.meanCharHeight;
+  const int lineSpacing = (measurement.maxCharHeight * 1.2f);
+  const int maxLineLong = measurement.maxLineLong;
+  const int totalLineLong = measurement.totalLineLong;
 
   // check fitted column width with text input
   if (maxLineLong < columnsWidth) { // re-form background and columns width
@@ -679,106 +577,29 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   _docController->addTextBlock(
     pageMarginLeft, pageMarginTop, columnsWidth, columnsHeight);
 
-  const bool isBalance = true; //B:useless?
-  if (isBalance) {
-    int heightFilledTextBlock = 0;
-    QList<LineText *> tmpParagraphs;
-    tmpParagraphs.reserve(text.size());
-    for (LineText *tmpP : text) {
-
-      // calculate paragraph height
-      int nbLinesOfParagraph = tmpP->Long / columnsWidth + 1;
-      tmpP->Height =
-        (nbLinesOfParagraph - 1) * (tmpP->meanCharHeight + lineSpacing);
-      tmpP->Height = tmpP->Height * 0.85;
-
-      int heightChecker = heightFilledTextBlock + tmpP->Height - lineSpacing;
-
-      // at the end of text block
-      if (heightChecker > columnsHeight) { // split this paragraph into 2
-        LineText *tmp1 = new LineText;
-        tmp1->Long = 0;
-        tmp1->Height = 0;
-        tmp1->meanCharHeight = tmpP->meanCharHeight;
-        LineText *tmp2 = new LineText;
-        tmp2->Long = 0;
-        tmp2->Height = 0;
-        tmp2->meanCharHeight = tmpP->meanCharHeight;
-
-        int delta_height = columnsHeight - heightFilledTextBlock;
-
-        //find the splitted position
-        int spaceIndex = 0;
-        int spaceIndexNext = tmpP->charList.indexOf(QStringLiteral(" "));
-        while (spaceIndexNext != -1) {
-          // check word long
-          int wordLong = 0;
-          for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-            const Models::Character *character =
-              _font->getCharacter(tmpP->charList.at(i));
-            if (character != nullptr) {
-              const Models::CharacterData &charData =
-                character->getRandomCharacterData();
-              const QImage charImage = charData.getImage();
-              wordLong += charImage.width();
-            }
-          }
-          const int numLines = (tmp1->Long + wordLong) / columnsWidth + 1;
-          const int checkerH = numLines * (meanCharHeight + lineSpacing);
-          if (checkerH < delta_height) {
-            for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-              tmp1->charList << tmpP->charList.at(i);
-            }
-            tmp1->Long += wordLong;
-            tmp1->Height = checkerH;
-          }
-	  else {
-            for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-              tmp2->charList << tmpP->charList.at(i);
-            }
-            tmp2->Long += wordLong;
-          }
-          // move to next word
-          spaceIndex = spaceIndexNext;
-          spaceIndexNext =
-            tmpP->charList.indexOf(QStringLiteral(" "), spaceIndex + 1);
-        }
-
-        tmpParagraphs.push_back(tmp1);
-        tmpParagraphs.push_back(tmp2);
-        // Reset heightchecker
-        heightFilledTextBlock =
-          tmpP->Height - tmp1->Height; // update the height of filled text.
-
-      } else { // continue to add paragraph to the current textblock
-        heightFilledTextBlock =
-          heightChecker; // update the height of filled text.
-        tmpParagraphs.push_back(tmpP);
-      }
-    }
-    text = tmpParagraphs;
-  }
+  splitParagraphsToFitColumns(
+    text, *_font, columnsWidth, columnsHeight, lineSpacing, meanCharHeight);
   //
 
   qDebug() << " build next page nb of paragraphs " << text.size();
 
   int columnCounter = 1;
   int heightFilledTextBlock = 0;
-  for (LineText *tmpParagraph : text) {
+  for (LineText &tmpParagraph : text) {
 
     // calculate paragraph height
-    int nbLinesOfParagraph = tmpParagraph->Long / columnsWidth + 1;
+    int nbLinesOfParagraph = tmpParagraph.Long / columnsWidth + 1;
 
     if (nbLinesOfParagraph > 1)
-      tmpParagraph->Height =
-        (nbLinesOfParagraph - 1) * (tmpParagraph->meanCharHeight + lineSpacing);
+      tmpParagraph.Height =
+        (nbLinesOfParagraph - 1) * (tmpParagraph.meanCharHeight + lineSpacing);
     else
-      tmpParagraph->Height =
-        (nbLinesOfParagraph) * (tmpParagraph->meanCharHeight + lineSpacing);
+      tmpParagraph.Height =
+        (nbLinesOfParagraph) * (tmpParagraph.meanCharHeight + lineSpacing);
 
-    tmpParagraph->Height = tmpParagraph->Height * 0.85;
+    tmpParagraph.Height = tmpParagraph.Height * 0.85;
 
-    int heightChecker = heightFilledTextBlock + tmpParagraph->Height;
+    int heightChecker = heightFilledTextBlock + tmpParagraph.Height;
     //        qDebug() << " checker = " << heightChecker << " col height = " <<
     //        columnsHeight << " nbLines = " << nbLinesOfParagraph << " para
     //        height = " << tmpParagraph->Height;
@@ -807,7 +628,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
         columnCounter = 1; // Reset column counter for the new page.
       }
       heightFilledTextBlock =
-        tmpParagraph->Height; // update the height of fille text.
+        tmpParagraph.Height; // update the height of fille text.
 
     } else { // continue to add paragraph to the current textblock
       heightFilledTextBlock =
@@ -816,17 +637,13 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
     // add the current paragraph to the current textblock of page.
     _docController->addParagraph();
     _docController->setParagraphLineSpacing(lineSpacing);
-    _docController->addCharacters(tmpParagraph->charList);
+    _docController->addCharacters(tmpParagraph.charList);
   }
 
   // save
   QString filePathSave = filePath;
   filePathSave.replace(QStringLiteral(".txt"), QStringLiteral(".xml"));
   IOManager::DocumentFileManager::documentToXml(document, filePathSave);
-
-  for (LineText *p : text)
-    delete p;
-  text.clear();
 }
 
 void
@@ -1144,67 +961,14 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   auto style = new Doc::DocStyle(_fontName);
   document->addStyle(style);
   // read string line from txt file
-  std::string line;
-  std::ifstream file(filePath.toStdString().c_str());
-  QList<LineText *> textLines;
-  const int normalBaseLine = 100;
-  int detaMaxBaseLine = 0;
-  int meanCharHeight = 0;
-  int maxCharHeight = 0;
-  int itemCounter = 0;
-  int totalLineLong = 0;
-  int maxLineLong = 0;
+  TextMeasurement measurement = measureText(filePath, *_font);
+  QList<LineText> &textLines = measurement.lines;
 
-  if (file.is_open()) {
-    //B: cf fileSplit(): one extra iteration, which built an extra LineText.
-    while (getline(file, line)) {
-      LineText *tmpLine = new LineText;
-      tmpLine->Height = 0;
-      tmpLine->Long = 0;
-      tmpLine->meanCharHeight = 0;
-      int lineLong = 0;
-      const size_t lineSize = line.size();
-      itemCounter += lineSize;
-
-      for (size_t i = 0; i < lineSize; ++i) {
-
-        QString charDisplay(line.at(i));
-        const Models::Character *character = _font->getCharacter(charDisplay);
-
-        if (character != nullptr &&
-            !charDisplay.isEmpty()) { // if the character exist in the font, get
-                                      // this character.
-          if (detaMaxBaseLine < fabs(normalBaseLine - character->getBaseLine()))
-            detaMaxBaseLine = fabs(normalBaseLine - character->getBaseLine());
-
-          const Models::CharacterData &charData =
-            character->getRandomCharacterData();
-          const QImage charImage = charData.getImage();
-
-          const int h = charImage.height();
-          if (maxCharHeight < h)
-            maxCharHeight = h;
-
-          meanCharHeight += h;
-          tmpLine->meanCharHeight += h;
-          lineLong += charImage.width();
-          tmpLine->charList.push_back(charDisplay);
-        }
-      }
-      if (maxLineLong < lineLong)
-        maxLineLong = lineLong;
-      tmpLine->Long = lineLong;
-      tmpLine->meanCharHeight = tmpLine->meanCharHeight / line.size();
-
-      totalLineLong += lineLong;
-      textLines.push_back(tmpLine);
-    }
-  }
-  file.close();
-  // check if height of all paragraph > columns height
-  assert(itemCounter > 0); //B
-  meanCharHeight = meanCharHeight / itemCounter;
-  const int lineSpacing = (maxCharHeight * 1.2f);
+  assert(! measurement.isEmpty()); //B
+  const int meanCharHeight = measurement.meanCharHeight;
+  const int lineSpacing = (measurement.maxCharHeight * 1.2f);
+  const int maxLineLong = measurement.maxLineLong;
+  const int totalLineLong = measurement.totalLineLong;
 
   // check fitted column width with text input
   if (maxLineLong < _columnsWidth) { // re-form background and columns width
@@ -1261,85 +1025,12 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
 
   //_docController->addTextBlock(pageMarginLeft, pageMarginTop, columnsWidth, columnsHeight);
 
-  const bool isBalance = true; //B:useless?
-  if (isBalance) {
-    int heightFilledTextBlock = 0;
-    QList<LineText *> tmpLines;
-    tmpLines.reserve(textLines.size());
-    for (LineText *tmpLine : textLines) {
-
-      // calculate paragraph height
-      const int nbLinesOfParagraph = tmpLine->Long / _columnsWidth + 1;
-      tmpLine->Height =
-        (nbLinesOfParagraph - 1) * (tmpLine->meanCharHeight + lineSpacing);
-      tmpLine->Height = tmpLine->Height * 0.85;
-
-      const int heightChecker = heightFilledTextBlock + tmpLine->Height - lineSpacing;
-
-      // at the end of text block
-      if (heightChecker > _columnsHeight) { // split this paragraph into 2
-        LineText *tmp1 = new LineText;
-        tmp1->Long = 0;
-        tmp1->Height = 0;
-        tmp1->meanCharHeight = tmpLine->meanCharHeight;
-        LineText *tmp2 = new LineText;
-        tmp2->Long = 0;
-        tmp2->Height = 0;
-        tmp2->meanCharHeight = tmpLine->meanCharHeight;
-
-        const int delta_height = _columnsHeight - heightFilledTextBlock;
-
-        //find the splitted position
-        int spaceIndex = 0;
-        int spaceIndexNext = tmpLine->charList.indexOf(QStringLiteral(" "));
-        while (spaceIndexNext != -1) {
-          // check word long
-          int wordLong = 0;
-          for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-            const Models::Character *character =
-              _font->getCharacter(tmpLine->charList.at(i));
-            if (character != nullptr) {
-              const Models::CharacterData &charData =
-                character->getRandomCharacterData();
-              const QImage charImage = charData.getImage();
-              wordLong += charImage.width();
-            }
-          }
-          const int numLines = (tmp1->Long + wordLong) / _columnsWidth + 1;
-          const int checkerH = numLines * (meanCharHeight + lineSpacing);
-          if (checkerH < delta_height) {
-            for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-              tmp1->charList << tmpLine->charList.at(i);
-            }
-            tmp1->Long += wordLong;
-            tmp1->Height = checkerH;
-          }
-	  else {
-            for (int i = spaceIndex; i <= spaceIndexNext; ++i) {
-              tmp2->charList << tmpLine->charList.at(i);
-            }
-            tmp2->Long += wordLong;
-          }
-          // move to next word
-          spaceIndex = spaceIndexNext;
-          spaceIndexNext =
-            tmpLine->charList.indexOf(QStringLiteral(" "), spaceIndex + 1);
-        }
-
-        tmpLines.push_back(tmp1);
-        tmpLines.push_back(tmp2);
-        // Reset heightchecker
-        heightFilledTextBlock =
-          tmpLine->Height - tmp1->Height; // update the height of fille text.
-
-      } else { // continue to add paragraph to the current textblock
-        heightFilledTextBlock =
-          heightChecker; // update the height of filled text.
-        tmpLines.push_back(tmpLine);
-      }
-    }
-    textLines = tmpLines;
-  }
+  splitParagraphsToFitColumns(textLines,
+			      *_font,
+			      _columnsWidth,
+			      _columnsHeight,
+			      lineSpacing,
+			      meanCharHeight);
   //
 
   qDebug() << " build next page nb of paragraphs " << textLines.size();
@@ -1348,21 +1039,21 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
   int heightFilledTextBlock = 0;
   int dy = 0, dh = 0, pageCounter = 1;
 
-  for (LineText *tmpLine : textLines) {
+  for (LineText &tmpLine : textLines) {
 
     // calculate paragraph height
-    const int nbLinesOfParagraph = tmpLine->Long / _columnsWidth + 1;
+    const int nbLinesOfParagraph = tmpLine.Long / _columnsWidth + 1;
 
     if (nbLinesOfParagraph > 1)
-      tmpLine->Height =
-        (nbLinesOfParagraph - 1) * (tmpLine->meanCharHeight + lineSpacing);
+      tmpLine.Height =
+        (nbLinesOfParagraph - 1) * (tmpLine.meanCharHeight + lineSpacing);
     else
-      tmpLine->Height =
-        (nbLinesOfParagraph) * (tmpLine->meanCharHeight + lineSpacing);
+      tmpLine.Height =
+        (nbLinesOfParagraph) * (tmpLine.meanCharHeight + lineSpacing);
 
-    tmpLine->Height = tmpLine->Height * 0.85;
+    tmpLine.Height = tmpLine.Height * 0.85;
 
-    const int heightChecker = heightFilledTextBlock + tmpLine->Height;
+    const int heightChecker = heightFilledTextBlock + tmpLine.Height;
 
     if (heightChecker > _columnsHeight) {
       heightFilledTextBlock = 0;        // Reset heightchecker
@@ -1426,7 +1117,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
         columnCounter = 1; // Reset column counter for the new page.
       }
       heightFilledTextBlock =
-        tmpLine->Height; // update the height of fille text.
+        tmpLine.Height; // update the height of fille text.
 
     } else { // continue to add paragraph to the current textblock
       heightFilledTextBlock =
@@ -1443,7 +1134,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
 
     int dx = 0;
 
-    for (const QString &s : tmpLine->charList) {
+    for (const QString &s : tmpLine.charList) {
 
       int x = dx;
       int y = dy;
@@ -1488,9 +1179,6 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
     IOManager::DocumentFileManager::documentToXml(document, filePathSave);
   }
 
-  for (LineText *p : textLines)
-    delete p;
-  textLines.clear();
 
   //remove document
   for (Doc::Page *page : document->getPages()) {
