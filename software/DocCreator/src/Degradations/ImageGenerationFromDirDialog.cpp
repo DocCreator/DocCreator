@@ -855,9 +855,9 @@ ImageGenerationFromDirDialog::loadFont()
     Models::Character *ch = it.value();
     Models::CharacterDataList charsDataList = ch->getAllCharacterData();
 
-    for (Models::CharacterData *charData : charsDataList) {
+    for (const Models::CharacterData *charData : charsDataList) {
       if (charData != nullptr) {
-        const QImage charImage = charData.getImage();
+        const QImage charImage = charData->getImage();
         if (!charImage.isNull()) {
           _word_height += charImage.height();
           _Char_Format = charImage.format();
