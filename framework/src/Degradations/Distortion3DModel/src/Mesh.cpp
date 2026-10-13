@@ -12,105 +12,79 @@
 #include <limits>
 #include <vector>
 
-Mesh::~Mesh()
-{
-  clear();
-}
-
 void
 Mesh::copyFrom(const Mesh &m)
 {
   assert(&m != this);
 
-  const size_t numVerts = m.numVertices;
-  const size_t numTris = m.numTriangles;
+  vertices = m.vertices;
+  normals = m.normals;
+  texCoords = m.texCoords;
+  triangles = m.triangles;
+}
 
-  allocateVertices(m.numVertices);
-  if (numVerts > 0 && vertices != nullptr) {
-    memcpy(vertices, m.vertices, 3 * numVerts * sizeof(float));
-  }
-
-  //B: we must also drop our own normals/texCoords when @a m has none,
-  // otherwise the copy would not be equal to the source.
-  if (m.hasNormals()) {
-    allocateNormals();
-    if (normals != nullptr) {
-      memcpy(normals, m.normals, 3 * numVerts * sizeof(float));
-    }
-  }
-  else {
+void
+Mesh::allocateVertices(uint32_t numVerts)
+{
+  if (numVertices() != numVerts) {
     freeNormals();
-  }
-
-  if (m.hasTexCoords()) {
-    allocateTexCoords();
-    if (texCoords != nullptr) {
-      memcpy(texCoords, m.texCoords, 2 * numVerts * sizeof(float));
-    }
-  }
-  else {
     freeTexCoords();
-  }
 
-  allocateTriangles(m.numTriangles);
-  if (numTris > 0 && triangles != nullptr) {
-    memcpy(triangles, m.triangles, 3 * numTris * sizeof(uint32_t));
+    vertices.assign(static_cast<size_t>(numVerts) * 3, 0.f);
   }
 }
 
-Mesh::Mesh(const Mesh &m)
+void
+Mesh::allocateNormals()
 {
-  copyFrom(m);
+  normals.assign(static_cast<size_t>(numVertices()) * 3, 0.f);
 }
 
-Mesh &
-Mesh::operator=(const Mesh &m)
+void
+Mesh::allocateTexCoords()
 {
-  if (this != &m) {
-    copyFrom(m);
+  texCoords.assign(static_cast<size_t>(numVertices()) * 2, 0.f);
+}
+
+void
+Mesh::allocateTriangles(uint32_t numTris)
+{
+  if (numTriangles() != numTris) {
+    triangles.assign(static_cast<size_t>(numTris) * 3, 0);
   }
-  return *this;
 }
 
-Mesh::Mesh(Mesh &&m) noexcept
-  : numVertices(m.numVertices)
-  , vertices(m.vertices)
-  , normals(m.normals)
-  , texCoords(m.texCoords)
-  , numTriangles(m.numTriangles)
-  , triangles(m.triangles)
+/*
+  B: the four free*() give the memory back, as free() did, rather than only
+  emptying the vector: a mesh that has been cleared should not keep the
+  buffers of the one it held.
+*/
+void
+Mesh::freeVertices()
 {
-  //leave @a m empty: it owns nothing anymore
-  m.numVertices = 0;
-  m.vertices = nullptr;
-  m.normals = nullptr;
-  m.texCoords = nullptr;
-  m.numTriangles = 0;
-  m.triangles = nullptr;
+  vertices.clear();
+  vertices.shrink_to_fit();
 }
 
-Mesh &
-Mesh::operator=(Mesh &&m) noexcept
+void
+Mesh::freeNormals()
 {
-  if (this != &m) {
-    clear(); //release our own buffers first
+  normals.clear();
+  normals.shrink_to_fit();
+}
 
-    numVertices = m.numVertices;
-    vertices = m.vertices;
-    normals = m.normals;
-    texCoords = m.texCoords;
-    numTriangles = m.numTriangles;
-    triangles = m.triangles;
+void
+Mesh::freeTexCoords()
+{
+  texCoords.clear();
+  texCoords.shrink_to_fit();
+}
 
-    //leave @a m empty: it owns nothing anymore
-    m.numVertices = 0;
-    m.vertices = nullptr;
-    m.normals = nullptr;
-    m.texCoords = nullptr;
-    m.numTriangles = 0;
-    m.triangles = nullptr;
-  }
-  return *this;
+void
+Mesh::freeTriangles()
+{
+  triangles.clear();
+  triangles.shrink_to_fit();
 }
 
 void
@@ -124,103 +98,6 @@ Mesh::clear()
 }
 
 void
-Mesh::allocateVertices(uint32_t numVerts)
-{
-  if (numVertices != numVerts) {
-    freeVertices();
-    freeNormals();
-    freeTexCoords();
-
-    numVertices = numVerts;
-
-    if (numVertices > 0) {
-      //size_t arithmetic: numVertices * 3 would wrap as uint32_t
-      const size_t s = static_cast<size_t>(numVertices) * 3 * sizeof(float);
-      vertices = static_cast<float *>( malloc(s) );
-      if (vertices == nullptr) {
-	numVertices = 0;
-      }
-    }
-  }
-}
-
-void
-Mesh::allocateNormals()
-{
-  freeNormals();
-
-  if (numVertices > 0) {
-    const size_t s = static_cast<size_t>(numVertices) * 3 * sizeof(float);
-    normals = static_cast<float *>( malloc(s) );
-    //On failure, normals stays nullptr and hasNormals() is false:
-    // callers must check (cf. computeNormals(), copyFrom()).
-  }
-}
-
-void
-Mesh::allocateTexCoords()
-{
-  freeTexCoords();
-
-  if (numVertices > 0) {
-    const size_t s = static_cast<size_t>(numVertices) * 2 * sizeof(float);
-    texCoords = static_cast<float *>( malloc(s) );
-    //On failure, texCoords stays nullptr and hasTexCoords() is false:
-    // callers must check (cf. copyFrom()).
-  }
-}
-
-void
-Mesh::allocateTriangles(uint32_t numTris)
-{
-  if (numTris != numTriangles) {
-    freeTriangles();
-
-    numTriangles = numTris;
-    if (numTris > 0) {
-      //size_t arithmetic: numTris * 3 would wrap as uint32_t
-      const size_t s = static_cast<size_t>(numTris) * 3 * sizeof(uint32_t);
-      triangles = static_cast<uint32_t *>( malloc(s) );
-      if (triangles == nullptr) {
-        numTriangles = 0; //keep the count consistent with the buffer
-      }
-    }
-  }
-}
-
-void
-Mesh::freeVertices()
-{
-  free(vertices);
-  vertices = nullptr;
-  numVertices = 0; //a null buffer must never keep a non-zero count
-}
-
-void
-Mesh::freeNormals()
-{
-  free(normals);
-  normals = nullptr;
-  assert(!hasNormals());
-}
-
-void
-Mesh::freeTexCoords()
-{
-  free(texCoords);
-  texCoords = nullptr;
-  assert(!hasTexCoords());
-}
-
-void
-Mesh::freeTriangles()
-{
-  free(triangles);
-  triangles = nullptr;
-  numTriangles = 0; //a null buffer must never keep a non-zero count
-}
-
-void
 Mesh::copyTo(Mesh &m) const
 {
   if (&m != this) {
@@ -231,15 +108,10 @@ Mesh::copyTo(Mesh &m) const
 void
 Mesh::swap(Mesh &m) noexcept
 {
-  std::swap(m.vertices, vertices);
-  std::swap(m.normals, normals);
-  std::swap(m.texCoords, texCoords);
-  std::swap(m.numVertices, numVertices);
-  std::swap(m.numTriangles, numTriangles);
-  std::swap(m.triangles, triangles);
-
-  //B: no postcondition to check here: the two meshes need not have the same
-  // shape, and swapping six members cannot fail.
+  vertices.swap(m.vertices);
+  normals.swap(m.normals);
+  texCoords.swap(m.texCoords);
+  triangles.swap(m.triangles);
 }
 
 void
@@ -261,7 +133,7 @@ Mesh::unitize()
   const float maxDim = std::max(dim[0], std::max(dim[1], dim[2]));
   const float scale = (maxDim > 0.f) ? (2.0f / maxDim) : 1.0f;
 
-  for (uint32_t i = 0; i < numVertices; ++i) {
+  for (uint32_t i = 0; i < numVertices(); ++i) {
     for (int k = 0; k < 3; ++k) {
       vertices[3 * i + k] -= center[k];
       vertices[3 * i + k] *= scale;
@@ -274,7 +146,7 @@ Mesh::normalizeNormals()
 {
   assert(hasNormals());
 
-  const size_t numVerts = numVertices;
+  const size_t numVerts = numVertices();
   for (size_t i = 0; i < numVerts; ++i) {
     const float x = normals[3 * i + 0];
     const float y = normals[3 * i + 1];
@@ -296,9 +168,9 @@ Mesh::normalizeNormals()
 void
 Mesh::computeNormals()
 {
-  if (normals == nullptr) {
+  if (normals.empty()) {
     allocateNormals();
-    if (normals == nullptr) {
+    if (normals.empty()) {
       std::cerr << "ERROR: Mesh::computeNormals(): unable to allocate normals\n";
       return;
     }
@@ -309,13 +181,13 @@ Mesh::computeNormals()
   /*
   {
     //check if all vertices are used in triangles
-    std::vector<bool> used(numVertices, false);
-    const size_t numTris3 = numTriangles*3;
+    std::vector<bool> used(numVertices(), false);
+    const size_t numTris3 = numTriangles()*3;
     for (size_t i=0; i<numTris3; ++i) {
       used[triangles[i]] = true;
     }
     bool allUsed = true;
-    for (size_t i=0; i<numVertices; ++i) {
+    for (size_t i=0; i<numVertices(); ++i) {
       if (! used[i]) {
         std::cerr<<"vertex "<<i<<" is not used in any triangle !!!!\n";
         allUsed = false;
@@ -326,11 +198,11 @@ Mesh::computeNormals()
   */
 
   //set all (vertex) normals to zero
-  memset(normals, 0, static_cast<size_t>(numVertices) * 3 * sizeof(float));
+  memset(normals.data(), 0, static_cast<size_t>(numVertices()) * 3 * sizeof(float));
 
   //compute face normals and accumulate in vertex normals
-  const size_t numTris = numTriangles;
-  const uint32_t *tris = triangles;
+  const size_t numTris = numTriangles();
+  const uint32_t *tris = triangles.data();
   for (size_t i = 0; i < numTris; ++i) {
     const uint32_t v_id_0 = tris[3 * i + 0];
     const uint32_t v_id_1 = tris[3 * i + 1];
@@ -369,7 +241,7 @@ Mesh::computeNormals()
 void
 Mesh::getAABB(float minB[3], float maxB[3]) const
 {
-  if (numVertices == 0) {
+  if (numVertices() == 0) {
     //B: vertices may be null here, it must not be dereferenced.
     for (int k = 0; k < 3; ++k)
       maxB[k] = minB[k] = 0.f;
@@ -379,7 +251,7 @@ Mesh::getAABB(float minB[3], float maxB[3]) const
   for (int k = 0; k < 3; ++k)
     maxB[k] = minB[k] = vertices[3 * 0 + k];
 
-  for (uint32_t i = 1; i < numVertices; ++i) { //start from 1
+  for (uint32_t i = 1; i < numVertices(); ++i) { //start from 1
     for (int k = 0; k < 3; ++k) {
       const float v = vertices[3 * i + k];
       if (v > maxB[k])
@@ -396,14 +268,11 @@ Mesh::removeDegenerateTrianglesIndices()
 {
   assert(isValid());
 
-  Mesh m;
-  m.allocateTriangles(numTriangles);
+  std::vector<uint32_t> kept;
+  kept.reserve(triangles.size());
 
-  uint32_t *dst = m.triangles;
-  const uint32_t *tri = triangles;
-  assert(dst);
-  assert(tri);
-  for (uint32_t i = 0; i < numTriangles; ++i) {
+  const uint32_t *tri = triangles.data();
+  for (uint32_t i = 0; i < numTriangles(); ++i) {
 
     bool toKeep = true;
 
@@ -414,31 +283,27 @@ Mesh::removeDegenerateTrianglesIndices()
         toKeep = false;
         break;
       }
-      dst[k] = tri[k];
-
       i1 = i2;
     }
 
-    if (toKeep)
-      dst += 3;
+    if (toKeep) {
+      kept.insert(kept.end(), tri, tri + 3);
+    }
 
     tri += 3;
   }
 
-  const uint32_t newNumTriangles =
-    static_cast<uint32_t>((dst - m.triangles) / 3);
-  assert(newNumTriangles <= numTriangles);
-  if (newNumTriangles != numTriangles) {
-
+  /*
+    B: this built the kept triangles in a second mesh, swapped the two
+    buffers and then set the two counts by hand; forgetting the second of
+    them is the bug of 9376c8a, which left the mesh announcing more
+    triangles than its buffer held. The count is the size of the vector
+    now, so the swap is the whole of it.
+  */
+  if (kept.size() != triangles.size()) {
     std::cerr << "!!!!!! removeDegenerateTrianglesIndices numTriangles old="
-              << numTriangles << " new=" << newNumTriangles << "\n";
-
-    //Take m's buffer, which holds exactly newNumTriangles valid triangles
-    // (it was allocated for the old count, so it keeps some unused slack),
-    // and leave our own buffer to @a m, which will free it.
-    std::swap(m.triangles, triangles);
-    m.numTriangles = numTriangles;
-    numTriangles = newNumTriangles; //B: this was missing
+              << numTriangles() << " new=" << (kept.size() / 3) << "\n";
+    triangles.swap(kept);
   }
 
   assert(isValid());
@@ -456,11 +321,11 @@ Mesh::copyToWithNewIndices(Mesh &m,
     m.allocateNormals();
   if (hasTexCoords())
     m.allocateTexCoords();
-  m.allocateTriangles(numTriangles);
+  m.allocateTriangles(numTriangles());
 
   //bail out rather than write through a failed allocation
-  const bool allocOk = (newNumVertices == 0 || m.vertices != nullptr) &&
-                       (numTriangles == 0 || m.triangles != nullptr) &&
+  const bool allocOk = (newNumVertices == 0 || ! m.vertices.empty()) &&
+                       (numTriangles() == 0 || ! m.triangles.empty()) &&
                        (!hasNormals() || m.hasNormals()) &&
                        (!hasTexCoords() || m.hasTexCoords());
   if (!allocOk) {
@@ -472,18 +337,18 @@ Mesh::copyToWithNewIndices(Mesh &m,
   const uint32_t INVALID = -1;
 
   //copy triangles with new indices
-  const uint32_t numTriangles3 = numTriangles * 3;
+  const uint32_t numTriangles3 = numTriangles() * 3;
   for (uint32_t i = 0; i < numTriangles3; ++i) {
     assert(newVIndices[triangles[i]] != INVALID);
     m.triangles[i] = newVIndices[triangles[i]];
   }
   //copy vertices
-  for (uint32_t i = 0; i < numVertices; ++i) {
+  for (uint32_t i = 0; i < numVertices(); ++i) {
     const uint32_t oldInd = i;
-    assert(oldInd < numVertices);
+    assert(oldInd < numVertices());
     const uint32_t newInd = newVIndices[i];
     if (newInd != INVALID) {
-      assert(newInd < m.numVertices);
+      assert(newInd < m.numVertices());
       m.vertices[3 * newInd + 0] = vertices[3 * oldInd + 0];
       m.vertices[3 * newInd + 1] = vertices[3 * oldInd + 1];
       m.vertices[3 * newInd + 2] = vertices[3 * oldInd + 2];
@@ -507,9 +372,9 @@ Mesh::removeDuplicatedVertices()
 {
   assert(isValid());
 
-  if (numVertices > 1) {
+  if (numVertices() > 1) {
     const uint32_t INVALID = -1;
-    std::vector<uint32_t> newVIndices(numVertices,
+    std::vector<uint32_t> newVIndices(numVertices(),
                                       INVALID); //newVIndices[oldInd]==newInd
 
     constexpr float eps = std::numeric_limits<float>::epsilon() * 2.f;
@@ -517,11 +382,11 @@ Mesh::removeDuplicatedVertices()
     //TODO:OPTIM: QUADRATIC !!!
 
     uint32_t vi = 0;
-    for (uint32_t i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices(); ++i) {
       const float *v1 = &vertices[3 * i];
       if (newVIndices[i] == INVALID) {
         newVIndices[i] = vi;
-        for (uint32_t j = i + 1; j < numVertices; ++j) {
+        for (uint32_t j = i + 1; j < numVertices(); ++j) {
           const float *v2 = &vertices[3 * j];
 
           if (std::fabs(v1[0] - v2[0]) < eps &&
@@ -540,8 +405,8 @@ Mesh::removeDuplicatedVertices()
       }
     }
 
-    if (vi < numVertices) {
-      std::cerr << "!!!!!! removeDuplicatedVertices(): " << numVertices - vi
+    if (vi < numVertices()) {
+      std::cerr << "!!!!!! removeDuplicatedVertices(): " << numVertices() - vi
                 << " duplicate vertices\n";
 
       Mesh m;
@@ -560,9 +425,9 @@ Mesh::removeNonReferencedVertices()
 {
   assert(isValid());
 
-  std::vector<bool> referenced(numVertices, false);
+  std::vector<bool> referenced(numVertices(), false);
   size_t numUsed = 0;
-  const uint32_t numTriangles3 = numTriangles * 3;
+  const uint32_t numTriangles3 = numTriangles() * 3;
   for (uint32_t i = 0; i < numTriangles3; ++i) {
     assert(triangles);
     const uint32_t ind = triangles[i];
@@ -571,18 +436,18 @@ Mesh::removeNonReferencedVertices()
     referenced[ind] = true;
   }
 
-  if (numUsed != numVertices) {
-    assert(numUsed < numVertices);
+  if (numUsed != numVertices()) {
+    assert(numUsed < numVertices());
 
     std::cerr << "!!!!!! removeNonReferencedVertices() : "
-              << numVertices - numUsed << " non-referenced vertices ("
+              << numVertices() - numUsed << " non-referenced vertices ("
               << numUsed << " used)\n";
 
     const uint32_t INVALID = -1;
     uint32_t vi = 0;
-    std::vector<uint32_t> newVIndices(numVertices,
+    std::vector<uint32_t> newVIndices(numVertices(),
                                       INVALID); //newVIndices[oldInd]==newInd
-    for (uint32_t i = 0; i < numVertices; ++i) {
+    for (uint32_t i = 0; i < numVertices(); ++i) {
       if (referenced[i]) {
         newVIndices[i] = vi;
         ++vi;
@@ -601,13 +466,13 @@ Mesh::removeNonReferencedVertices()
 
 #ifndef NDEBUG
 static void
-checkIndices(uint32_t numVertices, uint32_t numIndices, uint32_t *indices)
+checkIndices(uint32_t numVertices(), uint32_t numIndices, uint32_t *indices)
 {
   bool hasError = false;
   for (uint32_t i = 0; i < numIndices; ++i) {
-    if (indices[i] >= numVertices) {
+    if (indices[i] >= numVertices()) {
       std::cerr << "ERROR: i=" << i << " indices[i]=" << indices[i]
-                << " >= numVertices=" << numVertices << "\n";
+                << " >= numVertices()=" << numVertices() << "\n";
       hasError = true;
       break;
     }
@@ -629,50 +494,50 @@ void
 Mesh::optimizeTriangleOrdering()
 {
   Mesh m;
-  m.allocateVertices(numVertices);
+  m.allocateVertices(numVertices());
   if (hasNormals())
     m.allocateNormals();
   if (hasTexCoords())
     m.allocateTexCoords();
-  m.allocateTriangles(numTriangles);
+  m.allocateTriangles(numTriangles());
 
-  const uint32_t numTriangles3 = numTriangles * 3;
+  const uint32_t numTriangles3 = numTriangles() * 3;
   for (uint32_t i = 0; i < numTriangles3; ++i) {
     m.triangles[i] = triangles[i];
   }
 
 #ifndef NDEBUG
-  checkIndices(numVertices, numTriangles * 3, m.triangles);
+  checkIndices(numVertices(), numTriangles() * 3, m.triangles);
 #endif
 
-  optimizeIndexOrder(numVertices, numTriangles3, m.triangles);
+  optimizeIndexOrder(numVertices(), numTriangles3, m.triangles.data());
 
 #ifndef NDEBUG
-  checkIndices(numVertices, numTriangles * 3, m.triangles);
+  checkIndices(numVertices(), numTriangles() * 3, m.triangles);
 #endif
 
   //TODO: some CODE DUPLICATION with removeNonReferencedVertices()
 
   const uint32_t INVALID = -1;
-  std::vector<uint32_t> newVIndices(numVertices,
+  std::vector<uint32_t> newVIndices(numVertices(),
                                     INVALID); //newVIndices[oldInd]==newInd
   uint32_t vi = 0;
   for (uint32_t i = 0; i < numTriangles3; ++i) {
     if (newVIndices[m.triangles[i]] == INVALID) {
-      assert(vi < numVertices);
+      assert(vi < numVertices());
       newVIndices[m.triangles[i]] = vi;
       ++vi;
     }
     assert(newVIndices[m.triangles[i]] != INVALID);
-    assert(newVIndices[m.triangles[i]] < numVertices);
+    assert(newVIndices[m.triangles[i]] < numVertices());
     m.triangles[i] = newVIndices[m.triangles[i]];
   }
 
-  for (uint32_t i = 0; i < numVertices; ++i) {
+  for (uint32_t i = 0; i < numVertices(); ++i) {
     const uint32_t oldInd = i;
     const uint32_t newInd = newVIndices[i];
-    assert(oldInd < numVertices);
-    assert(newInd < numVertices);
+    assert(oldInd < numVertices());
+    assert(newInd < numVertices());
     m.vertices[3 * newInd + 0] = vertices[3 * oldInd + 0];
     m.vertices[3 * newInd + 1] = vertices[3 * oldInd + 1];
     m.vertices[3 * newInd + 2] = vertices[3 * oldInd + 2];
@@ -702,12 +567,12 @@ void
 Mesh::align0()
 {
 
-  const uint32_t numV = numVertices;
+  const uint32_t numV = numVertices();
   if (numV == 0)
     return;
 
   float mean[3] = { 0, 0, 0 };
-  const float *v = vertices;
+  const float *v = vertices.data();
   for (uint32_t i = 0; i < numV; ++i) {
     mean[0] += v[3 * i + 0];
     mean[1] += v[3 * i + 1];
@@ -745,12 +610,12 @@ void
 Mesh::align()
 {
 
-  const uint32_t numV = numVertices;
+  const uint32_t numV = numVertices();
   if (numV == 0)
     return;
 
   float mean[3] = { 0, 0, 0 };
-  const float *v = vertices;
+  const float *v = vertices.data();
   for (uint32_t i = 0; i < numV; ++i) {
     mean[0] += v[3 * i + 0];
     mean[1] += v[3 * i + 1];
@@ -788,12 +653,12 @@ void
 Mesh::alignB()
 {
 
-  const uint32_t numV = numVertices;
+  const uint32_t numV = numVertices();
   if (numV == 0)
     return;
 
   float mean[3] = { 0, 0, 0 };
-  const float *v = vertices;
+  const float *v = vertices.data();
   for (uint32_t i = 0; i < numV; ++i) {
     mean[0] += v[3 * i + 0];
     mean[1] += v[3 * i + 1];
@@ -856,11 +721,11 @@ Mesh::alignB()
 void
 Mesh::alignC()
 {
-  const uint32_t numV = numVertices;
+  const uint32_t numV = numVertices();
   if (numV == 0)
     return;
 
-  const float *v = vertices;
+  const float *v = vertices.data();
 
   Eigen::MatrixXf X(numV, 3);
   const float *vrt = v;
@@ -903,7 +768,7 @@ Mesh::alignC()
 
   //Eigen::MatrixXf Xt = X * es.eigenvectors() * Ry;
 
-  float *vd = vertices;
+  float *vd = vertices.data();
   for (uint32_t k=0; k<numV; ++k) {
     vd[0] = Xt(k, 0);
     vd[1] = Xt(k, 1);
@@ -920,9 +785,9 @@ Eigen::MatrixXf
 Mesh::getEigenVectors()
 {
 
-  const uint32_t numV = numVertices;
+  const uint32_t numV = numVertices();
 
-  const float *v = vertices;
+  const float *v = vertices.data();
 
   Eigen::MatrixXf X(numV, 3);
   const float *vrt = v;
@@ -950,11 +815,11 @@ Mesh::getEigenVectors(const std::vector<uint32_t> &indices)
 
   Eigen::MatrixXf X(numV, 3);
 
-  const float *v = vertices;
+  const float *v = vertices.data();
   const float *vrt = v;
   for (uint32_t k = 0; k < numV; ++k) {
     uint32_t ind = indices[k];
-    assert(ind < numVertices);
+    assert(ind < numVertices());
     X(k, 0) = vrt[3 * ind + 0];
     X(k, 1) = vrt[3 * ind + 1];
     X(k, 2) = vrt[3 * ind + 2];
@@ -977,14 +842,14 @@ makePlane()
 {
   Mesh m;
 
-  const uint32_t numVertices = 4;
-  const uint32_t numTriangles = 2;
+  const uint32_t numVerts = 4;
+  const uint32_t numTris = 2;
 
-  m.allocateVertices(numVertices);
+  m.allocateVertices(numVerts);
   m.allocateTexCoords();
-  m.allocateTriangles(numTriangles);
+  m.allocateTriangles(numTris);
 
-  assert(m.triangles);
+  assert(! m.triangles.empty());
   m.triangles[0 * 3 + 0] = 0;
   m.triangles[0 * 3 + 1] = 1;
   m.triangles[0 * 3 + 2] = 2;
@@ -1043,23 +908,23 @@ makeSphereMesh(float radius,
   Mesh m;
 
   const uint32_t rs = rings * sectors;
-  const uint32_t numVertices = rs;
-  const uint32_t numTriangles = (rings - 1) * (sectors - 1) * 2;
+  const uint32_t numVerts = rs;
+  const uint32_t numTris = (rings - 1) * (sectors - 1) * 2;
 
-  m.allocateVertices(numVertices);
+  m.allocateVertices(numVerts);
   m.allocateNormals();
   if (withTexCoords)
     m.allocateTexCoords();
-  m.allocateTriangles(numTriangles);
+  m.allocateTriangles(numTris);
 
   assert(rings > 1);
   assert(sectors > 1);
   const float R = 1.f / (rings - 1);
   const float S = 1.f / (sectors - 1);
 
-  float *v = m.vertices;
-  float *n = m.normals;
-  float *t = m.texCoords;
+  float *v = m.vertices.data();
+  float *n = m.normals.data();
+  float *t = m.texCoords.data();
 
   for (unsigned int r = 0; r < rings; ++r) {
     const float rR = r * R;
@@ -1089,10 +954,10 @@ makeSphereMesh(float radius,
 #ifndef NDEBUG
   std::cerr << "makeSphereMesh(radius=" << radius << ", rings=" << rings
             << ", sectors=" << sectors << ", withTexCoords=" << withTexCoords
-            << ") => #Triangles=" << m.numTriangles << "\n";
+            << ") => #Triangles=" << m.numTriangles() << "\n";
 #endif //NDEBUG
 
-  uint32_t *tr = m.triangles;
+  uint32_t *tr = m.triangles.data();
 
   const unsigned int ringsM1 = rings - 1;
   const unsigned int sectorsM1 = sectors - 1;
@@ -1158,13 +1023,13 @@ check_EdgesH(const Mesh &mesh)
 
   bool result = true;
 
-  //const size_t vertexCount = mesh.numVertices;
-  const size_t triangleCount = mesh.numTriangles;
+  //const size_t vertexCount = mesh.numVertices();
+  const size_t triangleCount = mesh.numTriangles();
 
   const size_t maxEdgeCount = triangleCount * 3;
   edgesH.reserve(maxEdgeCount);
 
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t *triangles = mesh.triangles.data();
   for (size_t a = 0; a < triangleCount; ++a) {
     uint32_t i1 = triangles[3 * a + 2];
     for (int b = 0; b < 3; ++b) {
@@ -1239,13 +1104,13 @@ getEdgesH(const Mesh &mesh)
   using HASH_MAP = std::unordered_set<Edge>;
   HASH_MAP edgesH;
 
-  //const size_t vertexCount = mesh.numVertices;
-  const size_t triangleCount = mesh.numTriangles;
+  //const size_t vertexCount = mesh.numVertices();
+  const size_t triangleCount = mesh.numTriangles();
 
   const size_t maxEdgeCount = triangleCount * 3;
   edgesH.reserve(maxEdgeCount);
 
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t *triangles = mesh.triangles.data();
   for (size_t a = 0; a < triangleCount; ++a) {
     uint32_t i1 = triangles[3 * a + 2];
     for (int b = 0; b < 3; ++b) {
@@ -1291,8 +1156,8 @@ getEdges(const Mesh &mesh)
   //-we do not need the triangleIndices in Edge,
   //-we do not have unsigned short but uint32_t for indices..
 
-  const size_t vertexCount = mesh.numVertices;
-  const size_t triangleCount = mesh.numTriangles;
+  const size_t vertexCount = mesh.numVertices();
+  const size_t triangleCount = mesh.numTriangles();
 
   const size_t maxEdgeCount = triangleCount * 3;
 
@@ -1316,7 +1181,7 @@ getEdges(const Mesh &mesh)
   // find an edge in the second pass whose higher-numbered vertex index is i.
 
   size_t edgeCount = 0;
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t *triangles = mesh.triangles.data();
   for (size_t a = 0; a < triangleCount; ++a) {
     uint32_t i1 = triangles[3 * a + 2];
     for (int b = 0; b < 3; ++b) {
@@ -1421,8 +1286,8 @@ getEdgesF(const Mesh &mesh, std::vector<EdgeF> &edges)
   //-we do not need the triangleIndices in Edge,
   //-we do not have unsigned short but uint32_t for indices..
 
-  const size_t vertexCount = mesh.numVertices;
-  const size_t triangleCount = mesh.numTriangles;
+  const size_t vertexCount = mesh.numVertices();
+  const size_t triangleCount = mesh.numTriangles();
 
   const size_t maxEdgeCount = triangleCount * 3;
 
@@ -1446,7 +1311,7 @@ getEdgesF(const Mesh &mesh, std::vector<EdgeF> &edges)
   // find an edge in the second pass whose higher-numbered vertex index is i.
 
   size_t edgeCount = 0;
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t *triangles = mesh.triangles.data();
   for (size_t a = 0; a < triangleCount; ++a) {
     uint32_t i1 = triangles[3 * a + 2];
     for (int b = 0; b < 3; ++b) {
@@ -1558,8 +1423,8 @@ getBorderEdges(const Mesh &mesh)
   //-we do not need the triangleIndices in Edge,
   //-we do not have unsigned short but uint32_t for indices..
 
-  const size_t vertexCount = mesh.numVertices;
-  const size_t triangleCount = mesh.numTriangles;
+  const size_t vertexCount = mesh.numVertices();
+  const size_t triangleCount = mesh.numTriangles();
 
   const size_t maxEdgeCount = triangleCount * 3;
 
@@ -1585,7 +1450,7 @@ getBorderEdges(const Mesh &mesh)
   // find an edge in the second pass whose higher-numbered vertex index is i.
 
   size_t edgeCount = 0;
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t *triangles = mesh.triangles.data();
   for (size_t a = 0; a < triangleCount; ++a) {
     uint32_t i1 = triangles[3 * a + 2];
     for (int b = 0; b < 3; ++b) {
@@ -2043,7 +1908,7 @@ getBorderPoints(const Mesh &mesh)
   vertexIndices.erase(std::unique(vertexIndices.begin(), vertexIndices.end()),
                       vertexIndices.end());
 
-  //std::cerr<<"after remove: vertexIndices.size()="<<vertexIndices.size()<<" / "<<mesh.numVertices<<"\n";
+  //std::cerr<<"after remove: vertexIndices.size()="<<vertexIndices.size()<<" / "<<mesh.numVertices()<<"\n";
 
   return vertexIndices;
 }
@@ -2053,13 +1918,13 @@ getBorderPointsB(const Mesh &mesh)
 {
   std::vector<uint32_t> vertexIndices;
 
-  const size_t maxNumEdges = 3 * mesh.numTriangles;
+  const size_t maxNumEdges = 3 * mesh.numTriangles();
   std::vector<Edge> edges(maxNumEdges);
 
   //std::cerr<<"maxNumEdges="<<maxNumEdges<<"\n";
 
   size_t edgeCount = 0;
-  for (uint32_t i = 0; i < mesh.numTriangles; ++i) {
+  for (uint32_t i = 0; i < mesh.numTriangles(); ++i) {
 
     uint32_t i1 = mesh.triangles[3 * i + 2];
     for (int k = 0; k < 3; ++k) {
@@ -2165,7 +2030,7 @@ getBorderPointsB(const Mesh &mesh)
   vertexIndices.erase(std::unique(vertexIndices.begin(), vertexIndices.end()),
                       vertexIndices.end());
 
-  //std::cerr<<"after remove: vertexIndices.size()="<<vertexIndices.size()<<" / "<<mesh.numVertices<<"\n";
+  //std::cerr<<"after remove: vertexIndices.size()="<<vertexIndices.size()<<" / "<<mesh.numVertices()<<"\n";
 
   return vertexIndices;
 }
@@ -2229,7 +2094,7 @@ getLargestBorderPoints(const Mesh &mesh)
   vertexIndices.erase(std::unique(vertexIndices.begin(), vertexIndices.end()),
                       vertexIndices.end());
 
-  //std::cerr<<"after remove: vertexIndices.size()="<<vertexIndices.size()<<" / "<<mesh.numVertices<<"\n";
+  //std::cerr<<"after remove: vertexIndices.size()="<<vertexIndices.size()<<" / "<<mesh.numVertices()<<"\n";
 
   return vertexIndices;
 }
@@ -2250,7 +2115,7 @@ getAdjacentTriangles(const Mesh &mesh, std::vector<uint32_t> &adjacentTris)
   const uint32_t INVALID = -1; //0xFFFFFFFF;
 
   adjacentTris.resize(0);
-  adjacentTris.resize(mesh.numTriangles * 3, INVALID);
+  adjacentTris.resize(mesh.numTriangles() * 3, INVALID);
 
   std::vector<Edge1I> edges;
 
@@ -2265,8 +2130,8 @@ getAdjacentTriangles(const Mesh &mesh, std::vector<uint32_t> &adjacentTris)
   //-we do not need the triangleIndices in Edge,
   //-we do not have unsigned short but uint32_t for indices..
 
-  const size_t vertexCount = mesh.numVertices;
-  const size_t triangleCount = mesh.numTriangles;
+  const size_t vertexCount = mesh.numVertices();
+  const size_t triangleCount = mesh.numTriangles();
 
   const size_t maxEdgeCount = triangleCount * 3;
 
@@ -2288,7 +2153,7 @@ getAdjacentTriangles(const Mesh &mesh, std::vector<uint32_t> &adjacentTris)
   // find an edge in the second pass whose higher-numbered vertex index is i.
 
   size_t edgeCount = 0;
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t *triangles = mesh.triangles.data();
   for (size_t a = 0; a < triangleCount; ++a) {
     uint32_t i1 = triangles[3 * a + 2];
     for (int b = 0; b < 3; ++b) {
@@ -2389,21 +2254,21 @@ getConnectedComponents(const Mesh &mesh,
   std::vector<uint32_t> adjacentTris;
   getAdjacentTriangles(mesh, adjacentTris);
 
-  const uint32_t numTriangles = mesh.numTriangles;
+  const uint32_t numTris = mesh.numTriangles();
 
-  assert(adjacentTris.size() == 3 * numTriangles);
+  assert(adjacentTris.size() == 3 * numTris);
 
-  ccs.resize(numTriangles);
+  ccs.resize(numTris);
 
   ccSizes.resize(0);
   ccSizes.reserve(7); //arbitrary
 
-  std::vector<bool> used(numTriangles, false);
+  std::vector<bool> used(numTris, false);
 
   std::queue<uint32_t> q;
 
   uint32_t id = 0;
-  for (uint32_t i = 0; i < numTriangles; ++i) {
+  for (uint32_t i = 0; i < numTris; ++i) {
 
     if (used[i])
       continue;
@@ -2475,14 +2340,14 @@ keepOnlyLargestCC(Mesh &mesh)
 
     Mesh mesh2;
     mesh2.allocateTriangles(newNumTriangles);
-    mesh2.allocateVertices(mesh.numVertices);
+    mesh2.allocateVertices(mesh.numVertices());
     if (mesh.hasNormals())
       mesh2.allocateNormals();
     if (mesh.hasTexCoords())
       mesh2.allocateTexCoords();
 
     assert(mesh2.triangles);
-    const uint32_t oldNumTriangles = mesh.numTriangles;
+    const uint32_t oldNumTriangles = mesh.numTriangles();
     uint32_t idx = 0;
     for (uint32_t i = 0; i < oldNumTriangles; ++i) {
       if (ccs[i] == largestIndex) {

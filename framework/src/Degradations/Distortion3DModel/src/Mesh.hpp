@@ -9,32 +9,42 @@
 class Mesh
 {
 public:
-  //Invariant: a null buffer pointer always goes with a zero count.
-  uint32_t numVertices = 0;
-  float *vertices = nullptr;  //3 * numVertices floats
-  float *normals = nullptr;   //3 * numVertices floats [optional]
-  float *texCoords = nullptr; //2 * numVertices floats [optional]
+  /*
+    B: these were six raw members: three float*, one uint32_t*, and the two
+    counts, with malloc(), free(), a hand written copy, a hand written move
+    and the invariant "a null buffer pointer always goes with a zero count"
+    written in a comment. Two of the bugs of this file were that invariant
+    broken: a count kept after its buffer was freed, and a count left
+    unchanged while its buffer shrank.
 
-  uint32_t numTriangles = 0;
-  uint32_t *triangles = nullptr; //3 * numTriangles uint32s
+    The counts are read from the buffers now, so they cannot disagree with
+    them, and the four allocate/free pairs are resize() and clear(). What is
+    left is the rule of zero: the destructor, the copy and the move are the
+    ones the compiler writes.
+  */
+  std::vector<float> vertices;    //3 per vertex
+  std::vector<float> normals;     //3 per vertex, empty if absent
+  std::vector<float> texCoords;   //2 per vertex, empty if absent
+  std::vector<uint32_t> triangles; //3 per triangle
 
 public:
-  Mesh() = default;
+  uint32_t numVertices() const
+  {
+    return static_cast<uint32_t>(vertices.size() / 3);
+  }
 
-  ~Mesh();
-
-  Mesh(const Mesh &m);
-
-  Mesh &operator=(const Mesh &m);
+  uint32_t numTriangles() const
+  {
+    return static_cast<uint32_t>(triangles.size() / 3);
+  }
 
   /*
-    After the move, @a m is left empty (and thus valid: it can be
-    destroyed, cleared or assigned to again).
-   */
-  Mesh(Mesh &&m) noexcept;
+    Give the mesh @a numVerts vertices. The normals and the texture
+    coordinates are dropped, as they are indexed by vertex.
 
-  Mesh &operator=(Mesh &&m) noexcept;
-
+    B: this did nothing when the count was already @a numVerts, which kept
+    the three buffers as they were. It still does.
+  */
   void allocateVertices(uint32_t numVerts);
   void allocateNormals();
   void allocateTexCoords();
@@ -45,9 +55,9 @@ public:
   void freeTexCoords();
   void freeTriangles();
 
-  bool isValid() const { return vertices != nullptr && triangles != nullptr; }
-  bool hasTexCoords() const { return texCoords != nullptr; }
-  bool hasNormals() const { return normals != nullptr; }
+  bool isValid() const { return !vertices.empty() && !triangles.empty(); }
+  bool hasTexCoords() const { return !texCoords.empty(); }
+  bool hasNormals() const { return !normals.empty(); }
 
   void copyTo(Mesh &m) const;
   void copyFrom(const Mesh &m);

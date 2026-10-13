@@ -357,7 +357,7 @@ readBRS(const std::string &filename, Mesh &mesh)
     mesh.allocateTriangles(numTris);
 
 #ifndef USE_INDEXBUFFERCOMPRESSION
-    const size_t s = mesh.numTriangles * 3 * sizeof(uint32_t);
+    const size_t s = mesh.numTriangles() * 3 * sizeof(uint32_t);
     in.read((char *)mesh.triangles, s);
 #else
     {
@@ -374,11 +374,11 @@ readBRS(const std::string &filename, Mesh &mesh)
       }
 #ifndef NDEBUG
       std::cerr << "read: size=" << size << " size8=" << size8
-                << " mesh.numTriangles*3*sizeof(uint32_t)="
-                << mesh.numTriangles * 3 * sizeof(uint32_t) << "\n";
+                << " mesh.numTriangles()*3*sizeof(uint32_t)="
+                << mesh.numTriangles() * 3 * sizeof(uint32_t) << "\n";
 #endif
       ReadBitstream rb(data, size8);
-      DecompressIndexBuffer(mesh.triangles, mesh.numTriangles, rb);
+      DecompressIndexBuffer(mesh.triangles.data(), mesh.numTriangles(), rb);
       free(data);
 
 #ifndef NDEBUG
@@ -397,13 +397,13 @@ readBRS(const std::string &filename, Mesh &mesh)
       return false;
     }
   }
-  assert(mesh.numTriangles == numTris);
+  assert(mesh.numTriangles() == numTris);
 
   assert(type & VERTICES);
   {
     mesh.allocateVertices(numVertices);
 
-    const size_t s = mesh.numVertices * 3 * sizeof(float);
+    const size_t s = mesh.numVertices() * 3 * sizeof(float);
 
     in.read((char *)mesh.vertices, s);
     if (in.bad()) {
@@ -411,12 +411,12 @@ readBRS(const std::string &filename, Mesh &mesh)
       return false;
     }
   }
-  assert(mesh.numVertices == numVertices);
+  assert(mesh.numVertices() == numVertices);
 
   if (type & TEXCOORDS) {
     mesh.allocateTexCoords();
 
-    const size_t s = mesh.numVertices * 2 * sizeof(float);
+    const size_t s = mesh.numVertices() * 2 * sizeof(float);
 
     in.read((char *)mesh.texCoords, s);
     if (in.bad()) {
@@ -430,7 +430,7 @@ readBRS(const std::string &filename, Mesh &mesh)
   if (type & NORMALS) {
     mesh.allocateNormals();
 
-    const size_t s = mesh.numVertices * 3 * sizeof(float);
+    const size_t s = mesh.numVertices() * 3 * sizeof(float);
 
     in.read((char *)mesh.normals, s);
     if (in.bad()) {
@@ -558,7 +558,7 @@ readBRS(const std::string &filename, Mesh &mesh)
     mesh.allocateTriangles(numTris);
 
     const size_t st3 = numTris * 3 * sizeof(int32_t);
-    memcpy(mesh.triangles, cBUF, st3);
+    memcpy(mesh.triangles.data(), cBUF, st3);
     cBUF += st3;
   }
 #else
@@ -585,7 +585,7 @@ readBRS(const std::string &filename, Mesh &mesh)
     cBUF += size;
 
     ReadBitstream rb(BUFCOMP, size8);
-    DecompressIndexBuffer(mesh.triangles, mesh.numTriangles, rb);
+    DecompressIndexBuffer(mesh.triangles.data(), mesh.numTriangles(), rb);
 
     free(BUFCOMP);
 
@@ -599,7 +599,7 @@ readBRS(const std::string &filename, Mesh &mesh)
 #endif //NDEBUG
   }
 #endif //USE_INDEXBUFFERCOMPRESSION
-  assert(mesh.numTriangles == numTris);
+  assert(mesh.numTriangles() == numTris);
 
   const size_t sv3 = numVertices * 3 * sizeof(float);
   const size_t sv2 = numVertices * 2 * sizeof(float);
@@ -608,15 +608,15 @@ readBRS(const std::string &filename, Mesh &mesh)
   {
     mesh.allocateVertices(numVertices);
 
-    memcpy(mesh.vertices, cBUF, sv3);
+    memcpy(mesh.vertices.data(), cBUF, sv3);
     cBUF += sv3;
   }
-  assert(mesh.numVertices == numVertices);
+  assert(mesh.numVertices() == numVertices);
 
   if ((type & TEXCOORDS) != 0) {
     mesh.allocateTexCoords();
 
-    memcpy(mesh.texCoords, cBUF, sv2);
+    memcpy(mesh.texCoords.data(), cBUF, sv2);
     cBUF += sv2;
 
     assert(mesh.hasTexCoords());
@@ -625,7 +625,7 @@ readBRS(const std::string &filename, Mesh &mesh)
   if ((type & NORMALS) != 0) {
     mesh.allocateNormals();
 
-    memcpy(mesh.normals, cBUF, sv3);
+    memcpy(mesh.normals.data(), cBUF, sv3);
     cBUF += sv3;
 
     assert(mesh.hasNormals());
@@ -667,34 +667,36 @@ writeBRS(const std::string &filename, const Mesh &mesh)
   if (out.bad())
     return false;
 
-  out.write((const char *)&(mesh.numVertices), sizeof(uint32_t));
+  const uint32_t numVertices = mesh.numVertices();
+  out.write((const char *)&numVertices, sizeof(uint32_t));
   if (out.bad())
     return false;
-  out.write((const char *)&(mesh.numTriangles), sizeof(uint32_t));
+  const uint32_t numTriangles = mesh.numTriangles();
+  out.write((const char *)&numTriangles, sizeof(uint32_t));
   if (out.bad())
     return false;
 
   {
 #ifndef USE_INDEXBUFFERCOMPRESSION
-    const size_t s = mesh.numTriangles * 3 * sizeof(float);
+    const size_t s = mesh.numTriangles() * 3 * sizeof(float);
     out.write((const char *)mesh.triangles, s);
 
     {
-      const size_t s = mesh.numVertices * 3 * sizeof(float);
+      const size_t s = mesh.numVertices() * 3 * sizeof(float);
       out.write((const char *)mesh.vertices, s);
       if (out.bad())
         return false;
     }
 
     if (mesh.hasTexCoords()) {
-      const size_t s = mesh.numVertices * 2 * sizeof(float);
+      const size_t s = mesh.numVertices() * 2 * sizeof(float);
       out.write((const char *)mesh.texCoords, s);
       if (out.bad())
         return false;
     }
 
     if (mesh.hasNormals()) {
-      const size_t s = mesh.numVertices * 3 * sizeof(float);
+      const size_t s = mesh.numVertices() * 3 * sizeof(float);
       out.write((const char *)mesh.normals, s);
       if (out.bad())
         return false;
@@ -717,14 +719,14 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       const IndexBufferCompressionFormat format =
         IBCF_PER_TRIANGLE_PREFIX_ENTROPY; //IBCF_PER_TRIANGLE_1; //IBCF_AUTO;
       uint32_t *vertexRemap =
-        (uint32_t *)malloc(mesh.numVertices * sizeof(uint32_t));
+        (uint32_t *)malloc(mesh.numVertices() * sizeof(uint32_t));
       if (vertexRemap == nullptr) {
 	return false;
       }
-      CompressIndexBuffer(mesh.triangles,
-                          mesh.numTriangles,
+      CompressIndexBuffer(mesh.triangles.data(),
+                          mesh.numTriangles(),
                           vertexRemap,
-                          mesh.numVertices,
+                          mesh.numVertices(),
                           format,
                           wb);
       wb.Finish();
@@ -733,16 +735,16 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       {
         uint32_t c = 0;
         uint32_t r = 0;
-        for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
           c += (vertexRemap[i] == 0xFFFFFFFF);
           r += (vertexRemap[i] != i);
         }
         std::cerr << "number of unused vertices=" << c << "/"
-                  << mesh.numVertices << "\n";
+                  << mesh.numVertices() << "\n";
         std::cerr << "number of remapped vertices=" << r << "/"
-                  << mesh.numVertices << "\n";
+                  << mesh.numVertices() << "\n";
         int remap = 0;
-        for (uint32_t i = 0; i < mesh.numVertices && remap < 12; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices() && remap < 12; ++i) {
           if (i != vertexRemap[i]) {
             std::cerr << i << " -> " << vertexRemap[i] << "\n";
             ++remap;
@@ -758,22 +760,22 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         return false;
       out.write((const char *)wb.RawData(), size);
 #ifndef NDEBUG
-      std::cerr << "original size  =" << mesh.numTriangles * 3 * sizeof(float)
+      std::cerr << "original size  =" << mesh.numTriangles() * 3 * sizeof(float)
                 << "\n";
       std::cerr << "compressed size=" << size << "\n";
 #endif //NDEBUG
 
       //save vertices (with remap)
       {
-        const size_t nv3 = mesh.numVertices * 3;
+        const size_t nv3 = mesh.numVertices() * 3;
         std::vector<float> v(nv3);
 
-        for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
           const uint32_t oldInd = i;
           const uint32_t newInd = vertexRemap[i];
           if (newInd != 0xFFFFFFFF) {
             assert(newInd < v.size() / 3);
-            assert(oldInd < mesh.numVertices);
+            assert(oldInd < mesh.numVertices());
             v[3 * newInd + 0] = mesh.vertices[3 * oldInd + 0];
             v[3 * newInd + 1] = mesh.vertices[3 * oldInd + 1];
             v[3 * newInd + 2] = mesh.vertices[3 * oldInd + 2];
@@ -787,15 +789,15 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 
       //save texcoords if any (with remap)
       if (mesh.hasTexCoords()) {
-        const size_t nv2 = mesh.numVertices * 2;
+        const size_t nv2 = mesh.numVertices() * 2;
         std::vector<float> v(nv2);
 
-        for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
           const uint32_t oldInd = i;
           const uint32_t newInd = vertexRemap[i];
           if (newInd != 0xFFFFFFFF) {
             assert(newInd < v.size() / 2);
-            assert(oldInd < mesh.numVertices);
+            assert(oldInd < mesh.numVertices());
             v[2 * newInd + 0] = mesh.texCoords[2 * oldInd + 0];
             v[2 * newInd + 1] = mesh.texCoords[2 * oldInd + 1];
           }
@@ -808,15 +810,15 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 
       //save normals if any (with remap)
       if (mesh.hasNormals()) {
-        const size_t nv3 = mesh.numVertices * 3;
+        const size_t nv3 = mesh.numVertices() * 3;
         std::vector<float> v(nv3);
 
-        for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
           const uint32_t oldInd = i;
           const uint32_t newInd = vertexRemap[i];
           if (newInd != 0xFFFFFFFF) {
             assert(newInd < v.size() / 3);
-            assert(oldInd < mesh.numVertices);
+            assert(oldInd < mesh.numVertices());
             v[3 * newInd + 0] = mesh.normals[3 * oldInd + 0];
             v[3 * newInd + 1] = mesh.normals[3 * oldInd + 1];
             v[3 * newInd + 2] = mesh.normals[3 * oldInd + 2];
@@ -831,18 +833,18 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       /*
       //remap
       {
-        const size_t nv3 = mesh.numVertices*3;
+        const size_t nv3 = mesh.numVertices()*3;
         std::vector<float> v(nv3);
 
         for (size_t i=0; i<nv3; ++i) {
           v[i] = mesh.vertices[i];
         }
 
-        for (uint32_t i=0; i<mesh.numVertices; ++i) {
+        for (uint32_t i=0; i<mesh.numVertices(); ++i) {
           const uint32_t oldInd = i;
           const uint32_t newInd = vertexRemap[i];
           if (newInd != 0xFFFFFFFF) {
-            assert(newInd < mesh.numVertices);
+            assert(newInd < mesh.numVertices());
             assert(oldInd < v.size()/3);
             mesh.vertices[3*newInd+0] = v[3*oldInd+0];
             mesh.vertices[3*newInd+1] = v[3*oldInd+1];
@@ -856,11 +858,11 @@ writeBRS(const std::string &filename, const Mesh &mesh)
             v[i] = mesh.normals[i];
           }
 
-          for (uint32_t i=0; i<mesh.numVertices; ++i) {
+          for (uint32_t i=0; i<mesh.numVertices(); ++i) {
             const uint32_t oldInd = i;
             const uint32_t newInd = vertexRemap[i];
             if (newInd != 0xFFFFFFFF) {
-              assert(newInd < mesh.numVertices);
+              assert(newInd < mesh.numVertices());
               assert(oldInd < v.size()/3);
               mesh.normals[3*newInd+0] = v[3*oldInd+0];
               mesh.normals[3*newInd+1] = v[3*oldInd+1];
@@ -871,18 +873,18 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         }
 
         if (mesh.hasTexCoords()) {
-          const size_t nv2 = mesh.numVertices*2;
+          const size_t nv2 = mesh.numVertices()*2;
           v.resize(nv2);
           for (size_t i=0; i<nv2; ++i) {
             assert(i < v.size());
             v[i] = mesh.normals[i];
           }
 
-          for (uint32_t i=0; i<mesh.numVertices; ++i) {
+          for (uint32_t i=0; i<mesh.numVertices(); ++i) {
             const uint32_t oldInd = i;
             const uint32_t newInd = vertexRemap[i];
             if (newInd != 0xFFFFFFFF) {
-              assert(newInd < mesh.numVertices);
+              assert(newInd < mesh.numVertices());
               assert(oldInd < v.size()/2);
               mesh.texCoords[2*newInd+0] = v[2*oldInd+0];
               mesh.texCoords[2*newInd+1] = v[2*oldInd+1];
@@ -930,15 +932,17 @@ writeBRS(const std::string &filename, const Mesh &mesh)
   if (out.bad())
     return false;
 
-  out.write((const char *)&(mesh.numVertices), sizeof(uint32_t));
+  const uint32_t numVertices = mesh.numVertices();
+  out.write((const char *)&numVertices, sizeof(uint32_t));
   if (out.bad())
     return false;
-  out.write((const char *)&(mesh.numTriangles), sizeof(uint32_t));
+  const uint32_t numTriangles = mesh.numTriangles();
+  out.write((const char *)&numTriangles, sizeof(uint32_t));
   if (out.bad())
     return false;
 
-  const size_t sv3 = mesh.numVertices * 3 * sizeof(float);
-  const size_t sv2 = mesh.numVertices * 2 * sizeof(float);
+  const size_t sv3 = mesh.numVertices() * 3 * sizeof(float);
+  const size_t sv2 = mesh.numVertices() * 2 * sizeof(float);
   size_t totalSize = sv3;
   if (mesh.hasNormals())
     totalSize += sv3;
@@ -951,7 +955,7 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 
   {
 #ifndef USE_INDEXBUFFERCOMPRESSION
-    const size_t s = mesh.numTriangles * 3 * sizeof(float);
+    const size_t s = mesh.numTriangles() * 3 * sizeof(float);
 
     totalSize += s;
     BUF = (unsigned char *)malloc(totalSize);
@@ -959,23 +963,23 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       return false;
     cBUF = BUF;
 
-    memcpy(cBUF, mesh.triangles, s);
+    memcpy(cBUF, mesh.triangles.data(), s);
     cBUF += s;
 
     {
-      memcpy(cBUF, mesh.vertices, sv3);
+      memcpy(cBUF, mesh.vertices.data(), sv3);
       cBUF += sv3;
       assert(cBUF <= BUF + totalSize);
     }
 
     if (mesh.hasTexCoords()) {
-      memcpy(cBUF, mesh.texCoords, sv2);
+      memcpy(cBUF, mesh.texCoords.data(), sv2);
       cBUF += sv2;
       assert(cBUF <= BUF + totalSize);
     }
 
     if (mesh.hasNormals()) {
-      memcpy(cBUF, mesh.normals, sv3);
+      memcpy(cBUF, mesh.normals.data(), sv3);
       cBUF += sv3;
       assert(cBUF <= BUF + totalSize);
     }
@@ -998,14 +1002,14 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       const IndexBufferCompressionFormat format =
         IBCF_PER_TRIANGLE_PREFIX_ENTROPY; //IBCF_PER_TRIANGLE_1; //IBCF_AUTO;
       uint32_t *vertexRemap =
-        (uint32_t *)malloc(mesh.numVertices * sizeof(uint32_t));
+        (uint32_t *)malloc(mesh.numVertices() * sizeof(uint32_t));
       if (vertexRemap == nullptr) {
 	return false;
       }
-      CompressIndexBuffer(mesh.triangles,
-                          mesh.numTriangles,
+      CompressIndexBuffer(mesh.triangles.data(),
+                          mesh.numTriangles(),
                           vertexRemap,
-                          mesh.numVertices,
+                          mesh.numVertices(),
                           format,
                           wb);
       wb.Finish();
@@ -1015,16 +1019,16 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         //print stats
         uint32_t c = 0;
         uint32_t r = 0;
-        for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
           c += (vertexRemap[i] == 0xFFFFFFFF);
           r += (vertexRemap[i] != i);
         }
         std::cerr << "number of unused vertices=" << c << "/"
-                  << mesh.numVertices << "\n";
+                  << mesh.numVertices() << "\n";
         std::cerr << "number of remapped vertices=" << r << "/"
-                  << mesh.numVertices << "\n";
+                  << mesh.numVertices() << "\n";
         int remap = 0;
-        for (uint32_t i = 0; i < mesh.numVertices && remap < 12; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices() && remap < 12; ++i) {
           if (i != vertexRemap[i]) {
             std::cerr << i << " -> " << vertexRemap[i] << "\n";
             ++remap;
@@ -1058,12 +1062,12 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       {
         float *dst = (float *)cBUF;
 
-        for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+        for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
           const uint32_t oldInd = i;
           const uint32_t newInd = vertexRemap[i];
           if (newInd != 0xFFFFFFFF) {
-            assert(newInd < mesh.numVertices);
-            assert(oldInd < mesh.numVertices);
+            assert(newInd < mesh.numVertices());
+            assert(oldInd < mesh.numVertices());
             dst[3 * newInd + 0] = mesh.vertices[3 * oldInd + 0];
             dst[3 * newInd + 1] = mesh.vertices[3 * oldInd + 1];
             dst[3 * newInd + 2] = mesh.vertices[3 * oldInd + 2];
@@ -1078,12 +1082,12 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         if (mesh.hasTexCoords()) {
           float *dst = (float *)cBUF;
 
-          for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+          for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
             const uint32_t oldInd = i;
             const uint32_t newInd = vertexRemap[i];
             if (newInd != 0xFFFFFFFF) {
-              assert(newInd < mesh.numVertices);
-              assert(oldInd < mesh.numVertices);
+              assert(newInd < mesh.numVertices());
+              assert(oldInd < mesh.numVertices());
               dst[2 * newInd + 0] = mesh.texCoords[2 * oldInd + 0];
               dst[2 * newInd + 1] = mesh.texCoords[2 * oldInd + 1];
             }
@@ -1098,12 +1102,12 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         if (mesh.hasNormals()) {
           float *dst = (float *)cBUF;
 
-          for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+          for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
             const uint32_t oldInd = i;
             const uint32_t newInd = vertexRemap[i];
             if (newInd != 0xFFFFFFFF) {
-              assert(newInd < mesh.numVertices);
-              assert(oldInd < mesh.numVertices);
+              assert(newInd < mesh.numVertices());
+              assert(oldInd < mesh.numVertices());
               dst[3 * newInd + 0] = mesh.normals[3 * oldInd + 0];
               dst[3 * newInd + 1] = mesh.normals[3 * oldInd + 1];
               dst[3 * newInd + 2] = mesh.normals[3 * oldInd + 2];
@@ -1118,18 +1122,18 @@ writeBRS(const std::string &filename, const Mesh &mesh)
       /*
       //remap
       {
-        const size_t nv3 = mesh.numVertices*3;
+        const size_t nv3 = mesh.numVertices()*3;
         std::vector<float> v(nv3);
 
         for (size_t i=0; i<nv3; ++i) {
           v[i] = mesh.vertices[i];
         }
 
-        for (uint32_t i=0; i<mesh.numVertices; ++i) {
+        for (uint32_t i=0; i<mesh.numVertices(); ++i) {
           const uint32_t oldInd = i;
           const uint32_t newInd = vertexRemap[i];
           if (newInd != 0xFFFFFFFF) {
-            assert(newInd < mesh.numVertices);
+            assert(newInd < mesh.numVertices());
             assert(oldInd < v.size()/3);
             mesh.vertices[3*newInd+0] = v[3*oldInd+0];
             mesh.vertices[3*newInd+1] = v[3*oldInd+1];
@@ -1143,11 +1147,11 @@ writeBRS(const std::string &filename, const Mesh &mesh)
             v[i] = mesh.normals[i];
           }
 
-          for (uint32_t i=0; i<mesh.numVertices; ++i) {
+          for (uint32_t i=0; i<mesh.numVertices(); ++i) {
             const uint32_t oldInd = i;
             const uint32_t newInd = vertexRemap[i];
             if (newInd != 0xFFFFFFFF) {
-              assert(newInd < mesh.numVertices);
+              assert(newInd < mesh.numVertices());
               assert(oldInd < v.size()/3);
               mesh.normals[3*newInd+0] = v[3*oldInd+0];
               mesh.normals[3*newInd+1] = v[3*oldInd+1];
@@ -1158,18 +1162,18 @@ writeBRS(const std::string &filename, const Mesh &mesh)
         }
 
         if (mesh.hasTexCoords()) {
-          const size_t nv2 = mesh.numVertices*2;
+          const size_t nv2 = mesh.numVertices()*2;
           v.resize(nv2);
           for (size_t i=0; i<nv2; ++i) {
             assert(i < v.size());
             v[i] = mesh.normals[i];
           }
 
-          for (uint32_t i=0; i<mesh.numVertices; ++i) {
+          for (uint32_t i=0; i<mesh.numVertices(); ++i) {
             const uint32_t oldInd = i;
             const uint32_t newInd = vertexRemap[i];
             if (newInd != 0xFFFFFFFF) {
-              assert(newInd < mesh.numVertices);
+              assert(newInd < mesh.numVertices());
               assert(oldInd < v.size()/2);
               mesh.texCoords[2*newInd+0] = v[2*oldInd+0];
               mesh.texCoords[2*newInd+1] = v[2*oldInd+1];

@@ -747,7 +747,7 @@ GLWidget::paintGL()
 
     for (const uint32_t ind : m_selectedVertices) {
 
-      assert(ind < m_mesh.numVertices);
+      assert(ind < m_mesh.numVertices());
 
 //translate m_sphereObject to vertex position.
 #if 1
@@ -1051,10 +1051,10 @@ getVertexWithRay(const Mesh &mesh,
                  Eigen::Vector3f rayDirection)
 {
 
-  uint32_t minInd = mesh.numVertices;
+  uint32_t minInd = mesh.numVertices();
   float minDist = std::numeric_limits<float>::max();
-  const uint32_t numVertices = mesh.numVertices;
-  const float *vertices = mesh.vertices;
+  const uint32_t numVertices = mesh.numVertices();
+  const float *vertices = mesh.vertices.data();
   for (uint32_t i = 0; i < numVertices; ++i) {
     Eigen::Vector3f v(
       vertices[3 * i + 0], vertices[3 * i + 1], vertices[3 * i + 2]);
@@ -1090,7 +1090,7 @@ GLWidget::mousePressEvent(QMouseEvent *e)
 
     //std::cerr<<"  ind="<<ind<<" v=("<<m_mesh.vertices[3*ind+0]<<", "<<m_mesh.vertices[3*ind+1]<<", "<<m_mesh.vertices[3*ind+2]<<")\n";
 
-    if (ind < m_mesh.numVertices) {
+    if (ind < m_mesh.numVertices()) {
       m_selectedVertices.push_back(ind);
       update();
     }
@@ -1316,7 +1316,7 @@ GLWidget::applyTextureMatrix()
 {
   if (m_mesh.hasTexCoords()) {
 
-    for (uint32_t i = 0; i < m_mesh.numVertices; ++i) {
+    for (uint32_t i = 0; i < m_mesh.numVertices(); ++i) {
       Eigen::Vector3f v(
         m_mesh.texCoords[2 * i + 0], m_mesh.texCoords[2 * i + 1], 1);
       v = m_texMat * v;
@@ -1336,7 +1336,7 @@ void
 GLWidget::applyViewMatrix()
 {
   const Eigen::Matrix4f &viewMat = m_camera.getViewMatrix();
-  for (uint32_t i = 0; i < m_mesh.numVertices; ++i) {
+  for (uint32_t i = 0; i < m_mesh.numVertices(); ++i) {
     Eigen::Vector4f v(m_mesh.vertices[3 * i + 0],
                       m_mesh.vertices[3 * i + 1],
                       m_mesh.vertices[3 * i + 2],

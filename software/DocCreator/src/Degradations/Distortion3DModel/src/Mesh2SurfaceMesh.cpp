@@ -30,13 +30,13 @@ mesh2surfaceMesh(const Mesh &m, surface_mesh::Surface_mesh &sm)
 
   sm.clear();
 
-  const unsigned int nV = m.numVertices;
-  const unsigned int nF = m.numTriangles;
+  const unsigned int nV = m.numVertices();
+  const unsigned int nF = m.numTriangles();
   const unsigned int nE = 3 * nV; //Max value. Use getEdges(m) ???
   sm.reserve(nV, nE, nF);
 
   surface_mesh::Surface_mesh::Vertex v;
-  for (uint32_t i = 0; i < m.numVertices; ++i) {
+  for (uint32_t i = 0; i < m.numVertices(); ++i) {
     surface_mesh::Point p;
     p[0] = m.vertices[3 * i + 0];
     p[1] = m.vertices[3 * i + 1];
@@ -61,7 +61,7 @@ mesh2surfaceMesh(const Mesh &m, surface_mesh::Surface_mesh &sm)
   }
 
   std::vector<surface_mesh::Surface_mesh::Vertex> vertices(3);
-  for (uint32_t i = 0; i < m.numTriangles; ++i) {
+  for (uint32_t i = 0; i < m.numTriangles(); ++i) {
     vertices[0] = surface_mesh::Surface_mesh::Vertex(m.triangles[3 * i + 0]);
     vertices[1] = surface_mesh::Surface_mesh::Vertex(m.triangles[3 * i + 1]);
     vertices[2] = surface_mesh::Surface_mesh::Vertex(m.triangles[3 * i + 2]);

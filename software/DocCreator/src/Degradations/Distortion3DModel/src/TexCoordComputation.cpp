@@ -170,9 +170,9 @@ debugTexCoords(Mesh &mesh)
   Mesh mesh2;
   mesh.copyTo(mesh2);
 
-  //const uint32_t numTexCoords = mesh.numVertices;
-  const uint32_t numTriangles = mesh.numTriangles;
-  const uint32_t *triangles = mesh.triangles;
+  //const uint32_t numTexCoords = mesh.numVertices();
+  const uint32_t numTriangles = mesh.numTriangles();
+  const uint32_t *triangles = mesh.triangles.data();
 
   //uint32_t min_tri_idx = numTriangles;
   //float min_dist = std::numeric_limits<float>::max();
@@ -240,14 +240,14 @@ debugTexCoords(Mesh &mesh)
 #endif
   }
 
-  std::swap(mesh.texCoords, mesh2.texCoords);
+  mesh.texCoords.swap(mesh2.texCoords);
 }
 
 void
 rotateAroundMean(Mesh &mesh)
 {
-  const uint32_t numvertices = mesh.numVertices;
-  float *vertices = mesh.vertices;
+  const uint32_t numvertices = mesh.numVertices();
+  float *vertices = mesh.vertices.data();
 
   Vector2 minX_p2((float)std::numeric_limits<uint32_t>::max(),
                   -(float)std::numeric_limits<uint32_t>::max());
@@ -492,19 +492,19 @@ struct DEBUG_VertexIndexSorter
 
   bool operator()(uint32_t i, uint32_t j) const
   {
-    if (i >= m_mesh.numVertices) {
+    if (i >= m_mesh.numVertices()) {
       std::cerr << "ERROR: DEBUG_VertexIndexSorter i=" << i
-                << " > m_mesh.numVertices=" << m_mesh.numVertices << "\n";
+                << " > m_mesh.numVertices()=" << m_mesh.numVertices() << "\n";
       exit(10);
     }
-    if (j >= m_mesh.numVertices) {
+    if (j >= m_mesh.numVertices()) {
       std::cerr << "ERROR: DEBUG_VertexIndexSorter j=" << j
-                << " > m_mesh.numVertices=" << m_mesh.numVertices << "\n";
+                << " > m_mesh.numVertices()=" << m_mesh.numVertices() << "\n";
       exit(10);
     }
 
-    assert(i < m_mesh.numVertices);
-    assert(j < m_mesh.numVertices);
+    assert(i < m_mesh.numVertices());
+    assert(j < m_mesh.numVertices());
 
     if (m_mesh.vertices[3 * i + 1] < m_mesh.vertices[3 * j + 1]) //y
       return true;
@@ -555,9 +555,9 @@ getIntersectionPlanes(const Mesh &mesh, std::vector<Y_Idx> &ys)
     return;
   }
 
-  const uint32_t numvertices = mesh.numVertices;
+  const uint32_t numvertices = mesh.numVertices();
   assert(numvertices != 0);
-  const float *vertices = mesh.vertices;
+  const float *vertices = mesh.vertices.data();
 
   ys.reserve(numvertices);
 
@@ -1010,7 +1010,7 @@ computeTexCoords1(Mesh &mesh)
 #ifdef TIME_TEXCOORDS
   gettimeofday(&t1, nullptr);
   std::cerr << "time allocateTexCoords: " << P_getTime(t0, t1) << "ms for "
-            << mesh.numVertices << " vertices\n";
+            << mesh.numVertices() << " vertices\n";
 #endif //TIME_TEXCOORDS
 
   std::vector<uint32_t> verticesIndices;
@@ -1025,10 +1025,10 @@ computeTexCoords1(Mesh &mesh)
 #ifdef TIME_TEXCOORDS
   gettimeofday(&t1, nullptr);
   std::cerr << "time getIntersectionPlanesVertices: " << P_getTime(t0, t1)
-            << "ms for " << mesh.numVertices << " vertices\n";
+            << "ms for " << mesh.numVertices() << " vertices\n";
 #endif //TIME_TEXCOORDS
 
-  const uint32_t numvertices = mesh.numVertices;
+  const uint32_t numvertices = mesh.numVertices();
 
   //- build array to have for a given vidx its corresponding Y plane start index.
   std::vector<uint32_t> vidx2yPlaneIdx(numvertices); //TODO:OPTIM: hidden memset
@@ -1487,7 +1487,7 @@ public:
     std::cerr << "REAL m_yMin=" << m_yMin << " m_yMax=" << m_yMax << "\n";
 
 #if 1
-    const uint32_t numTriangles = mesh.numTriangles;
+    const uint32_t numTriangles = mesh.numTriangles();
     const int numTrianglesPerBin =
       256; //128;   //256;  //512;  //1024; //1024+512;
     const float reserve_size_factor =
@@ -1496,12 +1496,12 @@ public:
     //DEBUG
 
     const uint32_t numTriangles =
-      std::min((uint32_t)20000, mesh.numTriangles); //DEBUG
+      std::min((uint32_t)20000, mesh.numTriangles()); //DEBUG
     const int numTrianglesPerBin = 1024;            //DEBUG
 
     { //DEBUG
 
-      const uint32_t *triangles = mesh.triangles;
+      const uint32_t *triangles = mesh.triangles.data();
       for (uint32_t i = 0; i < numTriangles; ++i) {
         const uint32_t v_id_0 = triangles[3 * i + 0];
         const uint32_t v_id_1 = triangles[3 * i + 1];
@@ -1552,8 +1552,8 @@ public:
     const uint32_t INVALID_BIN = m_numBins + 1;
 
     //first, get bin of all vertices
-    const float *vertices = mesh.vertices;
-    const uint32_t numvertices = mesh.numVertices;
+    const float *vertices = mesh.vertices.data();
+    const uint32_t numvertices = mesh.numVertices();
     std::vector<uint32_t> verticesBins(
       numvertices, INVALID_BIN); //TODO:OPTIM:useless initialization
     for (uint32_t i = 0; i < numvertices; ++i) {
@@ -1563,7 +1563,7 @@ public:
     }
 
     //second, get intervals of bins for all triangles
-    const uint32_t *triangles = mesh.triangles;
+    const uint32_t *triangles = mesh.triangles.data();
     std::vector<uint32_t> trianglesBins;
     const size_t reserve_size =
       static_cast<size_t>(reserve_size_factor * numTriangles); //arbitrary size
@@ -1834,8 +1834,8 @@ public:
 
     //double t0 = (double)cv::getTickCount();
 
-    const uint32_t numvertices = mesh.numVertices;
-    const float *vertices = mesh.vertices;
+    const uint32_t numvertices = mesh.numVertices();
+    const float *vertices = mesh.vertices.data();
     std::vector<uint32_t> v_indices;
     std::vector<float> v_y;
     v_indices.reserve(numvertices);
@@ -1881,7 +1881,7 @@ public:
     //t0 = ((double)cv::getTickCount() - t0)/cv::getTickFrequency();
     //std::cerr<<"time unique_y & indices_unique_y  : "<<t0<<"s : unique_y_size="<<unique_y_size<<" numvertices="<<numvertices<<"\n";
 
-    const uint32_t numTriangles = mesh.numTriangles;
+    const uint32_t numTriangles = mesh.numTriangles();
 
     std::cerr << "v_indices_unique_y.size()=" << v_indices_unique_y.size()
               << " numvertices=" << numvertices
@@ -1905,7 +1905,7 @@ public:
 
     const uint32_t numBins = unique_y_size;
 
-    const uint32_t *triangles = mesh.triangles;
+    const uint32_t *triangles = mesh.triangles.data();
     std::vector<uint32_t> trianglesBins;
     const size_t reserve_size =
       3 *
@@ -2192,12 +2192,12 @@ getIntersectionLine(const Mesh &mesh,
 
   //const Plane p_Y(0, 1, 0, -y0);
 
-  const float *vertices = mesh.vertices;
+  const float *vertices = mesh.vertices.data();
 
   //Vector3 p0, p1, p2;
 
-  const uint32_t *triangles = mesh.triangles;
-  const uint32_t numTriangles = mesh.numTriangles;
+  const uint32_t *triangles = mesh.triangles.data();
+  const uint32_t numTriangles = mesh.numTriangles();
 
   //double t0 = (double)cv::getTickCount();
 
@@ -2880,7 +2880,7 @@ computeTexCoords0(Mesh &mesh)
   getIntersectionPlanes(mesh, ys);
 
   //t = ((double)cv::getTickCount() - t)/cv::getTickFrequency();
-  //std::cerr<<"time get y planes: "<<t<<"s for "<<ys.size()<<" planes / "<<mesh.numVertices<<" vertices\n";
+  //std::cerr<<"time get y planes: "<<t<<"s for "<<ys.size()<<" planes / "<<mesh.numVertices()<<" vertices\n";
   {
     float min_dist_y = std::numeric_limits<float>::max();
     size_t min_dist_i = 0;
@@ -2930,12 +2930,12 @@ computeTexCoords0(Mesh &mesh)
   //std::cerr<<"time allocate texture mem: "<<t<<"s\n";
 
 #if 1 //DEBUG
-  memset(mesh.texCoords, 0, sizeof(float) * mesh.numVertices * 2);
+  memset(mesh.texCoords.data(), 0, sizeof(float) * mesh.numVertices() * 2);
   { //DEBUG
     //check if all points tex coords set
     size_t numZeroTexCoords = 0;
-    const uint32_t numtexcoords = mesh.numVertices;
-    const float *texcoords = mesh.texCoords;
+    const uint32_t numtexcoords = mesh.numVertices();
+    const float *texcoords = mesh.texCoords.data();
     for (uint32_t i = 0; i < numtexcoords; ++i) {
       numZeroTexCoords +=
         (texcoords[2 * i + 0] == 0 && texcoords[2 * i + 1] == 0);
@@ -2955,7 +2955,7 @@ computeTexCoords0(Mesh &mesh)
   MAP m;
 #endif
 
-  float *texcoords = mesh.texCoords;
+  float *texcoords = mesh.texCoords.data();
 
   uint32_t t_idx = 0;
 
@@ -3080,9 +3080,9 @@ computeTexCoords0(Mesh &mesh)
                     << " dbg=" << dbg << ")\n";
           exit(10);
         }
-        if (t_idx >= mesh.numVertices) {
+        if (t_idx >= mesh.numVertices()) {
           std::cerr << "ERROR0: invalid t_idx=" << t_idx
-                    << " >= mesh.numVertices=" << mesh.numVertices << "\n";
+                    << " >= mesh.numVertices()=" << mesh.numVertices() << "\n";
           std::cerr << " y=" << y << " (minY=" << ys.begin()->y << ")\n";
           exit(10);
         }
@@ -3106,7 +3106,7 @@ computeTexCoords0(Mesh &mesh)
 
         // project on 2D plan and preserve the distance between two vertices
         // with the same Y-coordinate
-        assert(t_idx < mesh.numVertices); // "<=" because texture coordinate
+        assert(t_idx < mesh.numVertices()); // "<=" because texture coordinate
                                           // index starts from 1
         texcoords[2 * t_idx + 0] = L;
         //DEBUG_FX texcoords[2*t_idx + 0] = 0.1;
@@ -3167,9 +3167,9 @@ computeTexCoords0(Mesh &mesh)
                       << " dbg=" << dbg << ")\n";
             exit(10);
           }
-          if (t_idx >= mesh.numVertices) {
+          if (t_idx >= mesh.numVertices()) {
             std::cerr << "ERROR: invalid t_idx=" << t_idx
-                      << " >= mesh.numVertices=" << mesh.numVertices << "\n";
+                      << " >= mesh.numVertices()=" << mesh.numVertices() << "\n";
             std::cerr << " y=" << y << " (minY=" << ys.begin()->y << ")\n";
             exit(10);
           }
@@ -3190,7 +3190,7 @@ computeTexCoords0(Mesh &mesh)
             }
 
             if (x > 119 && x <123) {
-            assert(v_idx <= mesh.numVertices);
+            assert(v_idx <= mesh.numVertices());
             std::cerr<<"### y="<<std::setprecision(9)<<y<<"="<<std::setprecision(9)<<mesh.vertices[3*v_idx+1]<<" v_idx="<<v_idx<<" x="<<std::setprecision(9)<<x<<"="<<std::setprecision(9)<<mesh.vertices[3*v_idx+0]<<" z="<<std::setprecision(9)<<z<<"="<<std::setprecision(9)<<mesh.vertices[3*v_idx+2]<<" L="<<std::setprecision(9)<<L<<"\n";
 
             //std::cerr<<"*** t_idx="<<t_idx<<" L="<<L<<" y="<<std::setprecision(9)<<y<<" x="<<std::setprecision(9)<<x<<" z="<<std::setprecision(9)<<z<<"  dx="<<dx<<" dz="<<dz<<" \n";
@@ -3201,7 +3201,7 @@ computeTexCoords0(Mesh &mesh)
 
           // project on 2D plan and preserve the distance between two vertices
           // with the same Y-coordinate
-          assert(t_idx < mesh.numVertices);
+          assert(t_idx < mesh.numVertices());
           texcoords[2 * t_idx + 0] = L;
           //DEBUG_FX texcoords[2*t_idx + 0] = 0.1;
           texcoords[2 * t_idx + 1] = y;
@@ -3353,7 +3353,7 @@ computeTexCoords0(Mesh &mesh)
 
     //check if all points tex coords set
     size_t numZeroTexCoords = 0;
-    for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+    for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
       numZeroTexCoords +=
         (mesh.texCoords[2 * i + 0] == 0 && mesh.texCoords[2 * i + 1] == 0);
     }
@@ -3361,7 +3361,7 @@ computeTexCoords0(Mesh &mesh)
 #ifdef CHECK_TEXCOORDS
     size_t numVtxNotProcessed = 0;
     std::map<uint32_t, uint32_t>::iterator v_t_idx_iterator;
-    for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+    for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
       v_t_idx_iterator = m.find(i);
       if (v_t_idx_iterator == m.end()) {
         ++numVtxNotProcessed;
@@ -3373,8 +3373,8 @@ computeTexCoords0(Mesh &mesh)
     std::cerr << "numZeroTexCoords               = " << numZeroTexCoords
               << "\n";
     std::cerr << "mesh.numtexcoords-DBG_nCoords="
-              << mesh.numVertices - DBG_nCoords
-              << " (mesh.numtexcoords=" << mesh.numVertices
+              << mesh.numVertices() - DBG_nCoords
+              << " (mesh.numtexcoords=" << mesh.numVertices()
               << " DBG_nCoords=" << DBG_nCoords << ")\n";
 
   }    //DEBUG
@@ -3383,7 +3383,7 @@ computeTexCoords0(Mesh &mesh)
     /*
         //B: remplissage de mesh.triangles[i].tindices[k]
         //B:TODO:OPTIM: is a memcpy possible ???
-        for (int i=0; i<mesh.numTriangles; ++i) {
+        for (int i=0; i<mesh.numTriangles(); ++i) {
           for (int k=0; k<3; ++k) {
             mesh.triangles[i].tindices[k] = mesh.triangles[i].vindices[k];
           }
@@ -3393,7 +3393,7 @@ computeTexCoords0(Mesh &mesh)
     /*
           //code d'origine
         std::map<int, int>::iterator itera = v_t_idx.begin();             // build a triangle : f : v1/t1 v2/t2 v3/t3
-        for(int i=0;i<model->numTriangles;i++){
+        for(int i=0;i<model->numTriangles();i++){
             for(int k=0;k<3;k++){
                 itera = v_t_idx.find(mesh.triangles[i].vindices[k]);
                 if(itera!=v_t_idx.end()){
@@ -3412,7 +3412,7 @@ computeTexCoords0(Mesh &mesh)
   { //DEBUG
 
     std::vector<uint32_t> indices;
-    for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+    for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
       uint32_t v_idx = i;
       float x = mesh.vertices[3 * v_idx + 0];
       float y = mesh.vertices[3 * v_idx + 1];

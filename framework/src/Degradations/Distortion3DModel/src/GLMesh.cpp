@@ -52,12 +52,12 @@ GLMesh::init(const Mesh &m)
   assert(m.hasNormals());
   assert(m.isValid());
 
-  //std::cerr << "GLMesh::init() this="<<this<<" m.numVertices=" << m.numVertices << "\n";
+  //std::cerr << "GLMesh::init() this="<<this<<" m.numVertices()=" << m.numVertices() << "\n";
 
-  std::vector<Vertex> vertices(m.numVertices);
+  std::vector<Vertex> vertices(m.numVertices());
   {
     if (m.hasNormals() && m.hasTexCoords()) {
-      for (uint32_t i = 0; i < m.numVertices; ++i) {
+      for (uint32_t i = 0; i < m.numVertices(); ++i) {
         vertices[i] = Vertex(
           Eigen::Vector3f(m.vertices[3 * i + 0],
                           m.vertices[3 * i + 1],
@@ -67,7 +67,7 @@ GLMesh::init(const Mesh &m)
           Eigen::Vector2f(m.texCoords[2 * i + 0], m.texCoords[2 * i + 1]));
       }
     } else if (m.hasNormals()) {
-      for (uint32_t i = 0; i < m.numVertices; ++i) {
+      for (uint32_t i = 0; i < m.numVertices(); ++i) {
         vertices[i] = Vertex(Eigen::Vector3f(m.vertices[3 * i + 0],
                                              m.vertices[3 * i + 1],
                                              m.vertices[3 * i + 2]),
@@ -76,7 +76,7 @@ GLMesh::init(const Mesh &m)
                                              m.normals[3 * i + 2]));
       }
     } else if (m.hasTexCoords()) {
-      for (uint32_t i = 0; i < m.numVertices; ++i) {
+      for (uint32_t i = 0; i < m.numVertices(); ++i) {
         vertices[i] = Vertex(
           Eigen::Vector3f(m.vertices[3 * i + 0],
                           m.vertices[3 * i + 1],
@@ -87,7 +87,7 @@ GLMesh::init(const Mesh &m)
     }
   }
 
-  assert(vertices.size() == m.numVertices);
+  assert(vertices.size() == m.numVertices());
 
   GL_CHECK_ERROR_ALWAYS();
 
@@ -119,13 +119,13 @@ GLMesh::init(const Mesh &m)
   GL_CHECK_ERROR_ALWAYS();
 
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-               sizeof(uint32_t) * m.numTriangles * 3,
-               m.triangles,
+               sizeof(uint32_t) * m.numTriangles() * 3,
+               m.triangles.data(),
                GL_STATIC_DRAW);
 
   GL_CHECK_ERROR_ALWAYS();
 
-  m_numIndices = m.numTriangles * 3;
+  m_numIndices = m.numTriangles() * 3;
 
   glBindVertexArray(0);
 

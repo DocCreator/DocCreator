@@ -39,7 +39,7 @@ test1()
   assert(m.isValid());
 
   
-  uint32_t *tris = m.triangles;
+  uint32_t *tris = m.triangles.data();
   tris[3*0+0] = 0; tris[3*0+1] = 1; tris[3*0+2] = 7; 
   tris[3*1+0] = 0; tris[3*1+1] = 2; tris[3*1+2] = 1; 
   tris[3*2+0] = 2; tris[3*2+1] = 3; tris[3*2+2] = 1; 
@@ -91,7 +91,7 @@ test2()
   assert(m.isValid());
 
   
-  uint32_t *tris = m.triangles;
+  uint32_t *tris = m.triangles.data();
   tris[3*0+0] = 0; tris[3*0+1] = 1; tris[3*0+2] = 7; 
   tris[3*1+0] = 0; tris[3*1+1] = 2; tris[3*1+2] = 1; 
   tris[3*2+0] = 2; tris[3*2+1] = 3; tris[3*2+2] = 1; 
@@ -152,7 +152,7 @@ test3()
   assert(m.isValid());
 
   
-  uint32_t *tris = m.triangles;
+  uint32_t *tris = m.triangles.data();
   tris[3*0+0] = 0; tris[3*0+1] = 1; tris[3*0+2] = 7; 
   tris[3*1+0] = 0; tris[3*1+1] = 2; tris[3*1+2] = 1; 
   tris[3*2+0] = 2; tris[3*2+1] = 3; tris[3*2+2] = 1; 

@@ -119,7 +119,7 @@ readOBJ(const std::string &filename, Mesh &mesh)
       normals = &tmpNormals[0];
     } else {
       mesh.allocateNormals();
-      normals = mesh.normals;
+      normals = mesh.normals.data();
     }
     assert(normals != nullptr);
   }
@@ -137,7 +137,7 @@ readOBJ(const std::string &filename, Mesh &mesh)
       texCoords = &tmpTexCoords[0];
     } else {
       mesh.allocateTexCoords();
-      texCoords = mesh.texCoords;
+      texCoords = mesh.texCoords.data();
     }
     assert(texCoords != nullptr);
   }
@@ -174,7 +174,7 @@ readOBJ(const std::string &filename, Mesh &mesh)
 
           ss.clear();
           ss.str(std::string(line, 2));
-          assert(vi < mesh.numVertices);
+          assert(vi < mesh.numVertices());
           ss >> mesh.vertices[3 * vi + 0];
           ss >> mesh.vertices[3 * vi + 1];
           if (ss.fail() || ss.bad()) {
@@ -436,8 +436,8 @@ readOBJ(const std::string &filename, Mesh &mesh)
   assert(numNormals == 0 || mesh.hasNormals());
   assert(numTexCoords == 0 || mesh.hasTexCoords());
 
-  //assert((numNormals != 0 && mesh.numVertices == numNormals) == mesh.hasNormals());
-  //assert((numTexCoords != 0 && mesh.numVertices == numTexCoords) == mesh.hasTexCoords());
+  //assert((numNormals != 0 && mesh.numVertices() == numNormals) == mesh.hasNormals());
+  //assert((numTexCoords != 0 && mesh.numVertices() == numTexCoords) == mesh.hasTexCoords());
 
   return true;
 }
@@ -456,7 +456,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
   const int precision = 9;
 
   //write vertices
-  for (size_t i = 0; i < mesh.numVertices; ++i) {
+  for (size_t i = 0; i < mesh.numVertices(); ++i) {
     out << 'v';
     for (int k = 0; k < 3; ++k) {
       out << ' ' << std::setprecision(precision) << mesh.vertices[3 * i + k];
@@ -467,7 +467,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
   //write texcoords
   const bool hasTexCoords = mesh.hasTexCoords();
   if (hasTexCoords) {
-    for (size_t i = 0; i < mesh.numVertices; ++i) {
+    for (size_t i = 0; i < mesh.numVertices(); ++i) {
       out << "vt";
       for (int k = 0; k < 2; ++k) {
         out << ' ' << std::setprecision(precision) << mesh.texCoords[2 * i + k];
@@ -479,7 +479,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
   //write normals
   const bool hasNormals = mesh.hasNormals();
   if (hasNormals) {
-    for (size_t i = 0; i < mesh.numVertices; ++i) {
+    for (size_t i = 0; i < mesh.numVertices(); ++i) {
       out << "vn";
       for (int k = 0; k < 3; ++k) {
         out << ' ' << std::setprecision(precision) << mesh.normals[3 * i + k];
@@ -490,7 +490,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
 
   //write faces
   if (!hasTexCoords && !hasNormals) {
-    for (size_t i = 0; i < mesh.numTriangles; ++i) {
+    for (size_t i = 0; i < mesh.numTriangles(); ++i) {
       out << 'f';
       for (int k = 0; k < 3; ++k) {
         const uint32_t ind =
@@ -501,7 +501,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
     }
   } else if (hasTexCoords) {
     if (hasNormals) {
-      for (size_t i = 0; i < mesh.numTriangles; ++i) {
+      for (size_t i = 0; i < mesh.numTriangles(); ++i) {
         out << 'f';
         for (int k = 0; k < 3; ++k) {
           const uint32_t ind =
@@ -511,7 +511,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
         out << "\n";
       }
     } else {
-      for (size_t i = 0; i < mesh.numTriangles; ++i) {
+      for (size_t i = 0; i < mesh.numTriangles(); ++i) {
         out << 'f';
         for (int k = 0; k < 3; ++k) {
           const uint32_t ind =
@@ -522,7 +522,7 @@ writeOBJ(const std::string &filename, const Mesh &mesh)
       }
     }
   } else if (hasNormals) {
-    for (size_t i = 0; i < mesh.numTriangles; ++i) {
+    for (size_t i = 0; i < mesh.numTriangles(); ++i) {
       out << 'f';
       for (int k = 0; k < 3; ++k) {
         const uint32_t ind =

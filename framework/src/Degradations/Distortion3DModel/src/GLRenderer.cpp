@@ -853,7 +853,7 @@ GLRenderer::applyTextureMatrix()
 {
   if (m_mesh.hasTexCoords()) {
 
-    for (uint32_t i=0; i<m_mesh.numVertices; ++i) {
+    for (uint32_t i=0; i<m_mesh.numVertices(); ++i) {
       Eigen::Vector3f v(m_mesh.texCoords[2*i+0], m_mesh.texCoords[2*i+1], 1);
       v = m_texMat * v;
       m_mesh.texCoords[2*i+0] = v[0];
@@ -873,7 +873,7 @@ void
 GLRenderer::applyViewMatrix()
 {
   const Eigen::Matrix4f &viewMat = m_camera.getViewMatrix();
-  for (uint32_t i=0; i<m_mesh.numVertices; ++i) {
+  for (uint32_t i=0; i<m_mesh.numVertices(); ++i) {
     Eigen::Vector4f v(m_mesh.vertices[3*i+0], m_mesh.vertices[3*i+1], m_mesh.vertices[3*i+2], 1);
     v = viewMat * v;
     m_mesh.vertices[3*i+0] = v[0];

@@ -13,9 +13,9 @@ checkTexCoords(const Mesh &mesh)
   if (!mesh.hasTexCoords())
     return;
 
-  const uint32_t numtexcoords = mesh.numVertices;
-  const uint32_t numTriangles = mesh.numTriangles;
-  const uint32_t *triangles = mesh.triangles;
+  const uint32_t numtexcoords = mesh.numVertices();
+  const uint32_t numTriangles = mesh.numTriangles();
+  const uint32_t *triangles = mesh.triangles.data();
 
   const float eps = 0.000001f;
   uint32_t nb_eps = 0;
@@ -142,8 +142,8 @@ moveTo_X_min(Mesh &mesh, float min_x)
 {
   assert(mesh.isValid());
 
-  const uint32_t numvertices = mesh.numVertices;
-  float *vertices = mesh.vertices;
+  const uint32_t numvertices = mesh.numVertices();
+  float *vertices = mesh.vertices.data();
   for (uint32_t i = 0; i < numvertices; ++i) {
     vertices[3 * i + 0] -= min_x;
   }
@@ -156,8 +156,8 @@ moveTo_X_min(Mesh &mesh)
 
   //compute min X coords
   float min_x = std::numeric_limits<float>::max();
-  const uint32_t numvertices = mesh.numVertices;
-  const float *vertices = mesh.vertices;
+  const uint32_t numvertices = mesh.numVertices();
+  const float *vertices = mesh.vertices.data();
   for (uint32_t i = 0; i < numvertices; ++i) {
     if (vertices[3 * i + 0] < min_x) {
       min_x = vertices[3 * i + 0];
@@ -176,8 +176,8 @@ moveTo_XZ_min(Mesh &mesh)
   float min_x = std::numeric_limits<float>::max();
   float min_z = std::numeric_limits<float>::max();
 
-  const uint32_t numvertices = mesh.numVertices;
-  float *vertices = mesh.vertices;
+  const uint32_t numvertices = mesh.numVertices();
+  float *vertices = mesh.vertices.data();
 
   //compute min X & Z coords
   for (uint32_t i = 0; i < numvertices; ++i) {
@@ -202,8 +202,8 @@ normalizeTexCoords(Mesh &mesh)
 {
   assert(mesh.hasTexCoords());
 
-  float *texcoords = mesh.texCoords;
-  const uint32_t numtexcoords = mesh.numVertices;
+  float *texcoords = mesh.texCoords.data();
+  const uint32_t numtexcoords = mesh.numVertices();
 
   //search min/max of texcoords
   float tex_min_x = texcoords[2 * 0 + 0];
@@ -282,8 +282,8 @@ normalizeTexCoordsB(Mesh &mesh)
 {
   assert(mesh.hasTexCoords());
 
-  float *texcoords = mesh.texCoords;
-  const uint32_t numtexcoords = mesh.numVertices;
+  float *texcoords = mesh.texCoords.data();
+  const uint32_t numtexcoords = mesh.numVertices();
 
   //search min/max of texcoords
   float tex_min_x = texcoords[2 * 0 + 0];
@@ -291,7 +291,7 @@ normalizeTexCoordsB(Mesh &mesh)
   float tex_max_x = texcoords[2 * 0 + 0];
   float tex_max_y = texcoords[2 * 0 + 1];
 
-  std::vector<float> xs(mesh.numVertices);
+  std::vector<float> xs(mesh.numVertices());
   for (uint32_t i = 0; i < numtexcoords; ++i) {
 
     const float tx = texcoords[2 * i + 0];
@@ -419,7 +419,7 @@ getIntersectionPlanesVertices(const Mesh &mesh,
 {
   assert(mesh.isValid());
 
-  const uint32_t numvertices = mesh.numVertices;
+  const uint32_t numvertices = mesh.numVertices();
   assert(numvertices > 0);
 
   verticesIndices.resize(numvertices);
@@ -427,7 +427,7 @@ getIntersectionPlanesVertices(const Mesh &mesh,
     verticesIndices[i] = i;
   }
 
-  const float *vertices = mesh.vertices;
+  const float *vertices = mesh.vertices.data();
 
   std::sort(
     verticesIndices.begin(), verticesIndices.end(), SorterY_X(vertices));

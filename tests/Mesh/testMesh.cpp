@@ -37,8 +37,8 @@ namespace {
     if (withTexCoords)
       m.allocateTexCoords();
 
-    REQUIRE(m.vertices != nullptr);
-    REQUIRE((numTris == 0 || m.triangles != nullptr));
+    REQUIRE(! m.vertices.empty());
+    REQUIRE((numTris == 0 || ! m.triangles.empty()));
 
     for (uint32_t i = 0; i < 3 * numVerts; ++i)
       m.vertices[i] = static_cast<float>(i);
@@ -58,38 +58,29 @@ namespace {
   bool
   isDistinctEqualCopy(const Mesh &a, const Mesh &b)
   {
-    if (a.numVertices != b.numVertices || a.numTriangles != b.numTriangles)
+    if (a.numVertices() != b.numVertices() || a.numTriangles() != b.numTriangles())
       return false;
     if (a.hasNormals() != b.hasNormals() ||
         a.hasTexCoords() != b.hasTexCoords())
       return false;
 
     //buffers must not be shared
-    if (a.numVertices > 0 && a.vertices == b.vertices)
+    //distinct buffers: the two must not share their storage
+    if (a.numVertices() > 0 && a.vertices.data() == b.vertices.data())
       return false;
-    if (a.numTriangles > 0 && a.triangles == b.triangles)
-      return false;
-
-    if (!std::equal(a.vertices, a.vertices + 3 * a.numVertices, b.vertices))
-      return false;
-    if (!std::equal(a.triangles, a.triangles + 3 * a.numTriangles, b.triangles))
-      return false;
-    if (a.hasNormals() &&
-        !std::equal(a.normals, a.normals + 3 * a.numVertices, b.normals))
-      return false;
-    if (a.hasTexCoords() &&
-        !std::equal(a.texCoords, a.texCoords + 2 * a.numVertices, b.texCoords))
+    if (a.numTriangles() > 0 && a.triangles.data() == b.triangles.data())
       return false;
 
-    return true;
+    return a.vertices == b.vertices && a.triangles == b.triangles &&
+           a.normals == b.normals && a.texCoords == b.texCoords;
   }
 
   bool
   isEmpty(const Mesh &m)
   {
-    return m.numVertices == 0 && m.vertices == nullptr &&
-           m.normals == nullptr && m.texCoords == nullptr &&
-           m.numTriangles == 0 && m.triangles == nullptr;
+    return m.numVertices() == 0 && m.vertices.empty() &&
+           m.normals.empty() && m.texCoords.empty() &&
+           m.numTriangles() == 0 && m.triangles.empty();
   }
 
 } //anonymous namespace
@@ -168,15 +159,16 @@ TEST_CASE("Mesh copy assignment")
 TEST_CASE("Mesh move construction steals the buffers")
 {
   Mesh a = makeMesh(100, 50, true, true);
-  const float *const verticesBefore = a.vertices;
-  const uint32_t *const trianglesBefore = a.triangles;
+  const float *const verticesBefore = a.vertices.data();
+  const uint32_t *const trianglesBefore = a.triangles.data();
 
   const Mesh b(std::move(a));
 
-  REQUIRE(b.vertices == verticesBefore);
-  REQUIRE(b.triangles == trianglesBefore);
-  REQUIRE(b.numVertices == 100);
-  REQUIRE(b.numTriangles == 50);
+  //the move takes the very buffers, it does not copy them
+  REQUIRE(b.vertices.data() == verticesBefore);
+  REQUIRE(b.triangles.data() == trianglesBefore);
+  REQUIRE(b.numVertices() == 100);
+  REQUIRE(b.numTriangles() == 50);
   REQUIRE(b.hasNormals());
   REQUIRE(b.hasTexCoords());
 
@@ -185,20 +177,21 @@ TEST_CASE("Mesh move construction steals the buffers")
   a.clear();
   REQUIRE(isEmpty(a));
   a = makeMesh(7, 3, false, false);
-  REQUIRE(a.numVertices == 7);
+  REQUIRE(a.numVertices() == 7);
 }
 
 TEST_CASE("Mesh move assignment steals the buffers and frees its own")
 {
   Mesh a = makeMesh(100, 50, true, true);
-  const float *const verticesBefore = a.vertices;
+  const float *const verticesBefore = a.vertices.data();
 
   Mesh b = makeMesh(40, 20, false, false);
   b = std::move(a);
 
-  REQUIRE(b.vertices == verticesBefore);
-  REQUIRE(b.numVertices == 100);
-  REQUIRE(b.numTriangles == 50);
+  //the move takes the very buffer, it does not copy it
+  REQUIRE(b.vertices.data() == verticesBefore);
+  REQUIRE(b.numVertices() == 100);
+  REQUIRE(b.numTriangles() == 50);
   REQUIRE(b.hasNormals());
   REQUIRE(b.hasTexCoords());
   REQUIRE(isEmpty(a));
@@ -207,16 +200,31 @@ TEST_CASE("Mesh move assignment steals the buffers and frees its own")
 TEST_CASE("Mesh self assignment is harmless")
 {
   Mesh a = makeMesh(10, 5, true, true);
-  const float *const verticesBefore = a.vertices;
+  const float *const verticesBefore = a.vertices.data();
 
   Mesh &aRef = a; //through a reference, to keep the compiler quiet
 
   a = aRef;
-  REQUIRE(a.vertices == verticesBefore);
-  REQUIRE(a.numVertices == 10);
+  REQUIRE(a.vertices.data() == verticesBefore);
+  REQUIRE(a.numVertices() == 10);
+  REQUIRE(a.hasNormals());
+  REQUIRE(a.hasTexCoords());
 
+  /*
+    B: self move assignment used to leave the mesh untouched, because the
+    move assignment operator was written by hand and began with
+    "if (this != &m)". The compiler written one moves each vector into
+    itself, which the standard leaves valid but unspecified, and which
+    empties them in practice.
+
+    What is required of it is that the object stays usable, which is what
+    is checked here. No code of this project moves a mesh onto itself.
+  */
   a = std::move(aRef);
-  REQUIRE(a.numVertices == 10);
+  REQUIRE(a.numVertices() * 3 == a.vertices.size());
+  REQUIRE(a.numTriangles() * 3 == a.triangles.size());
+  a.clear();
+  REQUIRE(isEmpty(a));
 }
 
 TEST_CASE("Mesh swap exchanges meshes of different shapes")
@@ -227,15 +235,15 @@ TEST_CASE("Mesh swap exchanges meshes of different shapes")
   {
     Mesh a = makeMesh(100, 50, true, true);
     Mesh b = makeMesh(30, 10, false, false);
-    const float *const aVertices = a.vertices;
-    const float *const bVertices = b.vertices;
+    const float *const aVertices = a.vertices.data();
+    const float *const bVertices = b.vertices.data();
 
     a.swap(b);
 
-    REQUIRE(a.vertices == bVertices);
-    REQUIRE(b.vertices == aVertices);
-    REQUIRE(a.numVertices == 30);
-    REQUIRE(b.numVertices == 100);
+    REQUIRE(a.vertices.data() == bVertices);
+    REQUIRE(b.vertices.data() == aVertices);
+    REQUIRE(a.numVertices() == 30);
+    REQUIRE(b.numVertices() == 100);
     REQUIRE_FALSE(a.hasNormals());
     REQUIRE(b.hasNormals());
   }
@@ -248,7 +256,7 @@ TEST_CASE("Mesh swap exchanges meshes of different shapes")
     a.swap(b);
 
     REQUIRE(isEmpty(a));
-    REQUIRE(b.numVertices == 100);
+    REQUIRE(b.numVertices() == 100);
     REQUIRE(b.isValid());
   }
 
@@ -257,15 +265,15 @@ TEST_CASE("Mesh swap exchanges meshes of different shapes")
     //With no move operations this went through the copy constructor.
     Mesh a = makeMesh(100, 50, true, true);
     Mesh b = makeMesh(30, 10, false, false);
-    const float *const aVertices = a.vertices;
-    const float *const bVertices = b.vertices;
+    const float *const aVertices = a.vertices.data();
+    const float *const bVertices = b.vertices.data();
 
     std::swap(a, b);
 
-    REQUIRE(a.vertices == bVertices);
-    REQUIRE(b.vertices == aVertices);
-    REQUIRE(a.numVertices == 30);
-    REQUIRE(b.numVertices == 100);
+    REQUIRE(a.vertices.data() == bVertices);
+    REQUIRE(b.vertices.data() == aVertices);
+    REQUIRE(a.numVertices() == 30);
+    REQUIRE(b.numVertices() == 100);
   }
 }
 
@@ -313,7 +321,7 @@ TEST_CASE("Mesh handles empty meshes")
 TEST_CASE("getAABB does not dereference the vertices of an empty mesh")
 {
   const Mesh empty;
-  REQUIRE(empty.vertices == nullptr);
+  REQUIRE(empty.vertices.empty());
 
   float minB[3] = { 1.f, 2.f, 3.f };
   float maxB[3] = { 4.f, 5.f, 6.f };
@@ -331,7 +339,7 @@ TEST_CASE("unitize keeps the vertices of a degenerate mesh finite")
   {
     Mesh m;
     m.unitize();
-    REQUIRE(m.numVertices == 0);
+    REQUIRE(m.numVertices() == 0);
   }
 
   SECTION("a single vertex")
@@ -360,15 +368,15 @@ TEST_CASE("unitize keeps the vertices of a degenerate mesh finite")
     const float verts[9] = { 0.f, 0.f, 5.f,
 			     2.f, 0.f, 5.f,
 			     0.f, 4.f, 5.f };
-    std::copy(verts, verts + 9, m.vertices);
+    std::copy(verts, verts + 9, m.vertices.begin());
 
     m.unitize();
 
-    for (uint32_t i = 0; i < 3 * m.numVertices; ++i) {
+    for (uint32_t i = 0; i < 3 * m.numVertices(); ++i) {
       REQUIRE(std::isfinite(m.vertices[i]));
     }
     //the largest dimension is 4, so the mesh fits in [-1; 1]
-    for (uint32_t i = 0; i < 3 * m.numVertices; ++i) {
+    for (uint32_t i = 0; i < 3 * m.numVertices(); ++i) {
       REQUIRE(std::abs(m.vertices[i]) <= 1.f);
     }
   }
@@ -379,20 +387,20 @@ TEST_CASE("Mesh never keeps a non-zero count with a null buffer")
   Mesh m = makeMesh(100, 50, true, true);
 
   m.freeVertices();
-  REQUIRE(m.vertices == nullptr);
-  REQUIRE(m.numVertices == 0);
+  REQUIRE(m.vertices.empty());
+  REQUIRE(m.numVertices() == 0);
 
   m.freeTriangles();
-  REQUIRE(m.triangles == nullptr);
-  REQUIRE(m.numTriangles == 0);
+  REQUIRE(m.triangles.empty());
+  REQUIRE(m.numTriangles() == 0);
 
   //re-allocating the same counts must really allocate
   m.allocateVertices(100);
   m.allocateTriangles(50);
-  REQUIRE(m.vertices != nullptr);
-  REQUIRE(m.triangles != nullptr);
-  REQUIRE(m.numVertices == 100);
-  REQUIRE(m.numTriangles == 50);
+  REQUIRE(! m.vertices.empty());
+  REQUIRE(! m.triangles.empty());
+  REQUIRE(m.numVertices() == 100);
+  REQUIRE(m.numTriangles() == 50);
 
   m.clear();
   REQUIRE(isEmpty(m));
@@ -413,20 +421,20 @@ TEST_CASE("removeDegenerateTrianglesIndices updates the triangle count")
                               0, 0, 1,   //degenerate
                               1, 2, 3,   //kept
                               2, 2, 2 }; //degenerate
-  std::copy(tris, tris + 12, m.triangles);
+  std::copy(tris, tris + 12, m.triangles.begin());
 
   m.removeDegenerateTrianglesIndices();
 
-  REQUIRE(m.numTriangles == 2);
+  REQUIRE(m.numTriangles() == 2);
   REQUIRE(m.isValid());
 
   const uint32_t expected[6] = { 0, 1, 2, 1, 2, 3 };
-  REQUIRE(std::equal(expected, expected + 6, m.triangles));
+  REQUIRE(std::equal(expected, expected + 6, m.triangles.begin()));
 
   //Every remaining index must address an existing vertex. With a stale
   //count, the tail of the buffer was never written and was used as indices.
-  for (uint32_t i = 0; i < 3 * m.numTriangles; ++i) {
-    REQUIRE(m.triangles[i] < m.numVertices);
+  for (uint32_t i = 0; i < 3 * m.numTriangles(); ++i) {
+    REQUIRE(m.triangles[i] < m.numVertices());
   }
 
   //This reads vertices[] through triangles[]: out-of-range indices show up
@@ -439,10 +447,10 @@ TEST_CASE("removeDegenerateTrianglesIndices keeps a mesh without degenerates")
 {
   Mesh m = makeMesh(4, 2, false, false);
   const uint32_t tris[6] = { 0, 1, 2, 1, 2, 3 };
-  std::copy(tris, tris + 6, m.triangles);
+  std::copy(tris, tris + 6, m.triangles.begin());
 
   m.removeDegenerateTrianglesIndices();
 
-  REQUIRE(m.numTriangles == 2);
-  REQUIRE(std::equal(tris, tris + 6, m.triangles));
+  REQUIRE(m.numTriangles() == 2);
+  REQUIRE(std::equal(tris, tris + 6, m.triangles.begin()));
 }

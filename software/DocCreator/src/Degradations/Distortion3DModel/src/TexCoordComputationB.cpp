@@ -438,7 +438,7 @@ public:
     init(m);
   }
 
-  void init(const Mesh &m) { init(m.triangles, m.numTriangles, m.numVertices); }
+  void init(const Mesh &m) { init(m.triangles.data(), m.numTriangles(), m.numVertices()); }
 
   void init(const uint32_t *tris, uint32_t numTriangles, uint32_t numVertices)
   {
@@ -1952,12 +1952,12 @@ computeTexCoords2(Mesh &mesh)
 #ifdef TIME_TEXCOORDS
   gettimeofday(&t1, nullptr);
   std::cerr << "time allocateTexCoords: " << P_getTime(t0, t1) << "ms for "
-            << mesh.numVertices << " vertices\n";
+            << mesh.numVertices() << " vertices\n";
 #endif //TIME_TEXCOORDS
 
 #ifndef NDEBUG
   const float TEXCOORD_INVALID = -1000.0f;
-  for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+  for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
     mesh.texCoords[2 * i + 0] = TEXCOORD_INVALID;
     mesh.texCoords[2 * i + 1] = TEXCOORD_INVALID;
   }
@@ -1975,10 +1975,10 @@ computeTexCoords2(Mesh &mesh)
 #ifdef TIME_TEXCOORDS
   gettimeofday(&t1, nullptr);
   std::cerr << "time getIntersectionPlanesVertices: " << P_getTime(t0, t1)
-            << "ms for " << mesh.numVertices << " vertices\n";
+            << "ms for " << mesh.numVertices() << " vertices\n";
 #endif //TIME_TEXCOORDS
 
-  const uint32_t numvertices = mesh.numVertices;
+  const uint32_t numvertices = mesh.numVertices();
 
   //- build array to have for a given vidx its corresponding Y plane start index.
   std::vector<uint32_t> vidx2yPlaneIdx(numvertices); //TODO:OPTIM: hidden memset
@@ -2193,8 +2193,8 @@ computeTexCoords2(Mesh &mesh)
       const uint32_t e0 = edges[eind].vertexIndex[0];
       const uint32_t e1 = edges[eind].vertexIndex[1];
 
-      assert(e0 < mesh.numVertices);
-      assert(e1 < mesh.numVertices);
+      assert(e0 < mesh.numVertices());
+      assert(e1 < mesh.numVertices());
 
       const float *v0 = &mesh.vertices[3 * e0];
       const float *v1 = &mesh.vertices[3 * e1];
@@ -2331,10 +2331,10 @@ computeTexCoords2(Mesh &mesh)
     gettimeofday(&tt0, nullptr);
 #endif //TIME_TEXCOORDS
 
-    getPaths(mesh.triangles,
-             mesh.numTriangles,
-             mesh.vertices,
-             mesh.numVertices,
+    getPaths(mesh.triangles.data(),
+             mesh.numTriangles(),
+             mesh.vertices.data(),
+             mesh.numVertices(),
              &verticesIndices[iV],
              endV - iV,
              segments,
@@ -2342,7 +2342,7 @@ computeTexCoords2(Mesh &mesh)
              paths);
 
     /*
-      getVertexLinks(mesh.vertices, mesh.numVertices,
+      getVertexLinks(mesh.vertices.data(), mesh.numVertices(),
                      &verticesIndices[iV], endV-iV,
                      segments, v2t,
                      vertexLinks);
@@ -2446,7 +2446,7 @@ computeTexCoords2(Mesh &mesh)
       const uint32_t vIdx = paths[0].vIndices[i];
       const float L = paths[0].lengths[i];
 
-      assert(vIdx < mesh.numVertices);
+      assert(vIdx < mesh.numVertices());
       assert(mesh.hasTexCoords());
       mesh.texCoords[2 * vIdx + 0] = L;
       mesh.texCoords[2 * vIdx + 1] = y;
@@ -2485,7 +2485,7 @@ computeTexCoords2(Mesh &mesh)
   //exit(10); //DEBUG
 
 #ifndef NDEBUG
-  for (uint32_t i = 0; i < mesh.numVertices; ++i) {
+  for (uint32_t i = 0; i < mesh.numVertices(); ++i) {
     if (mesh.texCoords[2 * i + 0] == TEXCOORD_INVALID ||
         mesh.texCoords[2 * i + 1] == TEXCOORD_INVALID)
       std::cerr << "**** ERROR: texcoords for vIdx=" << i << ": ("
