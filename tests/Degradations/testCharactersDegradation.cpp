@@ -118,21 +118,34 @@ testLowLevelOnFewComponents(int imageType)
   //level. [It used to request none, and to read one element past the end of
   //a vector while doing so.]
   //
-  //B:TODO: we cannot check here that the image really changed: a single spot
-  // covers a handful of pixels and often writes values equal to the ones
-  // already there, and the random generator is seeded on the current time,
-  // so the result is not reproducible. A seed parameter on degradation()
-  // would make this testable.
+  //A single spot covers a handful of pixels and often writes values equal
+  //to the ones already there, so a given seed may leave the image
+  //untouched; with a fixed seed the result is at least the same every run,
+  //and at least one of the seeds tried must change something.
 
   for (int level = 1; level <= 3; ++level) {
-    const cv::Mat img = makeImageWithComponents(1, imageType);
-    const cv::Mat imgClone = img.clone();
+    bool someSeedDegraded = false;
 
-    const cv::Mat out = dc::GrayscaleCharsDegradation::degradation(img, level);
+    for (uint32_t seed = 1; seed <= 8; ++seed) {
+      const cv::Mat img = makeImageWithComponents(1, imageType);
+      const cv::Mat imgClone = img.clone();
 
-    REQUIRE( out.type() == imageType );
-    REQUIRE( out.size() == img.size() );
-    REQUIRE( checkEqual(img, imgClone) ); //input not modified
+      const cv::Mat out =
+	dc::GrayscaleCharsDegradation::degradation(img, level, .33f, .33f, seed);
+
+      REQUIRE( out.type() == imageType );
+      REQUIRE( out.size() == img.size() );
+      REQUIRE( checkEqual(img, imgClone) ); //input not modified
+
+      //the same seed gives the same image
+      const cv::Mat out2 =
+	dc::GrayscaleCharsDegradation::degradation(img, level, .33f, .33f, seed);
+      REQUIRE( checkEqual(out, out2) );
+
+      someSeedDegraded = someSeedDegraded || ! checkEqual(out, img);
+    }
+
+    REQUIRE( someSeedDegraded );
   }
 }
 

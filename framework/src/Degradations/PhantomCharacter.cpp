@@ -623,7 +623,20 @@ namespace dc {
 #endif //SAVE_DEGRADATIONS_IMAGE
 		    )
     {
+#ifdef SAVE_DEGRADATIONS_IMAGE
       const V BLACK(0, 0, 0);
+#endif //SAVE_DEGRADATIONS_IMAGE
+
+      /*
+	B: the pattern is a binary mask of type CV_8UC1 (cf. the assert of
+	the caller), but its rows were read as V, that is as three or four
+	bytes per pixel: the loop below read up to four times past the end
+	of each row, and decided from that memory whether to write the
+	pixel. The result changed with whatever else the process had
+	allocated, so the same seed did not give the same image.
+      */
+      assert(pattern.type() == CV_8UC1);
+      constexpr uchar BLACK_PATTERN = 0;
 
       const int p_w = std::min(pattern.cols, output.cols - dstPoint.x);
       const int p_h = std::min(pattern.rows, output.rows - dstPoint.y);
@@ -635,7 +648,7 @@ namespace dc {
 	assert(dstPoint.y + y >= 0 && dstPoint.y + y < degrads.rows);
 #endif //SAVE_DEGRADATIONS_IMAGE
 
-	const V *p = pattern.ptr<V>(y);
+	const uchar *p = pattern.ptr<uchar>(y);
 	const V *s = output.ptr<V>(srcPoint.y + y);
 	V *d = output.ptr<V>(dstPoint.y + y);
 #ifdef SAVE_DEGRADATIONS_IMAGE
@@ -649,7 +662,7 @@ namespace dc {
 	  assert(dstPoint.x + x >= 0 && dstPoint.x + x < degrads.cols);
 #endif //SAVE_DEGRADATIONS_IMAGE
 
-	  if (p[x] == BLACK) {
+	  if (p[x] == BLACK_PATTERN) {
 	    const V oldPixel = d[dstPoint.x + x];
 	    // = output.at<V>(y+dstPoint.y, x+dstPoint.x)
 	    const V newPixel = s[srcPoint.x + x];
