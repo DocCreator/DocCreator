@@ -1,21 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Set version variables to empty if not specified in project() call.
-IF(POLICY CMP0048)
-  CMAKE_POLICY(SET CMP0048 NEW)
-ENDIF(POLICY CMP0048)
-
-# Only interpret if() arguments as variables or keywords when unquoted. [Policy introduced in cmake 3.1]
-IF(POLICY CMP0054)
-  CMAKE_POLICY(SET CMP0054 NEW)
-ENDIF(POLICY CMP0054)
-
-# Honor visibility properties for all target types. [Policy introduced in cmake 3.3]
-IF(POLICY CMP0063)
-  CMAKE_POLICY(SET CMP0063 NEW)
-ENDIF(POLICY CMP0063)
-
-
+# CMP0048 (project() manages the VERSION variables), CMP0054 (if() only
+# interprets unquoted arguments as variables) and CMP0063 (the visibility
+# properties are honoured for every target type) were set to NEW here, each
+# guarded by IF(POLICY ...). They were introduced in CMake 3.0, 3.1 and 3.3,
+# so the minimum above already gives all three.
 
 FIND_PROGRAM(CCACHE_PROGRAM ccache)
 IF(CCACHE_PROGRAM)
