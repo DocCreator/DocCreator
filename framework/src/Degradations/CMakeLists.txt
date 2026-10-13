@@ -33,6 +33,7 @@ SET(
 SET(
   Degradations_sources
   BleedThrough.cpp
+  EllipseRasteriser.cpp
   BlurFilter.cpp
   Distortion3D.cpp
   ElasticDeformation.cpp

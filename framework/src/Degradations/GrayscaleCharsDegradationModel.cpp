@@ -18,6 +18,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "ConnectedComponent.hpp"
+#include "EllipseRasteriser.hpp"
 #include "Random.hpp"
 #include "Validate.hpp"
 
@@ -71,25 +72,6 @@ namespace dc {
   };
 
 
-  /*
-    The pixels of one segment, from the centre of a noise region to a point
-    of its elliptical contour, with what DegradedLine() needs to shade them.
-
-    B: this was a float* of (2 * numPoints + 3) values holding the count,
-    the distance and the gray level in [0], [1] and [2], then the
-    coordinates as floats. Each was malloc'ed by getEllipseLines() and
-    free()d by its caller.
-  */
-  struct NoiseLine
-  {
-    //distance from the centre of the region to the contour point
-    float distanceToCentre = 0.f;
-    //gray level of the image at the contour point
-    int borderGrayLevel = 0;
-    std::vector<cv::Point> points;
-  };
-
-
   class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
   {
   public:
@@ -132,16 +114,6 @@ namespace dc {
     */
     void computeDistanceToEdgeMap(cv::Mat &distanceMap) const;
 
-    /*
-      Fill the first elements of @a lines with one NoiseLine per point of the
-      elliptical contour of a noise region, and @return how many.
-
-      @a lines is an in/out parameter, and the count is returned instead of
-      the vector being resized, so that the point vectors of one seed point
-      are reused by the next one instead of being allocated again. It only
-      ever grows, to the largest contour and the longest segment met.
-    */
-    size_t getEllipseLines(std::vector<NoiseLine> &lines, cv::Rect &rec, int &max_B, int &min_B, cv::Point centre, double semi_minor_axis, double semi_major_axis, double theta);
     //std::vector<cv::Point> getLinePoints(cv::Point A, cv::Point B) const;
 
     void DegradedLine(const NoiseLine &line, cv::Point Centre, int Centre_gray, int pixel_signma, int sigma_gaussien,
@@ -170,7 +142,7 @@ namespace dc {
 
     RandomEngine m_rng;
 
-    cv::Mat m_mat_ellipse; //scratch buffer to draw the noise region ellipse
+    EllipseRasteriser m_rasteriser;
     cv::Mat m_mat_reduce_pixels;
     cv::Mat m_mat_CCs;
     cv::Mat m_mat_contour;
@@ -179,8 +151,16 @@ namespace dc {
 
     int m_width, m_height;
     int m_avgBackground, m_avgForeground, m_nb_connectedcomponants, m_MAX_a0;
-    // Kanungo parameters
-    double m_alpha, m_beta, m_alpha0, m_beta0, m_nf, m_nb;
+    /*
+      Kanungo parameters.
+
+      B: m_alpha and m_beta were members too, and they are not parameters:
+      calculatePixelsProbability() draws one of them per pixel and uses it
+      on the next line. A member that only lives inside one loop body is
+      two things at once, and it leaves the object holding the value of the
+      last pixel of the last image.
+    */
+    double m_alpha0, m_beta0, m_nf, m_nb;
     // Grayscale Model parameters
     float m_a0, m_g, m_MAX_Gradient, m_AVG_Gradient, m_sigma_gaussian;
     bool m_is4connected;
@@ -229,8 +209,6 @@ namespace dc {
     , m_avgForeground(0)
     , m_nb_connectedcomponants(0)
     , m_MAX_a0(0)
-    , m_alpha(0.0)
-    , m_beta(0.0)
     , m_alpha0(0.0)
     , m_beta0(0.0)
     , m_nf(0.0)
@@ -1955,7 +1933,7 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::grayscaleDegradationByTypes()
   {
-    //reused by every seed point, cf getEllipseLines()
+    //reused by every seed point, cf EllipseRasteriser::rasterise()
     std::vector<NoiseLine> lines;
 
     // calculate mean by region
@@ -2027,14 +2005,16 @@ namespace dc {
       cv::Rect rec;
       int max_B = INT_MIN, min_B = INT_MAX;
 
-      const size_t numLines = getEllipseLines(lines,
-					     rec,
-					     max_B,
-					     min_B,
-					     sp.pixel.pos,
-					     semi_minor_axis,
-					     semi_major_axis,
-					     sp.pixel.gradient_angle);
+      const size_t numLines = m_rasteriser.rasterise(m_mat_gray,
+						     m_local_zone,
+						     lines,
+						     rec,
+						     max_B,
+						     min_B,
+						     sp.pixel.pos,
+						     semi_minor_axis,
+						     semi_major_axis,
+						     sp.pixel.gradient_angle);
 
       //std::cerr<<"semi_major_axis="<<semi_major_axis<<" semi_minor_axis="<<semi_minor_axis<<" pos="<<sp.pixel.pos<<" gradient_angle="<<sp.pixel.gradient_angle<<" => rec="<<rec<<" min_B="<<min_B<<" max_B="<<max_B<<"\n";
 
@@ -2076,7 +2056,7 @@ namespace dc {
 	else if (C_gris > WHITE)
 	  C_gris = WHITE;
 
-	//B: getEllipseLines() may give no line at all, hence the count check
+	//B: the rasteriser may give no line at all, hence the count check
 	// before indexing. A line always holds at least one point, so the
 	// single pixel case below cannot currently happen.
 	if (numLines == 1 && lines[0].points.empty()) {
@@ -2426,160 +2406,6 @@ namespace dc {
     return std::sqrt(minDistSq);  //B:CONVERSION TO INT ? Is it really what we want ???
   }
 
-  size_t
-  GrayscaleCharsDegradationModel::getEllipseLines(std::vector<NoiseLine> &lines,
-						  cv::Rect &rec,
-						  int &max_B,
-						  int &min_B,
-						  cv::Point centre,
-						  double semi_minor_axis,
-						  double semi_major_axis,
-						  double theta)
-  {
-    /*
-      We only ever look at a window of (2*m_local_zone) pixels around the
-      centre, thus:
-      1) the filled ellipse is drawn in a small buffer of that size, kept from
-         one call to the next, instead of a buffer as big as the whole image
-         allocated (and cleared) for each seed point;
-      2) the points of each line, from the centre to a point of the ellipse
-         contour, are walked with a Bresenham iterator instead of being drawn
-         in that buffer and searched back by their color.
-
-      Coordinates are kept in the frame of the former full-image buffer,
-      that is image coordinates translated by (half, half), as the returned
-      @a rec is expressed in it.
-    */
-
-    //the lines of the previous seed point are dropped, but their point
-    //vectors are kept, cf the comment on the declaration
-    size_t numLines = 0;
-
-    const int ex = static_cast<int>(semi_major_axis) + 10;
-    const int half = ex / 2;
-    const int boxCols = m_width + ex;
-    const int boxRows = m_height + ex;
-    const cv::Point newCentre(centre.x + half, centre.y + half);
-
-    //window of interest, clipped to the former buffer
-    const int localZone2 = 2 * m_local_zone;
-    const int xr = std::max(newCentre.x - localZone2, 0);
-    const int yr = std::max(newCentre.y - localZone2, 0);
-    const int wr = (newCentre.x - xr) + std::min(localZone2, boxCols - newCentre.x);
-    const int hr = (newCentre.y - yr) + std::min(localZone2, boxRows - newCentre.y);
-    assert(wr > 0 && wr <= 2 * localZone2);
-    assert(hr > 0 && hr <= 2 * localZone2);
-    const cv::Rect r(xr, yr, wr, hr);
-
-    if (m_mat_ellipse.empty()) {
-      m_mat_ellipse.create(2 * localZone2, 2 * localZone2, CV_8UC1);
-    }
-    //Drawing the ellipse directly in the window clips it exactly as drawing
-    //it in the whole image and cropping the window did.
-    cv::Mat win = m_mat_ellipse(cv::Rect(0, 0, r.width, r.height));
-    win.setTo(cv::Scalar(0));
-    cv::ellipse(win,
-		cv::Point(newCentre.x - r.x, newCentre.y - r.y),
-		cv::Size(static_cast<int>(semi_major_axis),
-			 static_cast<int>(semi_minor_axis)),
-		theta,
-		0,
-		360,
-		cv::Scalar(WHITE),
-		-1);
-
-    std::vector<std::vector<cv::Point>> contours;
-    std::vector<cv::Vec4i> hierarchy;
-    cv::findContours(win,
-		     contours,
-		     hierarchy,
-		     cv::RETR_TREE,
-		     cv::CHAIN_APPROX_NONE,
-		     cv::Point(0, 0));
-
-    if (contours.empty()) { //B: the ellipse is entirely outside the window
-      rec = cv::Rect(0, 0, 0, 0);
-      return 0;
-    }
-
-    const std::vector<cv::Point> &v = contours[0];
-    if (lines.size() < v.size()) {
-      lines.resize(v.size());
-    }
-
-    int min_x = INT_MAX, min_y = INT_MAX;
-    int max_x = INT_MIN, max_y = INT_MIN;
-
-    for (const cv::Point &pWin : v) {
-
-      //contour point, in the former buffer frame
-      const cv::Point p(pWin.x + r.x, pWin.y + r.y);
-
-      if (min_x > p.x)
-	min_x = p.x;
-      if (max_x < p.x)
-	max_x = p.x;
-      if (min_y > p.y)
-	min_y = p.y;
-      if (max_y < p.y)
-	max_y = p.y;
-
-      //Points of the segment from the centre to the contour point, in image
-      //coordinates. cv::LineIterator walks the very pixels cv::line() would
-      //draw, and clips the segment to the image.
-      //the vector of the line about to be filled, kept from the previous call
-      std::vector<cv::Point> &pointInLine = lines[numLines].points;
-      pointInLine.clear();
-      {
-	cv::LineIterator lineIt(m_mat_gray, centre, cv::Point(p.x - half, p.y - half), 8);
-	for (int i = 0; i < lineIt.count; ++i, ++lineIt) {
-	  const cv::Point px = lineIt.pos();
-	  assert(px.x >= 0 && px.x < m_mat_gray.cols &&
-		 px.y >= 0 && px.y < m_mat_gray.rows);
-	  pointInLine.push_back(px);
-	}
-      }
-
-      // new line
-      if (!pointInLine.empty()) {
-
-	//B: check translated point is really in image
-	cv::Point pt(p.x - half, p.y - half);
-
-	if (pt.y >= m_mat_gray.rows)
-	  pt.y = m_mat_gray.rows - 1;
-	else if (pt.y < 0)
-	  pt.y = 0;
-	if (pt.x >= m_mat_gray.cols)
-	  pt.x = m_mat_gray.cols - 1;
-	else if (pt.x < 0)
-	  pt.x = 0;
-
-	assert(pt.y >= 0 && pt.y < m_mat_gray.rows && pt.x >= 0 &&
-	       pt.x < m_mat_gray.cols);
-	const int gray = m_mat_gray.at<uchar>(pt.y, pt.x);
-
-	if (max_B < gray)
-	  max_B = gray;
-	if (min_B > gray)
-	  min_B = gray;
-
-	//B: should we use p or pt here ???
-	lines[numLines].distanceToCentre =
-	  sqrtf(static_cast<float>((p.x - newCentre.x) * (p.x - newCentre.x) +
-				   (p.y - newCentre.y) * (p.y - newCentre.y)));
-	lines[numLines].borderGrayLevel = gray;
-	++numLines;
-      }
-    }
-
-    rec.x = min_x - half;
-    rec.y = min_y - half;
-    rec.width = max_x - min_x;
-    rec.height = max_y - min_y;
-
-    return numLines;
-  }
 
   /*
     unsigned int* GrayscaleCharsDegradationModel::calHist(cv::Mat src)
@@ -2665,9 +2491,6 @@ namespace dc {
   {
     //B: m_rng is seeded once per degradation, cf. the constructor.
 
-    m_beta = 0.000;
-    m_alpha = 0.000;
-
     for (Pixel &pixel : m_listPixels) {
 
       const float d = pixel.distanceToEdge;
@@ -2678,17 +2501,17 @@ namespace dc {
 
       if (!pixel.isBackground) { // FORGROUND
 
-	m_beta = m_rng.uniform(0.0, 50.0);
+	const double beta = m_rng.uniform(0.0, 50.0);
 
 	//P(0|d, beta, f) = exp(-beta*d*d)
-	pixel.probability = m_beta0 * static_cast<float>(exp((-m_beta) * d * d)) + m_nf;
+	pixel.probability = m_beta0 * static_cast<float>(exp((-beta) * d * d)) + m_nf;
 
       } else { // BACKGROUND
 
-	m_alpha = m_rng.uniform(0.0, 50.0);
+	const double alpha = m_rng.uniform(0.0, 50.0);
 
 	//P(1|d, anpha, f) = exp(-alpha*d*d)
-	pixel.probability = m_alpha0 * static_cast<float>(exp((-m_alpha) * d * d)) + m_nb;
+	pixel.probability = m_alpha0 * static_cast<float>(exp((-alpha) * d * d)) + m_nb;
       }
     }
   }
