@@ -23,7 +23,7 @@ public:
 
   void clear() override;
   void print(QPrinter *printer);
-  void saveToImage(const QString &path);
+  [[nodiscard]] bool saveToImage(const QString &path);
   QImage toQImage(DocRenderFlags flags);
   QSize getImageSize();
 

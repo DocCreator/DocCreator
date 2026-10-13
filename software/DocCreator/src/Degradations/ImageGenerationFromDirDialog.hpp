@@ -55,6 +55,18 @@ private:
   QStringList readTextFile(const QString &filePath);
 
   void degrade(QDir folder);
+
+  /*
+    Write @a document (resp. @a image) to @a filePath.
+
+    @return whether the write succeeded. A failure is reported on the
+    console and counted in _nbFileErrors, so that a generation over a
+    whole directory goes on and tells how many files are missing at the
+    end, instead of silently producing nothing.
+  */
+  bool writeDocument(Doc::Document *document, const QString &filePath);
+  bool writeImage(const QImage &image, const QString &filePath);
+
   void loadBackground();
   void loadFont();
   void setupPageParameters();
@@ -82,6 +94,8 @@ private:
   int _nbColumns;
   int _columnsWidth;
   int _columnsHeight;
+  //number of files that could not be read or written
+  int _nbFileErrors = 0;
 
   //cv::Mat _bind_text_checker;
 };

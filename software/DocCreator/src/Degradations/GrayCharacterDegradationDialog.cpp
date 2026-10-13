@@ -3,6 +3,7 @@
 #include "ui_GrayCharacterDegradationDialog.h"
 #include <Degradations/GrayCharacterDegradationModelQ.hpp>
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include "Document/DocumentController.hpp"
 #include "Utils/ImageUtils.hpp" //getWriteImageFilter()
@@ -132,7 +133,9 @@ GrayCharacterDegradationDialog::degrade()
   // and not save it on disk
 
   const QString path = ui->txtSaveTo->text();
-  if (!path.isEmpty()) {
-    dst.save(path);
+  if (!path.isEmpty() && !dst.save(path)) {
+    QMessageBox::warning(this,
+                         tr("Error : unable to save image"),
+                         tr("Unable to write %1.").arg(path));
   }
 }

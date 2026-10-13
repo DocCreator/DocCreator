@@ -14,6 +14,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QMessageBox>
 
 #include "Degradations/GrayCharacterDegradationModelQ.hpp"
 #include "DocumentTextLayout.hpp"
@@ -55,6 +56,28 @@ ImageGenerationFromDirDialog::ImageGenerationFromDirDialog(
 ImageGenerationFromDirDialog::~ImageGenerationFromDirDialog()
 {
   delete ui;
+}
+
+bool
+ImageGenerationFromDirDialog::writeDocument(Doc::Document *document,
+					    const QString &filePath)
+{
+  if (IOManager::DocumentFileManager::documentToXml(document, filePath))
+    return true;
+  qWarning() << metaObject()->className() << ": unable to write" << filePath;
+  ++_nbFileErrors;
+  return false;
+}
+
+bool
+ImageGenerationFromDirDialog::writeImage(const QImage &image,
+					 const QString &filePath)
+{
+  if (image.save(filePath))
+    return true;
+  qWarning() << metaObject()->className() << ": unable to write" << filePath;
+  ++_nbFileErrors;
+  return false;
 }
 
 void
@@ -173,7 +196,7 @@ ImageGenerationFromDirDialog::degrade(
 				      "_degradation_level_" +
 				      QString::number(level) + ".png");
 
-    out.save(fileImageOut);
+    writeImage(out, fileImageOut);
 
     //++pageCounter;
   }
@@ -261,6 +284,11 @@ ImageGenerationFromDirDialog::fileSplit(const QString &filePath)
         for (const std::string &l : f)
           openFileOut << l << std::endl;
       }
+      else {
+        qWarning() << metaObject()->className() << ": unable to write"
+		   << fileOut;
+        ++_nbFileErrors;
+      }
       openFileOut.close();
     }
   }
@@ -272,6 +300,8 @@ ImageGenerationFromDirDialog::generate()
 {
 
   this->ui->progressBar->show();
+
+  _nbFileErrors = 0;
 
   QString txtTextDir = this->ui->txtTextDirPath->text();
 
@@ -329,6 +359,13 @@ ImageGenerationFromDirDialog::generate()
         listXMLs.clear();
       }
   }
+  if (_nbFileErrors > 0)
+    QMessageBox::warning(this,
+			 tr("Error : some files could not be used"),
+			 tr("%n file(s) could not be read or written; see the "
+			    "console for the paths.",
+			    nullptr,
+			    _nbFileErrors));
   this->close();
 }
 
@@ -347,6 +384,11 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
 
   Doc::Document *document =
     IOManager::DocumentFileManager::documentFromXml(file);
+  if (document == nullptr) {
+    qWarning() << metaObject()->className() << ": unable to read" << file;
+    ++_nbFileErrors;
+    return QImage();
+  }
 
   QImage out;
 
@@ -467,10 +509,10 @@ ImageGenerationFromDirDialog::buildImage(const QString &file)
         }
 
       if (convertPage) {
-        out.convertToFormat(outFormat).save(file + ".png");
+        writeImage(out.convertToFormat(outFormat), file + ".png");
       }
       else {
-        out.save(file + ".png");
+        writeImage(out, file + ".png");
       }
     }
 
@@ -643,7 +685,7 @@ ImageGenerationFromDirDialog::createNewDocument(const QString &filePath)
   // save
   QString filePathSave = filePath;
   filePathSave.replace(QStringLiteral(".txt"), QStringLiteral(".xml"));
-  IOManager::DocumentFileManager::documentToXml(document, filePathSave);
+  writeDocument(document, filePathSave);
 }
 
 void
@@ -929,7 +971,7 @@ ImageGenerationFromDirDialog::createDocument(const QString &filePath)
     filePathSave.replace(QStringLiteral(".txt"),
                          "_p" + QString::number(pageCounter) + ".xml");    //
     listXMLs.push_back(filePathSave);                                      //
-    IOManager::DocumentFileManager::documentToXml(document, filePathSave); //
+    writeDocument(document, filePathSave); //
 
     /** DEBUG **
           filePathSave.append("_checker.png");
@@ -1081,7 +1123,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
         filePathSave.replace(QStringLiteral(".txt"),
                              "_p" + QString::number(pageCounter) + ".xml");
         listXMLs.push_back(filePathSave);
-        IOManager::DocumentFileManager::documentToXml(document, filePathSave);
+        writeDocument(document, filePathSave);
         // remove previous page + textblocks
         for (Doc::Page *page : document->getPages()) {
           for (Doc::DocTextBlock *tb : page->getTextBlocks())
@@ -1176,7 +1218,7 @@ ImageGenerationFromDirDialog::createNewBigDocument(const QString &filePath)
     filePathSave.replace(QStringLiteral(".txt"),
                          "_p" + QString::number(pageCounter) + ".xml");
     listXMLs.push_back(filePathSave);
-    IOManager::DocumentFileManager::documentToXml(document, filePathSave);
+    writeDocument(document, filePathSave);
   }
 
 

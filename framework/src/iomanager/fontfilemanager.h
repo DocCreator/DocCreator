@@ -25,13 +25,20 @@ public:
   static Models::Font *fontFromXml(const QString &filepath);
   static Models::Font *fontFromDirectory(const QString &dirpath,
                                          const QMap<QString, QString> &matches);
-  static bool writeFont(const Models::Font *font, const QString &filepath);
-  static bool fontToXml(const Models::Font *font, const QString &filepath);
-  static bool fontToBinary(const Models::Font *font, const QString &filepath);
-  static int saveBaseLineInformation(const QString &path,
-                                     qreal base,
-                                     qreal right,
-                                     const QString &character);
+  [[nodiscard]] static bool writeFont(const Models::Font *font,
+				    const QString &filepath);
+  [[nodiscard]] static bool fontToXml(const Models::Font *font,
+				    const QString &filepath);
+  [[nodiscard]] static bool fontToBinary(const Models::Font *font,
+				    const QString &filepath);
+  /*
+    @return 0 on success, -1 when the font file cannot be read, parsed or
+    written back.
+  */
+  [[nodiscard]] static int saveBaseLineInformation(const QString &path,
+                                                   qreal base,
+                                                   qreal right,
+                                                   const QString &character);
   static bool isBOFFile(const QString &filename);
 
 private:

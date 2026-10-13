@@ -620,8 +620,7 @@ DocCreator::openDocument()
       if (schema.isValid()) {
         QXmlSchemaValidator validator(schema);
         QFile file(filepath);
-        file.open(QIODevice::ReadOnly);
-        if (!validator.validate(&file))
+        if (file.open(QIODevice::ReadOnly) && !validator.validate(&file))
           QMessageBox::warning(this,
                                tr("Error : invalid document"),
                                messageHandler.statusMessage() + "\nOn line " +
@@ -633,9 +632,15 @@ DocCreator::openDocument()
 #endif 
 
       /* Open and load the document */
-      updateTitle(filepath);
       Doc::Document *document =
         IOManager::DocumentFileManager::documentFromXml(filepath);
+      if (document == nullptr) {
+        QMessageBox::warning(this,
+                             tr("Error : unable to open document"),
+                             tr("Unable to read %1.").arg(filepath));
+        return;
+      }
+      updateTitle(filepath);
       Context::DocumentContext::instance()->setCurrentDocument(document);
       Context::DocumentContext::instance()->setCurrentDocumentPath(filepath);
 
@@ -746,9 +751,15 @@ DocCreator::saveDocumentToXml(const QString &filepath)
   } else {
     lFilePath = filepath;
   }
-  updateTitle(lFilePath);
-  IOManager::DocumentFileManager::documentToXml(
+  const bool saveOk = IOManager::DocumentFileManager::documentToXml(
     Context::DocumentContext::instance()->getCurrentDocument(), lFilePath);
+  if (! saveOk) {
+    QMessageBox::warning(this,
+                         tr("Error : unable to save document"),
+                         tr("Unable to write %1.").arg(lFilePath));
+    return;
+  }
+  updateTitle(lFilePath);
   Context::DocumentContext::instance()->setCurrentDocumentPath(lFilePath);
 }
 
@@ -763,8 +774,12 @@ DocCreator::exportDocToTxt()
 
   if (!filepath.isEmpty()) {
     IOManager::DocumentFileManager m;
-    m.documentToTxt(Context::DocumentContext::instance()->getCurrentDocument(),
-                    filepath);
+    const bool saveOk = m.documentToTxt(
+      Context::DocumentContext::instance()->getCurrentDocument(), filepath);
+    if (! saveOk)
+      QMessageBox::warning(this,
+                           tr("Error : unable to export document"),
+                           tr("Unable to write %1.").arg(filepath));
   }
 }
 
@@ -919,8 +934,11 @@ DocCreator::exportToImage()
   QString imagePath = QFileDialog::getSaveFileName(
     this, tr("Export to PNG format..."), QString(), tr("PNG file (*.png)"));
 
-  if (!imagePath.isEmpty() && !imagePath.isNull()) {
-    _docController->exportToImage(imagePath);
+  if (!imagePath.isEmpty() && !imagePath.isNull() &&
+      !_docController->exportToImage(imagePath)) {
+    QMessageBox::warning(this,
+                         tr("Error : unable to export document"),
+                         tr("Unable to write %1.").arg(imagePath));
   }
 }
 

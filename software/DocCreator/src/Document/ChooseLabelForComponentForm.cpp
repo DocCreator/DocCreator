@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QMessageBox>
 #include <QPainter>
 #include <QTableWidget>
 
@@ -319,9 +320,33 @@ ChooseLabelForComponentForm::fillScanlineToImage(QImage &image,
   //    image->save("fillscanlineToimage.png");
 }
 
+bool
+ChooseLabelForComponentForm::addImageBlock(const QImage &image, int x, int y)
+{
+  QString path =
+    Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigImageFolderKey)
+      .toString();
+  path.append("imageblock_extracted_");
+  path.append(QString::number(_imageBlockID));
+  path.append(".png");
+
+  if (! image.save(path)) {
+    qWarning() << metaObject()->className() << ": unable to write" << path;
+    return false;
+  }
+
+  auto *imageBlock =
+    new Doc::DocImageBlock(path, image.width(), image.height(), x, y);
+  _docController->getDocument()->currentPage()->add(imageBlock);
+  ++_imageBlockID;
+  return true;
+}
+
 void
 ChooseLabelForComponentForm::isImageBlock()
 {
+  int nbWriteErrors = 0;
+
   // small list
   for (QListWidgetItem *item : _listWidgetSmall->findItems(
          QStringLiteral("*"), Qt::MatchWrap | Qt::MatchWildcard)) {
@@ -353,22 +378,10 @@ ChooseLabelForComponentForm::isImageBlock()
         }
       }
 
-      QString path = Core::ConfigurationManager::get(AppConfigMainGroup,
-                                                     AppConfigImageFolderKey)
-                       .toString();
-      path.append("imageblock_extracted_");
-      path.append(QString::number(_imageBlockID));
-      path.append(".png");
-      imgSmallBlockData.save(path);
-      //
-      Doc::DocImageBlock *imageBlock =
-        new Doc::DocImageBlock(path,
-                               imgSmallBlockData.width(),
-                               imgSmallBlockData.height(),
-                               componentBlock->x(),
-                               componentBlock->y());
-      _docController->getDocument()->currentPage()->add(imageBlock);
-      ++_imageBlockID;
+      if (! addImageBlock(imgSmallBlockData,
+                          componentBlock->x(),
+                          componentBlock->y()))
+        ++nbWriteErrors;
     }
   }
   // medium list
@@ -401,22 +414,10 @@ ChooseLabelForComponentForm::isImageBlock()
           _map_MediumComponentBlock_DisplayForListWidget[bloc] = false;
         }
       }
-      QString path = Core::ConfigurationManager::get(AppConfigMainGroup,
-                                                     AppConfigImageFolderKey)
-                       .toString();
-      path.append("imageblock_extracted_");
-      path.append(QString::number(_imageBlockID));
-      path.append(".png");
-      imgMediumBlockData.save(path);
-      //
-      Doc::DocImageBlock *imageBlock =
-        new Doc::DocImageBlock(path,
-                               imgMediumBlockData.width(),
-                               imgMediumBlockData.height(),
-                               componentBlock->x(),
-                               componentBlock->y());
-      _docController->getDocument()->currentPage()->add(imageBlock);
-      ++_imageBlockID;
+      if (! addImageBlock(imgMediumBlockData,
+                          componentBlock->x(),
+                          componentBlock->y()))
+        ++nbWriteErrors;
     }
   }
   // big list
@@ -448,24 +449,21 @@ ChooseLabelForComponentForm::isImageBlock()
 
           _map_BigComponentBlock_DisplayForListWidget[bloc] = false;
         }
-      QString path = Core::ConfigurationManager::get(AppConfigMainGroup,
-                                                     AppConfigImageFolderKey)
-                       .toString();
-      path.append("imageblock_extracted_");
-      path.append(QString::number(_imageBlockID));
-      path.append(".png");
-      imgBigBlockData.save(path);
-      //
-      Doc::DocImageBlock *imageBlock =
-        new Doc::DocImageBlock(path,
-                               imgBigBlockData.width(),
-                               imgBigBlockData.height(),
-                               componentBlock->x(),
-                               componentBlock->y());
-      _docController->getDocument()->currentPage()->add(imageBlock);
-      ++_imageBlockID;
+      if (! addImageBlock(imgBigBlockData,
+                          componentBlock->x(),
+                          componentBlock->y()))
+        ++nbWriteErrors;
     }
   }
+
+  if (nbWriteErrors > 0)
+    QMessageBox::warning(this,
+                         tr("Error : unable to save image blocks"),
+                         tr("%n image block(s) could not be written and were "
+                            "not added to the document; see the console for "
+                            "the paths.",
+                            nullptr,
+                            nbWriteErrors));
 
   createListItems();
   _listWidgetSmall->repaint();
@@ -595,6 +593,8 @@ ChooseLabelForComponentForm::bigItemClicked(QListWidgetItem *item)
 void
 ChooseLabelForComponentForm::createNewFont()
 {
+  int nbWriteErrors = 0;
+
   _currentFont->setName(this->ui->txtFontName->toPlainText());
 
   QString char_image_path =
@@ -651,7 +651,18 @@ ChooseLabelForComponentForm::createNewFont()
       char_ID.append(QString::number(ID));
       char_ID.append(".png");
       QString saveFolderPath = char_image_path + char_name + char_ID;
-      imageOfBlock.save(saveFolderPath);
+      if (! imageOfBlock.save(saveFolderPath)) {
+        /*
+          B: the image was saved and the character added whatever
+          happened. A character whose image is missing from the disk
+          cannot be reloaded, so it is not added at all.
+        */
+        qWarning() << metaObject()->className() << ": unable to write"
+                   << saveFolderPath;
+        ++nbWriteErrors;
+        ++iter1;
+        continue;
+      }
 
       Models::CharacterData *charData =
         new Models::CharacterData(imageOfBlock, ID);
@@ -679,7 +690,18 @@ ChooseLabelForComponentForm::createNewFont()
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigFontFolderKey)
       .toString();
   fontNamePath.append('/' + _currentFont->getName() + ".bof");
-  IOManager::FontFileManager::writeFont(_currentFont, fontNamePath);
+  if (! IOManager::FontFileManager::writeFont(_currentFont, fontNamePath))
+    QMessageBox::warning(this,
+                         tr("Error : unable to save font"),
+                         tr("Unable to write %1.").arg(fontNamePath));
+  else if (nbWriteErrors > 0)
+    QMessageBox::warning(this,
+                         tr("Error : unable to save some characters"),
+                         tr("%n character image(s) could not be written and "
+                            "were left out of the font; see the console for "
+                            "the paths.",
+                            nullptr,
+                            nbWriteErrors));
 }
 
 int

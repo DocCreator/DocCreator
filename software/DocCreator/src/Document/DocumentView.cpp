@@ -54,12 +54,12 @@ DocumentView::print(QPrinter *printer)
   }
 }
 
-void
+bool
 DocumentView::saveToImage(const QString &path)
 {
-  if (_graphicView != nullptr) {
-    _graphicView->saveToImage(path);
-  }
+  if (_graphicView == nullptr)
+    return false;
+  return _graphicView->saveToImage(path);
 }
 
 QImage

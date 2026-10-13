@@ -74,7 +74,12 @@ public:
   void cut();
   void paste();
 
-  void exportToImage(const QString &imagePath);
+  /*
+    Write the current document image to @a imagePath, in PNG.
+
+    @return whether the write succeeded.
+  */
+  [[nodiscard]] bool exportToImage(const QString &imagePath);
   QImage toQImage(DocRenderFlags flags);
   QSize getImageSize();
   void printDocument(QPrinter *printer);

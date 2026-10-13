@@ -26,7 +26,12 @@ public:
   void setOffset(int value) override;
 
   void print(QPrinter *printer);
-  void saveToImage(const QString &filepath);
+  /*
+    Write the document image to @a filepath, in PNG.
+
+    @return whether the write succeeded.
+  */
+  [[nodiscard]] bool saveToImage(const QString &filepath);
   QImage toQImage(DocRenderFlags flags);
   QSize getImageSize();
 

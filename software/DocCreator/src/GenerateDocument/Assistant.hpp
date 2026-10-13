@@ -423,6 +423,25 @@ protected:
 
   void updateProgress() const;
 
+  /*
+    Write @a img (resp. @a xml) to @a absoluteFilename.
+
+    @return whether the write succeeded. A failure is reported on the
+    console and counted in _nbWriteErrors, so that the generation of the
+    other images goes on and the result line says how many files are
+    missing.
+  */
+  bool writeImage(const QImage &img, const QString &absoluteFilename) const;
+  bool writeXml(const QString &xml, const QString &absoluteFilename) const;
+
+  /*
+    Count in _nbWriteErrors a write whose failure has already been
+    reported.
+
+    @return @a writeOk.
+  */
+  bool noteWrite(bool writeOk) const;
+
 private:
   Ui::Assistant *ui;
 
@@ -588,6 +607,8 @@ private:
 
   mutable QProgressDialog *_progressDialog;
   mutable size_t _numGeneratedImages;
+  //number of files that could not be written
+  mutable size_t _nbWriteErrors;
 };
 
 #endif // ASSISTANT_H

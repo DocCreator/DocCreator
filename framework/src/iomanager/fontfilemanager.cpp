@@ -390,9 +390,14 @@ FontFileManager::saveBaseLineInformation(const QString &path,
     return -1;
   }
 
-  QByteArray xml = doc.toByteArray();
-  file.write(xml);
+  const QByteArray xml = doc.toByteArray();
+  const bool writeOk = (file.write(xml) == xml.size());
   file.close();
+  if (!writeOk || file.error() != QFile::NoError) {
+    std::cerr << "Unable to write font XML file: " << path.toStdString()
+              << std::endl;
+    return -1;
+  }
 
   return 0;
 }

@@ -1,5 +1,7 @@
 #include "DocumentToXMLExporter.hpp"
 
+#include <QDebug>
+
 #include "context/documentcontext.h"
 #include "iomanager/documentfilemanager.h"
 
@@ -19,8 +21,12 @@ DocumentToXMLExporter::toXML()
   }
   filepath.append(".od");
 
-  IOManager::DocumentFileManager::documentToXml(
+  const bool saveOk = IOManager::DocumentFileManager::documentToXml(
     Context::DocumentContext::instance()->getCurrentDocument(), filepath);
+  if (! saveOk) {
+    qWarning() << "DocumentToXMLExporter: unable to write" << filepath;
+    return;
+  }
   Context::DocumentContext::instance()->setCurrentDocumentPath(filepath);
   ++_nb;
 }

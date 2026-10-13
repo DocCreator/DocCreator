@@ -3,8 +3,9 @@
 
 #include "documentsaver.h"
 
-class QFile;
-class QTextStream;
+#include <QFile>
+#include <QTextStream>
+
 namespace Doc { class DocCharacter; }
 namespace Doc { class DocImageBlock; }
 namespace Doc { class DocParagraph; }
@@ -21,9 +22,14 @@ namespace IOManager
   {
   public:
     TxtDocumentSaver(Doc::Document *doc, const QString& filename);
-    ~TxtDocumentSaver();
     TxtDocumentSaver(const TxtDocumentSaver &o) = delete;
     TxtDocumentSaver &operator=(const TxtDocumentSaver &o) = delete;
+
+    /*
+      @return whether the file passed to the constructor could be opened for
+      writing. The build*() methods write nothing when it could not.
+    */
+    bool isOpen() const { return _file.isOpen(); }
 
     void createNewDocumentOutput() override;
 
@@ -43,8 +49,8 @@ namespace IOManager
     void buildCharacter(Doc::DocCharacter *c, int id) override;
 	  
   protected:
-    QTextStream *_writer;
-    QFile *_file;
+    QFile _file;
+    QTextStream _writer;
 
   };
 }

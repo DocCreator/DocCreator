@@ -316,19 +316,29 @@ BlurFilterDialog::savePattern()
             tr("The file %1 already exists, do you want to overwrite it ?")
               .arg(name),
             QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-        _patternImg.save(savePath);
+        savePatternTo(savePath);
       }
       else {
         savePattern();
       }
     }
     else {
-      _patternImg.save(savePath);
+      savePatternTo(savePath);
     }
   }
   else {
     QMessageBox::critical(
       this, tr("Warning"), tr("No specified name, saving cancelled"));
+  }
+}
+
+void
+BlurFilterDialog::savePatternTo(const QString &savePath)
+{
+  if (! _patternImg.save(savePath)) {
+    QMessageBox::critical(this,
+                          tr("Error : unable to save pattern"),
+                          tr("Unable to write %1.").arg(savePath));
   }
 }
 

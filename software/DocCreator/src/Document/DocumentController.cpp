@@ -1002,11 +1002,11 @@ DocumentController::paste()
   setModified();
 }
 
-void
+bool
 DocumentController::exportToImage(const QString &imagePath)
 {
   assert(_view);
-  _view->saveToImage(imagePath);
+  return _view->saveToImage(imagePath);
 }
 
 QImage

@@ -1,5 +1,6 @@
 #include "TxtDocumentSaver.hpp"
 
+#include <QDebug>
 #include <QFile>
 #include <QList>
 #include <QTextStream>
@@ -9,18 +10,19 @@ namespace IOManager {
 TxtDocumentSaver::TxtDocumentSaver(Doc::Document *doc,
 				   const QString &filename)
   : DocumentSaver(doc),
-    _writer(nullptr),
-    _file(nullptr)
+    _file(filename),
+    _writer(&_file)
 {
-  _file = new QFile(filename);
-  if (_file->open(QFile::WriteOnly | QFile::Truncate)) {
-    _writer = new QTextStream(_file);
+  /*
+    B: the stream was only built when the open succeeded, and
+    buildCharacter() dereferenced it without looking: writing to a path
+    that cannot be opened crashed. The stream is now always there, and
+    isOpen() tells the caller whether anything will reach the disk.
+  */
+  if (! _file.open(QFile::WriteOnly | QFile::Truncate)) {
+    qWarning() << "TxtDocumentSaver: unable to write" << filename << ':'
+	       << _file.errorString();
   }
-}
-TxtDocumentSaver::~TxtDocumentSaver()
-{
-  delete _writer;
-  delete _file;
 }
 
 void
@@ -110,7 +112,7 @@ TxtDocumentSaver::buildCharacter(Doc::DocCharacter *c, int /*id*/)
 //    void TxtDocumentSaver::buildCharacter(Doc::DocCharacter *c)
 {
   QString s = c->getDisplay();
-  (*_writer) << s;
+  _writer << s;
 }
 
 } //namespace IOManager

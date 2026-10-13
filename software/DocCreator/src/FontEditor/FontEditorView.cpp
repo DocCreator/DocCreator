@@ -1,5 +1,7 @@
 #include "FontEditorView.hpp"
 
+#include <QMessageBox>
+
 #include "CharEditCursorItem.hpp"
 #include "CharEditLineItem.hpp"
 #include "CharEditScene.hpp"
@@ -180,13 +182,17 @@ FontEditorView::saveCharacter()
     _ch->setAllBaseLines(up, base, left, right);
     //FontFileManager::
 
-    //int result=
-    IOManager::FontFileManager::saveBaseLineInformation(
-      Context::FontContext::instance()->currentFontPath(),
-      base,
-      right,
-      _ch->getCharacterValue());
-    //TODO: handle failure
+    const QString fontPath =
+      Context::FontContext::instance()->currentFontPath();
+    const int result = IOManager::FontFileManager::saveBaseLineInformation(
+      fontPath, base, right, _ch->getCharacterValue());
+    if (result != 0) {
+      QMessageBox::warning(this,
+                           tr("Error : unable to save the base lines"),
+                           tr("Unable to write the base lines of %1 to %2.")
+                             .arg(_ch->getCharacterValue(), fontPath));
+      return;
+    }
 
     Context::FontContext::instance()->setCurrentFont(_chCenterFontName);
   }

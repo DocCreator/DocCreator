@@ -130,3 +130,53 @@ TEST_CASE( "Testing document XML loading" )
     delete doc;
   }
 }
+
+/*
+  The reads and the writes used to ignore whether the file could be
+  opened: documentFromXml() returned a document built from an empty
+  string, and documentToXml() reported nothing at all.
+*/
+TEST_CASE( "Testing document IO failures" )
+{
+  SECTION("reading a file that does not exist")
+  {
+    REQUIRE(
+      IOManager::DocumentFileManager::documentFromXml(
+	QStringLiteral("no_such_directory/no_such_document.xml")) == nullptr );
+  }
+
+  SECTION("writing into a directory that does not exist")
+  {
+    Doc::Document doc;
+    REQUIRE_FALSE(
+      IOManager::DocumentFileManager::documentToXml(
+	&doc, QStringLiteral("no_such_directory/doc.xml")) );
+
+    IOManager::DocumentFileManager manager;
+    REQUIRE_FALSE(
+      manager.documentToTxt(&doc,
+			    QStringLiteral("no_such_directory/doc.txt")) );
+  }
+
+  SECTION("a document written back can be read again")
+  {
+    Doc::Document *doc =
+      loadXml(QStringLiteral("tmp_doc_roundtrip.xml"),
+	      makeDocument(QStringLiteral("width=\"640\" height=\"480\""),
+			   QStringLiteral("id=\"0\" display=\"a\" x=\"1\""
+					  " y=\"2\" width=\"8\" height=\"16\"")));
+    REQUIRE( doc != nullptr );
+
+    const QString saved = QStringLiteral("tmp_doc_roundtrip_saved.xml");
+    REQUIRE( IOManager::DocumentFileManager::documentToXml(doc, saved) );
+    delete doc;
+
+    Doc::Document *doc2 =
+      IOManager::DocumentFileManager::documentFromXml(saved);
+    REQUIRE( doc2 != nullptr );
+    REQUIRE( doc2->pageWidth() == 640 );
+    REQUIRE( doc2->pageHeight() == 480 );
+    REQUIRE( doc2->getPages().size() == 1 );
+    delete doc2;
+  }
+}

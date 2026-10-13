@@ -87,6 +87,9 @@ protected:
   void setupGUIImages();
   void updateBlurredImage();
 
+  //Write the current pattern to @a savePath, warning the user on failure.
+  void savePatternTo(const QString &savePath);
+
 private:
   Ui::BlurFilterDialog *ui;
   int _exampleChosen; // for fit

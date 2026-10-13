@@ -115,6 +115,7 @@ Assistant::Assistant(DocumentController *doc, QWidget *parent)
   , ui(new Ui::Assistant)
   , _progressDialog(nullptr)
   , _numGeneratedImages(0)
+  , _nbWriteErrors(0)
 {
   ui->setupUi(this);
 
@@ -6067,8 +6068,25 @@ saveXml(const QString &saveXml,
   }
   QTextStream out(&file);
   out << saveXml;
+  out.flush();
+  const bool writeOk = (out.status() == QTextStream::Ok);
   file.close();
-  return true; 
+  if (!writeOk || file.error() != QFile::NoError) {
+    std::cerr << "ERROR: unable to write xml file: "
+              << outputXmlFilename.toStdString() << "\n";
+    return false;
+  }
+  return true;
+}
+
+static bool
+saveImageFile(const QImage &img, const QString &absoluteFilename)
+{
+  if (img.save(absoluteFilename))
+    return true;
+  std::cerr << "ERROR: unable to save image: "
+            << absoluteFilename.toStdString() << "\n";
+  return false;
 }
 
 static bool
@@ -6372,7 +6390,7 @@ Assistant::do_bleed(const QString &imageBasename,
     const QString prefixFilename =
       imageBasename + "Bleed_" + QString::number(i);
     const QString filename = prefixFilename + ".png";
-    imageBleed.save(outputImageDir + filename);
+    writeImage(imageBleed, outputImageDir + filename);
 
     QString xml = QStringLiteral("<Degradation>\n");
     xml += "\t<PictureName>" + filename + "</PictureName>\n";
@@ -6385,7 +6403,7 @@ Assistant::do_bleed(const QString &imageBasename,
     xml += QLatin1String("\t</Parameters>\n");
     xml += QLatin1String("</Degradation>");
 
-    saveXml(xml, outputImageDir + prefixFilename + ".xml");
+    writeXml(xml, outputImageDir + prefixFilename + ".xml");
 
     updateProgress();
   }
@@ -6411,7 +6429,7 @@ Assistant::do_charDeg(const QString &imageBasename,
     const QString prefixFilename =
       imageBasename + "CharDeg_" + QString::number(i);
     const QString filename = prefixFilename + ".png";
-    imgCharTmp.save(outputImageDir + filename);
+    writeImage(imgCharTmp, outputImageDir + filename);
 
     QString xml = QStringLiteral("<Degradation>\n");
     xml += "\t<PictureName>" + filename + "</PictureName>\n";
@@ -6422,7 +6440,7 @@ Assistant::do_charDeg(const QString &imageBasename,
     xml += QLatin1String("\t</Parameters>\n");
     xml += QLatin1String("</Degradation>");
 
-    saveXml(xml, outputImageDir + prefixFilename + ".xml");
+    writeXml(xml, outputImageDir + prefixFilename + ".xml");
 
     updateProgress();
   }
@@ -6455,7 +6473,7 @@ Assistant::do_GDD(const QString &imageBasename,
     const QString prefixFilename =
       imageBasename + "GDDeg_" + QString::number(i);
     const QString filename = prefixFilename + ".png";
-    imgOut.save(outputImageDir + filename);
+    writeImage(imgOut, outputImageDir + filename);
 
     QString xml = QStringLiteral("<Degradation>\n");
     xml += "\t<PictureName>" + filename + "</PictureName>\n";
@@ -6475,7 +6493,7 @@ Assistant::do_GDD(const QString &imageBasename,
     xml += QLatin1String("\t</Parameters>\n");
     xml += QLatin1String("</Degradation>");
 
-    saveXml(xml, outputImageDir + prefixFilename + ".xml");
+    writeXml(xml, outputImageDir + prefixFilename + ".xml");
 
     updateProgress();
   }
@@ -6585,8 +6603,9 @@ Rotation_saveFillBorder(const QImage &recto, float angle,
   
   const QString prefixFilename = imageBasename + "Rot_" + modeStr + "_" + QString::number(i);
   const QString filename = prefixFilename + ".png";
-  imgRot.save(outputImageDir + filename);
-  return Rotation_saveFillBorderXml(outputImageDir + prefixFilename + ".xml",
+  const bool imageOk = saveImageFile(imgRot, outputImageDir + filename);
+  return imageOk &&
+	 Rotation_saveFillBorderXml(outputImageDir + prefixFilename + ".xml",
 				    filename, angle, modeStr);
 }
 
@@ -6626,8 +6645,9 @@ Rotation_saveFillInpaint(const QImage &recto, float angle,
 
   const QString prefixFilename = imageBasename + "Rot_" + "Inpaint"+ methodStr + "_" + QString::number(i);
   const QString filename = prefixFilename + ".png";
-  imgRot.save(outputImageDir + filename);
-  return Rotation_saveFillInpaintXml(outputImageDir + prefixFilename + ".xml",
+  const bool imageOk = saveImageFile(imgRot, outputImageDir + filename);
+  return imageOk &&
+	 Rotation_saveFillInpaintXml(outputImageDir + prefixFilename + ".xml",
 				    filename, angle, methodStr);
 }
 
@@ -6660,9 +6680,10 @@ Assistant::do_Rotation(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Rot_color_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgRot.save(outputImageDir + filename);
-      Rotation_saveFillColorXml(outputImageDir + prefixFilename + ".xml",
-				filename, angle, color);
+      writeImage(imgRot, outputImageDir + filename);
+      noteWrite(
+        Rotation_saveFillColorXml(outputImageDir + prefixFilename + ".xml",
+                                  filename, angle, color));
       updateProgress();
     }
 
@@ -6675,50 +6696,58 @@ Assistant::do_Rotation(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Rot_bckgrd_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgRot.save(outputImageDir + filename);
-      Rotation_saveFillImageXml(outputImageDir + prefixFilename + ".xml",
-				filename, angle, backgroundImgPath);
+      writeImage(imgRot, outputImageDir + filename);
+      noteWrite(
+        Rotation_saveFillImageXml(outputImageDir + prefixFilename + ".xml",
+                                  filename, angle, backgroundImgPath));
       updateProgress();
     }
 
     if (ui->RotationFillBorderCB->isChecked()) {
       if (ui->RotationBorderReplicateCB->isChecked()) {
-	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REPLICATE,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REPLICATE,
+	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
       if (ui->RotationBorderReflectCB->isChecked()) {
-	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT,
+	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
       if (ui->RotationBorderWrapCB->isChecked()) {
-	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::WRAP,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::WRAP,
+	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
       if (ui->RotationBorderReflect101CB->isChecked()) {
-	Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT101,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT101,
+	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
     }
 
     if (ui->RotationFillInpaintCB->isChecked()) {
       if (ui->RotationInpaint1CB->isChecked()) {
-	Rotation_saveFillInpaint(recto, angle, 1,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillInpaint(recto, angle, 1,
+	                           imageBasename, i, outputImageDir));
 	updateProgress();
       }
       if (ui->RotationInpaint2CB->isChecked()) {
-	Rotation_saveFillInpaint(recto, angle, 2,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillInpaint(recto, angle, 2,
+	                           imageBasename, i, outputImageDir));
 
 	updateProgress();
       }
        if (ui->RotationInpaint3CB->isChecked()) {
-	Rotation_saveFillInpaint(recto, angle, 3,
-				imageBasename, i, outputImageDir);
+	noteWrite(
+	  Rotation_saveFillInpaint(recto, angle, 3,
+	                           imageBasename, i, outputImageDir));
 	updateProgress();
       }
      
@@ -6845,7 +6874,7 @@ Assistant::do_Noise(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Noise_Gaussian_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgN.save(outputImageDir + filename);
+      writeImage(imgN, outputImageDir + filename);
       Noise_saveGaussianNoiseXml(outputImageDir + prefixFilename + ".xml",
 				 filename, average, stdDev, addType);
       updateProgress();
@@ -6869,7 +6898,7 @@ Assistant::do_Noise(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Noise_Speckle_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgN.save(outputImageDir + filename);
+      writeImage(imgN, outputImageDir + filename);
       Noise_saveSpeckleNoiseXml(outputImageDir + prefixFilename + ".xml",
 				filename, average, stdDev, addType);
       updateProgress();
@@ -6890,7 +6919,7 @@ Assistant::do_Noise(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "Noise_SaltAndPepper_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgN.save(outputImageDir + filename);
+      writeImage(imgN, outputImageDir + filename);
       Noise_saveSaltAndPepperNoiseXml(outputImageDir + prefixFilename + ".xml",
 				      filename, amount, ratio);
       updateProgress();
@@ -6927,21 +6956,21 @@ Assistant::do_shadow(const QString &imageBasename,
       const dc::ShadowBinding::Border border = _Shadow_borderStack[j];
       picTmpShad = dc::ShadowBinding::shadowBinding2(recto, distanceRatio, border,
 						    intensity, angle);
-      Shadow_saveImage(picTmpShad,
-		       path,
-		       prefix,
-		       imgExt,
-		       distanceRatio,
-		       border,
-		       intensity,
-		       angle);
+      noteWrite(Shadow_saveImage(picTmpShad,
+				 path,
+				 prefix,
+				 imgExt,
+				 distanceRatio,
+				 border,
+				 intensity,
+				 angle));
 
       updateProgress();
     }
   }
 }
 
-static void
+static bool
 Phantom_applyAndSave(const QImage &recto,
                      float occurenceProbability,
                      const QString &phantomPatternsPath,
@@ -6957,7 +6986,8 @@ Phantom_applyAndSave(const QImage &recto,
     imageBasename + "Phantom_" + occurenceProbabilityStr + "_" + QString::number(i);
   const QString filename = prefixFilename + ".png";
 
-  imgTmpPhant.save(outputImageDir + filename);
+  if (! saveImageFile(imgTmpPhant, outputImageDir + filename))
+    return false;
 
   QString xml = QStringLiteral("<Degradation>\n");
   xml += "\t<PictureName>" + filename + "</PictureName>\n";
@@ -6967,7 +6997,7 @@ Phantom_applyAndSave(const QImage &recto,
   xml += QLatin1String("\t</Parameters>\n");
   xml += QLatin1String("</Degradation>");
 
-  saveXml(xml, outputImageDir + prefixFilename + ".xml");
+  return saveXml(xml, outputImageDir + prefixFilename + ".xml");
 }
 
 void
@@ -6982,12 +7012,13 @@ Assistant::do_phantom(const QString &imageBasename,
 
     const float occurenceProbability = ui->Phantom_occurenceSB->value();
 
-    Phantom_applyAndSave(recto,
-			 occurenceProbability,
-			 _PhantomPatternsPath,
-			 i,
-			 imageBasename,
-			 outputImageDir);
+    noteWrite(
+      Phantom_applyAndSave(recto,
+                           occurenceProbability,
+                           _PhantomPatternsPath,
+                           i,
+                           imageBasename,
+                           outputImageDir));
 
     updateProgress();
   }
@@ -7124,7 +7155,7 @@ Blur_applyArea(const QImage &recto,
     recto, method, kernelSize, function, area, coeff1, vert, horiz, radius);
 }
 
-static void
+static bool
 Blur_applyAreaAndSave(const QImage &recto,
                       int index,
                       dc::BlurFilter::Function f,
@@ -7146,15 +7177,16 @@ Blur_applyAreaAndSave(const QImage &recto,
                                  QString::number(index);
   const QString filename = prefixFilename + ".png";
 
-  blurTmp.save(outputImageDir + filename);
+  if (! saveImageFile(blurTmp, outputImageDir + filename))
+    return false;
 
   const QString xml =
     Blur_getXML_area(filename, f, a, coeff1, vert, horiz, radius, m, kernelSize);
 
-  saveXml(xml, outputImageDir + prefixFilename + ".xml");
+  return saveXml(xml, outputImageDir + prefixFilename + ".xml");
 }
 
-static void
+static bool
 Blur_applyPageAndSave(const QImage &recto,
                       int index,
                       dc::BlurFilter::Method m,
@@ -7168,11 +7200,12 @@ Blur_applyPageAndSave(const QImage &recto,
     imageBasename + "Blur_Complete_" + QString::number(index);
   const QString filename = prefixFilename + ".png";
 
-  blurTmp.save(outputImageDir + filename);
+  if (! saveImageFile(blurTmp, outputImageDir + filename))
+    return false;
 
   QString xml = Blur_getXML_page(filename, m, kernelSize);
 
-  saveXml(xml, outputImageDir + prefixFilename + ".xml");
+  return saveXml(xml, outputImageDir + prefixFilename + ".xml");
 }
 
 static int
@@ -7205,18 +7238,19 @@ Assistant::do_blur(const QString &imageBasename,
     
     if (this->pattern1()) {
       for (int i = 0; i < numDraws; ++i) {
-	Blur_applyAreaAndSave(recto,
-			      i,
-			      dc::BlurFilter::Function::LINEAR,
-			      a,
-			      coeff1,
-			      vert,
-			      horiz,
-			      radius,
-			      m,
-			      Blur_getKernelSize(blurMin, blurMax),
-			      imageBasename,
-			      outputImageDir);
+	noteWrite(
+	  Blur_applyAreaAndSave(recto,
+	                        i,
+	                        dc::BlurFilter::Function::LINEAR,
+	                        a,
+	                        coeff1,
+	                        vert,
+	                        horiz,
+	                        radius,
+	                        m,
+	                        Blur_getKernelSize(blurMin, blurMax),
+	                        imageBasename,
+	                        outputImageDir));
 
 	updateProgress();
       }
@@ -7224,18 +7258,19 @@ Assistant::do_blur(const QString &imageBasename,
 
     if (this->pattern2()) {
       for (int i = 0; i < numDraws; ++i) {
-	Blur_applyAreaAndSave(recto,
-			      i,
-			      dc::BlurFilter::Function::LOG,
-			      a,
-			      coeff1,
-			      vert,
-			      horiz,
-			      radius,
-			      m,
-			      Blur_getKernelSize(blurMin, blurMax),
-			      imageBasename,
-			      outputImageDir);
+	noteWrite(
+	  Blur_applyAreaAndSave(recto,
+	                        i,
+	                        dc::BlurFilter::Function::LOG,
+	                        a,
+	                        coeff1,
+	                        vert,
+	                        horiz,
+	                        radius,
+	                        m,
+	                        Blur_getKernelSize(blurMin, blurMax),
+	                        imageBasename,
+	                        outputImageDir));
 
 	updateProgress();
       }
@@ -7243,18 +7278,19 @@ Assistant::do_blur(const QString &imageBasename,
 
     if (this->pattern3()) {
       for (int i = 0; i < numDraws; ++i) {
-	Blur_applyAreaAndSave(recto,
-			      i,
-			      dc::BlurFilter::Function::PARABOLA,
-			      a,
-			      coeff1,
-			      vert,
-			      horiz,
-			      radius,
-			      m,
-			      Blur_getKernelSize(blurMin, blurMax),
-			      imageBasename,
-			      outputImageDir);
+	noteWrite(
+	  Blur_applyAreaAndSave(recto,
+	                        i,
+	                        dc::BlurFilter::Function::PARABOLA,
+	                        a,
+	                        coeff1,
+	                        vert,
+	                        horiz,
+	                        radius,
+	                        m,
+	                        Blur_getKernelSize(blurMin, blurMax),
+	                        imageBasename,
+	                        outputImageDir));
 
 	updateProgress();
       }
@@ -7262,18 +7298,19 @@ Assistant::do_blur(const QString &imageBasename,
 
     if (this->pattern4()) {
       for (int i = 0; i < numDraws; ++i) {
-	Blur_applyAreaAndSave(recto,
-			      i,
-			      dc::BlurFilter::Function::SINUS,
-			      a,
-			      coeff1,
-			      vert,
-			      horiz,
-			      radius,
-			      m,
-			      Blur_getKernelSize(blurMin, blurMax),
-			      imageBasename,
-			      outputImageDir);
+	noteWrite(
+	  Blur_applyAreaAndSave(recto,
+	                        i,
+	                        dc::BlurFilter::Function::SINUS,
+	                        a,
+	                        coeff1,
+	                        vert,
+	                        horiz,
+	                        radius,
+	                        m,
+	                        Blur_getKernelSize(blurMin, blurMax),
+	                        imageBasename,
+	                        outputImageDir));
 
 	updateProgress();
       }
@@ -7281,18 +7318,19 @@ Assistant::do_blur(const QString &imageBasename,
 
     if (this->pattern5()) {
       for (int i = 0; i < numDraws; ++i) {
-	Blur_applyAreaAndSave(recto,
-			      i,
-			      dc::BlurFilter::Function::ELLIPSE,
-			      a,
-			      coeff1,
-			      vert,
-			      horiz,
-			      radius,
-			      m,
-			      Blur_getKernelSize(blurMin, blurMax),
-			      imageBasename,
-			      outputImageDir);
+	noteWrite(
+	  Blur_applyAreaAndSave(recto,
+	                        i,
+	                        dc::BlurFilter::Function::ELLIPSE,
+	                        a,
+	                        coeff1,
+	                        vert,
+	                        horiz,
+	                        radius,
+	                        m,
+	                        Blur_getKernelSize(blurMin, blurMax),
+	                        imageBasename,
+	                        outputImageDir));
 
 	updateProgress();
       }
@@ -7300,18 +7338,19 @@ Assistant::do_blur(const QString &imageBasename,
 
     if (this->pattern6()) {
       for (int i = 0; i < numDraws; ++i) {
-	Blur_applyAreaAndSave(recto,
-			      i,
-			      dc::BlurFilter::Function::HYPERBOLA,
-			      a,
-			      coeff1,
-			      vert,
-			      horiz,
-			      radius,
-			      m,
-			      Blur_getKernelSize(blurMin, blurMax),
-			      imageBasename,
-			      outputImageDir);
+	noteWrite(
+	  Blur_applyAreaAndSave(recto,
+	                        i,
+	                        dc::BlurFilter::Function::HYPERBOLA,
+	                        a,
+	                        coeff1,
+	                        vert,
+	                        horiz,
+	                        radius,
+	                        m,
+	                        Blur_getKernelSize(blurMin, blurMax),
+	                        imageBasename,
+	                        outputImageDir));
 
 	updateProgress();
       }
@@ -7325,12 +7364,13 @@ Assistant::do_blur(const QString &imageBasename,
 
     for (int i = 0; i < numDraws; ++i) {
 
-      Blur_applyPageAndSave(recto,
-			    i,
-			    m,
-			    Blur_getKernelSize(blurMin, blurMax),
-			    imageBasename,
-			    outputImageDir);
+      noteWrite(
+        Blur_applyPageAndSave(recto,
+                              i,
+                              m,
+                              Blur_getKernelSize(blurMin, blurMax),
+                              imageBasename,
+                              outputImageDir));
 
       updateProgress();
     }
@@ -7373,8 +7413,7 @@ Assistant::do_hole(const QString &imageBasename,
     holes = Hole_doHoles(rectoC, scaleW, scaleH, color, randPosX, randPosY);
 
     const QString lPrefix = prefix + QString::number(i);
-    Hole_saveImage(rectoC, path, lPrefix, imgExt, holes);
-    //TODO: handle error !
+    noteWrite(Hole_saveImage(rectoC, path, lPrefix, imgExt, holes));
 
     updateProgress();
   }
@@ -7454,7 +7493,7 @@ Assistant::do_ElasticDeformation(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "ElasticDeformation_1_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgN.save(outputImageDir + filename);
+      writeImage(imgN, outputImageDir + filename);
       ElasticDeformation_saveXml(outputImageDir + prefixFilename + ".xml",
 				 filename,
 				 1,
@@ -7485,7 +7524,7 @@ Assistant::do_ElasticDeformation(const QString &imageBasename,
 
       const QString prefixFilename = imageBasename + "ElasticDeformation_2_" + QString::number(i);
       const QString filename = prefixFilename + ".png";
-      imgN.save(outputImageDir + filename);
+      writeImage(imgN, outputImageDir + filename);
       ElasticDeformation_saveXml(outputImageDir + prefixFilename + ".xml",
 				 filename,
 				 2,
@@ -7546,7 +7585,7 @@ Assistant::do_3D(const QString &imageBasename,
 	imageBasename + "Distortion3D_"  + QString::number(i) +"_"+ meshBasename;
       const QString filename = prefixFilename + ".png";
 
-      img.save(outputImageDir + filename);
+      writeImage(img, outputImageDir + filename);
 
       QString xml = QStringLiteral("<Degradation>\n");
       xml += "\t<PictureName>" + filename + "</PictureName>\n";
@@ -7562,7 +7601,7 @@ Assistant::do_3D(const QString &imageBasename,
       xml += QLatin1String("\t</Parameters>\n");
       xml += QLatin1String("</Degradation>");
 
-      saveXml(xml, outputImageDir + prefixFilename + ".xml");
+      writeXml(xml, outputImageDir + prefixFilename + ".xml");
 
       updateProgress();
     }
@@ -7580,6 +7619,26 @@ Assistant::updateProgress() const
   _progressDialog->setValue(_progressDialog->value() + 1);
   _numGeneratedImages += 1;
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+}
+
+bool
+Assistant::noteWrite(bool writeOk) const
+{
+  if (! writeOk)
+    ++_nbWriteErrors;
+  return writeOk;
+}
+
+bool
+Assistant::writeImage(const QImage &img, const QString &absoluteFilename) const
+{
+  return noteWrite(saveImageFile(img, absoluteFilename));
+}
+
+bool
+Assistant::writeXml(const QString &xml, const QString &absoluteFilename) const
+{
+  return noteWrite(saveXml(xml, absoluteFilename));
 }
 
 void
@@ -7605,6 +7664,7 @@ Assistant::generateDegradedImages() const
   if (numPics > 0)
   {
     _numGeneratedImages = 0;
+    _nbWriteErrors = 0;
     _progressDialog =
       new QProgressDialog("Generating images...", "Cancel", 0, numImagesToGenerate);
     _progressDialog->setWindowModality(Qt::WindowModal);
@@ -7724,12 +7784,17 @@ Assistant::updateResults()
 {
   const size_t numImagesToGenerate = ui->TotalPic->text().toUInt();
 
-  ui->label_results->setText(
-    tr("%1/%n image(s) have been written into directory:\n%3",
-       "",
-       numImagesToGenerate)
-      .arg(_numGeneratedImages)
-      .arg(_outputDegradedImageDir));
+  QString results = tr("%1/%n image(s) have been written into directory:\n%3",
+		       "",
+		       numImagesToGenerate)
+		      .arg(_numGeneratedImages)
+		      .arg(_outputDegradedImageDir);
+  if (_nbWriteErrors > 0)
+    results += '\n' + tr("%n file(s) could not be written; see the console "
+			 "for the paths.",
+			 "",
+			 static_cast<int>(_nbWriteErrors));
+  ui->label_results->setText(results);
 }
 
 void

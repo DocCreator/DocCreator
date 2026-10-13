@@ -65,6 +65,16 @@ private:
 
   void createListItems();
 
+  /*
+    Write @a image to a new extracted image block file and add an image
+    block for it at (@a x, @a y) in the current page.
+
+    @return whether the image could be written. Nothing is added to the
+    document when it could not: the block would name a file that does not
+    exist, and the document would no longer be loadable.
+  */
+  bool addImageBlock(const QImage &image, int x, int y);
+
 private:
   // ui component
   Ui::ChooseLabelForComponentForm *ui;

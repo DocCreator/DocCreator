@@ -89,13 +89,13 @@ GraphicView::print(QPrinter *printer)
   painter.drawImage(0, 0, image);
 }
 
-void
+bool
 GraphicView::saveToImage(const QString &filepath)
 {
   const QImage image =
     getDocumentImage(Color | WithTextBlocks | WithImageBlocks);
 
-  image.save(filepath, "PNG");
+  return image.save(filepath, "PNG");
   // Save it as binary TIF
   //    QImage binary = getDocumentBinaryGTImage();
   //    QString binaryPath = filepath;binaryPath.append("_binary");

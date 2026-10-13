@@ -88,8 +88,11 @@ RandomDocumentExporter::saveTextFile()
     getFilePath(QStringLiteral("text"), QStringLiteral(".txt"));
 
   IOManager::DocumentFileManager m;
-  m.documentToTxt(Context::DocumentContext::instance()->getCurrentDocument(),
-                  filename);
+  const bool saveOk =
+    m.documentToTxt(Context::DocumentContext::instance()->getCurrentDocument(),
+		    filename);
+  if (! saveOk)
+    qWarning() << metaObject()->className() << ": unable to write" << filename;
 }
 
 void
