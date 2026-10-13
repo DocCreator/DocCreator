@@ -71,6 +71,25 @@ namespace dc {
   };
 
 
+  /*
+    The pixels of one segment, from the centre of a noise region to a point
+    of its elliptical contour, with what DegradedLine() needs to shade them.
+
+    B: this was a float* of (2 * numPoints + 3) values holding the count,
+    the distance and the gray level in [0], [1] and [2], then the
+    coordinates as floats. Each was malloc'ed by getEllipseLines() and
+    free()d by its caller.
+  */
+  struct NoiseLine
+  {
+    //distance from the centre of the region to the contour point
+    float distanceToCentre = 0.f;
+    //gray level of the image at the contour point
+    int borderGrayLevel = 0;
+    std::vector<cv::Point> points;
+  };
+
+
   class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
   {
   public:
@@ -107,12 +126,21 @@ namespace dc {
 
     int calculateApproximatelyDistanceFromBord(const Pixel &pixel) const;
 
-    std::vector<float*> getEllipsePoints(cv::Rect &rec,int &max_B, int &min_B, cv::Point centre, double semi_minor_axis, double semi_major_axis, double theta);
+    /*
+      Fill the first elements of @a lines with one NoiseLine per point of the
+      elliptical contour of a noise region, and @return how many.
+
+      @a lines is an in/out parameter, and the count is returned instead of
+      the vector being resized, so that the point vectors of one seed point
+      are reused by the next one instead of being allocated again. It only
+      ever grows, to the largest contour and the longest segment met.
+    */
+    size_t getEllipseLines(std::vector<NoiseLine> &lines, cv::Rect &rec, int &max_B, int &min_B, cv::Point centre, double semi_minor_axis, double semi_major_axis, double theta);
     //std::vector<cv::Point> getLinePoints(cv::Point A, cv::Point B) const;
 
-    void DegradedLine(const float* Line, cv::Point Centre, int Centre_gray, int pixel_signma, int sigma_gaussien,
+    void DegradedLine(const NoiseLine &line, cv::Point Centre, int Centre_gray, int pixel_signma, int sigma_gaussien,
                       cv::Mat &imgGrayOutput, bool isFtoB);
-    void RapidlyDegradeLine(const float* Line, cv::Point Centre, int Centre_gray, cv::Mat &imgGrayOutput);
+    void RapidlyDegradeLine(const NoiseLine &line, cv::Point Centre, int Centre_gray, cv::Mat &imgGrayOutput);
 
     //unsigned int* calHist(cv::Mat src);
 
@@ -1907,6 +1935,9 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::grayscaleDegradationByTypes()
   {
+    //reused by every seed point, cf getEllipseLines()
+    std::vector<NoiseLine> lines;
+
     // calculate mean by region
     int meanB = m_avgBackground;
     int meanF = m_avgForeground;
@@ -1976,13 +2007,14 @@ namespace dc {
       cv::Rect rec;
       int max_B = INT_MIN, min_B = INT_MAX;
 
-      std::vector<float *> lines = getEllipsePoints(rec,
-						    max_B,
-						    min_B,
-						    sp.pixel.pos,
-						    semi_minor_axis,
-						    semi_major_axis,
-						    sp.pixel.gradient_angle);
+      const size_t numLines = getEllipseLines(lines,
+					     rec,
+					     max_B,
+					     min_B,
+					     sp.pixel.pos,
+					     semi_minor_axis,
+					     semi_major_axis,
+					     sp.pixel.gradient_angle);
 
       //std::cerr<<"semi_major_axis="<<semi_major_axis<<" semi_minor_axis="<<semi_minor_axis<<" pos="<<sp.pixel.pos<<" gradient_angle="<<sp.pixel.gradient_angle<<" => rec="<<rec<<" min_B="<<min_B<<" max_B="<<max_B<<"\n";
 
@@ -2024,16 +2056,15 @@ namespace dc {
 	else if (C_gris > WHITE)
 	  C_gris = WHITE;
 
-	//B: getEllipsePoints() may return no line at all, hence the size check
-	// before indexing. A line holds (2 * numPoints + 3) floats, with
-	// numPoints > 0, so its first element is >= 5: the single pixel case
-	// below cannot currently happen.
-	if (lines.size() == 1 && lines[0][0] < 4) {
+	//B: getEllipseLines() may give no line at all, hence the count check
+	// before indexing. A line always holds at least one point, so the
+	// single pixel case below cannot currently happen.
+	if (numLines == 1 && lines[0].points.empty()) {
 	  m_mat_output.at<uchar>(sp.pixel.pos.y, sp.pixel.pos.x) = meanB;
 	} else {
-	  for (const float *line : lines) {
+	  for (size_t i = 0; i < numLines; ++i) {
 	    DegradedLine(
-			 line, sp.pixel.pos, C_gris, 10, m_sigma_gaussian, m_mat_output, true);
+			 lines[i], sp.pixel.pos, C_gris, 10, m_sigma_gaussian, m_mat_output, true);
 	  }
 	}
       }
@@ -2058,19 +2089,15 @@ namespace dc {
 
 	//B: same as above. This test used "lines.size() <= 1" and
 	// lines.at(0), which threw std::out_of_range for an empty vector.
-	if (lines.size() == 1 && lines[0][0] < 4) {
+	if (numLines == 1 && lines[0].points.empty()) {
 	  m_mat_output.at<uchar>(sp.pixel.pos.y, sp.pixel.pos.x) = meanF;
 	} else {
-	  for (const float *line : lines) {
+	  for (size_t i = 0; i < numLines; ++i) {
 	    DegradedLine(
-			 line, sp.pixel.pos, C_gris, 10, m_sigma_gaussian, m_mat_output, false);
+			 lines[i], sp.pixel.pos, C_gris, 10, m_sigma_gaussian, m_mat_output, false);
 	  }
 	}
       }
-
-      for (float *line : lines)
-	free(line);
-      lines.clear();
     }
 
     //B: a Gaussian blur was applied on the bounding rectangle of every
@@ -2080,24 +2107,17 @@ namespace dc {
   }
 
   void
-  GrayscaleCharsDegradationModel::RapidlyDegradeLine(const float *Line,
+  GrayscaleCharsDegradationModel::RapidlyDegradeLine(const NoiseLine &line,
 						     cv::Point Centre,
 						     int Centre_gray,
 						     cv::Mat &imgGrayOutput)
   {
-    const int n = Line[0];
-    double deltaDis = Line[1];
-    int B_gris = Line[2];
+    const double deltaDis = line.distanceToCentre;
+    const int B_gris = line.borderGrayLevel;
 
     if (deltaDis > 0) {
-      int id = 3;
 
-      while (id < n) {
-	cv::Point B1;
-	B1.x = Line[id];
-	++id;
-	B1.y = Line[id];
-	++id;
+      for (const cv::Point &B1 : line.points) {
 
 	const double dis = sqrt((B1.x - Centre.x) * (B1.x - Centre.x) +
 				(B1.y - Centre.y) * (B1.y - Centre.y));
@@ -2111,7 +2131,7 @@ namespace dc {
   }
 
   void
-  GrayscaleCharsDegradationModel::DegradedLine(const float *Line,
+  GrayscaleCharsDegradationModel::DegradedLine(const NoiseLine &line,
 					       cv::Point Centre,
 					       int Centre_gray,
 					       int pixel_signma,
@@ -2119,21 +2139,12 @@ namespace dc {
 					       cv::Mat &imgGrayOutput,
 					       bool isFtoB)
   {
-    const int n = Line[0];
-    const float deltaDis = Line[1];
-    int B_gris = Line[2];
-
-    //UGLY: we should have a struct Line !!!
+    const float deltaDis = line.distanceToCentre;
+    int B_gris = line.borderGrayLevel;
 
     if (deltaDis > 0) {
-      int id = 3;
 
-      while (id < n) {
-	cv::Point B1;
-	B1.x = Line[id];
-	++id;
-	B1.y = Line[id];
-	++id;
+      for (const cv::Point &B1 : line.points) {
 
 	const float dis = sqrtf((B1.x - Centre.x) * (B1.x - Centre.x) +
 				(B1.y - Centre.y) * (B1.y - Centre.y));
@@ -2414,14 +2425,15 @@ namespace dc {
     return std::sqrt(minDistSq);  //B:CONVERSION TO INT ? Is it really what we want ???
   }
 
-  std::vector<float *>
-  GrayscaleCharsDegradationModel::getEllipsePoints(cv::Rect &rec,
-						   int &max_B,
-						   int &min_B,
-						   cv::Point centre,
-						   double semi_minor_axis,
-						   double semi_major_axis,
-						   double theta)
+  size_t
+  GrayscaleCharsDegradationModel::getEllipseLines(std::vector<NoiseLine> &lines,
+						  cv::Rect &rec,
+						  int &max_B,
+						  int &min_B,
+						  cv::Point centre,
+						  double semi_minor_axis,
+						  double semi_major_axis,
+						  double theta)
   {
     /*
       We only ever look at a window of (2*m_local_zone) pixels around the
@@ -2438,7 +2450,9 @@ namespace dc {
       @a rec is expressed in it.
     */
 
-    std::vector<float *> Ls;
+    //the lines of the previous seed point are dropped, but their point
+    //vectors are kept, cf the comment on the declaration
+    size_t numLines = 0;
 
     const int ex = static_cast<int>(semi_major_axis) + 10;
     const int half = ex / 2;
@@ -2484,17 +2498,16 @@ namespace dc {
 
     if (contours.empty()) { //B: the ellipse is entirely outside the window
       rec = cv::Rect(0, 0, 0, 0);
-      return Ls;
+      return 0;
     }
 
     const std::vector<cv::Point> &v = contours[0];
-    Ls.reserve(v.size());
+    if (lines.size() < v.size()) {
+      lines.resize(v.size());
+    }
 
     int min_x = INT_MAX, min_y = INT_MAX;
     int max_x = INT_MIN, max_y = INT_MIN;
-
-    std::vector<cv::Point> pointInLine;
-    pointInLine.reserve(localZone2);
 
     for (const cv::Point &pWin : v) {
 
@@ -2513,6 +2526,8 @@ namespace dc {
       //Points of the segment from the centre to the contour point, in image
       //coordinates. cv::LineIterator walks the very pixels cv::line() would
       //draw, and clips the segment to the image.
+      //the vector of the line about to be filled, kept from the previous call
+      std::vector<cv::Point> &pointInLine = lines[numLines].points;
       pointInLine.clear();
       {
 	cv::LineIterator lineIt(m_mat_gray, centre, cv::Point(p.x - half, p.y - half), 8);
@@ -2548,30 +2563,12 @@ namespace dc {
 	if (min_B > gray)
 	  min_B = gray;
 
-	const int n = 2 * static_cast<int>(pointInLine.size()) + 3;
-	float *line = static_cast<float *>(malloc(sizeof(float) * n));
-	if (line != nullptr) {
-	  int id = 0;
-      //0
-	  line[id] = n;
-	  ++id;
-      //1
-	  //B: should we use p or pt here ???
-	  line[id] = sqrtf(static_cast<float>((p.x - newCentre.x) * (p.x - newCentre.x) +
-					      (p.y - newCentre.y) * (p.y - newCentre.y)));
-	  ++id;
-      //2
-	  line[id] = gray;
-	  ++id;
-	  for (const cv::Point &px : pointInLine) {
-	    line[id] = px.x;
-	    ++id;
-	    line[id] = px.y;
-	    ++id;
-	  }
-
-	  Ls.push_back(line);
-	}
+	//B: should we use p or pt here ???
+	lines[numLines].distanceToCentre =
+	  sqrtf(static_cast<float>((p.x - newCentre.x) * (p.x - newCentre.x) +
+				   (p.y - newCentre.y) * (p.y - newCentre.y)));
+	lines[numLines].borderGrayLevel = gray;
+	++numLines;
       }
     }
 
@@ -2580,7 +2577,7 @@ namespace dc {
     rec.width = max_x - min_x;
     rec.height = max_y - min_y;
 
-    return Ls;
+    return numLines;
   }
 
   /*
