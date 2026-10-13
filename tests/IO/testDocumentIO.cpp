@@ -180,3 +180,119 @@ TEST_CASE( "Testing document IO failures" )
     delete doc2;
   }
 }
+
+/*
+  save -> load -> save has to give the same bytes twice: that pins the
+  format, and it is the only thing that tells whether the loader reads back
+  everything the saver writes.
+*/
+
+#include "iomanager/documentsaverdirector.h"
+#include "iomanager/xmldocumentsaver.h"
+
+namespace {
+
+  QString
+  toXml(Doc::Document *document)
+  {
+    IOManager::XMLDocumentSaver saver(document);
+    IOManager::DocumentSaverDirector director(&saver);
+    director.constructDocumentOutput();
+    return director.getDocumentOutput();
+  }
+
+  QString
+  makeRichDocument()
+  {
+    return QStringLiteral(
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+      "<document width=\"1240\" height=\"1754\" marginTop=\"10\""
+      " marginBottom=\"20\" marginLeft=\"30\" marginRight=\"40\">\n"
+      "  <styles>\n"
+      "    <style name=\"first\"><font>JulesVerne</font></style>\n"
+      "    <style name=\"second\"><font>Arabic</font></style>\n"
+      "  </styles>\n"
+      "  <content>\n"
+      "    <page>\n"
+      "      <textBlock x=\"10\" y=\"20\" width=\"100\" height=\"200\""
+      " marginTop=\"1\" marginBottom=\"2\" marginLeft=\"3\" marginRight=\"4\">\n"
+      "        <paragraph lineSpacing=\"5\" tabulationSize=\"6\">\n"
+      "          <string style=\"first\">\n"
+      "            <char id=\"1\" display=\"a\" x=\"1\" y=\"2\""
+      " width=\"8\" height=\"16\"/>\n"
+      "            <char id=\"2\" display=\"b\" x=\"9\" y=\"2\""
+      " width=\"8\" height=\"16\"/>\n"
+      "          </string>\n"
+      "          <string style=\"second\">\n"
+      "            <char id=\"3\" display=\"c\" x=\"17\" y=\"2\""
+      " width=\"8\" height=\"16\"/>\n"
+      "          </string>\n"
+      "        </paragraph>\n"
+      "        <paragraph lineSpacing=\"7\" tabulationSize=\"8\">\n"
+      "          <string style=\"first\">\n"
+      "            <char id=\"4\" display=\"d\" x=\"1\" y=\"20\""
+      " width=\"8\" height=\"16\"/>\n"
+      "          </string>\n"
+      "        </paragraph>\n"
+      "      </textBlock>\n"
+      "    </page>\n"
+      "    <page>\n"
+      "      <textBlock x=\"5\" y=\"6\" width=\"50\" height=\"60\""
+      " marginTop=\"0\" marginBottom=\"0\" marginLeft=\"0\" marginRight=\"0\">\n"
+      "        <paragraph lineSpacing=\"9\" tabulationSize=\"0\">\n"
+      "          <string style=\"second\">\n"
+      "            <char id=\"5\" display=\"e\" x=\"0\" y=\"0\""
+      " width=\"8\" height=\"16\"/>\n"
+      "          </string>\n"
+      "        </paragraph>\n"
+      "      </textBlock>\n"
+      "    </page>\n"
+      "  </content>\n"
+      "</document>\n");
+  }
+
+} //namespace
+
+TEST_CASE( "Testing the document XML round trip" )
+{
+  SECTION("saving a loaded document twice gives the same bytes")
+  {
+    Doc::Document *doc =
+      loadXml(QStringLiteral("tmp_doc_rich.xml"), makeRichDocument());
+    REQUIRE( doc != nullptr );
+
+    const QString first = toXml(doc);
+    REQUIRE_FALSE( first.isEmpty() );
+    delete doc;
+
+    Doc::Document *doc2 =
+      loadXml(QStringLiteral("tmp_doc_rich_1.xml"), first);
+    REQUIRE( doc2 != nullptr );
+
+    const QString second = toXml(doc2);
+    REQUIRE( second == first );
+    delete doc2;
+  }
+
+  SECTION("the geometry and the content survive the round trip")
+  {
+    Doc::Document *doc =
+      loadXml(QStringLiteral("tmp_doc_rich_2.xml"), makeRichDocument());
+    REQUIRE( doc != nullptr );
+    const int pageWidth = doc->pageWidth();
+    const int pageHeight = doc->pageHeight();
+    const int numPages = doc->getPages().size();
+    const int numStyles = doc->getStyles().size();
+    const QString saved = toXml(doc);
+    delete doc;
+
+    Doc::Document *doc2 =
+      loadXml(QStringLiteral("tmp_doc_rich_3.xml"), saved);
+    REQUIRE( doc2 != nullptr );
+    REQUIRE( doc2->pageWidth() == pageWidth );
+    REQUIRE( doc2->pageHeight() == pageHeight );
+    REQUIRE( doc2->getPages().size() == numPages );
+    REQUIRE( doc2->getStyles().size() == numStyles );
+    delete doc2;
+  }
+}

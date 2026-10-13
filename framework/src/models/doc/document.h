@@ -67,6 +67,12 @@ namespace Doc
 	//B:TODO:API:  Why getStyle() & getStyles() ??? We can have several styles ?
 	//B:TODO:API: changeStyle() weird ?!
 	//B:TODO:API: we cannot remove a style !?
+	/**
+	 * Register @a newStyle and @return its key.
+	 *
+	 * @warning the document takes ownership of @a newStyle: it is
+	 * deleted with the document (cf DocStyleManager).
+	 */
         QString addStyle(DocStyle* newStyle);
         QString changeStyle(const QString &olfStyleKey, DocStyle* newStyle);
         DocStyle* getStyle(const QString &style);

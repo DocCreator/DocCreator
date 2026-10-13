@@ -2,6 +2,7 @@
 
 SET(TESTS_MODELS_SRC
   testCharacter.cpp
+  testDocNode.cpp
   )
 
 FOREACH(FILE ${TESTS_MODELS_SRC})
