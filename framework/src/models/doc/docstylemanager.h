@@ -4,6 +4,7 @@
 #include <framework_global.h>
 
 #include <QHash>
+#include <QList>
 
 
 namespace Doc
@@ -40,6 +41,14 @@ namespace Doc
     
     ~DocStyleManager(); //B
     
+    /*
+     * Register @a value and @return its key, which is its name.
+     *
+     * The manager takes ownership of @a value: it is deleted with the
+     * manager, and the pointer stays valid until then. A style whose name
+     * is already known is kept as it is, so that getStyle() keeps giving
+     * back the first one registered under that name.
+     */
     QString addReference(Doc::DocStyle* value);
     void removeReference(Doc::DocStyle* old);
     void removeReference(const QString &key);
@@ -50,6 +59,8 @@ namespace Doc
   private:
     using HashType = QHash<QString, styleReferenceCounter*>;
     HashType _styles;
+    //styles whose name was already known, cf addReference()
+    QList<Doc::DocStyle*> _duplicates;
   };
 
 }

@@ -239,10 +239,20 @@ XMLDocumentLoader::buildParagraph()
 Doc::DocString *
 XMLDocumentLoader::buildString()
 {
-  auto *s = new Doc::DocString(
-    new Doc::DocStyle(
-      _reader->attributes().value(QStringLiteral("style")).toString()),
-    _output);
+  /*
+    B: a style was allocated for every string, although the <styles>
+    section has already registered them all: the document kept the first
+    style of each name and the others were dropped.
+  */
+  const QString styleName =
+    _reader->attributes().value(QStringLiteral("style")).toString();
+  Doc::DocStyle *style =
+    (_output != nullptr) ? _output->getStyle(styleName) : nullptr;
+  if (style == nullptr) {
+    style = new Doc::DocStyle(styleName);
+  }
+
+  auto *s = new Doc::DocString(style, _output);
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&

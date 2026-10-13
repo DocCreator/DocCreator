@@ -4,6 +4,7 @@
   copy of. Out of the dialog, they can be run.
 */
 #include <fstream>
+#include <memory>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -23,10 +24,10 @@ namespace {
     @return a font whose character @a c is @a width pixels wide and @a
     height high, for each (c, width, height) of @a characters.
   */
-  Models::Font *
+  std::unique_ptr<Models::Font>
   makeFont(const std::vector<std::tuple<char, int, int>> &characters)
   {
-    auto *font = new Models::Font(QStringLiteral("test"));
+    auto font = std::make_unique<Models::Font>(QStringLiteral("test"));
     for (const auto &c : characters) {
       QImage img(std::get<1>(c), std::get<2>(c), QImage::Format_ARGB32);
       img.fill(Qt::black);
@@ -51,7 +52,7 @@ namespace {
 TEST_CASE("measureText() measures the lines of a file")
 {
   //'a' is 10x20, 'b' is 30x40, ' ' is 5x20
-  Models::Font *font = makeFont({ {'a', 10, 20}, {'b', 30, 40}, {' ', 5, 20} });
+  const std::unique_ptr<Models::Font> font = makeFont({ {'a', 10, 20}, {'b', 30, 40}, {' ', 5, 20} });
 
   SECTION("an empty file")
   {
@@ -119,7 +120,7 @@ TEST_CASE("measureText() measures the lines of a file")
 
 TEST_CASE("splitParagraphsToFitColumns() cuts what does not fit")
 {
-  Models::Font *font = makeFont({ {'a', 10, 20}, {' ', 5, 20} });
+  const std::unique_ptr<Models::Font> font = makeFont({ {'a', 10, 20}, {' ', 5, 20} });
 
   SECTION("a paragraph that fits is left alone")
   {

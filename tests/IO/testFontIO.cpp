@@ -1,4 +1,5 @@
 #include <functional>
+#include <memory>
 #include <iostream>
 
 #include <QDataStream>
@@ -105,22 +106,27 @@ testSimple()
   for (size_t i=0; i<numFonts; ++i) {
 
     const std::string fontPath = dc::makePath(FONT_DATA_SRC_PATH, fonts[i]);
-    Models::Font *font = IOManager::FontFileManager::fontFromBinary(QString::fromStdString(fontPath));
+    const std::unique_ptr<Models::Font> font(
+      IOManager::FontFileManager::fontFromBinary(QString::fromStdString(fontPath)));
     REQUIRE( font != nullptr );
 
-    const bool writeOk1 = IOManager::FontFileManager::fontToXml(font, tmpFilename1);
+    const bool writeOk1 =
+      IOManager::FontFileManager::fontToXml(font.get(), tmpFilename1);
     REQUIRE( writeOk1 );
 
-    Models::Font *font2 = IOManager::FontFileManager::fontFromXml(tmpFilename1);
+    const std::unique_ptr<Models::Font> font2(
+      IOManager::FontFileManager::fontFromXml(tmpFilename1));
     REQUIRE( font2 != nullptr );
-    REQUIRE( checkEqual(font, font2) ); //check XML I/O
+    REQUIRE( checkEqual(font.get(), font2.get()) ); //check XML I/O
 
-    const bool writeOk2 = IOManager::FontFileManager::fontToBinary(font, tmpFilename2);
+    const bool writeOk2 =
+      IOManager::FontFileManager::fontToBinary(font.get(), tmpFilename2);
     REQUIRE( writeOk2 );
 
-    Models::Font *font3 = IOManager::FontFileManager::fontFromXml(tmpFilename1);
+    const std::unique_ptr<Models::Font> font3(
+      IOManager::FontFileManager::fontFromXml(tmpFilename1));
     REQUIRE( font3 != nullptr );
-    REQUIRE( checkEqual(font, font3) ); //check binary I/O
+    REQUIRE( checkEqual(font.get(), font3.get()) ); //check binary I/O
     
   }
   

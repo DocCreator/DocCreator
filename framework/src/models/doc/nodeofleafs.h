@@ -44,6 +44,13 @@ namespace Doc
       //B:TODO:OPTIM: would be faster if class Node provided an insertElements(index, elements) method !
     }
 
+    /*
+      B: the removed leaf was taken out of _elements and dropped. The node
+      owns its elements (cf ~Node, which deletes them all) and nothing else
+      holds the removed one -- these two return a length, not the element --
+      so every removed leaf leaked. Removing the selection of a string of n
+      characters leaked n of them, which is what every split does twice.
+    */
     template< class T >
     int NodeOfLeafs<T>::removeBeforeCursor()
     {
@@ -52,9 +59,10 @@ namespace Doc
       
       int oldOffset = this->offset();
       this->_index = this->_index - 1;
-      T* toReturn = this->_elements.at(this->_index);
-      int counter = toReturn->length();
+      T* removed = this->_elements.at(this->_index);
+      int counter = removed->length();
       this->_elements.removeAt(this->_index);
+      delete removed;
       this->setLength(this->length()-counter);
       this->setOffset(oldOffset-counter);
       
@@ -67,9 +75,10 @@ namespace Doc
         if (this->isEmpty() || this->isAtEnd())
             return 0;
 
-        T* toReturn = this->_elements.at(this->_index);
-        int counter = toReturn->length();
+        T* removed = this->_elements.at(this->_index);
+        int counter = removed->length();
         this->_elements.removeAt(this->_index);
+        delete removed;
         this->setLength(this->length()-counter);
 
         return counter;

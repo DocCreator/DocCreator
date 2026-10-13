@@ -14,7 +14,10 @@ namespace Doc
       delete it.value()->style();
       delete it.value();
     }
-    
+
+    for (DocStyle* s : _duplicates) {
+      delete s;
+    }
   }
 
     QString DocStyleManager::addReference(DocStyle* value)
@@ -30,6 +33,21 @@ namespace Doc
       HashType::iterator it = _styles.find(key);
       if (it == _styles.end()) {
 	it = _styles.insert(key, new styleReferenceCounter(value));
+      }
+      else if (it.value()->style() != value) {
+	/*
+	  B: a style whose name was already known was neither stored nor
+	  freed: it leaked, and the callers that allocate one per use --
+	  the XML loader allocated one per string -- leaked one each time.
+	  It is kept here instead, so that the pointer the caller goes on
+	  using stays valid and is freed with the manager, while
+	  getStyle() keeps giving back the first style of that name.
+	*/
+	//the same style is registered once per string that uses it, so it
+	//must not be kept twice: the destructor would delete it twice
+	if (! _duplicates.contains(value)) {
+	  _duplicates.append(value);
+	}
       }
       styleReferenceCounter* ref = it.value();
 
