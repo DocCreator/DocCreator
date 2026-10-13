@@ -124,7 +124,13 @@ namespace dc {
 
     int calculateDistanceFromBord(const Pixel &pixel) const;
 
-    int calculateApproximatelyDistanceFromBord(const Pixel &pixel) const;
+    /*
+      Fill @a distanceMap, of the size of the image and of type CV_8UC1,
+      with the distance from each pixel to the nearest contour pixel, as
+      calculateApproximatelyDistanceFromBord() measures it: the shortest of
+      eight walks, each capped by m_local_zone.
+    */
+    void computeDistanceToEdgeMap(cv::Mat &distanceMap) const;
 
     /*
       Fill the first elements of @a lines with one NoiseLine per point of the
@@ -585,20 +591,37 @@ namespace dc {
     assert(m_mat_binary.type() == CV_8UC1);
     assert(m_mat_binary.rows == m_height && m_mat_binary.cols == m_width);
 
-    m_listPixels.reserve((m_width * m_height) / 5); //arbitrary !
-    //We should compute the number of white pixels in m_mat_reduce_pixels
-    // to have a less arbitrary capacity.
+    /*
+      B: this reserved (width * height) / 5 , "arbitrary !", and the comment
+      below it asked for the number of white pixels instead. That number is
+      one pass over a one channel image, against reallocating and moving a
+      vector of some hundreds of thousands of Pixels.
+    */
+    m_listPixels.reserve(cv::countNonZero(m_mat_reduce_pixels));
 
     //B:TODO:OPTIM? better way to compute gradient image.
 
     const int height = m_mat_reduce_pixels.rows;
     const int width = m_mat_reduce_pixels.cols;
 
+    /*
+      B: this walked eight directions from each of the pixels to measure, up
+      to m_local_zone steps each. The same distance is now read from a map
+      computed once, in sweeps that visit each pixel of the image a fixed
+      number of times, cf computeDistanceToEdgeMap().
+    */
+    cv::Mat distanceMap;
+    computeDistanceToEdgeMap(distanceMap);
+
     //size_t nbPixs = 0;
 
     for (int y = 0; y < height; ++y) {
       const uchar *m = m_mat_reduce_pixels.ptr<uchar>(y);
       const uchar *b = m_mat_binary.ptr<uchar>(y);
+      const uchar *gRow = m_mat_gray.ptr<uchar>(y);
+      const uchar *gPrev = (y > 0) ? m_mat_gray.ptr<uchar>(y - 1) : gRow;
+      const uchar *gNext = (y + 1 < height) ? m_mat_gray.ptr<uchar>(y + 1) : gRow;
+
       for (int x = 0; x < width; ++x) {
 	if (m[x] == 255) {
 
@@ -608,7 +631,7 @@ namespace dc {
 	  pixel.isBackground = (b[x] != 0);
 
 	  // Compute approximately the transformation distance
-	  pixel.distanceToEdge = static_cast<float>(calculateApproximatelyDistanceFromBord(pixel));
+	  pixel.distanceToEdge = static_cast<float>(distanceMap.at<uchar>(y, x));
 	  //pixel.distanceToEdge = calculateDistanceFromBord(pixel, m_is4connected);
 
 	  if (pixel.distanceToEdge > 0) {
@@ -621,14 +644,11 @@ namespace dc {
 	    if (pixel.pos.x > 0 && pixel.pos.x < (width - 1) && pixel.pos.y > 0 &&
 		pixel.pos.y < (height - 1)) {
 
-	      const float dx =
-		((int)m_mat_gray.at<uchar>(pixel.pos.y, pixel.pos.x + 1) -
-		 (int)m_mat_gray.at<uchar>(pixel.pos.y, pixel.pos.x - 1)) *
-		0.5f;
-	      const float dy =
-		((int)m_mat_gray.at<uchar>(pixel.pos.y + 1, pixel.pos.x) -
-		 (int)m_mat_gray.at<uchar>(pixel.pos.y - 1, pixel.pos.x)) *
-		0.5f;
+	      //B: the three rows are taken once per row, instead of
+	      //m_mat_gray.at<uchar>() recomputing (data + step * row) four
+	      //times per pixel
+	      const float dx = ((int)gRow[x + 1] - (int)gRow[x - 1]) * 0.5f;
+	      const float dy = ((int)gNext[x] - (int)gPrev[x]) * 0.5f;
 
 	      pixel.gradient_value = sqrtf(dx * dx + dy * dy);
           pixel.gradient_angle = atan2f(dy, dx) * 180.f / static_cast<float>(CV_PI);
@@ -691,7 +711,7 @@ namespace dc {
 								cv::Point &A,
 								cv::Point &B) const
   {
-    //B: some code duplication with calculateApproximatelyDistanceFromBord() ???
+    //B: some code duplication with computeDistanceToEdgeMap() ???
 
     assert(m_mat_CCs.rows == m_height && m_mat_CCs.cols == m_width &&
 	   m_mat_CCs.type() == CV_8UC1);
@@ -2218,180 +2238,161 @@ namespace dc {
      in eight directions.
 
   */
-  int
-  GrayscaleCharsDegradationModel::calculateApproximatelyDistanceFromBord(
-									 const Pixel &pixel) const
+
+  /*
+    The distance measured here used to be the shortest of eight walks made
+    from each pixel, each counting the pixels that are not contour pixels in
+    one direction until it met one or reached the edge of the local zone.
+    Along a given direction, that count is the same run for every pixel of
+    that line, shifted. Along a given direction,
+    that count is the same run for every pixel of that line, shifted: it is
+    computed here for the whole image, one direction at a time, in a sweep
+    that reads each pixel once.
+
+    run(p, d) below is the number of pixels that are not contour pixels,
+    starting at p and moving along d. Each of the eight walks is that run,
+    capped by the length of its own window:
+
+      left        run(x, y, left)        capped by min(LZ, x) + 1
+      right       run(x, y, right)       capped by min(LZ, W - x)
+      up          run(x, y, up)          capped by min(LZ, y) + 1
+      down        run(x, y, down)        capped by min(LZ, H - y)
+      up right    run(x, y-1, up right)  capped by min(min(LZ, W-x), min(LZ, y))
+      down right  run(x, y+1, down right) capped by min(min(LZ, W-x), min(LZ, H-y) - 1)
+      down left   run(x, y+1, down left) capped by min(min(LZ, x) + 1, min(LZ, H-y) - 1)
+      up left     run(x, y-1, up left)   capped by min(min(LZ, x) + 1, min(LZ, y) - 1)
+
+    The four diagonal walks start one row away from the pixel, and two of
+    the caps are one shorter than their opposite. That is what the walks
+    did, and this reproduces them rather than tidying them: every pixel of
+    the images of data/ gives the same distance as before.
+  */
+  void
+  GrayscaleCharsDegradationModel::computeDistanceToEdgeMap(cv::Mat &distanceMap) const
   {
-    const int x = pixel.pos.x;
-    const int y = pixel.pos.y;
+    assert(m_mat_contour.type() == CV_8UC1);
 
-    assert(x >= 0 && x < m_width && y >= 0 && y < m_height);
+    const int W = m_mat_contour.cols;
+    const int H = m_mat_contour.rows;
+    const int LZ = m_local_zone;
 
-    if (m_mat_contour.at<uchar>(y, x) == WHITE) //is edge pixel
-      return 0;
+    //a run is never used beyond LZ + 1, so it is capped there and fits in a
+    //uchar
+    const uchar MAX_RUN = static_cast<uchar>(std::min(LZ + 1, 254));
 
-    int minDist = 0;
+    distanceMap.create(H, W, CV_8UC1);
 
-    /*
-      B: the walks below move by one row at a time, so they move the pointer
-      by one step instead of recomputing (data + step * row) at each pixel,
-      as m_mat_contour.at<uchar>(row, col) does.
-    */
-    const ptrdiff_t stride = static_cast<ptrdiff_t>(m_mat_contour.step);
+    //the three directions that look at the rows below need the whole image
+    cv::Mat runDown(H, W, CV_8UC1);
+    cv::Mat runDownRight(H, W, CV_8UC1);
+    cv::Mat runDownLeft(H, W, CV_8UC1);
 
-    int dist = 0;
-    const int x0 = std::max(x - m_local_zone, 0);
-    {
+    for (int y = H - 1; y >= 0; --y) {
       const uchar *mc = m_mat_contour.ptr<uchar>(y);
-      for (int i = x; i >= x0; --i) {
-	assert(i >= 0);
-	if (mc[i] == WHITE) {
-	  break;
+      uchar *d = runDown.ptr<uchar>(y);
+      uchar *dr = runDownRight.ptr<uchar>(y);
+      uchar *dl = runDownLeft.ptr<uchar>(y);
+      const uchar *dPrev = (y + 1 < H) ? runDown.ptr<uchar>(y + 1) : nullptr;
+      const uchar *drPrev = (y + 1 < H) ? runDownRight.ptr<uchar>(y + 1) : nullptr;
+      const uchar *dlPrev = (y + 1 < H) ? runDownLeft.ptr<uchar>(y + 1) : nullptr;
+
+      for (int x = 0; x < W; ++x) {
+	if (mc[x] == WHITE) {
+	  d[x] = dr[x] = dl[x] = 0;
+	  continue;
 	}
-	++dist; //0 degree
+	d[x] = (dPrev != nullptr)
+	  ? static_cast<uchar>(std::min<int>(dPrev[x] + 1, MAX_RUN)) : 1;
+	dr[x] = (drPrev != nullptr && x + 1 < W)
+	  ? static_cast<uchar>(std::min<int>(drPrev[x + 1] + 1, MAX_RUN)) : 1;
+	dl[x] = (dlPrev != nullptr && x > 0)
+	  ? static_cast<uchar>(std::min<int>(dlPrev[x - 1] + 1, MAX_RUN)) : 1;
       }
     }
-    minDist = dist;
 
-    dist = 0;
-    const int x1 = std::min(x + m_local_zone, m_width);
-    {
-      assert(y < m_mat_contour.rows);
+    //the five others are kept for the current row only
+    std::vector<uchar> runUp(W, 0), runUpRight(W, 0), runUpLeft(W, 0);
+    std::vector<uchar> prevUp(W, 0), prevUpRight(W, 0), prevUpLeft(W, 0);
+    std::vector<uchar> runRight(W, 0);
+
+    for (int y = 0; y < H; ++y) {
       const uchar *mc = m_mat_contour.ptr<uchar>(y);
-      for (int i = x; i < x1; ++i) {
-	assert(i < m_width);
-	if (mc[i] == WHITE) {
-	  break;
+      const uchar *d = runDown.ptr<uchar>(y);
+      const uchar *dr = runDownRight.ptr<uchar>(y);
+      const uchar *dl = runDownLeft.ptr<uchar>(y);
+      uchar *out = distanceMap.ptr<uchar>(y);
+
+      const bool hasPrev = (y > 0);
+      for (int x = 0; x < W; ++x) {
+	if (mc[x] == WHITE) {
+	  runUp[x] = runUpRight[x] = runUpLeft[x] = 0;
+	  continue;
 	}
-	++dist; //0 degree
-	if (dist >= minDist) {
-	  break;
+	runUp[x] = hasPrev
+	  ? static_cast<uchar>(std::min<int>(prevUp[x] + 1, MAX_RUN)) : 1;
+	runUpRight[x] = (hasPrev && x + 1 < W)
+	  ? static_cast<uchar>(std::min<int>(prevUpRight[x + 1] + 1, MAX_RUN)) : 1;
+	runUpLeft[x] = (hasPrev && x > 0)
+	  ? static_cast<uchar>(std::min<int>(prevUpLeft[x - 1] + 1, MAX_RUN)) : 1;
+      }
+
+      //the run to the right, for the whole row
+      {
+	int run = 0;
+	for (int x = W - 1; x >= 0; --x) {
+	  run = (mc[x] == WHITE) ? 0 : std::min<int>(run + 1, MAX_RUN);
+	  runRight[x] = static_cast<uchar>(run);
 	}
       }
-    }
-    minDist = std::min(dist, minDist);
 
-    dist = 0;
-    const int y0 = std::max(y - m_local_zone, 0);
-    {
-      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
-      for (int i = y; i >= y0; --i, p -= stride) {
-	if (*p == WHITE) {
-	  break;
+      int runLeft = 0;
+      for (int x = 0; x < W; ++x) {
+	runLeft = (mc[x] == WHITE) ? 0 : std::min<int>(runLeft + 1, MAX_RUN);
+
+	if (mc[x] == WHITE) {
+	  out[x] = 0;
+	  continue;
 	}
-	++dist; // 90 degree
-	if (dist >= minDist) {
-	  break;
-	}
+
+	//the length of each window, as the walks bound themselves
+	const int toLeft = std::min(LZ, x) + 1;        //x - x0 + 1
+	const int toRight = std::min(LZ, W - x);       //x1 - x
+	const int toUp = std::min(LZ, y) + 1;          //y - y0 + 1
+	const int toDown = std::min(LZ, H - y);        //y1 - y
+
+	int minDist = std::min(std::min<int>(runLeft, toLeft),
+			       std::min<int>(runRight[x], toRight));
+	minDist = std::min(minDist, std::min<int>(runUp[x], toUp));
+	minDist = std::min(minDist, std::min<int>(d[x], toDown));
+
+	//the four diagonals, which start one row away from the pixel
+	const int upRight = (y > 0)
+	  ? std::min<int>(prevUpRight[x], std::min(toRight, toUp - 1)) : 0;
+	minDist = std::min(minDist, upRight);
+
+	const int downRight = (y + 1 < H)
+	  ? std::min<int>(runDownRight.at<uchar>(y + 1, x),
+			  std::min(toRight, toDown - 1)) : 0;
+	minDist = std::min(minDist, downRight);
+
+	const int downLeft = (y + 1 < H)
+	  ? std::min<int>(runDownLeft.at<uchar>(y + 1, x),
+			  std::min(toLeft, toDown - 1)) : 0;
+	minDist = std::min(minDist, downLeft);
+
+	const int upLeft = (y > 0)
+	  ? std::min<int>(prevUpLeft[x], std::min(toLeft, toUp - 2)) : 0;
+	minDist = std::min(minDist, upLeft);
+
+	out[x] = static_cast<uchar>(std::max(minDist, 0));
       }
-    }
-    minDist = std::min(dist, minDist);
 
-    dist = 0;
-    const int y1 = std::min(y + m_local_zone, m_height);
-    {
-      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
-      for (int i = y; i < y1; ++i, p += stride) {
-	if (*p == WHITE) {
-	  break;
-	}
-	++dist; // 90 degree
-	if (dist >= minDist) {
-	  break;
-	}
-      }
+      prevUp = runUp;
+      prevUpRight = runUpRight;
+      prevUpLeft = runUpLeft;
+      (void)dr;
+      (void)dl;
     }
-    minDist = std::min(dist, minDist);
-
-    dist = 0;
-    int j = y;
-    {
-      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
-      for (int i = x; i < x1; ++i) {
-	--j;
-	p -= stride; //one row up, same column on the first step
-	if (j < y0) {
-	  break;
-	}
-	if (*p == WHITE) {
-	  break;
-	}
-	++dist; //45 degree
-	if (dist >= minDist) {
-	  break;
-	}
-	++p; //and one column right for the next step
-      }
-    }
-    minDist = std::min(dist, minDist);
-
-    dist = 0;
-    j = y;
-    {
-      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
-      for (int i = x; i < x1; ++i) {
-	++j;
-	p += stride;
-	if (j >= y1) {
-	  break;
-	}
-	if (*p == WHITE) {
-	  break;
-	}
-	++dist; // -45 degree
-	if (dist >= minDist) {
-	  break;
-	}
-	++p;
-      }
-    }
-    minDist = std::min(dist, minDist);
-
-    dist = 0;
-    j = y;
-    {
-      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
-      for (int i = x; i >= x0; --i) {
-	++j;
-	p += stride;
-	if (j >= y1) {
-	  break;
-	}
-	if (*p == WHITE) {
-	  break;
-	}
-	++dist; // 45 degree
-	if (dist >= minDist) {
-	  break;
-	}
-	--p;
-      }
-    }
-    minDist = std::min(dist, minDist);
-
-    dist = 0;
-    j = y;
-    {
-      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
-      for (int i = x; i >= x0; --i) {
-	--j;
-	p -= stride;
-	if (j <= y0) { //B: the bound of this one is strict
-	  break;
-	}
-	if (*p == WHITE) {
-	  break;
-	}
-	++dist; // -45 degree
-	if (dist >= minDist) {
-	  break;
-	}
-	--p;
-      }
-    }
-    minDist = std::min(dist, minDist);
-
-    return minDist;
   }
 
   int
