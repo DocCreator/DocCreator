@@ -107,10 +107,20 @@ namespace dc {
     int calculateDistanceFromBord(const Pixel &pixel) const;
 
     /*
+      @return the distance from @a pixel to the nearest contour pixel: the
+      shortest of eight walks, each capped by m_local_zone.
+
+      One walk per pixel to measure. computeDistanceToEdgeMap() gives the
+      very same distance for the whole image at once, which is worth it
+      only when enough of the image is to be measured, cf
+      calculatePixelsDistanceTransform().
+    */
+    int calculateApproximatelyDistanceFromBord(const Pixel &pixel) const;
+
+    /*
       Fill @a distanceMap, of the size of the image and of type CV_8UC1,
       with the distance from each pixel to the nearest contour pixel, as
-      calculateApproximatelyDistanceFromBord() measures it: the shortest of
-      eight walks, each capped by m_local_zone.
+      calculateApproximatelyDistanceFromBord() measures it.
     */
     void computeDistanceToEdgeMap(cv::Mat &distanceMap) const;
 
@@ -575,7 +585,8 @@ namespace dc {
       one pass over a one channel image, against reallocating and moving a
       vector of some hundreds of thousands of Pixels.
     */
-    m_listPixels.reserve(cv::countNonZero(m_mat_reduce_pixels));
+    const int numPixelsToMeasure = cv::countNonZero(m_mat_reduce_pixels);
+    m_listPixels.reserve(numPixelsToMeasure);
 
     //B:TODO:OPTIM? better way to compute gradient image.
 
@@ -583,13 +594,28 @@ namespace dc {
     const int width = m_mat_reduce_pixels.cols;
 
     /*
-      B: this walked eight directions from each of the pixels to measure, up
-      to m_local_zone steps each. The same distance is now read from a map
-      computed once, in sweeps that visit each pixel of the image a fixed
-      number of times, cf computeDistanceToEdgeMap().
+      B: the distance of a pixel to the contour is either walked from that
+      pixel, eight directions of up to m_local_zone steps, or read from a
+      map computed for the whole image in sweeps.
+
+      Which one wins depends on how much of the image is to be measured,
+      and that varies enormously: 26% of the pixels of a page of text
+      against none at all of a blank background, which the generator also
+      degrades. The walks cost about 82 ns per pixel measured, the sweeps
+      about 16 ns per pixel of the image whatever is measured, so the
+      sweeps pay from about a fifth of the image on. Below that they are a
+      heavy loss: 8 ms against 165 ms on
+      data/background/manuscript-without-borders-01.png, where nothing is
+      measured at all.
     */
+    constexpr double MAP_IS_WORTH_IT = 0.25;
+    const bool useMap =
+      (numPixelsToMeasure > MAP_IS_WORTH_IT * width * height);
+
     cv::Mat distanceMap;
-    computeDistanceToEdgeMap(distanceMap);
+    if (useMap) {
+      computeDistanceToEdgeMap(distanceMap);
+    }
 
     //size_t nbPixs = 0;
 
@@ -609,7 +635,9 @@ namespace dc {
 	  pixel.isBackground = (b[x] != 0);
 
 	  // Compute approximately the transformation distance
-	  pixel.distanceToEdge = static_cast<float>(distanceMap.at<uchar>(y, x));
+	  pixel.distanceToEdge = static_cast<float>(
+	    useMap ? distanceMap.at<uchar>(y, x)
+		   : calculateApproximatelyDistanceFromBord(pixel));
 	  //pixel.distanceToEdge = calculateDistanceFromBord(pixel, m_is4connected);
 
 	  if (pixel.distanceToEdge > 0) {
@@ -2373,6 +2401,182 @@ namespace dc {
       (void)dr;
       (void)dl;
     }
+  }
+
+  int
+  GrayscaleCharsDegradationModel::calculateApproximatelyDistanceFromBord(
+									 const Pixel &pixel) const
+  {
+    const int x = pixel.pos.x;
+    const int y = pixel.pos.y;
+
+    assert(x >= 0 && x < m_width && y >= 0 && y < m_height);
+
+    if (m_mat_contour.at<uchar>(y, x) == WHITE) //is edge pixel
+      return 0;
+
+    int minDist = 0;
+
+    /*
+      B: the walks below move by one row at a time, so they move the pointer
+      by one step instead of recomputing (data + step * row) at each pixel,
+      as m_mat_contour.at<uchar>(row, col) does.
+    */
+    const ptrdiff_t stride = static_cast<ptrdiff_t>(m_mat_contour.step);
+
+    int dist = 0;
+    const int x0 = std::max(x - m_local_zone, 0);
+    {
+      const uchar *mc = m_mat_contour.ptr<uchar>(y);
+      for (int i = x; i >= x0; --i) {
+	assert(i >= 0);
+	if (mc[i] == WHITE) {
+	  break;
+	}
+	++dist; //0 degree
+      }
+    }
+    minDist = dist;
+
+    dist = 0;
+    const int x1 = std::min(x + m_local_zone, m_width);
+    {
+      assert(y < m_mat_contour.rows);
+      const uchar *mc = m_mat_contour.ptr<uchar>(y);
+      for (int i = x; i < x1; ++i) {
+	assert(i < m_width);
+	if (mc[i] == WHITE) {
+	  break;
+	}
+	++dist; //0 degree
+	if (dist >= minDist) {
+	  break;
+	}
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    dist = 0;
+    const int y0 = std::max(y - m_local_zone, 0);
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = y; i >= y0; --i, p -= stride) {
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // 90 degree
+	if (dist >= minDist) {
+	  break;
+	}
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    dist = 0;
+    const int y1 = std::min(y + m_local_zone, m_height);
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = y; i < y1; ++i, p += stride) {
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // 90 degree
+	if (dist >= minDist) {
+	  break;
+	}
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    dist = 0;
+    int j = y;
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i < x1; ++i) {
+	--j;
+	p -= stride; //one row up, same column on the first step
+	if (j < y0) {
+	  break;
+	}
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; //45 degree
+	if (dist >= minDist) {
+	  break;
+	}
+	++p; //and one column right for the next step
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    dist = 0;
+    j = y;
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i < x1; ++i) {
+	++j;
+	p += stride;
+	if (j >= y1) {
+	  break;
+	}
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // -45 degree
+	if (dist >= minDist) {
+	  break;
+	}
+	++p;
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    dist = 0;
+    j = y;
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i >= x0; --i) {
+	++j;
+	p += stride;
+	if (j >= y1) {
+	  break;
+	}
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // 45 degree
+	if (dist >= minDist) {
+	  break;
+	}
+	--p;
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    dist = 0;
+    j = y;
+    {
+      const uchar *p = m_mat_contour.ptr<uchar>(y) + x;
+      for (int i = x; i >= x0; --i) {
+	--j;
+	p -= stride;
+	if (j <= y0) { //B: the bound of this one is strict
+	  break;
+	}
+	if (*p == WHITE) {
+	  break;
+	}
+	++dist; // -45 degree
+	if (dist >= minDist) {
+	  break;
+	}
+	--p;
+      }
+    }
+    minDist = std::min(dist, minDist);
+
+    return minDist;
   }
 
   int
