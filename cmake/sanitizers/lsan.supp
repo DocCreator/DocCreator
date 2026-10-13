@@ -1,0 +1,19 @@
+# LeakSanitizer suppressions.
+#
+# One entry per line: leak:<pattern>, the pattern matching a function
+# name, a source file or a library of the allocating stack.
+
+# Qt allocates its plugin loaders, its font database and its locale data
+# once and keeps them for the lifetime of the process.
+leak:libQt6Core
+leak:libQt5Core
+leak:libQt6Gui
+leak:libQt5Gui
+leak:libfontconfig
+leak:libdbus-1
+
+# The OpenCV thread pool and its IPP/OpenCL buffers are allocated once.
+leak:libopencv_core
+
+# The python runtime keeps its interned objects and its modules.
+leak:libpython

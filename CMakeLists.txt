@@ -98,6 +98,60 @@ ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
 ENDIF()
 
 
+########################################################################
+## Sanitisers
+
+SET(SANITIZER "none" CACHE STRING
+  "Build with a sanitiser: none, address, undefined, address+undefined, thread, leak")
+SET_PROPERTY(CACHE SANITIZER PROPERTY STRINGS
+  none address undefined address+undefined thread leak)
+
+# The flags go on every target of the tree, compiling and linking, which is
+# what the sanitisers require. AddressSanitizer and ThreadSanitizer cannot
+# be combined, hence one value and not a list of options.
+IF(NOT SANITIZER STREQUAL "none")
+  IF(NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
+        OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"
+        OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang"))
+    MESSAGE(FATAL_ERROR "SANITIZER=${SANITIZER} needs gcc or clang, not ${CMAKE_CXX_COMPILER_ID}")
+  ENDIF()
+
+  IF(SANITIZER STREQUAL "address")
+    SET(SANITIZER_FLAGS -fsanitize=address)
+  ELSEIF(SANITIZER STREQUAL "undefined")
+    SET(SANITIZER_FLAGS -fsanitize=undefined)
+  ELSEIF(SANITIZER STREQUAL "address+undefined")
+    SET(SANITIZER_FLAGS -fsanitize=address,undefined)
+  ELSEIF(SANITIZER STREQUAL "thread")
+    SET(SANITIZER_FLAGS -fsanitize=thread)
+  ELSEIF(SANITIZER STREQUAL "leak")
+    SET(SANITIZER_FLAGS -fsanitize=leak)
+  ELSE()
+    MESSAGE(FATAL_ERROR "SANITIZER=${SANITIZER} is not one of: none address undefined address+undefined thread leak")
+  ENDIF()
+
+  # -fno-omit-frame-pointer and -g for readable stacks, -O1 so that the
+  # build stays usable; without -fno-optimize-sibling-calls the frames of
+  # the tail calls are missing from them.
+  LIST(APPEND SANITIZER_FLAGS
+    -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -O1)
+
+  ADD_COMPILE_OPTIONS(${SANITIZER_FLAGS})
+  ADD_LINK_OPTIONS(${SANITIZER_FLAGS})
+
+  MESSAGE(STATUS "Building with sanitiser: ${SANITIZER}")
+  MESSAGE(STATUS "  suppressions and recommended options: cmake/sanitizers/README.txt")
+ENDIF()
+
+# Turns the misuse of QList::at() and std::vector::operator[] into a clean
+# abort instead of an out-of-bounds read. Debug only: it costs a bounds
+# check on every access.
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
+    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  ADD_COMPILE_DEFINITIONS($<$<CONFIG:Debug>:_GLIBCXX_ASSERTIONS>)
+ENDIF()
+
+
 
 OPTION(BUILD_ONLY_DEGRADATIONS "Build only degradations library" OFF)
 if (NOT BUILD_ONLY_DEGRADATIONS)
@@ -136,6 +190,8 @@ endif (NOT BUILD_OTHER_PROGS_3D)
 OPTION(BUILD_PYTHON_WRAPPER "Build python wrapper" OFF)
 
 OPTION(BUILD_TESTING "Build tests" OFF)
+
+OPTION(BUILD_FUZZERS "Build the libFuzzer targets of fuzz/ (needs clang)" OFF)
 
 if (BUILD_TESTING)
   ENABLE_TESTING()
@@ -201,4 +257,8 @@ endif(BUILD_PYTHON_WRAPPER)
 if (BUILD_TESTING)
   add_subdirectory (${PROJECT_SOURCE_DIR}/tests)
 endif (BUILD_TESTING)
+
+if (BUILD_FUZZERS)
+  add_subdirectory (${PROJECT_SOURCE_DIR}/fuzz)
+endif (BUILD_FUZZERS)
 

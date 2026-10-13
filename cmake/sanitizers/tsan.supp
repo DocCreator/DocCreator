@@ -1,0 +1,46 @@
+# ThreadSanitizer suppressions.
+#
+# One entry per line: <type>:<pattern>, the pattern matching a function
+# name, a source file or a library of the stack. Cf
+# https://github.com/google/sanitizers/wiki/ThreadSanitizerSuppressions
+
+# OpenCV is not rebuilt with the sanitiser, so its thread pool hands the
+# work over through synchronisation ThreadSanitizer cannot see: every
+# parallel_for_ body is then reported as racing with the thread that
+# prepared its input. These are not races, and they hide the ones that
+# are.
+called_from_lib:libopencv_core
+called_from_lib:libopencv_imgproc
+called_from_lib:libopencv_photo
+race:^cv::parallel_for_
+race:^cv::ParallelLoopBody
+race:^cv::_InputArray::init
+race:^cv::Mat::ptr
+
+# The bodies cv::parallel_for_ runs are compiled here, so the two accesses
+# it reports are both in this tree: the main thread fills the body on its
+# stack, then hands it to a worker through the uninstrumented pool, and
+# the worker reading its own fields looks like a race on them. Each worker
+# gets a disjoint range of rows and the body is const for the whole run,
+# so what is left to suppress is the hand-off. One entry per body, so that
+# a body added later is reported until it is looked at.
+race:^dc::BleedThrough::BleedThroughDiffusionThreadA
+
+# Same for the thread pools below OpenCV. A called_from_lib pattern must
+# match exactly one loaded library, or ThreadSanitizer stops at startup:
+# hence libtbb.so and libtbbmalloc.so, and not libtbb.
+called_from_lib:libtbb.so
+called_from_lib:libtbbmalloc.so
+called_from_lib:libgomp.so
+race:^__kmp
+
+# OpenCV pulls in libgdal through imgcodecs; its own mutexes are taken in
+# two orders by its initialisation, which ThreadSanitizer reports as a
+# potential deadlock of code this tree does not call.
+called_from_lib:libgdal
+deadlock:CPLAcquireMutex
+
+# glibc unlocks a mutex from the thread-local destructor of another
+# thread while tearing a thread down, which ThreadSanitizer reports as an
+# unlock by the wrong thread.
+mutex:__nptl_deallocate_tsd
