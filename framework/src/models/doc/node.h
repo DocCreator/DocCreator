@@ -168,12 +168,21 @@ namespace Doc
         return nullptr;
     }
 
+    /*
+      The node takes ownership of @a element, so a refused insertion has
+      to free it: every caller of add() drops the pointer right after.
+      [B: the two refusals below returned without inserting and without
+      freeing.] The duplicate is the exception: it is already in
+      _elements, and the destructor will free it there.
+    */
     template< class T >
     void Node<T>::insertElement(int pos, T* element)
     {
-        if (pos < 0 || pos > _elements.count())
+        if (pos < 0 || pos > _elements.count()) {
+            delete element;
             return;
-	
+        }
+
 	//B: exit() here used to throw away the document being edited.
 	assert(! _elements.contains(element));
 	if (_elements.contains(element)) {

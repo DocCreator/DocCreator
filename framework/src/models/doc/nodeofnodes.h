@@ -115,9 +115,12 @@ namespace Doc
 
         QList<T*> list = next->splitAtPosition(next->offset());
         //B: splitAtPosition() gives nothing for an empty element, and
-        // list.at(0) then threw (or was undefined in release).
+        // list.at(0) then threw (or was undefined in release). The guard
+        // added then returned without inserting @a element, which the
+        // caller had handed over: it leaked.
         if (list.size() != 2) {
             this->_isSplitting = false;
+            delete element;
             return;
         }
 
@@ -221,8 +224,10 @@ namespace Doc
     void NodeOfNodes<T>::insertAtEnd(T* element)
     {
         T* next = this->nextElement();
-        if (next == nullptr)
+        if (next == nullptr) {
+            delete element; //cf Node::insertElement()
             return;
+        }
         next->setOffset(next->length());
         this->_index = this->_index + 1;
         next = this->nextElement();
