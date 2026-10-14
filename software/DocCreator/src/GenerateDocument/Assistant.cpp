@@ -6470,7 +6470,14 @@ Assistant::do_GDD(const GenerationParameters &p,
   const int numDraws = p.gddNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
-    const int numStains = P_bounded_rand(minNumStains, maxNumStains);
+    /*
+      +1 because P_bounded_rand() does not return its upper bound, and the
+      two spinboxes are a closed range: the three other pairs of this page
+      -- the bleed, the character degradation and the blur -- read it the
+      same way. It also keeps the bound strictly above the minimum when
+      the user sets both spinboxes to the same value.
+    */
+    const int numStains = P_bounded_rand(minNumStains, maxNumStains + 1);
 
     //TODO:OPTIM: for each image, we re-list the stain images directory
 
@@ -7754,9 +7761,15 @@ Assistant::readGenerationParameters() const
   p.gddNumDraws = ui->TirageGDD->value();
   p.gddStainImagesPath = ui->GDD_stainImagesPath->text();
   p.gddMinNumStains = ui->GDD_numStainsMin->value();
-  //B: kept as it was: the maximum is read from the minimum's widget
-  p.gddMaxNumStains =
-    std::max(ui->GDD_numStainsMin->value(), p.gddMinNumStains + 1);
+  /*
+    B: the maximum was read from the minimum's widget, as
+    std::max(min, min + 1), so it was always min + 1 and the draw below,
+    which is exclusive of its upper bound, always gave exactly the
+    minimum. The number of stains to insert never left the minimum, and
+    the maximum the user set was not used at all: with the defaults of
+    this page, 1 and 20, every image got one stain.
+  */
+  p.gddMaxNumStains = ui->GDD_numStainsMax->value();
   p.gddInsertType = static_cast<dc::GradientDomainDegradation::InsertType>(
     ui->GDD_insertTypeCB->currentData().toInt());
   p.gddDoRotations = ui->GDD_doRotations->isChecked();
