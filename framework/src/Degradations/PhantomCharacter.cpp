@@ -799,6 +799,7 @@ namespace dc {
     static bool
     degradeComposant(RandomEngine &rng,
 		     cv::Mat &output,
+		     cv::Mat &outputBin,
 		     const CC &degradedCC,
 		     const CCs &ccs,
 		     int posDegraded
@@ -816,8 +817,22 @@ namespace dc {
       const int height = maxY - minY + 1;
       bool applied = false;
 
-      cv::Mat outputBin = binarize(output);
+      /*
+	B: @a outputBin held binarize(output), the whole image converted to
+	gray and thresholded, computed again for every component this
+	function was called on. On a 4721x6564 page that is a 9 ms pass per
+	component, and about 930 of them for the default occurence
+	probability: 8 of the 8.2 seconds the degradation took.
+
+	It is kept by the caller now, and the rectangles written below are
+	binarised again at the end -- only those: nothing else of @a output
+	changes here. The update is left to the end rather than done after
+	each write so that the two sides of a component still both see the
+	state this function was entered with, as they did.
+      */
       assert(outputBin.type() == CV_8UC1);
+      assert(outputBin.size() == output.size());
+      std::vector<cv::Rect> written;
 
       const int maxXLeft = getXNearestNeighbor(outputBin, minX, minY, height, true);
       const int minXRight =
@@ -1074,8 +1089,16 @@ namespace dc {
 
 	    cv::Mat boundingBoxBlur = dc::BlurFilter::blur(boundingBox, dc::BlurFilter::Method::GAUSSIAN, 3);
 	    copyTo(boundingBoxBlur, output, xPattern, yPattern);
+
+	    //transferPattern() and the blur both wrote inside this rectangle
+	    written.emplace_back(xPattern, yPattern, widthPattern, heightPattern);
 	  }
 	}
+      }
+
+      for (const cv::Rect &r : written) {
+	const cv::Mat regionBin = binarize(output(r));
+	regionBin.copyTo(outputBin(r));
       }
 
       return applied;
@@ -1140,6 +1163,10 @@ namespace dc {
       // time made two runs started in the same second identical.
       RandomEngine rng = makeRandomEngine(seed);
 
+      //kept across the components, and updated by degradeComposant() for
+      //the rectangles it writes
+      cv::Mat outputBin = binarize(output);
+
 #ifdef SAVE_DEGRADATIONS_IMAGE
       cv::Mat degrads(img.rows,
 		      img.cols,
@@ -1155,6 +1182,7 @@ namespace dc {
 	  // which was chosen by the user)
 	  degradeComposant(rng,
 			   output,
+			   outputBin,
 			   ccs[i],
 			   ccs,
 			   i
