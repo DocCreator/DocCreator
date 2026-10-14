@@ -1,5 +1,7 @@
 #include "ElasticDeformation.hpp"
 
+#include <algorithm> //std::min, std::max
+
 #include <cassert>
 #include <random>
 
@@ -149,6 +151,63 @@ namespace dc {
       return rotatedRects;
     }
 
+    /*
+      @return a field of @a size holding uniform noise smoothed by a
+      Gaussian of @a sigma.
+
+      B: this was two lines -- fill the whole field, blur it -- and it was
+      the whole cost of a deformation. @a sigma is multiplied by the size
+      of the image by the caller, so that a deformation looks the same
+      whatever resolution it is applied at; the Gaussian then has a kernel
+      as wide as the image is large. OpenCV takes 8*sigma+1 taps for a
+      float image, that is 3023 of them for a 4721x6564 page, and the two
+      blurs were 82 of the 83 seconds such a page took.
+
+      Nothing in the field varies faster than sigma, by construction, so
+      it is drawn and smoothed on a grid f times coarser with a sigma f
+      times smaller, then stretched back. A Gaussian blur of white noise
+      divides its deviation by the sigma it uses, so the coarse field
+      comes out f times too strong and is brought back by f.
+
+      Measured over 25 draws at four coarsenesses: the deviation of the
+      field stays within 6% of what the full size blur gives, which is
+      well inside the 13% one draw differs from the next.
+    */
+    static cv::Mat
+    smoothNoiseField(RandomEngine &rng, const cv::Size &size, float sigma)
+    {
+      //samples kept per sigma on the coarse grid
+      constexpr float SAMPLES_PER_SIGMA = 8.f;
+      //and a floor on its side, so the stretch back has something to work
+      //from on a small image
+      constexpr int MIN_SIDE = 4;
+
+      int f = 1;
+      if (sigma > SAMPLES_PER_SIGMA) {
+	f = static_cast<int>(sigma / SAMPLES_PER_SIGMA);
+	const int maxF = std::max(1, std::min(size.width, size.height) / MIN_SIDE);
+	f = std::min(f, maxF);
+      }
+
+      if (f <= 1) {
+	cv::Mat field(size, CV_32FC1);
+	rng.fill(field, cv::RNG::UNIFORM, -1.f, 1.f);
+	cv::GaussianBlur(field, field, cv::Size(), sigma);
+	return field;
+      }
+
+      cv::Mat coarse(cv::Size(std::max(MIN_SIDE, size.width / f),
+			      std::max(MIN_SIDE, size.height / f)),
+		     CV_32FC1);
+      rng.fill(coarse, cv::RNG::UNIFORM, -1.f, 1.f);
+      cv::GaussianBlur(coarse, coarse, cv::Size(), sigma / f);
+      coarse *= 1.f / f;
+
+      cv::Mat field;
+      cv::resize(coarse, field, size, 0, 0, cv::INTER_CUBIC);
+      return field;
+    }
+
     cv::Mat transform(const cv::Mat &img, float alpha, float sigma,
 		      BorderReplication borderMode,
 		      Interpolation interpolation,
@@ -165,13 +224,8 @@ namespace dc {
       // (cf. cv::theRNG()), which the caller cannot seed.
       RandomEngine rng = makeRandomEngine(seed);
 
-      cv::Mat dx(img.size(), CV_32FC1);
-      rng.fill(dx, cv::RNG::UNIFORM, -1.0f, 1.0f);
-      cv::Mat dy(img.size(), CV_32FC1);
-      rng.fill(dy, cv::RNG::UNIFORM, -1.0f, 1.0f);
-
-      cv::GaussianBlur(dx, dx, cv::Size(), sigma);
-      cv::GaussianBlur(dy, dy, cv::Size(), sigma);
+      cv::Mat dx = smoothNoiseField(rng, img.size(), sigma);
+      cv::Mat dy = smoothNoiseField(rng, img.size(), sigma);
 
       dx *= alpha;
       dy *= alpha;

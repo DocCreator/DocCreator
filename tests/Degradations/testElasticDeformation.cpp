@@ -1,3 +1,4 @@
+#include <cmath> //std::abs
 #include <iostream>
 
 #include <catch2/catch_test_macros.hpp>
@@ -177,6 +178,63 @@ testSimple3(int imageType)
 }
 
 
+/*
+  The displacement field is smoothed by a Gaussian whose sigma is the one
+  given multiplied by the smaller side of the image, so that a deformation
+  looks the same whatever the resolution. Above a few pixels of sigma the
+  field is drawn and smoothed on a coarser grid and stretched back, which
+  is the only way a page of several thousand pixels is affordable: the
+  kernel would otherwise be as wide as the image is large.
+
+  The images of the cases above are 100x100, where sigma stays small
+  enough for the field to be built at full size; this one is big enough
+  for the other branch, so that both are covered.
+*/
+static
+void
+testLargeImage(int imageType)
+{
+  const int ROWS = 700;
+  const int COLS = 601;
+
+  cv::Mat img(ROWS, COLS, imageType);
+  cv::randn(img, 128, 30);
+  const cv::Mat imgClone = img.clone();
+
+  const float alpha = 20.f;
+  const float sigma = .08f; //x 601 = 48 pixels: the coarse grid is used
+
+  const cv::Mat a = dc::ElasticDeformation::transform(
+    img, alpha, sigma,
+    dc::ElasticDeformation::BorderReplication::BLACK,
+    dc::ElasticDeformation::Interpolation::BILINEAR, 42);
+  const cv::Mat b = dc::ElasticDeformation::transform(
+    img, alpha, sigma,
+    dc::ElasticDeformation::BorderReplication::BLACK,
+    dc::ElasticDeformation::Interpolation::BILINEAR, 42);
+  const cv::Mat c = dc::ElasticDeformation::transform(
+    img, alpha, sigma,
+    dc::ElasticDeformation::BorderReplication::BLACK,
+    dc::ElasticDeformation::Interpolation::BILINEAR, 43);
+
+  REQUIRE( a.type() == imageType );
+  REQUIRE( a.size() == img.size() );
+  REQUIRE( checkEqual(img, imgClone) ); //input not modified
+  REQUIRE( checkEqual(a, b) );          //same seed => same image
+  REQUIRE_FALSE( checkEqual(a, c) );    //another seed => another image
+  REQUIRE_FALSE( checkEqual(a, img) );  //and something was deformed
+
+  /*
+    The deformation moves the pixels, it does not change what they are:
+    the mean of the image is kept, apart from the border the deformation
+    pulls in. A field built with the wrong amplitude shows up here.
+  */
+  const cv::Scalar meanIn = cv::mean(img);
+  const cv::Scalar meanOut = cv::mean(a);
+  REQUIRE( std::abs(meanOut[0] - meanIn[0]) < 0.1 * meanIn[0] );
+}
+
+
 TEST_CASE( "Testing ElasticDeformation" )
 { 
 
@@ -206,6 +264,13 @@ TEST_CASE( "Testing ElasticDeformation" )
     testSimple3(CV_8UC1);
     testSimple3(CV_8UC3);
     testSimple3(CV_8UC4);
+  }
+
+  SECTION("Testing ElasticDeformation::transform on an image large enough for the coarse field")
+  {
+    testLargeImage(CV_8UC1);
+    testLargeImage(CV_8UC3);
+    testLargeImage(CV_8UC4);
   }
 
 }
