@@ -1,13 +1,21 @@
 #ifndef ASSISTANT_H
 #define ASSISTANT_H
 
+#include <atomic>
+
+#include <QColor>
 #include <QStringList>
 #include <QStringListModel>
 #include <QWizard>
 #include <QWizardPage>
 
 #include "context.h"
+#include "Degradations/BlurFilter.hpp"               //Method, Area, Function
+#include "Degradations/ElasticDeformation.hpp"       //BorderReplication, Interpolation
+#include "Degradations/GradientDomainDegradation.hpp" //InsertType
+#include "Degradations/NoiseDegradation.hpp"         //AddNoiseType
 #include "Degradations/PhantomCharacter.hpp" //Frequency
+#include "Degradations/RotationDegradation.hpp"      //BorderReplication
 #include "Degradations/ShadowBinding.hpp"    //ShadowBorder
 
 class DocumentController;
@@ -19,6 +27,140 @@ class Assistant;
 class QProgressDialog;
 
 struct HoleData;
+
+/*
+  Everything the batch generation needs, read from the widgets before it
+  starts.
+
+  The do_*() methods used to read ui-> and the members as they went, which
+  is why the generation had to run on the thread that owns the widgets.
+  They read this instead, so that the loop can be given to a worker: a
+  widget may only be touched by its own thread.
+
+  Every one of those reads was loop invariant, so moving them out of the
+  loops changes nothing else.
+*/
+struct GenerationParameters
+{
+  QString outputDir;
+  QString inputImageDir;
+  QStringList picsList;
+
+  bool bleedEnable = false;
+  int bleedMin = 0;
+  int bleedMax = 0;
+  int bleedNumDraws = 0;
+
+  bool charEnable = false;
+  int charMin = 0;
+  int charMax = 0;
+  int charNumDraws = 0;
+
+  bool shadowEnable = false;
+  int shadowNumDraws = 0;
+  float shadowDistanceRatio = 0.f;
+  float shadowIntensity = 0.f;
+  float shadowAngle = 0.f;
+  int shadowNumBorders = 0; //in [0; 4]
+  dc::ShadowBinding::Border shadowBorders[4] = {};
+
+  bool phantomEnable = false;
+  int phantomNumDraws = 0;
+  float phantomOccurenceProbability = 0.f;
+  QString phantomPatternsPath;
+
+  bool blurEnable = false;
+  int blurMin = 0;
+  int blurMax = 0;
+  int blurNumDraws = 0;
+  bool blurZoneEnable = false;
+  bool blurPageEnable = false;
+  bool blurPatterns[6] = {}; //one per Function of the zone blur
+
+  bool holeEnable = false;
+  int holeNumDraws = 0;
+  QColor holeColor;
+
+  bool dist3DEnable = false;
+  int dist3DNumDraws = 0;
+  bool dist3DUseBackground = false;
+  QStringList dist3DMeshes;
+  QStringList dist3DBackgrounds;
+
+  bool gddEnable = false;
+  int gddNumDraws = 0;
+  int gddMinNumStains = 0;
+  int gddMaxNumStains = 0;
+  QString gddStainImagesPath;
+  dc::GradientDomainDegradation::InsertType gddInsertType =
+    dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY;
+  bool gddDoRotations = true;
+
+  bool noiseEnable = false;
+  int noiseNumDraws = 0;
+  bool noiseGaussianEnable = false;
+  float noiseGaussianAverageMin = 0.f;
+  float noiseGaussianAverageMax = 0.f;
+  float noiseGaussianStdDevMin = 0.f;
+  float noiseGaussianStdDevMax = 0.f;
+  dc::NoiseDegradation::AddNoiseType noiseGaussianAddType =
+    dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS;
+  bool noiseSpeckleEnable = false;
+  float noiseSpeckleAverageMin = 0.f;
+  float noiseSpeckleAverageMax = 0.f;
+  float noiseSpeckleStdDevMin = 0.f;
+  float noiseSpeckleStdDevMax = 0.f;
+  dc::NoiseDegradation::AddNoiseType noiseSpeckleAddType =
+    dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS;
+  bool noiseSaltAndPepperEnable = false;
+  float noiseSaltAndPepperAmountMin = 0.f;
+  float noiseSaltAndPepperAmountMax = 0.f;
+  float noiseSaltAndPepperRatioMin = 0.f;
+  float noiseSaltAndPepperRatioMax = 0.f;
+
+  bool rotationEnable = false;
+  int rotationNumDraws = 0;
+  float rotationAngleMin = 0.f;
+  float rotationAngleMax = 0.f;
+  bool rotationFillColor = false;
+  bool rotationSpecificColor = false;
+  QColor rotationColor;
+  bool rotationFillImage = false;
+  int rotationImageRepeatsMin = 0;
+  int rotationImageRepeatsMax = 0;
+  bool rotationFillBorder = false;
+  bool rotationBorderReplicate = false;
+  bool rotationBorderReflect = false;
+  bool rotationBorderWrap = false;
+  bool rotationBorderReflect101 = false;
+  bool rotationFillInpaint = false;
+  bool rotationInpaint1 = false;
+  bool rotationInpaint2 = false;
+  bool rotationInpaint3 = false;
+
+  bool elasticEnable = false;
+  int elasticNumDraws = 0;
+  bool elastic1Enable = false;
+  float elastic1AlphaMin = 0.f;
+  float elastic1AlphaMax = 0.f;
+  float elastic1SigmaMin = 0.f;
+  float elastic1SigmaMax = 0.f;
+  dc::ElasticDeformation::BorderReplication elastic1BorderMode =
+    dc::ElasticDeformation::BorderReplication::BLACK;
+  dc::ElasticDeformation::Interpolation elastic1Interpolation =
+    dc::ElasticDeformation::Interpolation::BILINEAR;
+  bool elastic2Enable = false;
+  float elastic2AlphaMin = 0.f;
+  float elastic2AlphaMax = 0.f;
+  float elastic2SigmaMin = 0.f;
+  float elastic2SigmaMax = 0.f;
+  float elastic2AlphaAffineMin = 0.f;
+  float elastic2AlphaAffineMax = 0.f;
+  dc::ElasticDeformation::BorderReplication elastic2BorderMode =
+    dc::ElasticDeformation::BorderReplication::BLACK;
+  dc::ElasticDeformation::Interpolation elastic2Interpolation =
+    dc::ElasticDeformation::Interpolation::BILINEAR;
+};
 
 class Assistant : public QWizard
 {
@@ -371,57 +513,78 @@ protected:
   void Dist3D_updateTirageAndTotal();
 
   int nbOfDegradedImages() const;
-  void generateDegradedImages() const;
+
+  /*
+    Read every parameter of the generation from the widgets. Must be
+    called on the thread that owns them, that is before the worker starts.
+  */
+  GenerationParameters readGenerationParameters() const;
+
+  void generateDegradedImages();
+
+  /*
+    The body of the generation, run on a worker thread: it touches no
+    widget, only @a p, the images and the disk.
+
+    The 3D distortion is not in it. It drives a QOpenGLWidget, which
+    cannot leave the thread that owns it, so generateDegradedImages()
+    runs that one itself once this has finished.
+  */
+  void generateDegradedImagesWorker(const GenerationParameters &p);
+
+  void generateDistortion3DImages(const GenerationParameters &p);
+
   void updateResults();
 
-  void do_bleed(const QString &imageBasename,
+  void do_bleed(const GenerationParameters &p,
+                const QString &imageBasename,
                 const QImage &recto,
-                int picIndex,
-                const QString &inputImageDir,
-                const QString &outputImageDir) const;
+                int picIndex);
 
-  void do_charDeg(const QString &imageBasename,
-                  const QImage &recto,
-                  const QString &outputImageDir) const;
+  void do_charDeg(const GenerationParameters &p,
+                 const QString &imageBasename,
+                 const QImage &recto);
 
-  void do_shadow(const QString &imageBasename,
-                 const QImage &recto,
-                 const QString &outputImageDir) const;
+  void do_shadow(const GenerationParameters &p,
+                const QString &imageBasename,
+                const QImage &recto);
 
-  void do_phantom(const QString &imageBasename,
-                  const QImage &recto,
-                  const QString &outputImageDir) const;
+  void do_phantom(const GenerationParameters &p,
+                 const QString &imageBasename,
+                 const QImage &recto);
 
-  void do_blur(const QString &imageBasename,
-               const QImage &recto,
-               const QString &outputImageDir) const;
+  void do_blur(const GenerationParameters &p,
+              const QString &imageBasename,
+              const QImage &recto);
 
-  void do_hole(const QString &imageBasename,
-               const QImage &recto,
-               const QString &outputImageDir) const;
+  void do_hole(const GenerationParameters &p,
+              const QString &imageBasename,
+              const QImage &recto);
 
-  void do_GDD(const QString &imageBasename,
-             const QImage &recto,
-             const QString &outputImageDir) const;
+  void do_GDD(const GenerationParameters &p,
+             const QString &imageBasename,
+             const QImage &recto);
 
-  void do_Noise(const QString &imageBasename,
-		const QImage &recto,
-		const QString &outputImageDir) const;
+  void do_Noise(const GenerationParameters &p,
+               const QString &imageBasename,
+               const QImage &recto);
 
-  void do_Rotation(const QString &imageBasename,
-		   const QImage &recto,
-		   const QString &inputImageDir,
-		   const QString &outputImageDir) const;
+  void do_Rotation(const GenerationParameters &p,
+                   const QString &imageBasename,
+                   const QImage &recto);
 
-  void do_ElasticDeformation(const QString &imageBasename,
-			     const QImage &recto,
-			     const QString &outputImageDir) const;
+  void do_ElasticDeformation(const GenerationParameters &p,
+                            const QString &imageBasename,
+                            const QImage &recto);
 
-  void do_3D(const QString &imageBasename,
-             const QImage &recto,
-             const QString &outputImageDir) const;
+  void do_3D(const GenerationParameters &p,
+            const QString &imageBasename,
+            const QImage &recto);
 
-  void updateProgress() const;
+  void updateProgress();
+
+  //refresh the progress dialog from the count the worker keeps
+  void refreshProgress();
 
   /*
     Write @a img (resp. @a xml) to @a absoluteFilename.
@@ -431,8 +594,8 @@ protected:
     other images goes on and the result line says how many files are
     missing.
   */
-  bool writeImage(const QImage &img, const QString &absoluteFilename) const;
-  bool writeXml(const QString &xml, const QString &absoluteFilename) const;
+  bool writeImage(const QImage &img, const QString &absoluteFilename);
+  bool writeXml(const QString &xml, const QString &absoluteFilename);
 
   /*
     Count in _nbWriteErrors a write whose failure has already been
@@ -440,7 +603,7 @@ protected:
 
     @return @a writeOk.
   */
-  bool noteWrite(bool writeOk) const;
+  bool noteWrite(bool writeOk);
 
 private:
   Ui::Assistant *ui;
@@ -605,10 +768,21 @@ private:
   DocumentController *_DocController;
   QVector<QVector<QRect> > _blocks;
 
-  mutable QProgressDialog *_progressDialog;
-  mutable size_t _numGeneratedImages;
+  QProgressDialog *_progressDialog;
+  /*
+    Both are written by the worker and read by the GUI thread -- the first
+    by the timer that refreshes the dialog, the second by updateResults()
+    -- so neither is a plain size_t.
+  */
+  std::atomic<size_t> _numGeneratedImages;
   //number of files that could not be written
-  mutable size_t _nbWriteErrors;
+  std::atomic<size_t> _nbWriteErrors;
+  /*
+    Set from the GUI thread when the progress dialog is cancelled, read by
+    the worker between images. It replaces QProgressDialog::wasCanceled(),
+    which the worker must not call: it is a widget.
+  */
+  std::atomic<bool> _cancelled{false};
 };
 
 #endif // ASSISTANT_H

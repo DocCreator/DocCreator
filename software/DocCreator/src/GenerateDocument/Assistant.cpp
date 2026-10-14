@@ -13,7 +13,11 @@
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QMessageBox>
+#include <QEventLoop>
+#include <QFutureWatcher>
 #include <QProgressDialog>
+#include <QTimer>
+#include <QtConcurrent>
 #include <QTextStream>
 
 #include "Degradations/BleedThroughQ.hpp"
@@ -6358,16 +6362,18 @@ Hole_saveImage(const QImage &img,
 
 
 void
-Assistant::do_bleed(const QString &imageBasename,
+Assistant::do_bleed(const GenerationParameters &p,
+                    const QString &imageBasename,
                     const QImage &recto,
-                    int picIndex,
-                    const QString &inputImageDir,
-                    const QString &outputImageDir) const
+                    int picIndex)
 {
-  assert(picIndex < this->picsList().size());
+  const QString &inputImageDir = p.inputImageDir;
+  const QString &outputImageDir = p.outputDir;
+
+  assert(picIndex < p.picsList.size());
 
   //We choose a random verso (different from recto if possible)
-  const QStringList &picsList = this->picsList();
+  const QStringList &picsList = p.picsList;
   const int numPics = picsList.size();
   int randomNb = P_bounded_rand(0, numPics);
   if (numPics > 1)
@@ -6378,10 +6384,10 @@ Assistant::do_bleed(const QString &imageBasename,
   QImage verso(versoPath);
   verso = verso.mirrored(true, false).scaled(recto.width(), recto.height());
 
-  const int bleedMin = this->bleedMin();
-  const int bleedMax = this->bleedMax();
+  const int bleedMin = p.bleedMin;
+  const int bleedMax = p.bleedMax;
 
-  const int numDraws = this->nbTirageBleed();
+  const int numDraws = p.bleedNumDraws;
   for (int i = 0; i < numDraws; ++i) {
     const int nbOcc = P_bounded_rand(bleedMin, bleedMax + 1);
 
@@ -6410,14 +6416,16 @@ Assistant::do_bleed(const QString &imageBasename,
 }
 
 void
-Assistant::do_charDeg(const QString &imageBasename,
-                      const QImage &recto,
-                      const QString &outputImageDir) const
+Assistant::do_charDeg(const GenerationParameters &p,
+                      const QString &imageBasename,
+                      const QImage &recto)
 {
-  const int charMin = this->charMin();
-  const int charMax = this->charMax();
+  const QString &outputImageDir = p.outputDir;
 
-  const int numDraws = this->nbTirageChar();
+  const int charMin = p.charMin;
+  const int charMax = p.charMax;
+
+  const int numDraws = p.charNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
     const int level = P_bounded_rand(charMin, charMax + 1);
@@ -6447,20 +6455,19 @@ Assistant::do_charDeg(const QString &imageBasename,
 }
 
 void
-Assistant::do_GDD(const QString &imageBasename,
-                  const QImage &recto,
-                  const QString &outputImageDir) const
+Assistant::do_GDD(const GenerationParameters &p,
+                  const QString &imageBasename,
+                  const QImage &recto)
 {
-  const QString stainImagesPath = ui->GDD_stainImagesPath->text();
-  const int minNumStains = ui->GDD_numStainsMin->value();
-  const int maxNumStains =
-    std::max(ui->GDD_numStainsMin->value(), minNumStains + 1);
-  const dc::GradientDomainDegradation::InsertType insertType =
-    static_cast<dc::GradientDomainDegradation::InsertType>(
-      ui->GDD_insertTypeCB->currentData().toInt());
-  const bool doRotations = ui->GDD_doRotations->isChecked();
+  const QString &outputImageDir = p.outputDir;
 
-  const int numDraws = ui->TirageGDD->value();
+  const QString &stainImagesPath = p.gddStainImagesPath;
+  const int minNumStains = p.gddMinNumStains;
+  const int maxNumStains = p.gddMaxNumStains;
+  const dc::GradientDomainDegradation::InsertType insertType = p.gddInsertType;
+  const bool doRotations = p.gddDoRotations;
+
+  const int numDraws = p.gddNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
     const int numStains = P_bounded_rand(minNumStains, maxNumStains);
@@ -6652,28 +6659,29 @@ Rotation_saveFillInpaint(const QImage &recto, float angle,
 }
 
 void
-Assistant::do_Rotation(const QString &imageBasename,
-		       const QImage &recto,
-		       const QString &inputImageDir,
-		       const QString &outputImageDir) const
+Assistant::do_Rotation(const GenerationParameters &p,
+		       const QString &imageBasename,
+		       const QImage &recto)
 {
-  const int numDraws = ui->TirageRotation->value();
-  const float angleMin = ui->RotationAngleMinSB->value();
-  const float angleMax = ui->RotationAngleMaxSB->value();
+  const QString &inputImageDir = p.inputImageDir;
+  const QString &outputImageDir = p.outputDir;
+
+  const int numDraws = p.rotationNumDraws;
+  const float angleMin = p.rotationAngleMin;
+  const float angleMax = p.rotationAngleMax;
   assert(angleMin<=angleMax);
   
   for (int i = 0; i < numDraws; ++i) {
 
     const float angle = random_in_range(angleMin, angleMax);
 
-    if (ui->RotationFillColorCB->isChecked()) {
+    if (p.rotationFillColor) {
       QImage imgRot;
       QColor color;
-      if (ui->RotationSpecificColorRB->isChecked()) {
-	color = ui->RotationColorSelectionPB->getColor();
+      if (p.rotationSpecificColor) {
+	color = p.rotationColor;
       }
       else {
-	assert(ui->RotationRandomColorRB->isChecked());
 	color = random_color();
       }
       imgRot = dc::RotationDegradation::rotateFillColor(recto, angle, color);
@@ -6687,11 +6695,11 @@ Assistant::do_Rotation(const QString &imageBasename,
       updateProgress();
     }
 
-    if (ui->RotationFillImageCB->isChecked()) {
-      const QString backgroundImgPath = getRandomImagePath(inputImageDir, this->picsList());
+    if (p.rotationFillImage) {
+      const QString backgroundImgPath = getRandomImagePath(inputImageDir, p.picsList);
       const QImage background(backgroundImgPath);
-      const int repeats = random_in_range(ui->RotationImageRepeatsMinSB->value(),
-					  ui->RotationImageRepeatsMaxSB->value());
+      const int repeats = random_in_range(p.rotationImageRepeatsMin,
+					  p.rotationImageRepeatsMax);
       QImage imgRot = dc::RotationDegradation::rotateFillImage(recto, angle, background, repeats);
 
       const QString prefixFilename = imageBasename + "Rot_bckgrd_" + QString::number(i);
@@ -6703,26 +6711,26 @@ Assistant::do_Rotation(const QString &imageBasename,
       updateProgress();
     }
 
-    if (ui->RotationFillBorderCB->isChecked()) {
-      if (ui->RotationBorderReplicateCB->isChecked()) {
+    if (p.rotationFillBorder) {
+      if (p.rotationBorderReplicate) {
 	noteWrite(
 	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REPLICATE,
 	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
-      if (ui->RotationBorderReflectCB->isChecked()) {
+      if (p.rotationBorderReflect) {
 	noteWrite(
 	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT,
 	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
-      if (ui->RotationBorderWrapCB->isChecked()) {
+      if (p.rotationBorderWrap) {
 	noteWrite(
 	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::WRAP,
 	                          imageBasename, i, outputImageDir));
 	updateProgress();
       }
-      if (ui->RotationBorderReflect101CB->isChecked()) {
+      if (p.rotationBorderReflect101) {
 	noteWrite(
 	  Rotation_saveFillBorder(recto, angle, dc::RotationDegradation::BorderReplication::REFLECT101,
 	                          imageBasename, i, outputImageDir));
@@ -6730,21 +6738,21 @@ Assistant::do_Rotation(const QString &imageBasename,
       }
     }
 
-    if (ui->RotationFillInpaintCB->isChecked()) {
-      if (ui->RotationInpaint1CB->isChecked()) {
+    if (p.rotationFillInpaint) {
+      if (p.rotationInpaint1) {
 	noteWrite(
 	  Rotation_saveFillInpaint(recto, angle, 1,
 	                           imageBasename, i, outputImageDir));
 	updateProgress();
       }
-      if (ui->RotationInpaint2CB->isChecked()) {
+      if (p.rotationInpaint2) {
 	noteWrite(
 	  Rotation_saveFillInpaint(recto, angle, 2,
 	                           imageBasename, i, outputImageDir));
 
 	updateProgress();
       }
-       if (ui->RotationInpaint3CB->isChecked()) {
+       if (p.rotationInpaint3) {
 	noteWrite(
 	  Rotation_saveFillInpaint(recto, angle, 3,
 	                           imageBasename, i, outputImageDir));
@@ -6849,25 +6857,26 @@ Noise_saveSaltAndPepperNoiseXml(const QString &outputXmlFilename,
 }
 
 void
-Assistant::do_Noise(const QString &imageBasename,
-		    const QImage &recto,
-		    const QString &outputImageDir) const
+Assistant::do_Noise(const GenerationParameters &p,
+		    const QString &imageBasename,
+		    const QImage &recto)
 {
-  const int numDraws = ui->TirageNoise->value();
+  const QString &outputImageDir = p.outputDir;
+
+  const int numDraws = p.noiseNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
-    if (ui->GaussianNoiseCB->isChecked()) {
+    if (p.noiseGaussianEnable) {
 
-      const float averageMin = ui->MinAverageGaussianNoiseSB->value();
-      const float averageMax = ui->MaxAverageGaussianNoiseSB->value();
+      const float averageMin = p.noiseGaussianAverageMin;
+      const float averageMax = p.noiseGaussianAverageMax;
       const float average = random_in_range(averageMin, averageMax);
 
-      const float stdDevMin = ui->MinStdDevGaussianNoiseSB->value();
-      const float stdDevMax = ui->MaxStdDevGaussianNoiseSB->value();
+      const float stdDevMin = p.noiseGaussianStdDevMin;
+      const float stdDevMax = p.noiseGaussianStdDevMax;
       const float stdDev = random_in_range(stdDevMin, stdDevMax);
 
-      dc::NoiseDegradation::AddNoiseType addType =
-	static_cast<dc::NoiseDegradation::AddNoiseType>(ui->GaussianNoiseAddTypeCB->currentData().toInt());
+      const dc::NoiseDegradation::AddNoiseType addType = p.noiseGaussianAddType;
 
       QImage imgN;
       imgN = dc::NoiseDegradation::addGaussianNoise(recto, average, stdDev, addType);
@@ -6880,18 +6889,17 @@ Assistant::do_Noise(const QString &imageBasename,
       updateProgress();
     }
 
-    if (ui->SpeckleNoiseCB->isChecked()) {
+    if (p.noiseSpeckleEnable) {
 
-      const float averageMin = ui->MinAverageSpeckleNoiseSB->value();
-      const float averageMax = ui->MaxAverageSpeckleNoiseSB->value();
+      const float averageMin = p.noiseSpeckleAverageMin;
+      const float averageMax = p.noiseSpeckleAverageMax;
       const float average = random_in_range(averageMin, averageMax);
 
-      const float stdDevMin = ui->MinStdDevSpeckleNoiseSB->value();
-      const float stdDevMax = ui->MaxStdDevSpeckleNoiseSB->value();
+      const float stdDevMin = p.noiseSpeckleStdDevMin;
+      const float stdDevMax = p.noiseSpeckleStdDevMax;
       const float stdDev = random_in_range(stdDevMin, stdDevMax);
 
-      dc::NoiseDegradation::AddNoiseType addType =
-	static_cast<dc::NoiseDegradation::AddNoiseType>(ui->SpeckleNoiseAddTypeCB->currentData().toInt());
+      const dc::NoiseDegradation::AddNoiseType addType = p.noiseSpeckleAddType;
 
       QImage imgN;
       imgN = dc::NoiseDegradation::addSpeckleNoise(recto, average, stdDev, addType);
@@ -6904,14 +6912,14 @@ Assistant::do_Noise(const QString &imageBasename,
       updateProgress();
     }
 
-    if (ui->SaltAndPepperNoiseCB->isChecked()) {
+    if (p.noiseSaltAndPepperEnable) {
 
-      const float amountMin = ui->MinAmountSaltAndPepperNoiseSB->value();
-      const float amountMax = ui->MaxAmountSaltAndPepperNoiseSB->value();
+      const float amountMin = p.noiseSaltAndPepperAmountMin;
+      const float amountMax = p.noiseSaltAndPepperAmountMax;
       const float amount = random_in_range(amountMin, amountMax);
 
-      const float ratioMin = ui->MinRatioSaltAndPepperNoiseSB->value();
-      const float ratioMax = ui->MaxRatioSaltAndPepperNoiseSB->value();
+      const float ratioMin = p.noiseSaltAndPepperRatioMin;
+      const float ratioMax = p.noiseSaltAndPepperRatioMax;
       const float ratio = random_in_range(ratioMin, ratioMax);
 
       QImage imgN;
@@ -6932,28 +6940,27 @@ Assistant::do_Noise(const QString &imageBasename,
 
 
 void
-Assistant::do_shadow(const QString &imageBasename,
-                     const QImage &recto,
-                     const QString &outputImageDir) const
+Assistant::do_shadow(const GenerationParameters &p,
+                     const QString &imageBasename,
+                     const QImage &recto)
 {
+  const QString &outputImageDir = p.outputDir;
 
-  const int numDraws = ui->TirageShadow->value();
+  const int numDraws = p.shadowNumDraws;
   for (int i = 0; i < numDraws; ++i) {
     QImage picTmpShad;
 
     //some code duplication with Shadow_setPreview()
-    const float distanceRatio =
-      ui->shad_width->value() / (float)ui->shad_width->maximum();
-    const float intensity =
-      1.f - ui->shad_intensity->value() / (float)ui->shad_intensity->maximum();
-    const float angle = ui->shad_angle->value();
+    const float distanceRatio = p.shadowDistanceRatio;
+    const float intensity = p.shadowIntensity;
+    const float angle = p.shadowAngle;
     
     const QString &path = outputImageDir;
     const QString prefix = imageBasename + "Shadow_";
     const QString imgExt = QStringLiteral(".png");
     
-    for (int j = 0; j < _Shadow_nbShadSelected; ++j) {
-      const dc::ShadowBinding::Border border = _Shadow_borderStack[j];
+    for (int j = 0; j < p.shadowNumBorders; ++j) {
+      const dc::ShadowBinding::Border border = p.shadowBorders[j];
       picTmpShad = dc::ShadowBinding::shadowBinding2(recto, distanceRatio, border,
 						    intensity, angle);
       noteWrite(Shadow_saveImage(picTmpShad,
@@ -7001,21 +7008,23 @@ Phantom_applyAndSave(const QImage &recto,
 }
 
 void
-Assistant::do_phantom(const QString &imageBasename,
-                      const QImage &recto,
-                      const QString &outputImageDir) const
+Assistant::do_phantom(const GenerationParameters &p,
+                      const QString &imageBasename,
+                      const QImage &recto)
 {
-  const int numDraws = ui->TiragePhantom->value();
+  const QString &outputImageDir = p.outputDir;
+
+  const int numDraws = p.phantomNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
     //QImage imgTmpPhant;
 
-    const float occurenceProbability = ui->Phantom_occurenceSB->value();
+    const float occurenceProbability = p.phantomOccurenceProbability;
 
     noteWrite(
       Phantom_applyAndSave(recto,
                            occurenceProbability,
-                           _PhantomPatternsPath,
+                           p.phantomPatternsPath,
                            i,
                            imageBasename,
                            outputImageDir));
@@ -7218,16 +7227,18 @@ Blur_getKernelSize(int blurMin, int blurMax)
 }
 
 void
-Assistant::do_blur(const QString &imageBasename,
-                   const QImage &recto,
-                   const QString &outputImageDir) const
+Assistant::do_blur(const GenerationParameters &p,
+                   const QString &imageBasename,
+                   const QImage &recto)
 {
-  const int blurMax = this->blurMax();
-  const int blurMin = this->blurMin();
+  const QString &outputImageDir = p.outputDir;
 
-  const int numDraws = this->nbTirageBlur();
+  const int blurMax = p.blurMax;
+  const int blurMin = p.blurMin;
+
+  const int numDraws = p.blurNumDraws;
   
-  if (this->getBlur_ZoneEnable()) {
+  if (p.blurZoneEnable) {
 
     const dc::BlurFilter::Area a = dc::BlurFilter::Area::UP;
     const float coeff1 = 1.f;
@@ -7236,7 +7247,7 @@ Assistant::do_blur(const QString &imageBasename,
     const int radius = 10;
     const dc::BlurFilter::Method m = dc::BlurFilter::Method::GAUSSIAN;
     
-    if (this->pattern1()) {
+    if (p.blurPatterns[0]) {
       for (int i = 0; i < numDraws; ++i) {
 	noteWrite(
 	  Blur_applyAreaAndSave(recto,
@@ -7256,7 +7267,7 @@ Assistant::do_blur(const QString &imageBasename,
       }
     }
 
-    if (this->pattern2()) {
+    if (p.blurPatterns[1]) {
       for (int i = 0; i < numDraws; ++i) {
 	noteWrite(
 	  Blur_applyAreaAndSave(recto,
@@ -7276,7 +7287,7 @@ Assistant::do_blur(const QString &imageBasename,
       }
     }
 
-    if (this->pattern3()) {
+    if (p.blurPatterns[2]) {
       for (int i = 0; i < numDraws; ++i) {
 	noteWrite(
 	  Blur_applyAreaAndSave(recto,
@@ -7296,7 +7307,7 @@ Assistant::do_blur(const QString &imageBasename,
       }
     }
 
-    if (this->pattern4()) {
+    if (p.blurPatterns[3]) {
       for (int i = 0; i < numDraws; ++i) {
 	noteWrite(
 	  Blur_applyAreaAndSave(recto,
@@ -7316,7 +7327,7 @@ Assistant::do_blur(const QString &imageBasename,
       }
     }
 
-    if (this->pattern5()) {
+    if (p.blurPatterns[4]) {
       for (int i = 0; i < numDraws; ++i) {
 	noteWrite(
 	  Blur_applyAreaAndSave(recto,
@@ -7336,7 +7347,7 @@ Assistant::do_blur(const QString &imageBasename,
       }
     }
 
-    if (this->pattern6()) {
+    if (p.blurPatterns[5]) {
       for (int i = 0; i < numDraws; ++i) {
 	noteWrite(
 	  Blur_applyAreaAndSave(recto,
@@ -7358,7 +7369,7 @@ Assistant::do_blur(const QString &imageBasename,
   }
 
   //blur on whole page
-  if (this->getBlur_PageEnable()) {
+  if (p.blurPageEnable) {
 
     const dc::BlurFilter::Method m = dc::BlurFilter::Method::GAUSSIAN;
 
@@ -7379,10 +7390,12 @@ Assistant::do_blur(const QString &imageBasename,
 }
 
 void
-Assistant::do_hole(const QString &imageBasename,
-                   const QImage &recto,
-                   const QString &outputImageDir) const
+Assistant::do_hole(const GenerationParameters &p,
+                   const QString &imageBasename,
+                   const QImage &recto)
 {
+  const QString &outputImageDir = p.outputDir;
+
   //B:TODO: clean code
 
   const QString &path = outputImageDir;
@@ -7392,7 +7405,7 @@ Assistant::do_hole(const QString &imageBasename,
   const float scaleW = 1.f;
   const float scaleH = 1.f;
 
-  const QColor color = _Hole_colorBehind;
+  const QColor color = p.holeColor;
 
   const bool randPosX = true;
   const bool randPosY = true;
@@ -7400,7 +7413,7 @@ Assistant::do_hole(const QString &imageBasename,
   std::vector<HoleData> holes;
   QImage rectoC;
 
-  const int numDraws = ui->TirageHole->value();
+  const int numDraws = p.holeNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
     //std::cerr << "----------------------- hole " << i <<"/"<<nbTirages<< "\n";
@@ -7468,25 +7481,27 @@ ElasticDeformation_saveXml(const QString &outputXmlFilename,
 }
 
 void
-Assistant::do_ElasticDeformation(const QString &imageBasename,
-				 const QImage &recto,
-				 const QString &outputImageDir) const
+Assistant::do_ElasticDeformation(const GenerationParameters &p,
+				 const QString &imageBasename,
+				 const QImage &recto)
 {
-  const int numDraws = ui->TirageElasticDeformation->value();
+  const QString &outputImageDir = p.outputDir;
+
+  const int numDraws = p.elasticNumDraws;
   for (int i = 0; i < numDraws; ++i) {
 
-    if (ui->ElasticDeformation1CB->isChecked()) {
+    if (p.elastic1Enable) {
 
-      const float alphaMin = ui->MinAlphaElasticDeformation1SB->value();
-      const float alphaMax = ui->MaxAlphaElasticDeformation1SB->value();
+      const float alphaMin = p.elastic1AlphaMin;
+      const float alphaMax = p.elastic1AlphaMax;
       const float alpha = random_in_range(alphaMin, alphaMax);
 
-      const float sigmaMin = ui->MinSigmaElasticDeformation1SB->value();
-      const float sigmaMax = ui->MaxSigmaElasticDeformation1SB->value();
+      const float sigmaMin = p.elastic1SigmaMin;
+      const float sigmaMax = p.elastic1SigmaMax;
       const float sigma = random_in_range(sigmaMin, sigmaMax);
 
-      const dc::ElasticDeformation::BorderReplication borderMode = static_cast<dc::ElasticDeformation::BorderReplication>(ui->BorderElasticDeformation1CB->currentData().toInt());
-      const dc::ElasticDeformation::Interpolation interpolation = static_cast<dc::ElasticDeformation::Interpolation>(ui->InterpolationElasticDeformation1CB->currentData().toInt());
+      const dc::ElasticDeformation::BorderReplication borderMode = p.elastic1BorderMode;
+      const dc::ElasticDeformation::Interpolation interpolation = p.elastic1Interpolation;
 
       QImage imgN;
       imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
@@ -7501,23 +7516,23 @@ Assistant::do_ElasticDeformation(const QString &imageBasename,
       updateProgress();
     }
 
-    if (ui->ElasticDeformation2CB->isChecked()) {
+    if (p.elastic2Enable) {
 
-      const float alphaMin = ui->MinAlphaElasticDeformation2SB->value();
-      const float alphaMax = ui->MaxAlphaElasticDeformation2SB->value();
+      const float alphaMin = p.elastic2AlphaMin;
+      const float alphaMax = p.elastic2AlphaMax;
       const float alpha = random_in_range(alphaMin, alphaMax);
 
-      const float sigmaMin = ui->MinSigmaElasticDeformation2SB->value();
-      const float sigmaMax = ui->MaxSigmaElasticDeformation2SB->value();
+      const float sigmaMin = p.elastic2SigmaMin;
+      const float sigmaMax = p.elastic2SigmaMax;
       const float sigma = random_in_range(sigmaMin, sigmaMax);
 
-      const float alphaAffineMin = ui->MinAlphaAffineElasticDeformation2SB->value();
-      const float alphaAffineMax = ui->MaxAlphaAffineElasticDeformation2SB->value();
+      const float alphaAffineMin = p.elastic2AlphaAffineMin;
+      const float alphaAffineMax = p.elastic2AlphaAffineMax;
       const float alphaAffine = random_in_range(alphaAffineMin, alphaAffineMax);
 
       
-      const dc::ElasticDeformation::BorderReplication  borderMode = static_cast<dc::ElasticDeformation::BorderReplication>(ui->BorderElasticDeformation2CB->currentData().toInt());
-      const dc::ElasticDeformation::Interpolation interpolation = static_cast<dc::ElasticDeformation::Interpolation>(ui->InterpolationElasticDeformation2CB->currentData().toInt());
+      const dc::ElasticDeformation::BorderReplication  borderMode = p.elastic2BorderMode;
+      const dc::ElasticDeformation::Interpolation interpolation = p.elastic2Interpolation;
 
       QImage imgN;
       imgN = dc::ElasticDeformation::transform(recto, alpha, sigma, borderMode, interpolation);
@@ -7539,12 +7554,13 @@ Assistant::do_ElasticDeformation(const QString &imageBasename,
 
 
 void
-Assistant::do_3D(const QString &imageBasename,
-                 const QImage &recto,
-                 const QString &outputImageDir) const
+Assistant::do_3D(const GenerationParameters &p,
+                 const QString &imageBasename,
+                 const QImage &recto)
 {
-  const bool useBackground = ui->Dist3D_useBackgroundCheck->isChecked() &&
-                             !_Dist3D_meshBackgroundsList.isEmpty();
+  const QString &outputImageDir = p.outputDir;
+
+  const bool useBackground = p.dist3DUseBackground;
 
   auto w = new GLWidget();
   w->show();
@@ -7556,10 +7572,10 @@ Assistant::do_3D(const QString &imageBasename,
     w->setUseBackgroundTexture(true);
   }
 
-  const int numDraws = ui->TirageDist3D->value();
+  const int numDraws = p.dist3DNumDraws;
   for (int i=0; i<numDraws; ++i) {
 
-    for (const QString &meshFilename : _Dist3D_meshesList) {
+    for (const QString &meshFilename : p.dist3DMeshes) {
 
       //std::cerr<<"meshFilename="<<meshFilename.toStdString()<<"\n";
 
@@ -7568,8 +7584,8 @@ Assistant::do_3D(const QString &imageBasename,
       QString backgroundFilename;
       if (useBackground) {
 
-	const int index = P_bounded_rand(0, _Dist3D_meshBackgroundsList.size());
-	backgroundFilename = _Dist3D_meshBackgroundsList[index];
+	const int index = P_bounded_rand(0, p.dist3DBackgrounds.size());
+	backgroundFilename = p.dist3DBackgrounds[index];
 	QImage backgroundImg(backgroundFilename);
 
 	w->setBackgroundTexture(backgroundImg);
@@ -7612,17 +7628,40 @@ Assistant::do_3D(const QString &imageBasename,
 
 //To call when one more image has been saved
 void
-Assistant::updateProgress() const
+Assistant::updateProgress()
 {
-  assert(_progressDialog);
-
-  _progressDialog->setValue(_progressDialog->value() + 1);
+  /*
+    B: this used to drive the progress dialog and call processEvents()
+    directly, from inside the generation. It runs on the worker thread
+    now, where a widget must not be touched: the count is the only thing
+    it keeps, and the dialog is refreshed from the GUI thread by
+    refreshProgress(), connected to a timer while the worker runs.
+  */
   _numGeneratedImages += 1;
-  qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+}
+
+void
+Assistant::refreshProgress()
+{
+  if (_progressDialog == nullptr) {
+    return;
+  }
+
+  _progressDialog->setValue(static_cast<int>(_numGeneratedImages.load()));
+
+  /*
+    Asking the dialog is what tells us about a cancellation that its
+    canceled() signal does not report: QProgressDialog::cancel() sets the
+    flag without emitting it. This runs on the GUI thread, which is the
+    only one allowed to ask a widget anything.
+  */
+  if (_progressDialog->wasCanceled()) {
+    _cancelled = true;
+  }
 }
 
 bool
-Assistant::noteWrite(bool writeOk) const
+Assistant::noteWrite(bool writeOk)
 {
   if (! writeOk)
     ++_nbWriteErrors;
@@ -7630,50 +7669,182 @@ Assistant::noteWrite(bool writeOk) const
 }
 
 bool
-Assistant::writeImage(const QImage &img, const QString &absoluteFilename) const
+Assistant::writeImage(const QImage &img, const QString &absoluteFilename)
 {
   return noteWrite(saveImageFile(img, absoluteFilename));
 }
 
 bool
-Assistant::writeXml(const QString &xml, const QString &absoluteFilename) const
+Assistant::writeXml(const QString &xml, const QString &absoluteFilename)
 {
   return noteWrite(saveXml(xml, absoluteFilename));
 }
 
-void
-Assistant::generateDegradedImages() const
+GenerationParameters
+Assistant::readGenerationParameters() const
 {
-  qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+  /*
+    Every widget of the generation is read here, once, on the thread that
+    owns them. What follows runs on a worker and must not touch one.
+  */
+  GenerationParameters p;
 
-  QGuiApplication::setOverrideCursor(Qt::BusyCursor);
+  p.outputDir = this->saveDirectory();
+  if (!p.outputDir.isEmpty() && p.outputDir[p.outputDir.length() - 1] != '/')
+    p.outputDir += '/';
+  p.inputImageDir = this->PicDirectory();
+  if (!p.inputImageDir.isEmpty() &&
+      p.inputImageDir[p.inputImageDir.length() - 1] != '/')
+    p.inputImageDir += '/';
+  p.picsList = this->picsList();
 
-  QString savePath = this->saveDirectory();
-  QString inputImageDir = this->PicDirectory();
-  QStringList picsList = this->picsList();
+  p.bleedEnable = this->bleedEnable();
+  p.bleedMin = this->bleedMin();
+  p.bleedMax = this->bleedMax();
+  p.bleedNumDraws = this->nbTirageBleed();
 
-  if (!savePath.isEmpty() && savePath[savePath.length() - 1] != '/')
-    savePath += '/';
-  if (!inputImageDir.isEmpty() &&
-      inputImageDir[inputImageDir.length() - 1] != '/')
-    inputImageDir += '/';
+  p.charEnable = this->charEnable();
+  p.charMin = this->charMin();
+  p.charMax = this->charMax();
+  p.charNumDraws = this->nbTirageChar();
 
-  const int numPics = picsList.size();
-  const size_t numImagesToGenerate = ui->TotalPic->text().toUInt();
-  
-  if (numPics > 0)
-  {
-    _numGeneratedImages = 0;
-    _nbWriteErrors = 0;
-    _progressDialog =
-      new QProgressDialog("Generating images...", "Cancel", 0, numImagesToGenerate);
-    _progressDialog->setWindowModality(Qt::WindowModal);
-    _progressDialog->setMinimumDuration(10); //time in ms before it appears
-    _progressDialog->show();
-  }
+  p.shadowEnable = this->shadEnable();
+  p.shadowNumDraws = ui->TirageShadow->value();
+  //some code duplication with Shadow_setPreview()
+  p.shadowDistanceRatio =
+    ui->shad_width->value() / (float)ui->shad_width->maximum();
+  p.shadowIntensity =
+    1.f - ui->shad_intensity->value() / (float)ui->shad_intensity->maximum();
+  p.shadowAngle = ui->shad_angle->value();
+  p.shadowNumBorders = _Shadow_nbShadSelected;
+  assert(p.shadowNumBorders <= 4);
+  for (int i = 0; i < p.shadowNumBorders && i < 4; ++i)
+    p.shadowBorders[i] = _Shadow_borderStack[i];
+
+  p.phantomEnable = this->phantEnable();
+  p.phantomNumDraws = ui->TiragePhantom->value();
+  p.phantomOccurenceProbability = ui->Phantom_occurenceSB->value();
+  p.phantomPatternsPath = _PhantomPatternsPath;
+
+  p.blurEnable = this->blurEnable();
+  p.blurMin = this->blurMin();
+  p.blurMax = this->blurMax();
+  p.blurNumDraws = this->nbTirageBlur();
+  p.blurZoneEnable = this->getBlur_ZoneEnable();
+  p.blurPageEnable = this->getBlur_PageEnable();
+  p.blurPatterns[0] = this->pattern1();
+  p.blurPatterns[1] = this->pattern2();
+  p.blurPatterns[2] = this->pattern3();
+  p.blurPatterns[3] = this->pattern4();
+  p.blurPatterns[4] = this->pattern5();
+  p.blurPatterns[5] = this->pattern6();
+
+  p.holeEnable = this->holeEnable();
+  p.holeNumDraws = ui->TirageHole->value();
+  p.holeColor = _Hole_colorBehind;
+
+  p.dist3DEnable = this->dist3DEnable();
+  p.dist3DNumDraws = ui->TirageDist3D->value();
+  p.dist3DUseBackground = ui->Dist3D_useBackgroundCheck->isChecked() &&
+                          !_Dist3D_meshBackgroundsList.isEmpty();
+  p.dist3DMeshes = _Dist3D_meshesList;
+  p.dist3DBackgrounds = _Dist3D_meshBackgroundsList;
+
+  p.gddEnable = this->gddEnable();
+  p.gddNumDraws = ui->TirageGDD->value();
+  p.gddStainImagesPath = ui->GDD_stainImagesPath->text();
+  p.gddMinNumStains = ui->GDD_numStainsMin->value();
+  //B: kept as it was: the maximum is read from the minimum's widget
+  p.gddMaxNumStains =
+    std::max(ui->GDD_numStainsMin->value(), p.gddMinNumStains + 1);
+  p.gddInsertType = static_cast<dc::GradientDomainDegradation::InsertType>(
+    ui->GDD_insertTypeCB->currentData().toInt());
+  p.gddDoRotations = ui->GDD_doRotations->isChecked();
+
+  p.noiseEnable = this->noiseEnable();
+  p.noiseNumDraws = ui->TirageNoise->value();
+  p.noiseGaussianEnable = ui->GaussianNoiseCB->isChecked();
+  p.noiseGaussianAverageMin = ui->MinAverageGaussianNoiseSB->value();
+  p.noiseGaussianAverageMax = ui->MaxAverageGaussianNoiseSB->value();
+  p.noiseGaussianStdDevMin = ui->MinStdDevGaussianNoiseSB->value();
+  p.noiseGaussianStdDevMax = ui->MaxStdDevGaussianNoiseSB->value();
+  p.noiseGaussianAddType = static_cast<dc::NoiseDegradation::AddNoiseType>(
+    ui->GaussianNoiseAddTypeCB->currentData().toInt());
+  p.noiseSpeckleEnable = ui->SpeckleNoiseCB->isChecked();
+  p.noiseSpeckleAverageMin = ui->MinAverageSpeckleNoiseSB->value();
+  p.noiseSpeckleAverageMax = ui->MaxAverageSpeckleNoiseSB->value();
+  p.noiseSpeckleStdDevMin = ui->MinStdDevSpeckleNoiseSB->value();
+  p.noiseSpeckleStdDevMax = ui->MaxStdDevSpeckleNoiseSB->value();
+  p.noiseSpeckleAddType = static_cast<dc::NoiseDegradation::AddNoiseType>(
+    ui->SpeckleNoiseAddTypeCB->currentData().toInt());
+  p.noiseSaltAndPepperEnable = ui->SaltAndPepperNoiseCB->isChecked();
+  p.noiseSaltAndPepperAmountMin = ui->MinAmountSaltAndPepperNoiseSB->value();
+  p.noiseSaltAndPepperAmountMax = ui->MaxAmountSaltAndPepperNoiseSB->value();
+  p.noiseSaltAndPepperRatioMin = ui->MinRatioSaltAndPepperNoiseSB->value();
+  p.noiseSaltAndPepperRatioMax = ui->MaxRatioSaltAndPepperNoiseSB->value();
+
+  p.rotationEnable = this->rotationEnable();
+  p.rotationNumDraws = ui->TirageRotation->value();
+  p.rotationAngleMin = ui->RotationAngleMinSB->value();
+  p.rotationAngleMax = ui->RotationAngleMaxSB->value();
+  p.rotationFillColor = ui->RotationFillColorCB->isChecked();
+  p.rotationSpecificColor = ui->RotationSpecificColorRB->isChecked();
+  assert(p.rotationSpecificColor || ui->RotationRandomColorRB->isChecked());
+  p.rotationColor = ui->RotationColorSelectionPB->getColor();
+  p.rotationFillImage = ui->RotationFillImageCB->isChecked();
+  p.rotationImageRepeatsMin = ui->RotationImageRepeatsMinSB->value();
+  p.rotationImageRepeatsMax = ui->RotationImageRepeatsMaxSB->value();
+  p.rotationFillBorder = ui->RotationFillBorderCB->isChecked();
+  p.rotationBorderReplicate = ui->RotationBorderReplicateCB->isChecked();
+  p.rotationBorderReflect = ui->RotationBorderReflectCB->isChecked();
+  p.rotationBorderWrap = ui->RotationBorderWrapCB->isChecked();
+  p.rotationBorderReflect101 = ui->RotationBorderReflect101CB->isChecked();
+  p.rotationFillInpaint = ui->RotationFillInpaintCB->isChecked();
+  p.rotationInpaint1 = ui->RotationInpaint1CB->isChecked();
+  p.rotationInpaint2 = ui->RotationInpaint2CB->isChecked();
+  p.rotationInpaint3 = ui->RotationInpaint3CB->isChecked();
+
+  p.elasticEnable = this->elasticDeformationEnable();
+  p.elasticNumDraws = ui->TirageElasticDeformation->value();
+  p.elastic1Enable = ui->ElasticDeformation1CB->isChecked();
+  p.elastic1AlphaMin = ui->MinAlphaElasticDeformation1SB->value();
+  p.elastic1AlphaMax = ui->MaxAlphaElasticDeformation1SB->value();
+  p.elastic1SigmaMin = ui->MinSigmaElasticDeformation1SB->value();
+  p.elastic1SigmaMax = ui->MaxSigmaElasticDeformation1SB->value();
+  p.elastic1BorderMode =
+    static_cast<dc::ElasticDeformation::BorderReplication>(
+      ui->BorderElasticDeformation1CB->currentData().toInt());
+  p.elastic1Interpolation = static_cast<dc::ElasticDeformation::Interpolation>(
+    ui->InterpolationElasticDeformation1CB->currentData().toInt());
+  p.elastic2Enable = ui->ElasticDeformation2CB->isChecked();
+  p.elastic2AlphaMin = ui->MinAlphaElasticDeformation2SB->value();
+  p.elastic2AlphaMax = ui->MaxAlphaElasticDeformation2SB->value();
+  p.elastic2SigmaMin = ui->MinSigmaElasticDeformation2SB->value();
+  p.elastic2SigmaMax = ui->MaxSigmaElasticDeformation2SB->value();
+  p.elastic2AlphaAffineMin = ui->MinAlphaAffineElasticDeformation2SB->value();
+  p.elastic2AlphaAffineMax = ui->MaxAlphaAffineElasticDeformation2SB->value();
+  p.elastic2BorderMode =
+    static_cast<dc::ElasticDeformation::BorderReplication>(
+      ui->BorderElasticDeformation2CB->currentData().toInt());
+  p.elastic2Interpolation = static_cast<dc::ElasticDeformation::Interpolation>(
+    ui->InterpolationElasticDeformation2CB->currentData().toInt());
+
+  return p;
+}
+
+/*
+  Everything but the 3D distortion, which needs the GUI thread.
+*/
+void
+Assistant::generateDegradedImagesWorker(const GenerationParameters &p)
+{
+  const int numPics = p.picsList.size();
 
   for (int picIndex = 0; picIndex < numPics; ++picIndex) {
-    const QString &pic = picsList[picIndex];
+    if (_cancelled)
+      break;
+
+    const QString &pic = p.picsList[picIndex];
 
     //Load recto
 
@@ -7681,96 +7852,177 @@ Assistant::generateDegradedImages() const
       QFileInfo(pic).completeBaseName() +
       "_"; //remove path & last extension, and add "_"
 
-    const QString rectoPath = inputImageDir + pic;
-    QImage recto(rectoPath);
+    const QString rectoPath = p.inputImageDir + pic;
+    const QImage recto(rectoPath);
 
     if (recto.isNull()) {
       std::cerr << "ERROR: unable to load image: " << rectoPath.toStdString()
                 << "\n";
-      //B:TODO: _progressDialog will not be updated correctly in this case.
-    } 
-    else {
-      assert(!recto.isNull());
-
-      //Apply bleedThrough if enabled
-      if (this->bleedEnable()) {
-        do_bleed(imageBasename, recto, picIndex, inputImageDir, savePath);
-
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply CharacterDegradation if enabled
-      if (this->charEnable()) {
-        do_charDeg(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply Shadow Binding if enabled
-      if (this->shadEnable()) {
-        do_shadow(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply phantom characters if enabled
-      if (this->phantEnable()) {
-        do_phantom(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply blur degradations if enabled
-      if (this->blurEnable()) {
-        do_blur(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply holes if enabled
-      if (this->holeEnable()) {
-        do_hole(imageBasename, recto, savePath);
-      }
-
-      //Apply 3D if enabled
-      if (this->dist3DEnable()) {
-        do_3D(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply Gradient Domain Degradation if enabled
-      if (this->gddEnable()) {
-        do_GDD(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply NoiseDegradation if enabled
-      if (this->noiseEnable()) {
-        do_Noise(imageBasename, recto, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
-      //Apply RotationDegradation if enabled
-      if (this->rotationEnable()) {
-        do_Rotation(imageBasename, recto, inputImageDir, savePath);
-        if (_progressDialog->wasCanceled()) {
-          break;
-        }
-      }
-
+      //B:TODO: the progress will not be updated correctly in this case.
+      continue;
     }
+
+    if (p.bleedEnable) {
+      do_bleed(p, imageBasename, recto, picIndex);
+      if (_cancelled)
+        break;
+    }
+    if (p.charEnable) {
+      do_charDeg(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.shadowEnable) {
+      do_shadow(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.phantomEnable) {
+      do_phantom(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.blurEnable) {
+      do_blur(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.holeEnable) {
+      do_hole(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.gddEnable) {
+      do_GDD(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.noiseEnable) {
+      do_Noise(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    if (p.rotationEnable) {
+      do_Rotation(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+    /*
+      B: the elastic deformation was counted by nbOfDegradedImages() and
+      never applied: it was the one degradation of the wizard missing from
+      this loop, so enabling it raised the expected total and produced no
+      image, and the progress bar could not reach its end.
+    */
+    if (p.elasticEnable) {
+      do_ElasticDeformation(p, imageBasename, recto);
+      if (_cancelled)
+        break;
+    }
+  }
+}
+
+/*
+  The 3D distortion, on the GUI thread: do_3D() drives a GLWidget, which is
+  a QOpenGLWidget, and a widget belongs to the thread that created it.
+*/
+void
+Assistant::generateDistortion3DImages(const GenerationParameters &p)
+{
+  const int numPics = p.picsList.size();
+
+  for (int picIndex = 0; picIndex < numPics; ++picIndex) {
+    if (_cancelled)
+      break;
+
+    const QString &pic = p.picsList[picIndex];
+    const QString imageBasename = QFileInfo(pic).completeBaseName() + "_";
+    const QImage recto(p.inputImageDir + pic);
+    if (recto.isNull())
+      continue;
+
+    do_3D(p, imageBasename, recto);
+    refreshProgress();
+    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    if (_progressDialog != nullptr && _progressDialog->wasCanceled())
+      _cancelled = true;
+  }
+}
+
+void
+Assistant::generateDegradedImages()
+{
+  const GenerationParameters p = readGenerationParameters();
+
+  const int numPics = p.picsList.size();
+  if (numPics <= 0) {
+    return;
+  }
+
+  const size_t numImagesToGenerate = ui->TotalPic->text().toUInt();
+
+  _numGeneratedImages = 0;
+  _nbWriteErrors = 0;
+  _cancelled = false;
+
+  QGuiApplication::setOverrideCursor(Qt::BusyCursor);
+
+  //B: the dialog had no parent, so its window modality blocked nothing.
+  _progressDialog = new QProgressDialog(tr("Generating images..."),
+                                        tr("Cancel"),
+                                        0,
+                                        static_cast<int>(numImagesToGenerate),
+                                        this);
+  _progressDialog->setWindowModality(Qt::WindowModal);
+  _progressDialog->setMinimumDuration(10); //time in ms before it appears
+  _progressDialog->setValue(0);
+  _progressDialog->show();
+
+  /*
+    B: the generation ran on this thread and kept the interface alive by
+    calling processEvents() from inside itself, which is why it had to
+    exclude user input: it re-entered the event loop from the middle of
+    the computation. The degradations are reentrant and touch nothing of
+    the interface (cf Degradations.hpp), so the loop goes to a worker.
+
+    This function has to return only once the work is done -- the wizard
+    calls it from validateCurrentPage(), which decides whether to turn the
+    page -- so it waits on a local event loop. The difference with what
+    was here is that the event loop only runs the interface: the
+    computation is on the other thread, and a degradation that takes a
+    second no longer freezes the window for a second.
+  */
+  QFutureWatcher<void> watcher;
+  QEventLoop loop;
+  connect(&watcher, &QFutureWatcher<void>::finished, &loop, &QEventLoop::quit);
+  connect(_progressDialog, &QProgressDialog::canceled, this, [this] {
+    _cancelled = true;
+  });
+
+  //the dialog is refreshed from here, the worker only counts
+  QTimer progressTimer;
+  connect(&progressTimer, &QTimer::timeout, this, &Assistant::refreshProgress);
+  progressTimer.start(100);
+
+  /*
+    @a p is captured by reference, which is safe because this function
+    does not return before the worker has finished: loop.exec() below
+    returns on the watcher's finished signal.
+  */
+  watcher.setFuture(QtConcurrent::run(
+    [this, &p] { this->generateDegradedImagesWorker(p); }));
+
+  loop.exec();
+  progressTimer.stop();
+  refreshProgress();
+
+  /*
+    The 3D distortion is left for last, and runs here: it needs a widget.
+    Doing it after the rest rather than per image changes nothing of what
+    is written -- each degradation writes its own files, named after the
+    image and itself.
+  */
+  if (p.dist3DEnable && ! _cancelled) {
+    generateDistortion3DImages(p);
   }
 
   delete _progressDialog;
@@ -7787,13 +8039,13 @@ Assistant::updateResults()
   QString results = tr("%1/%n image(s) have been written into directory:\n%3",
 		       "",
 		       numImagesToGenerate)
-		      .arg(_numGeneratedImages)
+		      .arg(static_cast<qulonglong>(_numGeneratedImages.load()))
 		      .arg(_outputDegradedImageDir);
   if (_nbWriteErrors > 0)
     results += '\n' + tr("%n file(s) could not be written; see the console "
 			 "for the paths.",
 			 "",
-			 static_cast<int>(_nbWriteErrors));
+			 static_cast<int>(_nbWriteErrors.load()));
   ui->label_results->setText(results);
 }
 
