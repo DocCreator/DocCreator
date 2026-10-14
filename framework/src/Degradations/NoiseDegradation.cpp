@@ -1,5 +1,6 @@
 #include "NoiseDegradation.hpp"
 
+#include <algorithm> //std::min, std::max
 #include <cassert>
 #include <vector>
 
@@ -126,11 +127,48 @@ namespace dc {
       cv::Mat noise_image =
 	makeRandnNoise(rng, image, CV_32F, average, standardDeviation, addType);
   
-      cv::Mat temp_image, temp_image2;
-      image.convertTo(temp_image, type);
-      cv::multiply(temp_image, noise_image, temp_image2);
-      cv::add(temp_image, temp_image2, temp_image);
-      temp_image.convertTo(dst, image.type()); //saturates to [0; 255]
+      /*
+	B: this was
+
+	  image.convertTo(temp, type);
+	  cv::multiply(temp, noise_image, temp2);
+	  cv::add(temp, temp2, temp);
+	  temp.convertTo(dst, image.type());
+
+	which holds three full size CV_32F images at once: 1.1 GB for a
+	6564x4721 page, where the page itself is 93 MB. Two things follow
+	from what it computes.
+
+	temp + temp*noise is temp*(1+noise), which needs one image fewer;
+	the one is added to the noise in place. [The two do not give exactly
+	the same float, so about two pixels in a million come out one grey
+	level apart.]
+
+	And no pixel of the result depends on any pixel but its own, so the
+	conversion and the product are done a band at a time, into a buffer
+	the size of a band instead of the size of the image.
+      */
+      //B: cv::Scalar::all(), and not 1.f: a float becomes Scalar(1, 0, 0,
+      // 0), which would add the one to the first channel only.
+      noise_image += cv::Scalar::all(1.0);
+
+      dst.create(image.size(), image.type());
+
+      //enough rows for about a megapixel, so the buffer stays small
+      //whatever the image is, and wide images still get whole rows
+      constexpr int BAND_PIXELS = 1 << 20;
+      const int bandRows =
+	std::max(1, std::min(image.rows, BAND_PIXELS / std::max(1, image.cols)));
+
+      cv::Mat band;
+      for (int y = 0; y < image.rows; y += bandRows) {
+	const cv::Rect r(0, y, image.cols, std::min(bandRows, image.rows - y));
+	image(r).convertTo(band, type);
+	cv::multiply(band, noise_image(r), band);
+	cv::Mat dstBand = dst(r);
+	band.convertTo(dstBand, image.type()); //saturates to [0; 255]
+      }
+
       restoreAlpha(image, dst);
 
       assert(dst.type() == image.type());

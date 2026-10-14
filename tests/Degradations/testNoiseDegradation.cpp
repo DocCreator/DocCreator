@@ -195,6 +195,56 @@ testSpeckleNoiseAmount(int imageType)
   }
 }
 
+/*
+  The speckle noise is multiplicative and centred: out = in * (1 + noise).
+  The mean of each channel therefore survives it, give or take the
+  saturation at 0 and 255.
+
+  This is checked per channel, because the "+ 1" is added to a whole
+  cv::Mat at once: written as a float it becomes a cv::Scalar(1, 0, 0, 0)
+  and reaches the first channel only, which leaves the others multiplied
+  by a factor centred on zero -- a nearly black image where only the blue
+  is right. Nothing else here would notice: the type, the size and the
+  alpha channel all stay correct.
+*/
+static
+void
+testSpeckleNoisePreservesTheMeanOfEachChannel(int imageType)
+{
+  const int ROWS = 200;
+  const int COLS = 201;
+
+  //a mid grey with each channel at a different level, so that a channel
+  //taking another's value is caught too
+  cv::Mat img(ROWS, COLS, imageType, cv::Scalar(90, 140, 190, 255));
+  cv::rectangle(img, cv::Rect(20, 20, 80, 80), cv::Scalar(30, 60, 90, 255), -1);
+
+  const cv::Mat out =
+    dc::NoiseDegradation::addSpeckleNoise(img, 0.f, .3f,
+					  dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS,
+					  42);
+
+  REQUIRE( out.type() == imageType );
+
+  std::vector<cv::Mat> inChannels;
+  std::vector<cv::Mat> outChannels;
+  cv::split(img, inChannels);
+  cv::split(out, outChannels);
+  REQUIRE( inChannels.size() == outChannels.size() );
+
+  const size_t numColourChannels =
+    (img.channels() == 4) ? 3 : inChannels.size(); //the alpha is restored as is
+
+  for (size_t c = 0; c < numColourChannels; ++c) {
+    const double meanIn = cv::mean(inChannels[c])[0];
+    const double meanOut = cv::mean(outChannels[c])[0];
+    REQUIRE( meanIn > 0 );
+    //centred multiplicative noise: a tenth is already generous
+    REQUIRE( std::abs(meanOut - meanIn) < 0.1 * meanIn );
+  }
+}
+
+
 TEST_CASE( "Testing NoiseDegradation" )
 { 
 
@@ -229,6 +279,13 @@ TEST_CASE( "Testing NoiseDegradation" )
     testSpeckleNoiseAmount(CV_8UC1);
     testSpeckleNoiseAmount(CV_8UC3);
     testSpeckleNoiseAmount(CV_8UC4);
+  }
+
+  SECTION("Testing NoiseDegradation::addSpeckleNoise keeps the mean of each channel")
+  {
+    testSpeckleNoisePreservesTheMeanOfEachChannel(CV_8UC1);
+    testSpeckleNoisePreservesTheMeanOfEachChannel(CV_8UC3);
+    testSpeckleNoisePreservesTheMeanOfEachChannel(CV_8UC4);
   }
 
 }
