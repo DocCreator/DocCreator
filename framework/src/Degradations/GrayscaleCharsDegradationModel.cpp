@@ -593,6 +593,9 @@ namespace dc {
     const int height = m_mat_reduce_pixels.rows;
     const int width = m_mat_reduce_pixels.cols;
 
+    //one band of rows per thread, cf the loop below
+    const int numBands = std::max(1, cv::getNumThreads());
+
     /*
       B: the distance of a pixel to the contour is either walked from that
       pixel, eight directions of up to m_local_zone steps, or read from a
@@ -607,10 +610,23 @@ namespace dc {
       heavy loss: 8 ms against 165 ms on
       data/background/manuscript-without-borders-01.png, where nothing is
       measured at all.
+
+      That was measured on one thread, and the walks run on all of them
+      now while the map does not: the density at which the map starts to
+      pay is pushed up by about the number of bands the walks are cut
+      into. Measured on seven images of 14.6% to 99.8% density, on one
+      thread the map wins from about a quarter on, as the constant says,
+      and on twenty threads the walks win everywhere -- 64 ms against 98
+      at 99% density -- so the map is simply never taken there.
+
+      The two give the same distances, so which one runs changes nothing
+      of the result: checked by hashing the degraded image on four images
+      at two levels.
     */
-    constexpr double MAP_IS_WORTH_IT = 0.25;
+    constexpr double MAP_IS_WORTH_IT_ON_ONE_THREAD = 0.25;
+    const double mapIsWorthIt = MAP_IS_WORTH_IT_ON_ONE_THREAD * numBands;
     const bool useMap =
-      (numPixelsToMeasure > MAP_IS_WORTH_IT * width * height);
+      (numPixelsToMeasure > mapIsWorthIt * width * height);
 
     cv::Mat distanceMap;
     if (useMap) {
@@ -640,7 +656,6 @@ namespace dc {
       Three times and not twenty because the step is memory bound: four
       byte streams of 31 MB, plus the walks' own reads.
     */
-    const int numBands = std::max(1, cv::getNumThreads());
     const int bandRows = (height + numBands - 1) / numBands;
     std::vector<std::vector<Pixel> > bandPixels(numBands);
 
