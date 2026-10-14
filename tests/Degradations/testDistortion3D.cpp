@@ -38,10 +38,13 @@ testSimple0(int imageType)
   
   const cv::Mat out = dc::Distortion3D::degrade3D(img2, meshFilename, random);
 
+  REQUIRE_FALSE( out.empty() );
   REQUIRE( out.type() == imageType );
   REQUIRE( checkEqual(img, img2) );
   REQUIRE( out.size() == img.size() );
-  
+  //the rendered image is read back from the OpenGL context: a failed read
+  //used to give a buffer that was never written to
+  REQUIRE( cv::countNonZero(out.reshape(1)) > 0 );
 }
 
 void
@@ -78,12 +81,17 @@ testSimple1(int imageType, int imageBackgroundType, int outputType)
   assert(imgBackground2.type() == imageBackgroundType);
   
   const cv::Mat out = dc::Distortion3D::degrade3DWithBackground(img2, meshFilename, imgBackground2, random);
-cv::Mat degrade3DWithBackground(cv::Mat &img, const std::string &meshFilename, cv::Mat &backgroundImg, bool random=true);
+
+  //B: a declaration of degrade3DWithBackground() was pasted here, inside
+  // the function body. It declared a second overload taking its images by
+  // non-const reference, which nothing defines and nothing called.
+
+  REQUIRE_FALSE( out.empty() );
   REQUIRE( out.type() == outputType );
   REQUIRE( checkEqual(img, img2) );
   REQUIRE( checkEqual(imgBackground, imgBackground2) );
   REQUIRE( out.size() == img.size() );
-  
+  REQUIRE( cv::countNonZero(out.reshape(1)) > 0 );
 }
 
 static
@@ -105,6 +113,35 @@ int getType(int index)
 
 
 
+/*
+  The checks above are on the shape of the result. The content needs the
+  seed: it is what says the rendered image was really read back, since a
+  failed read used to give a buffer nothing had written to, whose content
+  changed from one run to the next.
+*/
+static
+void
+testReproducible(int imageType)
+{
+  const int ROWS = 200;
+  const int COLS = 201;
+
+  cv::Mat img(ROWS, COLS, imageType);
+  cv::randn(img, 128, 30);
+
+  const std::string meshFilename = dc::makePath(MESHES_PATH, "PlaneRegular.brs");
+  const bool random = true;
+
+  const cv::Mat a = dc::Distortion3D::degrade3D(img, meshFilename, random, 42);
+  const cv::Mat b = dc::Distortion3D::degrade3D(img, meshFilename, random, 42);
+  const cv::Mat c = dc::Distortion3D::degrade3D(img, meshFilename, random, 43);
+
+  REQUIRE_FALSE( a.empty() );
+  REQUIRE( checkEqual(a, b) );        //same seed => same image
+  REQUIRE_FALSE( checkEqual(a, c) );  //another seed => another image
+}
+
+
 TEST_CASE( "Testing Distortion3D" )
 { 
 
@@ -113,6 +150,13 @@ TEST_CASE( "Testing Distortion3D" )
     testSimple0(CV_8UC1);
     testSimple0(CV_8UC3);
     testSimple0(CV_8UC4);
+  }
+
+  SECTION("Testing Distortion3D is reproducible from a seed")
+  {
+    testReproducible(CV_8UC1);
+    testReproducible(CV_8UC3);
+    testReproducible(CV_8UC4);
   }
 
   SECTION("Testing Distortion3D with background produces output image of same type and size")

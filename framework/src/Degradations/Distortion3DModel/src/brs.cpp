@@ -570,18 +570,30 @@ readBRS(const std::string &filename, Mesh &mesh)
     memcpy(&size, cBUF, s1);
     cBUF += s1;
 
-    size_t size8 = (size + 7) & (~7); //must be a multiple of 8 bytes.
+    const size_t size8 = (size + 7) & (~7); //must be a multiple of 8 bytes.
+
+    /*
+      B: ReadBitstream::Read() refills its 64 bit buffer with an
+      unconditional 8 byte read at the cursor, with no bounds check, so the
+      last refill of a stream reads up to 8 bytes past its end. The buffer
+      is padded by that much, and the padding zeroed, so that the over-read
+      stays inside the allocation and reads nothing that matters.
+    */
+    const size_t PADDING = 8;
+    const size_t sizeAllocated = size8 + PADDING;
 
     //use BUFCOMP as temporary buffer
-    if (size8 > totalSizeComp) {
+    if (sizeAllocated > totalSizeComp) {
       free(BUFCOMP);
-      BUFCOMP = static_cast<unsigned char *>( malloc(size8) );
+      BUFCOMP = static_cast<unsigned char *>( malloc(sizeAllocated) );
       if (BUFCOMP == nullptr)
 	return false;
+      totalSizeComp = sizeAllocated;
     }
 
     assert(BUFCOMP);
     memcpy(BUFCOMP, cBUF, size);
+    memset(BUFCOMP + size, 0, sizeAllocated - size);
     cBUF += size;
 
     ReadBitstream rb(BUFCOMP, size8);

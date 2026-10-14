@@ -180,6 +180,17 @@ GLRenderer::GLRenderer(int width, int height) :
   //for anti-aliasing
   glfwWindowHint(GLFW_SAMPLES, 4);
 
+#if USE_NATIVE_OSMESA
+  /*
+    B: the null platform creates an OSMesa context whatever this hint says,
+    so rendering worked without it, but GLFW only tags the context as an
+    OSMesa one when it is asked for: glfwGetOSMesaColorBuffer() checks that
+    tag and fails with GLFW_NO_WINDOW_CONTEXT otherwise. render() reads the
+    rendered pixels through that call.
+  */
+  glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
+#endif //USE_NATIVE_OSMESA
+
   m_window = glfwCreateWindow(window_width, window_height, "GLRenderer", NULL, NULL);
   if (!m_window) {
     std::cerr<<"ERROR: unable to create window ("<<window_width<<"x"
@@ -735,20 +746,33 @@ GLRenderer::render(bool random, cv::RNG &rng)
   glFlush();
   assert (glGetError () == GL_NO_ERROR);
 
-  int width, height;
+  int width = 0;
+  int height = 0;
   glfwGetFramebufferSize(m_window, &width, &height);
 
-  char* buffer;
+  /*
+    B: the result of glfwGetOSMesaColorBuffer() was dropped, and @a buffer
+    was left uninitialised when it failed: the cv::Mat below then wrapped
+    whatever was on the stack and cv::flip() wrote a megabyte through it.
+  */
 #if USE_NATIVE_OSMESA
-  glfwGetOSMesaColorBuffer(m_window, &width, &height, NULL, (void**) &buffer);
-#else
-  buffer = calloc(4, width * height);
-  glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-#endif
+  void *buffer = nullptr;
+  if (! glfwGetOSMesaColorBuffer(m_window, &width, &height, nullptr, &buffer)
+      || buffer == nullptr) {
+    std::cerr<<"ERROR: unable to read the rendered image back\n";
+    return cv::Mat();
+  }
 
-  // Output image Y-flipped because OpenGL
+  // Output image Y-flipped because OpenGL. The buffer belongs to the
+  // context, so it is wrapped and not owned, and must not outlive it.
   cv::Mat out(height, width, CV_8UC4, buffer);
   cv::flip(out, out, 0);
+#else
+  //glReadPixels() needs a buffer of its own, which the output owns
+  cv::Mat out(height, width, CV_8UC4);
+  glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, out.data);
+  cv::flip(out, out, 0);
+#endif
 
   if (m_channels == 1) {
     cv::cvtColor(out, out, cv::COLOR_RGBA2GRAY);
@@ -761,6 +785,9 @@ GLRenderer::render(bool random, cv::RNG &rng)
     //Warning: here, out may still point to "buffer"
     // (that will be deleted when the context is destroyed)
     // Thus we need to allocate a new image.
+    //B: the two conversions above change the number of channels, so
+    // cvtColor() reallocates and the result owns its pixels; this one does
+    // not, hence the explicit destination.
 
     cv::Mat out2(out.size(), CV_8UC4);
     cv::cvtColor(out, out2, cv::COLOR_RGBA2BGRA);
