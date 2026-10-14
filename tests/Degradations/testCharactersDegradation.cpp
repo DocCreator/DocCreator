@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -274,6 +275,76 @@ testLargeComponents(int imageType)
 }
 
 
+/*
+  PreparedImage keeps everything of a degradation that depends on the image
+  alone -- the conversion to gray, the binarisation, the components, the
+  distance of every candidate pixel to the nearest contour -- so that N
+  degradations of one image pay for it once instead of N times.
+
+  What it promises is that this changes nothing: a draw from a prepared
+  image is what the free degradation() gives for the same arguments, and
+  the draws do not depend on each other. That second half is the one worth
+  testing, since it is what a state left behind by the previous draw would
+  break.
+*/
+static
+void
+testPreparedImageGivesTheSameAsTheFreeFunction(int imageType)
+{
+  const cv::Mat img = makeImageWithComponents(4, imageType);
+
+  const int levels[] = { 0, 1, 5, 10 };
+  const uint32_t seeds[] = { 1, 42, 7 };
+
+  dc::GrayscaleCharsDegradation::PreparedImage prepared(img);
+
+  for (uint32_t seed : seeds) {
+    for (int level : levels) {
+      const cv::Mat expected =
+	dc::GrayscaleCharsDegradation::degradation(img, level, .33f, .33f, seed);
+      const cv::Mat got = prepared.degradation(level, .33f, .33f, seed);
+
+      REQUIRE( got.type() == imageType );
+      REQUIRE( got.size() == img.size() );
+      //same arguments, same image, whatever was drawn before
+      REQUIRE( checkEqual(got, expected) );
+    }
+  }
+
+  //and the order the draws are made in does not matter either
+  dc::GrayscaleCharsDegradation::PreparedImage other(img);
+  const cv::Mat lastFirst = other.degradation(10, .33f, .33f, 7);
+  const cv::Mat expectedLast =
+    dc::GrayscaleCharsDegradation::degradation(img, 10, .33f, .33f, 7);
+  REQUIRE( checkEqual(lastFirst, expectedLast) );
+}
+
+
+static
+void
+testPreparedImageRejectsWhatTheFreeFunctionRejects()
+{
+  //the image is checked when it is prepared
+  REQUIRE_THROWS_AS(
+    dc::GrayscaleCharsDegradation::PreparedImage(cv::Mat()),
+    std::invalid_argument );
+  REQUIRE_THROWS_AS(
+    dc::GrayscaleCharsDegradation::PreparedImage(
+      cv::Mat(10, 10, CV_16UC1)),
+    std::invalid_argument );
+
+  //and the ratios at every draw
+  dc::GrayscaleCharsDegradation::PreparedImage prepared(
+    makeImageWithComponents(3, CV_8UC1));
+  REQUIRE_THROWS_AS( prepared.degradation(5, -0.1f, .33f),
+		     std::invalid_argument );
+  REQUIRE_THROWS_AS( prepared.degradation(5, .6f, .6f),
+		     std::invalid_argument );
+  //and a draw after a refused one still works
+  REQUIRE_NOTHROW( prepared.degradation(5, .33f, .33f, 1) );
+}
+
+
 TEST_CASE( "Testing CharactersDegradation" )
 { 
 
@@ -319,6 +390,14 @@ TEST_CASE( "Testing CharactersDegradation" )
     testAllLevels(CV_8UC1);
     testAllLevels(CV_8UC3);
     testAllLevels(CV_8UC4);
+  }
+
+  SECTION("Testing CharactersDegradation prepared once and degraded several times")
+  {
+    testPreparedImageGivesTheSameAsTheFreeFunction(CV_8UC1);
+    testPreparedImageGivesTheSameAsTheFreeFunction(CV_8UC3);
+    testPreparedImageGivesTheSameAsTheFreeFunction(CV_8UC4);
+    testPreparedImageRejectsWhatTheFreeFunctionRejects();
   }
 
   SECTION("Testing Characters Degradation with an out-of-range level")

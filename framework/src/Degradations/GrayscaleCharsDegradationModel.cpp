@@ -75,11 +75,11 @@ namespace dc {
   class FRAMEWORK_EXPORT GrayscaleCharsDegradationModel
   {
   public:
-    explicit GrayscaleCharsDegradationModel(const cv::Mat &img,
-					    std::optional<uint32_t> seed = std::nullopt);
+    explicit GrayscaleCharsDegradationModel(const cv::Mat &img);
     ~GrayscaleCharsDegradationModel();
 
-    cv::Mat degradate_cv(int level = 1, float I = 33, float O = 33, float D = 34);
+    cv::Mat degradate_cv(int level = 1, float I = 33, float O = 33, float D = 34,
+			 std::optional<uint32_t> seed = std::nullopt);
     cv::Mat degradateByLevel_cv(int level);
     cv::Mat getImageGray_cv();
     cv::Mat getImageDegraded_cv();
@@ -92,6 +92,7 @@ namespace dc {
 
     int getNumberOfConnectedComponants() const;
     void initialize(const cv::Mat &imgInput);
+    void resetForOneDegradation();
 
     void calculateNoiseRegionType(float b0);
     void calculateNoiseRegionType();
@@ -210,9 +211,8 @@ namespace dc {
 
 
   GrayscaleCharsDegradationModel::GrayscaleCharsDegradationModel(
-								 const cv::Mat &img,
-								 std::optional<uint32_t> seed)
-    : m_rng(makeRandomEngine(seed))
+								 const cv::Mat &img)
+    : m_rng(makeRandomEngine(std::nullopt)) //re-seeded by degradate_cv()
     , m_width(0)
     , m_height(0)
     , m_avgBackground(0)
@@ -250,15 +250,21 @@ namespace dc {
     m_mat_CCs.release();
   }
 
-  void
-  GrayscaleCharsDegradationModel::initialize(const cv::Mat &imgInput)
-  {
-    m_MAX_Gradient = INT_MIN;
-    m_AVG_Gradient = 0;
+  /*
+    B: the state one degradation starts from, as opposed to what preparing
+    the image computes -- the gray image, the binarisation, the components
+    and the list of candidate pixels with their distances and gradients.
 
+    degradate_cv() may be called more than once on one model, to degrade an
+    image several times without preparing it again, so this is put back
+    before each draw. m_g in particular is drawn from the generator during
+    a degradation, and the next one must not start from the value the
+    previous one happened to leave.
+  */
+  void
+  GrayscaleCharsDegradationModel::resetForOneDegradation()
+  {
     m_MAX_a0 = 20;
-    m_Mean_CC_Stroke = 0;
-    m_Max_CC_Stroke = INT_MIN;
 
     m_Total_Degradation = 0.0;
 
@@ -273,6 +279,20 @@ namespace dc {
     m_nb = 0;
 
     m_local_zone = 20;
+
+    m_listSeedPoints.clear();
+  }
+
+  void
+  GrayscaleCharsDegradationModel::initialize(const cv::Mat &imgInput)
+  {
+    //what the preparation computes
+    m_MAX_Gradient = INT_MIN;
+    m_AVG_Gradient = 0;
+    m_Mean_CC_Stroke = 0;
+    m_Max_CC_Stroke = INT_MIN;
+
+    resetForOneDegradation();
 
     assert(imgInput.data != nullptr);
 
@@ -430,8 +450,27 @@ namespace dc {
   GrayscaleCharsDegradationModel::degradate_cv(int level,
 					       float I,
 					       float O,
-					       float D)
+					       float D,
+					       std::optional<uint32_t> seed)
   {
+    /*
+      B: this may be called more than once on one model, to degrade an
+      image several times without preparing it again (cf
+      GrayscaleCharsDegradation::PreparedImage). What the previous call
+      left is put back here; what the constructor computed -- the gray
+      image, the binarisation, the components and the list of candidate
+      pixels with their distances -- is what is being kept.
+
+      The generator is seeded here and not in the constructor, so that one
+      draw gives what a fresh model given the same seed would give,
+      whatever came before it.
+    */
+    m_rng = makeRandomEngine(seed);
+    resetForOneDegradation();
+    if (m_nb_connectedcomponants != NO_CC) {
+      m_mat_output = m_mat_gray.clone();
+    }
+
     if (m_nb_connectedcomponants > 0) {
 
       /*
@@ -2025,7 +2064,7 @@ namespace dc {
     int meanB = m_avgBackground;
     int meanF = m_avgForeground;
 
-    //B: m_rng is seeded once per degradation, cf. the constructor.
+    //B: m_rng is seeded once per degradation, cf. degradate_cv().
 
     for (const Seedpoint &sp : m_listSeedPoints) {
 
@@ -2750,7 +2789,7 @@ namespace dc {
   void
   GrayscaleCharsDegradationModel::calculatePixelsProbability()
   {
-    //B: m_rng is seeded once per degradation, cf. the constructor.
+    //B: m_rng is seeded once per degradation, cf. degradate_cv().
 
     for (Pixel &pixel : m_listPixels) {
 
@@ -2813,7 +2852,6 @@ namespace dc {
 
     if (nbSps_Over == 0) {
       //No degradation spot wanted: no seed point.
-      m_listPixels.clear();
       return;
     }
 
@@ -2844,7 +2882,15 @@ namespace dc {
       }
     }
 
-    m_listPixels.clear();
+    /*
+      B: m_listPixels was cleared here, to give its memory back before the
+      heavy steps that follow. It is the main result of preparing the
+      image -- every candidate pixel with its distance to the contour and
+      its gradient -- and a model may now be asked for several
+      degradations (cf GrayscaleCharsDegradation::PreparedImage), so it has
+      to survive one. Nothing below this point reads it; what it costs is
+      that it is held until the model goes, instead of from here on.
+    */
   }
 
 
@@ -2864,8 +2910,55 @@ namespace dc {
       const float percentOfOverlappingSpots = 100.f*overlappingSpotsRatio;
       const float percentageOfDisconnectionSpots = 100.f - percentOfIndepentSpots - percentOfOverlappingSpots;
 
-      GrayscaleCharsDegradationModel cdm(img, seed);
-      return cdm.degradate_cv(level, percentOfIndepentSpots, percentOfOverlappingSpots, percentageOfDisconnectionSpots);
+      GrayscaleCharsDegradationModel cdm(img);
+      return cdm.degradate_cv(level, percentOfIndepentSpots,
+			      percentOfOverlappingSpots,
+			      percentageOfDisconnectionSpots, seed);
+    }
+
+
+    class PreparedImage::Impl
+    {
+    public:
+      explicit Impl(const cv::Mat &img)
+	: model(img)
+      {}
+
+      GrayscaleCharsDegradationModel model;
+    };
+
+    PreparedImage::PreparedImage(const cv::Mat &img)
+      : m_impl()
+    {
+      require8UC134(img, "img", "dc::GrayscaleCharsDegradation::PreparedImage");
+      m_impl = std::make_unique<Impl>(img);
+    }
+
+    //defined here, where Impl is complete
+    PreparedImage::~PreparedImage() = default;
+
+    cv::Mat
+    PreparedImage::degradation(int level,
+			       float indepentSpotsRatio,
+			       float overlappingSpotsRatio,
+			       std::optional<uint32_t> seed)
+    {
+      static const char *func =
+	"dc::GrayscaleCharsDegradation::PreparedImage::degradation";
+      requireInRange(indepentSpotsRatio, 0.0, 1.0, "indepentSpotsRatio", func);
+      requireInRange(overlappingSpotsRatio, 0.0, 1.0, "overlappingSpotsRatio", func);
+      requireArgument(indepentSpotsRatio + overlappingSpotsRatio <= 1.0f,
+		      "indepentSpotsRatio + overlappingSpotsRatio must be at most 1",
+		      func);
+
+      const float percentOfIndepentSpots = 100.f * indepentSpotsRatio;
+      const float percentOfOverlappingSpots = 100.f * overlappingSpotsRatio;
+      const float percentageOfDisconnectionSpots =
+	100.f - percentOfIndepentSpots - percentOfOverlappingSpots;
+
+      return m_impl->model.degradate_cv(level, percentOfIndepentSpots,
+					percentOfOverlappingSpots,
+					percentageOfDisconnectionSpots, seed);
     }
 
 
