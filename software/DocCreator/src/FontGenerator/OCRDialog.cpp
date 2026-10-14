@@ -214,8 +214,80 @@ OCRDialog::getQImageFromMask(const cv::Mat &original,
   return qimg;
 }
 
+#include <cstring> //strcmp
 #include <iostream>
 #include <clocale>
+
+namespace {
+
+  /*
+    Sets a locale category to "C" for as long as it is alive, and puts the
+    previous value back.
+
+    Some versions of Tesseract require LC_NUMERIC to be "C": 3.03 prints
+    "Error: Illegal min or max specification!" from Init(), and 4.0 asserts
+    in the TessBaseAPI constructor itself ("!strcmp(locale, \"C\")", cf
+    baseapi.cpp:209). Each of the two call sites below has its own version
+    condition and its own category, kept as they were.
+
+    setlocale() changes the locale of the whole process, and it was never
+    put back: one OCR run and every QString::number(), printf("%f") and
+    std::stod() of the rest of the session used a decimal point instead of
+    whatever the user had, for as long as the application ran. The
+    LC_ALL branch also changed LC_CTYPE, LC_COLLATE and LC_TIME with it.
+
+    Tesseract and OpenCV both throw, so the restore belongs in a
+    destructor and not at the end of the function.
+  */
+  class ScopedCLocale
+  {
+  public:
+    explicit ScopedCLocale(int category)
+      : m_category(category)
+    {
+      //the condition both call sites used: LC_NUMERIC is what Tesseract
+      //looks at, whatever category is then set
+      const char *numeric = std::setlocale(LC_NUMERIC, nullptr);
+      if (numeric == nullptr || std::strcmp(numeric, "C") == 0) {
+	return; //nothing to change, nothing to restore
+      }
+
+      /*
+	For LC_ALL, setlocale() gives back a composite string naming every
+	category; it is made to be handed back to setlocale(), which is
+	how the whole locale is restored below.
+      */
+      const char *previous = std::setlocale(m_category, nullptr);
+      if (previous == nullptr) {
+	return;
+      }
+      const std::string saved = previous;
+
+      if (std::setlocale(m_category, "C") == nullptr) {
+	return; //refused: nothing was changed
+      }
+      m_saved = saved;
+
+      std::cerr << "Warning: changing the locale from " << m_saved
+		<< " to C for Tesseract\n";
+    }
+
+    ~ScopedCLocale()
+    {
+      if (! m_saved.empty()) {
+	std::setlocale(m_category, m_saved.c_str());
+      }
+    }
+
+    ScopedCLocale(const ScopedCLocale &) = delete;
+    ScopedCLocale &operator=(const ScopedCLocale &) = delete;
+
+  private:
+    int m_category;
+    std::string m_saved; //empty when there is nothing to put back
+  };
+
+} //namespace
 
 void
 OCRDialog::process()
@@ -239,29 +311,36 @@ OCRDialog::process()
 #endif //TESSERACT_VERSION
   //With tesseract 3.03.02-3 on Ubuntu 14.04, TESSERACT_VERSION is not defined
 
+  /*
+    The guard has to outlive @a tess: with tesseract 4.0.0 it is the
+    constructor that asserts, and the destructor runs with the locale
+    still set because it is declared first.
+
+    On Ubuntu 19.04, with tesseract 4.0.0 (version=262144), the
+    constructor tesseract::TessBaseAPI::TessBaseAPI() fails with
+    "!strcmp(locale, \"C\"):Error:Assert failed:in file baseapi.cpp, line
+    209". On Ubuntu 18.04 LTS with the same version there is no such
+    error.
+
+    On Ubuntu 14.04.1 with tesseract 3.03.02-3, which does not define
+    TESSERACT_VERSION, Init() fails instead:
+    "Error: Illegal min or max specification!" then
+    "\"Fatal error encountered!\" == NULL:Error:Assert failed:in file
+    globaloc.cpp, line 75". On Ubuntu 16.04 with tesseract 3.04 and the
+    same locale there is no such error.
+  */
 #if TESSERACT_VERSION == 262144
-
-  const std::string lc = setlocale(LC_NUMERIC, NULL);
-  const std::string newLocale = "C";
-  if (lc != newLocale) {
-    //setlocale(LC_NUMERIC, newLocale.c_str());
-    setlocale(LC_ALL, newLocale.c_str());
-    const std::string newLocaleSet = setlocale(LC_NUMERIC, NULL);
-    std::cerr << "Warning: changing LC_NUMERIC from " << lc << " to "
-              << newLocaleSet << " for Tesseract\n";
-
-  //On Ubuntu 19.04, with tesseract 4.0.0 (version=262144)
-  //the constructor tesseract::TessBaseAPI::TessBaseAPI()
-  //fails with this error message:
-  //!strcmp(locale, "C"):Error:Assert failed:in file baseapi.cpp, line 209
-
-  //On Ubuntu 18.04 LTS with same version of tesseract, there is no such error.
-  }
+  const ScopedCLocale cLocale(LC_ALL);
+#elif ! defined(TESSERACT_VERSION)
+  const ScopedCLocale cLocale(LC_NUMERIC);
 #endif
 
   tesseract::TessBaseAPI tess;
   //tess.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
+  //B: "tessdata" was appended to the member, so a second call to
+  // process() asked for ".../tessdatatessdata".
+  QString tessdataDir = m_tessdataParentDir;
 #if TESSERACT_VERSION >= 262144
   //On Ubuntu 18.04 LTS with tesseract 4.0 (version=262144)
   //On Ubuntu 19.10 with tesseract 4.1 (version=262400)
@@ -269,10 +348,10 @@ OCRDialog::process()
   // and thus to initialize correctly.
   //On Ubuntu 19.04 with tesseract 4.0 (version=262144) [same than 18.04]
   // it is not needed but does not hurt...
-  m_tessdataParentDir += "tessdata";
+  tessdataDir += "tessdata";
 #endif
 
-  const QByteArray tessdataParentDirBA = m_tessdataParentDir.toLatin1();
+  const QByteArray tessdataParentDirBA = tessdataDir.toLatin1();
   const char *tessdataParentDir = tessdataParentDirBA.constData();
   //B:Warning: tessdataParentDir must end with "/"
   const QByteArray languageBA = m_language.toLatin1();
@@ -280,30 +359,6 @@ OCRDialog::process()
 
   std::cerr << "ocr tessdataParentDir=" << tessdataParentDir << "\n";
   std::cerr << "ocr language=" << language << "\n";
-
-#ifndef TESSERACT_VERSION
-
-  const std::string lc = setlocale(LC_NUMERIC, NULL);
-  const std::string newLocale = "C";
-  if (lc != newLocale) {
-    setlocale(LC_NUMERIC, newLocale.c_str());
-    const std::string newLocaleSet = setlocale(LC_NUMERIC, NULL);
-    std::cerr << "Warning: changing LC_NUMERIC from " << lc << " to "
-              << newLocaleSet << " for Tesseract\n";
-    /*
-      On Ubuntu 14.04.1, with tesseract 3.03.02-3,
-      if we do not change the LC_NUMERIC to C and let it to fr_FR.UTF-8 for example,
-      tess.Init() fails and prints the following error:
-
-      Error: Illegal min or max specification!
-      "Fatal error encountered!" == NULL:Error:Assert failed:in file globaloc.cpp, line 75
-
-      On Ubuntu 16.04, tesseract 3.04, with same locale, there is no such error.
-
-      It seems that tesseract 3.03.02-3 does not define TESSERACT_VERSION
-    */
-  }
-#endif //TESSERACT_VERSION
 
   const int tessInitFailed =
     tess.Init(tessdataParentDir, language, tesseract::OEM_DEFAULT);
