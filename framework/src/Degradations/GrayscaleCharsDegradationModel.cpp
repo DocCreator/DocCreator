@@ -1376,30 +1376,42 @@ namespace dc {
   {
     assert(m_mat_binary.type() == CV_8UC1);
 
-    CCs ccsInfo;
+    /*
+      B: this listed the pixels of every connected component, with a flood
+      fill: 120 ms of the 179 this function took on a 4721x6564 page.
+
+      Nothing here needs those lists. What the acceptance and the painting
+      below are made of is the size and the bounding box of each
+      component, which cv::connectedComponentsWithStats gives directly,
+      and the only thing the pixels were used for is marking the two masks
+      -- one pass over the label image, which splits into rows.
+
+      Building the point lists from the labels would not be faster: it
+      costs more than the flood fill does. They are simply not needed here.
+      ConnectedComponent::extractAllConnectedComponents() stays as it is
+      for PhantomCharacter, which does need them.
+
+      The foreground here is the text, which binarize() leaves at 0, and
+      cv::connectedComponents reads the non-zero pixels as the foreground:
+      hence the inversion.
+    */
     constexpr int connectivity = 4;
-    ConnectedComponent::extractAllConnectedComponents(
-						      m_mat_binary, ccsInfo, connectivity);
+    cv::Mat foreground;
+    cv::bitwise_not(m_mat_binary, foreground);
+    cv::Mat labels;
+    cv::Mat stats;
+    cv::Mat centroids;
+    const int numLabels = cv::connectedComponentsWithStats(
+      foreground, labels, stats, centroids, connectivity, CV_32S);
+    foreground.release();
+    //label 0 is the background
+    const size_t numCCs = (numLabels > 0) ? static_cast<size_t>(numLabels - 1) : 0;
 
     m_mat_reduce_pixels = cv::Mat::zeros(m_mat_binary.size(), m_mat_binary.type());
-    m_mat_CCs = cv::Mat(m_mat_binary.size(), m_mat_binary.type());
+    m_mat_CCs = cv::Mat(m_mat_binary.size(), m_mat_binary.type(), cv::Scalar(255));
 
     cv::Mat mat_Accepted_CCs =
       cv::Mat::zeros(m_mat_binary.size(), m_mat_binary.type());
-
-    //set m_mat_CCs to all white (255).
-    int rows = m_mat_CCs.rows;
-    int cols = m_mat_CCs.cols;
-    if (m_mat_CCs.isContinuous()) {
-      cols *= rows;
-      rows = 1;
-    }
-    for (int y = 0; y < rows; ++y) {
-      uchar *m = m_mat_CCs.ptr<uchar>(y);
-      for (int x = 0; x < cols; ++x) {
-	m[x] = 255;
-      }
-    }
 
     int id_cc = 0;
 
@@ -1413,8 +1425,9 @@ namespace dc {
       size_t m0 = 0;
       double m1 = 0.0, m2 = 0.0;
       const size_t minCCSizeForMedian = std::min(3, minCCSize); //to remove noise
-      for (const CC &ccItem : ccsInfo) {
-	const size_t sz = ccItem.size();
+      for (int label = 1; label < numLabels; ++label) {
+	const size_t sz =
+	  static_cast<size_t>(stats.at<int>(label, cv::CC_STAT_AREA));
 	if (sz > minCCSizeForMedian) {
 	  ++m0;
 	  m1 += sz;
@@ -1445,10 +1458,11 @@ namespace dc {
         "big" characters on the image, the result will still be ugly...
        */
 
-      const size_t sz = ccsInfo.size();
+      const size_t sz = numCCs;
       std::vector<size_t> ccsSize(sz);
       for (size_t i=0; i<sz; ++i) {
-        ccsSize[i] = ccsInfo[i].size();
+        ccsSize[i] = static_cast<size_t>(
+	  stats.at<int>(static_cast<int>(i) + 1, cv::CC_STAT_AREA));
       }
       const auto itMed = ccsSize.begin()+sz/2;
       std::nth_element(ccsSize.begin(), itMed, ccsSize.end());
@@ -1474,49 +1488,65 @@ namespace dc {
     const int64_t max_dis_square =
       static_cast<int64_t>(max_dis) * static_cast<int64_t>(max_dis);
 
-    for (const CC &ccItem : ccsInfo) {
+    /*
+      Which components are kept, from their size and their bounding box
+      alone -- the two things the pixel lists were read for.
+    */
+    std::vector<uchar> accepted(static_cast<size_t>(std::max(numLabels, 1)), 0);
+    for (int label = 1; label < numLabels; ++label) {
+      const int ccSize = stats.at<int>(label, cv::CC_STAT_AREA);
+      if (ccSize < minCCSize) { //(to remove small CCs)
+	continue;
+      }
+      //the bounding box of OpenCV counts the pixels, the code below counts
+      //the steps between the first and the last, hence the -1
+      const int cc_width = stats.at<int>(label, cv::CC_STAT_WIDTH) - 1;
+      const int cc_height = stats.at<int>(label, cv::CC_STAT_HEIGHT) - 1;
 
-      const size_t ccSize = ccItem.size();
-      if (ccSize >= minCCSize) { //(to remove small CCs)
+      const int64_t dis_square =
+	static_cast<int64_t>(cc_width) * static_cast<int64_t>(cc_width) +
+	static_cast<int64_t>(cc_height) * static_cast<int64_t>(cc_height);
 
-	//compute AABB of cc
+      //remove boundary connected componants //B???
 
-	int max_x = INT_MIN, max_y = INT_MIN;
-	int min_x = INT_MAX, min_y = INT_MAX;
+      if (dis_square <= max_dis_square) { //(to remove big CCs)
+	accepted[static_cast<size_t>(label)] = 1;
+      }
+    }
 
-	for (size_t i = 0; i < ccSize; ++i) {
-
-	  const int x = ccItem[i].x;
-	  const int y = ccItem[i].y;
-
-	  if (max_x < x)
-	    max_x = x;
-	  if (max_y < y)
-	    max_y = y;
-
-	  if (min_x > x)
-	    min_x = x;
-	  if (min_y > y)
-	    min_y = y;
-	}
-
-	const int cc_width = max_x - min_x;
-	const int cc_height = max_y - min_y;
-
-	const int64_t dis_square =
-	  static_cast<int64_t>(cc_width) * static_cast<int64_t>(cc_width) +
-	  static_cast<int64_t>(cc_height) * static_cast<int64_t>(cc_height);
-
-	//remove boundary connected componants //B???
-
-	if (dis_square <= max_dis_square) { //(to remove big CCs)
-
-	  for (size_t i = 0; i < ccSize; ++i) {
-	    const int x = ccItem[i].x;
-	    const int y = ccItem[i].y;
-	    m_mat_CCs.at<uchar>(y, x) = 0;
-	    mat_Accepted_CCs.at<uchar>(y, x) = 255;
+    /*
+      The two masks, in one pass over the labels. This is what the lists of
+      pixels were for.
+    */
+    {
+      const int numRows = labels.rows;
+      const int numCols = labels.cols;
+      cv::parallel_for_(cv::Range(0, numRows), [&](const cv::Range &rowRange) {
+	for (int y = rowRange.start; y < rowRange.end; ++y) {
+	  const int *l = labels.ptr<int>(y);
+	  uchar *c = m_mat_CCs.ptr<uchar>(y);
+	  uchar *a = mat_Accepted_CCs.ptr<uchar>(y);
+	  for (int x = 0; x < numCols; ++x) {
+	    if (accepted[static_cast<size_t>(l[x])] != 0) {
+	      c[x] = 0;
+	      a[x] = 255;
+	    }
 	  }
+	}
+      });
+    }
+
+    //and then, in label order, what is read from the image itself
+    for (int label = 1; label < numLabels; ++label) {
+      if (accepted[static_cast<size_t>(label)] != 0) {
+	const int min_x = stats.at<int>(label, cv::CC_STAT_LEFT);
+	const int min_y = stats.at<int>(label, cv::CC_STAT_TOP);
+	const int cc_width = stats.at<int>(label, cv::CC_STAT_WIDTH) - 1;
+	const int cc_height = stats.at<int>(label, cv::CC_STAT_HEIGHT) - 1;
+	const int max_x = min_x + cc_width;
+	const int max_y = min_y + cc_height;
+
+	{
 
 	  //count continuous segments of cc,
 	  //both vertically and horizontally,
@@ -1525,7 +1555,15 @@ namespace dc {
 	  int width_of_CC = 0;
 	  int counter = 0;
 
-#if 1
+	  /*
+	    B: the other way of counting this, which only walked the
+	    component instead of its bounding box, was here behind an
+	    #else. It read the list of pixels, which this function does not
+	    build any more, and its author's own comment asked which of the
+	    two was correct -- they do not give the same m_Mean_CC_Stroke.
+	    Taking it out rather than leaving something that no longer
+	    compiles if it is switched on; git has it.
+	  */
 	  //Cuong's version
 	  //It traverses the bounding box and not only the CC
 	  // (thus if several CC bounding boxes intersect, we count their pixels
@@ -1568,57 +1606,6 @@ namespace dc {
 	      }
 	    }
 	  }
-
-#else
-
-	  //Boris' version.
-	  //Only traverse the CC.
-	  //which version is correct ??? [it should change only m_Mean_CC_Stroke]
-	  {
-
-	    CC cc = ccItem;
-	    std::sort(cc.begin(), cc.end(), PtSorter_Y_X());
-
-	    int prev_x = cc[0].x;
-	    int prev_y = cc[0].y;
-	    width_of_CC = ccSize;
-	    counter = 1;
-	    for (size_t i = 1; i < ccSize; ++i) { //start from 1
-	      const int x = cc[i].x;
-	      const int y = cc[i].y;
-	      if (y == prev_y) {
-		if (x > prev_x + 1) {
-		  ++counter;
-		}
-	      } else {
-		assert(y > prev_y);
-		++counter;
-	      }
-	      prev_x = x;
-	      prev_y = y;
-	    }
-
-	    std::sort(cc.begin(), cc.end(), PtSorter_X_Y());
-	    prev_x = cc[0].x;
-	    prev_y = cc[0].y;
-	    width_of_CC += ccSize;
-	    counter += 1;
-	    for (size_t i = 1; i < ccSize; ++i) { //start from 1
-	      const int x = cc[i].x;
-	      const int y = cc[i].y;
-	      if (x == prev_x) {
-		if (y > prev_y + 1)
-		  ++counter;
-	      } else {
-		assert(x > prev_x);
-		++counter;
-	      }
-	      prev_x = x;
-	      prev_y = y;
-	    }
-	  }
-
-#endif //0
 
 	  assert(counter > 0);
 	  m_Mean_CC_Stroke += width_of_CC / static_cast<float>(counter);
