@@ -122,7 +122,6 @@ namespace Doc
     void DocTextBlock::add(DocParagraph* e)
     {
         DocParagraph* next = nextElement();
-        DocParagraph* previous = previousElement();
         const bool dontSplitNext = (next == nullptr || (next->isAtBeginning() || next->isAtEnd()));
         const bool dontSplit = (this->isEmpty() || this->isAtBeginning() || this->isAtEnd());
         if (dontSplit || dontSplitNext) {
@@ -133,23 +132,43 @@ namespace Doc
             this->setOffset(oldOffset+eLength);
         }
         else {
-            DocParagraph* current = next;
-            if (current == nullptr) {
-                current = previous;
-	    }
-            if (current == nullptr) {
-                return;
-	    }
+            /*
+              The cursor is inside a paragraph: it is split there, and the
+              split is the paragraph break. An empty paragraph -- what the
+              Return key adds -- is nothing more than that break, and is
+              deleted. A paragraph with content goes between the two halves.
 
-            int oldOffset = this->offset();
-            QList<DocParagraph*> splitted = current->splitAtPosition(current->offset());
-            DocParagraph* toRemove = _elements.at(_index);
+              B: the paragraph that was split was taken out of the list and
+              never deleted, with its strings, which kept their style
+              referenced; and @a e was neither inserted nor deleted. Both
+              leaked on every Return inside a paragraph.
+            */
+            DocParagraph* current = next; //not null: dontSplitNext is false
+            const int oldOffset = this->offset();
+            const QList<DocParagraph*> halves =
+              current->splitAtPosition(current->offset());
+            if (halves.size() != 2) { //current is not empty: cannot happen
+                delete e;
+                return;
+            }
+
             _elements.removeAt(_index);
-            for (DocParagraph* p : splitted) {
-                NodeOfNodes<DocParagraph>::add(p);
-	    }
-            this->setLength(this->length()-toRemove->length());
-            this->setOffset(oldOffset+e->length());
+            this->setLength(this->length()-current->length());
+
+            NodeOfNodes<DocParagraph>::add(halves.at(0));
+            //the end of paragraph of the first half, cf getStrings()
+            int moved = halves.at(0)->getStrings().last()->length();
+            if (e->isEmpty()) {
+                delete e;
+            }
+            else {
+                moved += e->length();
+                NodeOfNodes<DocParagraph>::add(e);
+            }
+            NodeOfNodes<DocParagraph>::add(halves.at(1));
+            delete current;
+
+            this->setOffset(oldOffset+moved);
         }
     }
 

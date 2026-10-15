@@ -78,38 +78,21 @@ void DocComponentBlock::add(const QList<DocComponent*> &l)
 
 void DocComponentBlock::add(DocZone* e)
 {
-    DocZone* next = nextElement();
-    DocZone* previous = previousElement();
-    const bool dontSplitNext = (next == nullptr || (next->isAtBeginning() || next->isAtEnd()));
-    const bool dontSplit = (this->isEmpty() || this->isAtBeginning() || this->isAtEnd());
-    if (dontSplit || dontSplitNext)
-    {
-        const int oldOffset = this->offset();
-        //B: read before add(), which deletes an element it refuses
-        const int eLength = e->length();
-        NodeOfNodes<DocZone>::add(e);
-        this->setOffset(oldOffset+eLength);
-    }
-    else
-    {
-        DocZone* current = next;
-        if (current == nullptr) {
-            current = previous;
-	}
-        if (current == nullptr) {
-            return;
-	}
-
-        int oldOffset = this->offset();
-        QList<DocZone*> splitted = current->splitAtPosition(current->offset());
-        DocZone* toRemove = _elements.at(_index);
-        _elements.removeAt(_index);
-        for (DocZone* p : splitted) {
-            NodeOfNodes<DocZone>::add(p);
-	}
-        this->setLength(this->length()-toRemove->length());
-        this->setOffset(oldOffset+e->length());
-    }
+    /*
+      B: when the cursor was inside a zone, this split it, put the two
+      halves in its place, and stopped there: the zone that was split was
+      taken out of the list and never deleted, and @a e was neither
+      inserted nor deleted. Zones have no end mark that would make the
+      split a separator, as it is for paragraphs (cf DocTextBlock::add()).
+      NodeOfNodes::add() does the whole of it -- split, insert @a e
+      between the halves, delete the zone that was split -- and also
+      inserts at a boundary, which is what this did otherwise.
+    */
+    const int oldOffset = this->offset();
+    //B: read before add(), which deletes an element it refuses
+    const int eLength = e->length();
+    NodeOfNodes<DocZone>::add(e);
+    this->setOffset(oldOffset+eLength);
 }
 
 void DocComponentBlock::add(const QList<DocZone*> &l)

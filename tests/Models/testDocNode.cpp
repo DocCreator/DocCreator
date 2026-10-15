@@ -3,10 +3,13 @@
 #include <QString>
 
 #include "models/doc/doccharacter.h"
+#include "models/doc/doccomponent.h"
+#include "models/doc/doccomponentblock.h"
 #include "models/doc/docparagraph.h"
 #include "models/doc/docstring.h"
 #include "models/doc/docstyle.h"
 #include "models/doc/document.h"
+#include "models/doc/doczone.h"
 #include "models/doc/doctextblock.h"
 #include "models/doc/page.h"
 
@@ -525,5 +528,170 @@ TEST_CASE( "Testing Page::add() with no current block" )
     page.add(new Doc::DocParagraph(&document));
 
     REQUIRE( page.getTextBlocks().size() == 1 );
+  }
+}
+
+
+namespace {
+
+  //@return the text of each paragraph of @a tb, with '|' for the end of
+  // a paragraph
+  QStringList
+  paragraphTexts(const Doc::DocTextBlock &tb)
+  {
+    QStringList texts;
+    for (Doc::DocParagraph *p : tb.getParagraphs()) {
+      QString text;
+      for (Doc::DocString *s : p->getStrings())
+        for (Doc::DocCharacter *c : s->getCharacters())
+          text += (c->getDisplay() == QStringLiteral("\n")) ? QStringLiteral("|") : c->getDisplay();
+      texts.append(text);
+    }
+    return texts;
+  }
+
+  //@return a new paragraph of @a text, in @a style
+  Doc::DocParagraph *
+  makeParagraph(Doc::Document &document, Doc::DocStyle *style, const QString &text)
+  {
+    auto *p = new Doc::DocParagraph(&document);
+    p->changeStyle(style);
+    for (const QChar &c : text)
+      p->add(new Doc::DocCharacter(QString(c), 0, &document));
+    return p;
+  }
+
+} //namespace
+
+TEST_CASE( "Testing DocTextBlock::add() of a paragraph, at the cursor" )
+{
+  //What the Return key does: add an empty paragraph at the cursor.
+  //Inside a paragraph, the split is the break. The paragraph that was split
+  //and the empty one used to leak: the test program is run under
+  //AddressSanitizer, whose leak checker fails it if they do.
+  Doc::Document document;
+  Doc::DocStyle *style = makeStyle(document, QStringLiteral("default"));
+
+  Doc::DocTextBlock tb(&document);
+  tb.add(makeParagraph(document, style, QStringLiteral("hello")));
+  REQUIRE( paragraphTexts(tb) == QStringList{ QStringLiteral("hello|") } );
+  REQUIRE( tb.length() == 6 );
+
+  SECTION("an empty paragraph at the beginning is an empty line before")
+  {
+    tb.setOffset(0);
+    tb.add(new Doc::DocParagraph(&document));
+    REQUIRE( paragraphTexts(tb) == (QStringList{ QStringLiteral("|"), QStringLiteral("hello|") }) );
+    REQUIRE( tb.length() == 7 );
+    REQUIRE( tb.offset() == 1 );
+  }
+
+  SECTION("an empty paragraph inside splits the paragraph there")
+  {
+    tb.setOffset(2);
+    tb.add(new Doc::DocParagraph(&document));
+    REQUIRE( paragraphTexts(tb) == (QStringList{ QStringLiteral("he|"), QStringLiteral("llo|") }) );
+    REQUIRE( tb.length() == 7 );
+    REQUIRE( tb.offset() == 3 ); //the beginning of "llo"
+  }
+
+  SECTION("an empty paragraph at the end is an empty line after")
+  {
+    tb.setOffset(5);
+    tb.add(new Doc::DocParagraph(&document));
+    REQUIRE( paragraphTexts(tb) == (QStringList{ QStringLiteral("hello|"), QStringLiteral("|") }) );
+    REQUIRE( tb.length() == 7 );
+    REQUIRE( tb.offset() == 6 );
+  }
+
+  SECTION("a paragraph with content inside goes between the two halves")
+  {
+    tb.setOffset(2);
+    tb.add(makeParagraph(document, style, QStringLiteral("XY")));
+    REQUIRE( paragraphTexts(tb) ==
+	     (QStringList{ QStringLiteral("he|"), QStringLiteral("XY|"), QStringLiteral("llo|") }) );
+    REQUIRE( tb.length() == 10 );
+    REQUIRE( tb.offset() == 6 ); //the beginning of "llo"
+  }
+
+  SECTION("two Returns inside give an empty line between the halves")
+  {
+    tb.setOffset(2);
+    tb.add(new Doc::DocParagraph(&document));
+    tb.add(new Doc::DocParagraph(&document));
+    REQUIRE( paragraphTexts(tb) ==
+	     (QStringList{ QStringLiteral("he|"), QStringLiteral("|"), QStringLiteral("llo|") }) );
+    REQUIRE( tb.length() == 8 );
+    REQUIRE( tb.offset() == 4 );
+  }
+}
+
+namespace {
+
+  //@return the ids of the components of each zone of @a block
+  QStringList
+  zoneIds(const Doc::DocComponentBlock &block)
+  {
+    QStringList zones;
+    for (Doc::DocZone *z : block.getZones()) {
+      QString ids;
+      for (Doc::DocComponent *c : z->getComponents())
+        ids += QString::number(c->getId());
+      zones.append(ids);
+    }
+    return zones;
+  }
+
+  Doc::DocComponent *
+  makeComponent(Doc::Document &document, int id)
+  {
+    return new Doc::DocComponent(Doc::Scanlines(), id, &document);
+  }
+
+} //namespace
+
+TEST_CASE( "Testing DocComponentBlock::add() of a zone, at the cursor" )
+{
+  //Inside a zone, the zone is split and the new one goes between the
+  //halves. It used to be split only: the new zone was lost, and leaked with
+  //the zone that was split.
+  Doc::Document document;
+
+  Doc::DocComponentBlock block(&document);
+  for (int id = 0; id < 3; ++id)
+    block.add(makeComponent(document, id));
+  REQUIRE( zoneIds(block) == QStringList{ QStringLiteral("012") } );
+  REQUIRE( block.length() == 3 );
+
+  auto *zone = new Doc::DocZone(&document);
+  zone->add(makeComponent(document, 7));
+  zone->add(makeComponent(document, 8));
+
+  SECTION("at the beginning")
+  {
+    block.setOffset(0);
+    block.add(zone);
+    REQUIRE( zoneIds(block) == (QStringList{ QStringLiteral("78"), QStringLiteral("012") }) );
+    REQUIRE( block.length() == 5 );
+    REQUIRE( block.offset() == 2 );
+  }
+
+  SECTION("inside a zone")
+  {
+    block.setOffset(1);
+    block.add(zone);
+    REQUIRE( zoneIds(block) ==
+	     (QStringList{ QStringLiteral("0"), QStringLiteral("78"), QStringLiteral("12") }) );
+    REQUIRE( block.length() == 5 );
+    REQUIRE( block.offset() == 3 );
+  }
+
+  SECTION("at the end")
+  {
+    block.setOffset(3);
+    block.add(zone);
+    REQUIRE( zoneIds(block) == (QStringList{ QStringLiteral("012"), QStringLiteral("78") }) );
+    REQUIRE( block.length() == 5 );
+    REQUIRE( block.offset() == 5 );
   }
 }
