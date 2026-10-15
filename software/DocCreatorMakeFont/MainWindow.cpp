@@ -1,5 +1,6 @@
 #include "MainWindow.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -726,8 +727,12 @@ saveCharactersFromFont(const RangeVector &rv,
     }
     if (! spaceAdded) {
 
-      const int space_width = sumWidths/numChars;
-      const int space_height = sumHeights/numChars;
+      //B: numChars is 0 when no character of the chosen ranges is in the
+      // font, and this divided by zero
+      const int space_width = (numChars > 0) ? sumWidths/numChars
+	: std::max(1, fontMetrics.averageCharWidth());
+      const int space_height = (numChars > 0) ? sumHeights/numChars
+	: std::max(1, fontMetrics.height());
       QImage spaceImg(space_width, space_height, QImage::Format_ARGB32);
       spaceImg.fill(qRgba(0, 0, 0, 0));
       Models::CharacterData *chd = new Models::CharacterData(spaceImg, 0);
