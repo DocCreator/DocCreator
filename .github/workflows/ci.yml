@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The degradation library alone, with its python bindings and the
+          # test of its installed CMake package.
+          - name: degradations, gcc, Release
+            packages: python3-dev python3-numpy python3-pytest python3-build python3-setuptools python3-wheel
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DBUILD_ONLY_DEGRADATIONS=ON
+              -DBUILD_OTHER_PROGS=ON
+              -DBUILD_PYTHON_WRAPPER=ON
+
+          - name: degradations with OSMesa, gcc, Release
+            packages: libosmesa6-dev
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DBUILD_ONLY_DEGRADATIONS=ON
+              -DBUILD_WITH_OSMESA=ON
+
+          # Everything, with Qt 6. Leptonica and tesseract are built from
+          # sources, as they are not found.
+          - name: full, clang, Release
+            packages: clang qt6-base-dev
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_C_COMPILER=clang
+              -DCMAKE_CXX_COMPILER=clang++
+              -DBUILD_OTHER_PROGS=ON
+
+          - name: full, gcc, AddressSanitizer + UndefinedBehaviorSanitizer
+            packages: qt6-base-dev
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              -DSANITIZER=address+undefined
+
+          # Debug, so -Wall and _GLIBCXX_ASSERTIONS too. The coverage target
+          # runs the tests and writes the report.
+          - name: full, gcc, Debug, coverage
+            packages: qt6-base-dev python3-dev python3-numpy python3-pytest python3-build python3-setuptools python3-wheel gcovr
+            coverage: true
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=Debug
+              -DBUILD_OTHER_PROGS=ON
+              -DBUILD_PYTHON_WRAPPER=ON
+              -DENABLE_COVERAGE=ON
+
+    env:
+      # cf. cmake/sanitizers/README.txt
+      ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1
+      LSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/lsan.supp
+      UBSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # git: leptonica and tesseract are cloned when they are built from
+      # sources.
+      - name: Install the dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build g++ git libopencv-dev ${{ matrix.packages }}
+
+      # The tesseract models, which the configuration of DocCreator
+      # downloads and checks.
+      - name: Cache the tesseract models
+        if: ${{ !contains(matrix.cmake, 'BUILD_ONLY_DEGRADATIONS=ON') }}
+        uses: actions/cache@v4
+        with:
+          path: thirdparty/tessdata
+          key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DBUILD_TESTING=ON ${{ matrix.cmake }}
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        if: ${{ !matrix.coverage }}
+        run: ctest --test-dir build --output-on-failure --parallel 4
+
+      # ctest writes the list of the failed tests only when some fail,
+      # and does not remove an older one: cf. the check below.
+      - name: Test, and write the coverage report
+        if: ${{ matrix.coverage }}
+        run: |
+          rm -f build/Testing/Temporary/LastTestsFailed.log
+          cmake --build build --target coverage
+
+      - name: Upload the coverage report
+        if: ${{ matrix.coverage }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: build/coverage/
+
+      # The coverage target writes its report even when tests fail, and
+      # only warns: ctest's list of the failed tests says whether they did.
+      - name: Check that the tests passed
+        if: ${{ matrix.coverage }}
+        run: |
+          failed=build/Testing/Temporary/LastTestsFailed.log
+          if [ -s "$failed" ]; then
+            echo "Failed tests:"
+            cat "$failed"
+            exit 1
+          fi
