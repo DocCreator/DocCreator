@@ -124,7 +124,9 @@ namespace Doc
 	  const bool previousHasSameStyle = (_styleTMP == styleOfPrevious ||
 					     (_styleTMP != nullptr && styleOfPrevious != nullptr &&
 					      _styleTMP->getName() == styleOfPrevious->getName()));
-	  if (verifyPrevious && previousHasSameStyle) {
+	  //B: with no previous string and no style, the two styles compared
+	  // equal (both null) and current became null
+	  if (verifyPrevious && previous != nullptr && previousHasSameStyle) {
 	    current = previous;
 	  }
 	  else {
@@ -134,8 +136,10 @@ namespace Doc
         }
 
 	assert(current);
+	//B: read before add(), which deletes an element it refuses
+	const int eLength = e->length();
         current->add(e);
-        setLength(length()+e->length());
+        setLength(length()+eLength);
     }
 
     void DocParagraph::add(const QList<DocCharacter*> &l)

@@ -126,9 +126,11 @@ namespace Doc
         const bool dontSplitNext = (next == nullptr || (next->isAtBeginning() || next->isAtEnd()));
         const bool dontSplit = (this->isEmpty() || this->isAtBeginning() || this->isAtEnd());
         if (dontSplit || dontSplitNext) {
-            int oldOffset = this->offset();
+            const int oldOffset = this->offset();
+            //B: read before add(), which deletes an element it refuses
+            const int eLength = e->length();
             NodeOfNodes<DocParagraph>::add(e);
-            this->setOffset(oldOffset+e->length());
+            this->setOffset(oldOffset+eLength);
         }
         else {
             DocParagraph* current = next;

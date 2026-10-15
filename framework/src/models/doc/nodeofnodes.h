@@ -128,10 +128,12 @@ namespace Doc
         this->setLength(this->length()-next->length());
         this->setOffset(currentOffset - offsetOfNext);
 
+        //B: read before add(), which deletes an element it refuses
+        const int elementLength = element->length();
         add(list.at(0));
         add(element);
         add(list.at(1));
-        setOffset(currentOffset+element->length());
+        setOffset(currentOffset+elementLength);
         //B: 'next' has been replaced by the two halves it was split into,
         // and is not in _elements any more: nothing would delete it.
         delete next;

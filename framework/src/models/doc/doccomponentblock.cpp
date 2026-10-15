@@ -64,8 +64,10 @@ void DocComponentBlock::add(DocComponent* e)
         add(current);
         setOffset(offset()-1);
     }
+    //B: read before add(), which deletes an element it refuses
+    const int eLength = e->length();
     current->add(e);
-    setLength(length()+e->length());
+    setLength(length()+eLength);
 }
 
 void DocComponentBlock::add(const QList<DocComponent*> &l)
@@ -82,9 +84,11 @@ void DocComponentBlock::add(DocZone* e)
     const bool dontSplit = (this->isEmpty() || this->isAtBeginning() || this->isAtEnd());
     if (dontSplit || dontSplitNext)
     {
-        int oldOffset = this->offset();
+        const int oldOffset = this->offset();
+        //B: read before add(), which deletes an element it refuses
+        const int eLength = e->length();
         NodeOfNodes<DocZone>::add(e);
-        this->setOffset(oldOffset+e->length());
+        this->setOffset(oldOffset+eLength);
     }
     else
     {
