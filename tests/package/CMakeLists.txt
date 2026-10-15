@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(DocCreatorPackageConsumer CXX)
 
-find_package(DocCreator 0 REQUIRED COMPONENTS Degradations)
+find_package(DocCreator 1.2 REQUIRED COMPONENTS Degradations)
 
 add_executable(consumer consumer.cpp)
 target_link_libraries(consumer PRIVATE DocCreator::Degradations)

@@ -15,7 +15,7 @@ ENDIF(CCACHE_PROGRAM)
 
 #The version of the project: of the CMake package the degradation library
 #installs (cf. cmake/DocCreatorConfig.cmake.in) and of the python module.
-PROJECT(DocCreator VERSION 0.0.0)
+PROJECT(DocCreator VERSION 1.2.0)
 
 #where "make install" puts libraries, headers and package files
 INCLUDE(GNUInstallDirs)

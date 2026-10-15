@@ -41,10 +41,12 @@ set_target_properties(DocCreatorPy PROPERTIES
 target_include_directories(DocCreatorPy PRIVATE ${Python_NumPy_INCLUDE_DIRS})
 
 target_link_libraries(DocCreatorPy PRIVATE DocCreatorDegradations)
+#DocCreatorPy.__version__, which said "dev": nothing defined VERSION_INFO
+target_compile_definitions(DocCreatorPy PRIVATE VERSION_INFO="${PROJECT_VERSION}")
 
 set(DOCCREATOR_PYTHON_NAME "DocCreatorPy") #B:TODO
 #the version of the project, cf. PROJECT() in the root CMakeLists.txt
-set(DOCCREATOR_PYTHON_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+set(DOCCREATOR_PYTHON_VERSION "${PROJECT_VERSION}")
 
 set(PACKAGE_DIR "PACKAGE")
 
