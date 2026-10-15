@@ -972,7 +972,7 @@ DocumentController::paste()
     IOManager::DocumentLoaderDirector docLoaderDirector(&docLoader);
     docLoaderDirector.constructDocument();
 
-    Doc::Document *docToPaste = docLoaderDirector.getDocument();
+    const std::unique_ptr<Doc::Document> docToPaste = docLoaderDirector.getDocument();
 
     QList<Doc::DocString *> stringsToPaste;
     stringsToPaste.reserve(20); //arbitrary
@@ -993,7 +993,6 @@ DocumentController::paste()
       }
     }
 
-    delete docToPaste;//B
 
   }
 

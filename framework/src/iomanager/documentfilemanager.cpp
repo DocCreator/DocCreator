@@ -39,7 +39,7 @@ DocumentFileManager::documentFromXml(const QString &filepath)
   DocumentLoaderDirector docLoaderDirector(&docLoader);
   docLoaderDirector.constructDocument();
 
-  return docLoaderDirector.getDocument();
+  return docLoaderDirector.getDocument().release();
 }
 
 bool

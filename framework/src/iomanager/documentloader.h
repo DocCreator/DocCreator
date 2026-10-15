@@ -1,6 +1,9 @@
 #ifndef DOCUMENTLOADER_H
 #define DOCUMENTLOADER_H
 
+#include <memory>
+#include <utility>
+
 #include <models/doc.h>
 
 namespace IOManager {
@@ -19,12 +22,13 @@ public:
     delete _output;
   }
 
-  //gives ownership
-  //B:TODO: use a shared_ptr ?
-  Doc::Document *getDocument() {
-    Doc::Document *output = _output;
-    _output = nullptr;
-    return output;
+  /*
+    @return the document built, which the caller now owns: once
+    createNewDocument() has run, it is never null. It is null only before,
+    and after it has already been taken.
+  */
+  [[nodiscard]] std::unique_ptr<Doc::Document> getDocument() {
+    return std::unique_ptr<Doc::Document>(std::exchange(_output, nullptr));
   }
 
   virtual void createNewDocument()
@@ -36,13 +40,17 @@ public:
   virtual void buildContent() = 0;
 
 protected:
-  virtual Doc::DocStyle *buildStyle() = 0;
-  virtual Doc::Page *buildPage() = 0;
-  virtual Doc::DocImageBlock *buildImageBlock() = 0;
-  virtual Doc::DocTextBlock *buildTextBlock() = 0;
-  virtual Doc::DocParagraph *buildParagraph() = 0;
-  virtual Doc::DocString *buildString() = 0;
-  virtual Doc::DocCharacter *buildCharacter() = 0;
+  /*
+    Each build*() function reads one element and @return a new object of
+    it, which the caller owns: never null.
+  */
+  virtual std::unique_ptr<Doc::DocStyle> buildStyle() = 0;
+  virtual std::unique_ptr<Doc::Page> buildPage() = 0;
+  virtual std::unique_ptr<Doc::DocImageBlock> buildImageBlock() = 0;
+  virtual std::unique_ptr<Doc::DocTextBlock> buildTextBlock() = 0;
+  virtual std::unique_ptr<Doc::DocParagraph> buildParagraph() = 0;
+  virtual std::unique_ptr<Doc::DocString> buildString() = 0;
+  virtual std::unique_ptr<Doc::DocCharacter> buildCharacter() = 0;
 
 protected:
   QString _input;

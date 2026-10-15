@@ -41,13 +41,13 @@ protected:
 		       int minValue = -MAX_PAGE_SIZE,
 		       int maxValue = MAX_PAGE_SIZE) const;
 
-  Doc::DocStyle *buildStyle() override;
-  Doc::Page *buildPage() override;
-  Doc::DocImageBlock *buildImageBlock() override;
-  Doc::DocTextBlock *buildTextBlock() override;
-  Doc::DocParagraph *buildParagraph() override;
-  Doc::DocString *buildString() override;
-  Doc::DocCharacter *buildCharacter() override;
+  std::unique_ptr<Doc::DocStyle> buildStyle() override;
+  std::unique_ptr<Doc::Page> buildPage() override;
+  std::unique_ptr<Doc::DocImageBlock> buildImageBlock() override;
+  std::unique_ptr<Doc::DocTextBlock> buildTextBlock() override;
+  std::unique_ptr<Doc::DocParagraph> buildParagraph() override;
+  std::unique_ptr<Doc::DocString> buildString() override;
+  std::unique_ptr<Doc::DocCharacter> buildCharacter() override;
 
 protected:
   //Attributes

@@ -13,7 +13,8 @@ public:
   }
   ~DocumentLoaderDirector() {}
 
-  Doc::Document *getDocument() { return _documentLoader->getDocument(); }
+  //cf DocumentLoader::getDocument()
+  [[nodiscard]] std::unique_ptr<Doc::Document> getDocument() { return _documentLoader->getDocument(); }
 
   void constructDocument()
   {

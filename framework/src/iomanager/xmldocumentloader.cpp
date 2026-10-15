@@ -97,7 +97,7 @@ XMLDocumentLoader::buildStyles()
          !_reader->atEnd()) {
     if (_reader->name() == QLatin1String("style") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      _output->addStyle(buildStyle());
+      _output->addStyle(buildStyle().release());
     }
     _reader->readNext();
   }
@@ -117,7 +117,7 @@ XMLDocumentLoader::buildContent()
 
     if (_reader->name() == QLatin1String("page") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      _output->add(buildPage());
+      _output->add(buildPage().release());
     }
     _reader->readNext();
   }
@@ -126,10 +126,10 @@ XMLDocumentLoader::buildContent()
 }
 
 //protected:
-Doc::DocStyle *
+std::unique_ptr<Doc::DocStyle>
 XMLDocumentLoader::buildStyle()
 {
-  Doc::DocStyle *s = new Doc::DocStyle(
+  auto s = std::make_unique<Doc::DocStyle>(
     _reader->attributes().value(QStringLiteral("name")).toString());
 
   //Reading style from xml
@@ -146,10 +146,10 @@ XMLDocumentLoader::buildStyle()
   return s;
 }
 
-Doc::Page *
+std::unique_ptr<Doc::Page>
 XMLDocumentLoader::buildPage()
 {
-  auto p = new Doc::Page(_output);
+  auto p = std::make_unique<Doc::Page>(_output);
   p->setBackgroundFileName(_reader->attributes()
                              .value(QStringLiteral("backgroundFileName"))
                              .toString());
@@ -160,11 +160,11 @@ XMLDocumentLoader::buildPage()
          !_reader->atEnd()) {
     if (_reader->name() == QLatin1String("textBlock") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      p->add(buildTextBlock());
+      p->add(buildTextBlock().release());
     }
     if (_reader->name() == QLatin1String("imageBlock") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      p->add(buildImageBlock());
+      p->add(buildImageBlock().release());
     }
     _reader->readNext();
   }
@@ -172,10 +172,10 @@ XMLDocumentLoader::buildPage()
   return p;
 }
 
-Doc::DocImageBlock *
+std::unique_ptr<Doc::DocImageBlock>
 XMLDocumentLoader::buildImageBlock()
 {
-  auto ib = new Doc::DocImageBlock(
+  auto ib = std::make_unique<Doc::DocImageBlock>(
     _reader->attributes().value(QStringLiteral("filePath")).toString());
 
   ib->setX(readIntAttribute(QStringLiteral("x")));
@@ -186,10 +186,10 @@ XMLDocumentLoader::buildImageBlock()
   return ib;
 }
 
-Doc::DocTextBlock *
+std::unique_ptr<Doc::DocTextBlock>
 XMLDocumentLoader::buildTextBlock()
 {
-  auto tb = new Doc::DocTextBlock(_output);
+  auto tb = std::make_unique<Doc::DocTextBlock>(_output);
 
   tb->setX(readIntAttribute(QStringLiteral("x")));
   tb->setY(readIntAttribute(QStringLiteral("y")));
@@ -206,7 +206,7 @@ XMLDocumentLoader::buildTextBlock()
          !_reader->atEnd()) {
     if (_reader->name() == QLatin1String("paragraph") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      tb->add(buildParagraph());
+      tb->add(buildParagraph().release());
     }
     _reader->readNext();
   }
@@ -214,10 +214,10 @@ XMLDocumentLoader::buildTextBlock()
   return tb;
 }
 
-Doc::DocParagraph *
+std::unique_ptr<Doc::DocParagraph>
 XMLDocumentLoader::buildParagraph()
 {
-  auto p = new Doc::DocParagraph(_output);
+  auto p = std::make_unique<Doc::DocParagraph>(_output);
 
   p->setLineSpacing(readIntAttribute(QStringLiteral("lineSpacing"), 0));
   p->setTabulationSize(readIntAttribute(QStringLiteral("tabulationSize"), 0));
@@ -228,7 +228,7 @@ XMLDocumentLoader::buildParagraph()
          !_reader->atEnd()) {
     if (_reader->name() == QLatin1String("string") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      p->add(buildString());
+      p->add(buildString().release());
     }
     _reader->readNext();
   }
@@ -236,7 +236,7 @@ XMLDocumentLoader::buildParagraph()
   return p;
 }
 
-Doc::DocString *
+std::unique_ptr<Doc::DocString>
 XMLDocumentLoader::buildString()
 {
   /*
@@ -252,7 +252,7 @@ XMLDocumentLoader::buildString()
     style = new Doc::DocStyle(styleName);
   }
 
-  auto *s = new Doc::DocString(style, _output);
+  auto s = std::make_unique<Doc::DocString>(style, _output);
 
   //Reading textblock content from xml
   while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
@@ -260,7 +260,7 @@ XMLDocumentLoader::buildString()
          !_reader->atEnd()) {
     if (_reader->name() == QLatin1String("char") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
-      s->add(buildCharacter());
+      s->add(buildCharacter().release());
     }
     _reader->readNext();
   }
@@ -268,7 +268,7 @@ XMLDocumentLoader::buildString()
   return s;
 }
 
-Doc::DocCharacter *
+std::unique_ptr<Doc::DocCharacter>
 XMLDocumentLoader::buildCharacter()
 {
   const int id = readIntAttribute(QStringLiteral("id"),
@@ -280,7 +280,7 @@ XMLDocumentLoader::buildCharacter()
   const int y = readIntAttribute(QStringLiteral("y"));
   const int w = readIntAttribute(QStringLiteral("width"), 0);
   const int h = readIntAttribute(QStringLiteral("height"), 0);
-  Doc::DocCharacter *c = new Doc::DocCharacter(display, id, _output);
+  auto c = std::make_unique<Doc::DocCharacter>(display, id, _output);
   c->setX(x);
   c->setY(y);
   c->setHeight(h);
