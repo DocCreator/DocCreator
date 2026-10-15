@@ -296,3 +296,72 @@ TEST_CASE( "Testing the document XML round trip" )
     delete doc2;
   }
 }
+
+
+#include "models/doc/doccharacter.h"
+#include "models/doc/docparagraph.h"
+#include "models/doc/docstyle.h"
+#include "models/doc/doctextblock.h"
+
+namespace {
+
+  QString
+  readText(const QString &filename)
+  {
+    QFile file(filename);
+    REQUIRE( file.open(QFile::ReadOnly) );
+    return QString::fromUtf8(file.readAll());
+  }
+
+  Doc::DocParagraph *
+  paragraphOf(Doc::Document &document, Doc::DocStyle *style, const QString &text)
+  {
+    auto *p = new Doc::DocParagraph(&document);
+    p->changeStyle(style);
+    for (const QChar &c : text)
+      p->add(new Doc::DocCharacter(QString(c), 0, &document));
+    return p;
+  }
+
+} //namespace
+
+TEST_CASE( "Testing the text export of a document" )
+{
+  Doc::Document document;
+  auto *style = new Doc::DocStyle(QStringLiteral("default"), QStringLiteral("defaultFont"));
+  document.addStyle(style);
+  IOManager::DocumentFileManager manager;
+  const QString filename = QStringLiteral("tmp_doc_export.txt");
+
+  SECTION("an empty document gives an empty file")
+  {
+    REQUIRE( manager.documentToTxt(&document, filename) );
+    REQUIRE( readText(filename).isEmpty() );
+  }
+
+  SECTION("the characters, in their order")
+  {
+    document.add(paragraphOf(document, style, QStringLiteral("héllo, wörld")));
+    REQUIRE( manager.documentToTxt(&document, filename) );
+    REQUIRE( readText(filename) == QStringLiteral("héllo, wörld") );
+  }
+
+  SECTION("every paragraph and every block")
+  {
+    //the end of a paragraph is not written, cf TxtDocumentSaver::
+    //buildParagraph(): whether paragraphs are separated is not checked
+    //here, only that nothing is lost or reordered
+    document.add(paragraphOf(document, style, QStringLiteral("first")));
+    document.add(paragraphOf(document, style, QStringLiteral("second")));
+    auto *block = new Doc::DocTextBlock(&document);
+    block->add(paragraphOf(document, style, QStringLiteral("third")));
+    document.currentPage()->add(block);
+
+    REQUIRE( manager.documentToTxt(&document, filename) );
+    QString text = readText(filename);
+    text.remove(QLatin1Char('\n'));
+    REQUIRE( text == QStringLiteral("firstsecondthird") );
+  }
+
+  QFile::remove(filename);
+}

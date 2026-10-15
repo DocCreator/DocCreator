@@ -218,3 +218,139 @@ TEST_CASE( "Testing HoleDegradation" )
   
 
 }
+
+
+/*
+  Border and corner holes. The patterns are drawn for the top border and
+  the top left corner, and turned for the other sides: what was at the top
+  goes to the right, the bottom or the left. A pattern whose hole is not
+  symmetrical shows each turn: its black part is a 6x5 block in the top
+  left of a 20x10 pattern.
+*/
+namespace {
+
+  //@return the bounding box of the pixels of @a m that are @a color
+  cv::Rect
+  boxOfColor(const cv::Mat &m, const cv::Vec3b &color)
+  {
+    cv::Mat mask;
+    cv::inRange(m, cv::Scalar(color[0], color[1], color[2]),
+		cv::Scalar(color[0], color[1], color[2]), mask);
+    return cv::boundingRect(mask);
+  }
+
+  cv::Mat
+  asymmetricPattern()
+  {
+    cv::Mat pattern(10, 20, CV_8UC1, cv::Scalar(255));
+    pattern(cv::Rect(0, 0, 6, 5)).setTo(0); //x 0..5, y 0..4
+    return pattern;
+  }
+
+} //namespace
+
+TEST_CASE( "Testing HoleDegradation border and corner sides" )
+{
+  using namespace dc::HoleDegradation;
+
+  const cv::Mat img(50, 50, CV_8UC3, cv::Scalar(255, 255, 255));
+  const cv::Vec3b color(10, 20, 30);
+  const cv::Scalar colorS(10, 20, 30, 255);
+  const cv::Mat pattern = asymmetricPattern();
+
+  auto box = [&](HoleType type, HoleSide side) {
+    const cv::Mat out = addHole(img, pattern, cv::Point(0, 0), 0, type, side, colorS);
+    REQUIRE( out.size() == img.size() );
+    return boxOfColor(out, color);
+  };
+
+  SECTION("border")
+  {
+    //the pattern turned: 20x10 for top and bottom, 10x20 for the sides
+    REQUIRE( box(HoleType::BORDER, HoleSide::BORDER_TOP) == cv::Rect(0, 0, 6, 5) );
+    REQUIRE( box(HoleType::BORDER, HoleSide::BORDER_BOTTOM) == cv::Rect(0, 5, 6, 5) );
+    REQUIRE( box(HoleType::BORDER, HoleSide::BORDER_LEFT) == cv::Rect(0, 0, 5, 6) );
+    REQUIRE( box(HoleType::BORDER, HoleSide::BORDER_RIGHT) == cv::Rect(5, 0, 5, 6) );
+  }
+
+  SECTION("corner")
+  {
+    REQUIRE( box(HoleType::CORNER, HoleSide::CORNER_TOPLEFT) == cv::Rect(0, 0, 6, 5) );
+    REQUIRE( box(HoleType::CORNER, HoleSide::CORNER_TOPRIGHT) == cv::Rect(14, 0, 6, 5) );
+    REQUIRE( box(HoleType::CORNER, HoleSide::CORNER_BOTTOMRIGHT) == cv::Rect(14, 5, 6, 5) );
+    REQUIRE( box(HoleType::CORNER, HoleSide::CORNER_BOTTOMLEFT) == cv::Rect(0, 5, 6, 5) );
+  }
+
+  SECTION("a pattern in colour is taken as its gray")
+  {
+    cv::Mat pattern3, pattern4;
+    cv::cvtColor(pattern, pattern3, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(pattern, pattern4, cv::COLOR_GRAY2BGRA);
+    const cv::Mat out3 = addHole(img, pattern3, cv::Point(0, 0), 0, HoleType::BORDER, HoleSide::BORDER_BOTTOM, colorS);
+    const cv::Mat out4 = addHole(img, pattern4, cv::Point(0, 0), 0, HoleType::BORDER, HoleSide::BORDER_BOTTOM, colorS);
+    REQUIRE( boxOfColor(out3, color) == cv::Rect(0, 5, 6, 5) );
+    REQUIRE( boxOfColor(out4, color) == cv::Rect(0, 5, 6, 5) );
+  }
+
+  SECTION("a size enlarges the pattern")
+  {
+    const cv::Mat out = addHole(img, pattern, cv::Point(0, 0), 10, HoleType::BORDER, HoleSide::BORDER_TOP, colorS);
+    //the 20x10 pattern resized to 30x20: the hole grows with it
+    const cv::Rect b = boxOfColor(out, color);
+    REQUIRE( b.width > 6 );
+    REQUIRE( b.height > 5 );
+  }
+}
+
+/*
+  The shadow: the pixels of the hole within shadowBorderWidth - 1 of its
+  edge get the colour of the hole times shadowBorderIntensity (the alpha of
+  a 4 channel image excepted). With a black hole, the default, nothing
+  shows.
+*/
+TEST_CASE( "Testing HoleDegradation shadow border" )
+{
+  using namespace dc::HoleDegradation;
+
+  //a 10x10 hole in the middle of a 20x20 pattern
+  cv::Mat pattern(20, 20, CV_8UC1, cv::Scalar(255));
+  pattern(cv::Rect(5, 5, 10, 10)).setTo(0);
+
+  const cv::Scalar color(200, 200, 200, 255);
+  const int RING = 36; //outer ring of a 10x10 square
+  const int INSIDE = 64;
+
+  SECTION("gray")
+  {
+    const cv::Mat img(20, 20, CV_8UC1, cv::Scalar(255));
+    const cv::Mat out = addHole(img, pattern, cv::Point(0, 0), 0, HoleType::CENTER, HoleSide::BORDER_TOP, color, cv::Mat(), 2, .5f);
+    REQUIRE( countPixelsOfColor<uchar>(out, 100) == RING );
+    REQUIRE( countPixelsOfColor<uchar>(out, 200) == INSIDE );
+  }
+
+  SECTION("colour, and the alpha left alone")
+  {
+    const cv::Mat img3(20, 20, CV_8UC3, cv::Scalar(255, 255, 255));
+    const cv::Mat out3 = addHole(img3, pattern, cv::Point(0, 0), 0, HoleType::CENTER, HoleSide::BORDER_TOP, color, cv::Mat(), 2, .5f);
+    REQUIRE( countPixelsOfColor<cv::Vec3b>(out3, cv::Vec3b(100, 100, 100)) == RING );
+    REQUIRE( countPixelsOfColor<cv::Vec3b>(out3, cv::Vec3b(200, 200, 200)) == INSIDE );
+
+    const cv::Mat img4(20, 20, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+    const cv::Mat out4 = addHole(img4, pattern, cv::Point(0, 0), 0, HoleType::CENTER, HoleSide::BORDER_TOP, color, cv::Mat(), 2, .5f);
+    REQUIRE( countPixelsOfColor<cv::Vec4b>(out4, cv::Vec4b(100, 100, 100, 255)) == RING );
+  }
+
+  SECTION("an intensity above 1 saturates")
+  {
+    const cv::Mat img(20, 20, CV_8UC1, cv::Scalar(255));
+    const cv::Mat out = addHole(img, pattern, cv::Point(0, 0), 0, HoleType::CENTER, HoleSide::BORDER_TOP, color, cv::Mat(), 2, 2.f);
+    REQUIRE( countPixelsOfColor<uchar>(out, 255) == 20 * 20 - INSIDE );
+  }
+
+  SECTION("no width, no shadow")
+  {
+    const cv::Mat img(20, 20, CV_8UC1, cv::Scalar(255));
+    const cv::Mat out = addHole(img, pattern, cv::Point(0, 0), 0, HoleType::CENTER, HoleSide::BORDER_TOP, color, cv::Mat(), 0, .5f);
+    REQUIRE( countPixelsOfColor<uchar>(out, 200) == RING + INSIDE );
+  }
+}
