@@ -2,6 +2,8 @@
 
 SET(TESTS_UTILS_SRC
   testConvertor.cpp
+  testConnectedComponentExtraction.cpp
+  testImageUtils.cpp
   )
 
 FOREACH(FILE ${TESTS_UTILS_SRC})

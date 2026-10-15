@@ -77,8 +77,9 @@ toGray(const QImage &img)
       QRgb *d = (QRgb *)outImg.scanLine(i);
 
       for (int j = 0; j < w; ++j) {
-        assert(*s < colorTable.size());
-        *d = colorTable.at(*s);
+        //B: an index past the color table was an assert only, and an
+        // out-of-bounds read without it. QImage::pixel() gives 0 for it.
+        *d = (*s < colorTableSize) ? colorTable.at(*s) : qRgb(0, 0, 0);
         ++d;
         ++s;
       }
