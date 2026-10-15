@@ -25,11 +25,15 @@ namespace Doc
     DocTextBlock* DocTextBlock::clone()
     {
         auto e = new DocTextBlock(this->getDocument(), this->width(), this->height(), this->x(), this->y());
-        //e->_elements = _elements; //B:BUG: should be cloned !!!
-	//B ????
-	for (DocParagraph* p : this->getElements())
-	  NodeOfNodes<DocParagraph>::add(p->clone()); //e->add(p->clone());
-	//B ??? correct ???
+	/*
+	  B: this called NodeOfNodes<DocParagraph>::add(p->clone()) on this
+	  block, not on the copy: the copy was empty, and this block got a
+	  second copy of each of its paragraphs. The copies of the paragraphs
+	  are put in the copy's list as they are in this one, and the cursor
+	  and the length copied below then describe them.
+	*/
+	for (DocParagraph* p : _elements)
+	  e->_elements.append(p->clone());
 
         e->_endOfSelection = _endOfSelection;
         e->_index = _index;

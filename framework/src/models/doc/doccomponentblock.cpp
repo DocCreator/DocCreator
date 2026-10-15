@@ -20,7 +20,10 @@ DocComponentBlock::DocComponentBlock(Document* document, int w, int h, int x, in
 
 DocComponentBlock* DocComponentBlock::clone(){
     auto e = new DocComponentBlock(this->getDocument(), this->width(), this->height(), this->x(), this->y());
-    e->_elements = _elements;
+    //B: was e->_elements = _elements: the copy held the same zones, and
+    // the two blocks deleted them twice
+    for (DocZone* z : _elements)
+        e->_elements.append(z->clone());
     e->_endOfSelection = _endOfSelection;
     e->_index = _index;
     e->_isSplitting = _isSplitting;

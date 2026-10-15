@@ -3,6 +3,7 @@
 SET(TESTS_MODELS_SRC
   testCharacter.cpp
   testDocNode.cpp
+  testDocModel.cpp
   )
 
 FOREACH(FILE ${TESTS_MODELS_SRC})

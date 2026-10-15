@@ -40,20 +40,12 @@ namespace Doc
   }
 
 
-  Page* Page::clone()
-  {
-    auto e = new Page(_document);
-    e->_textBlocks = _textBlocks;
-    e->_imageBlocks = _imageBlocks;
-    e->_testBlocks = _testBlocks;
-    e->_componentBlocks = _componentBlocks;
-
-
-    e->_otherBlocks = _otherBlocks;
-    e->_backgroundFileName = _backgroundFileName;
-
-    return e;
-  }
+  /*
+    B: Page::clone() is gone. It copied the lists of blocks, not the
+    blocks, so that the two pages deleted the same blocks; nothing called
+    it, and image, test and other blocks have no clone() to make a real
+    copy of.
+  */
 
 Page* Page::getSelection()
 {

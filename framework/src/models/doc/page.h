@@ -33,7 +33,6 @@ namespace Doc
 
     ~Page();
 
-    Page* clone();
 
     Page* getSelection();
 
