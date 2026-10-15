@@ -2778,29 +2778,39 @@ namespace dc {
   {
     //B: m_rng is seeded once per degradation, cf. degradate_cv().
 
-    for (Pixel &pixel : m_listPixels) {
-
-      const float d = pixel.distanceToEdge;
-
-      assert(d > 0); //B pixels on borders have not been kept.
-
-      // Compute probability to inverse a pixel.
-
-      if (!pixel.isBackground) { // FORGROUND
-
-	const double beta = m_rng.uniform(0.0, 50.0);
-
-	//P(0|d, beta, f) = exp(-beta*d*d)
-	pixel.probability = m_beta0 * static_cast<float>(exp((-beta) * d * d)) + m_nf;
-
-      } else { // BACKGROUND
-
-	const double alpha = m_rng.uniform(0.0, 50.0);
-
-	//P(1|d, anpha, f) = exp(-alpha*d*d)
-	pixel.probability = m_alpha0 * static_cast<float>(exp((-alpha) * d * d)) + m_nb;
-      }
+    /*
+      B: each pixel draws exactly one number, foreground or background,
+      so the draws are taken first, in the order of the list, and the
+      exp() -- most of the cost, and independent from one pixel to the
+      next -- is then computed in parallel. Same values as the single
+      loop this was.
+    */
+    const size_t sz = m_listPixels.size();
+    std::vector<double> draws(sz);
+    for (double &draw : draws) {
+      draw = m_rng.uniform(0.0, 50.0);
     }
+
+    const int numBands = std::max(1, cv::getNumThreads());
+    cv::parallel_for_(cv::Range(0, numBands), [&](const cv::Range &bands) {
+      const size_t begin = sz * bands.start / numBands;
+      const size_t end = sz * bands.end / numBands;
+      for (size_t i = begin; i < end; ++i) {
+        Pixel &pixel = m_listPixels[i];
+        const float d = pixel.distanceToEdge;
+        assert(d > 0); //B pixels on borders have not been kept.
+
+        if (!pixel.isBackground) { // FOREGROUND
+          //P(0|d, beta, f) = exp(-beta*d*d)
+          pixel.probability =
+            m_beta0 * static_cast<float>(exp((-draws[i]) * d * d)) + m_nf;
+        } else { // BACKGROUND
+          //P(1|d, alpha, f) = exp(-alpha*d*d)
+          pixel.probability =
+            m_alpha0 * static_cast<float>(exp((-draws[i]) * d * d)) + m_nb;
+        }
+      }
+    });
   }
 
   void
