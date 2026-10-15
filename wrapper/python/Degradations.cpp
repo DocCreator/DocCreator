@@ -46,42 +46,38 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   //--------------
 
   m.def("bleedThrough", &dc::BleedThrough::bleedThrough, R"pbdoc(
-	Apply a bleedthrough effect between two images.
+	Apply a bleed-through effect of a back image onto a front image.
 
-	Apply a bleedthrough effect between two images: frontImg and
-	backImg. backImg will appear as it had bled through frontImg.
+	The ink of the back of a page shows through its front: backImg
+	diffuses into frontImg, where the two images overlap.
 
-	Warnings
-	--------
-	frontImg and backImg must have the same ndim and dtype.
-	Images must have dtype==np.uint8.
-	Images must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	frontImg and backImg must be of dtype uint8 and have the same
+	number of channels, 1, 3 or 4. An exception is raised otherwise.
 
-	backImg is not transformed. In particulat, it is considered
+	backImg is not transformed. In particular, it is considered
 	already mirrored.
 
 	Parameters
 	----------
 	frontImg : ndarray
-		Front image.
+		Front image (recto).
 	backImg : ndarray
-		Back image.
+		Back image (verso).
 	numIter : int
 		Number of iterations. The higher the number of iterations,
-		the more the back image will bleed through the front
-		image.
+		the more the back image bleeds through the front image.
 	pos : tuple
-		backImg is positionned at position pos in fronImage
-		frame. Coordinates may be negative.
+		Position (x, y) of the origin of backImg in the frame of
+		frontImg. Coordinates may be negative.
 	numThreads : int
 		Maximum number of threads used to compute the effect. If 0
-		or negative, as many threads as OpenCV uses (cf
+		or negative, as many threads as OpenCV uses (cf.
 		cv2.setNumThreads()). The result does not depend on it.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than frontImg.
+		The degraded image, of the dtype and shape of frontImg.
 
 	)pbdoc",
 	py::arg("frontImg"), py::arg("backImg"), py::arg("numIter"),
@@ -90,32 +86,31 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
  //  //--------------
   
-  py::enum_<dc::BlurFilter::Method>(m, "BlurMethod", "Blur method")
-    .value("GAUSSIAN", dc::BlurFilter::Method::GAUSSIAN, "Gaussian blur method")
-    .value("MEDIAN", dc::BlurFilter::Method::MEDIAN, "Median blur method")
-    .value("NORMAL", dc::BlurFilter::Method::NORMAL, "Normal blur method");
+  py::enum_<dc::BlurFilter::Method>(m, "BlurMethod", "Blur filter")
+    .value("GAUSSIAN", dc::BlurFilter::Method::GAUSSIAN, "Gaussian blur, cf. cv2.GaussianBlur()")
+    .value("MEDIAN", dc::BlurFilter::Method::MEDIAN, "median filter, cf. cv2.medianBlur()")
+    .value("NORMAL", dc::BlurFilter::Method::NORMAL, "box filter, the mean of the kernel, cf. cv2.blur()");
   
   m.def("blur", &dc::BlurFilter::blur, R"pbdoc(
-	Apply a blur filter to an image.
+	Blur an image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to blur.
 	method : DocCreatorPy.BlurMethod
-		Kind of blur to apply.
+		Blur filter.
 	kernelSize : int
-		kernel size of blur filter. It must be positive and odd.
+		Size of the filter kernel. It must be positive, and odd for
+		GAUSSIAN and MEDIAN.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The blurred image, of the dtype and shape of img.
 
 	)pbdoc",
  	py::arg("img"), py::arg("method"), py::arg("kernelSize"));
@@ -126,42 +121,50 @@ PYBIND11_MODULE(DocCreatorPy, m) {
  //  //--------------
 
   m.def("degrade3D", &dc::Distortion3D::degrade3D, R"pbdoc(
-	Apply 3D distortion to an image.
+	Apply a 3D distortion to an image.
 
-	Algorithm described in:
-	Semi-synthetic Document Image Generation Using Texture Mapping
-	on Scanned 3D Document Shapes
-	KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel,
-	MULLOT, Rémy, DOMENGER, Jean-Philippe
-	In : 2013 12th International Conference on Document Analysis
-	and Recognition (ICDAR). IEEE, 2013. p. 489-493.
+	The image is mapped as a texture onto a 3D mesh of a scanned
+	document, which is rendered with a lighting, as described in:
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	Kieu, Van Cuong; Journet, Nicholas; Visani, Muriel; Mullot,
+	Rémy; Domenger, Jean-Philippe. Semi-synthetic Document Image
+	Generation Using Texture Mapping on Scanned 3D Document Shapes.
+	In: 2013 12th International Conference on Document Analysis and
+	Recognition (ICDAR). IEEE, 2013, p. 489-493.
 
-	The background will be black.
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
+
+	The background, where the mesh does not cover the image, is
+	black.
+
+	The rendering needs OSMesa: in a module built without it, a
+	warning is printed on the standard error and a copy of img
+	is returned.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to distort.
 	meshFilename : str
-		Input mesh filename. Mesh file must an .obj or .brs file,
-		with texture coordinates.
+		Mesh file, in the .obj or the .brs format. The mesh must
+		have texture coordinates.
 	random : bool
-		Indicates if a random lighting and orientation must be
-		used.
+		Whether the lighting and the orientation of the mesh are
+		random.
 	seed : int, optional
-		Seed of the random lighting and orientation. If None, a non
-		reproducible seed is used. Two calls with the same seed and
-		the same parameters give the same result.
+		Seed of the random lighting and orientation. If None, a
+		non-reproducible seed is used. Two calls with the same seed
+		and the same arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The distorted image, of the dtype and shape of img.
+
+	See Also
+	--------
+	degrade3DN, degrade3DWithBackground
 
 	)pbdoc",
 	py::arg("img"), py::arg("meshFilename"),
@@ -169,47 +172,45 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	py::arg("seed") = py::none());
   
   m.def("degrade3DN", &dc::Distortion3D::degrade3DN, R"pbdoc(
-	Apply 3D distortion to an image and save N output images.
+	Apply numOutputImages 3D distortions to an image, and save them
+	as PNG images.
 
-	Algorithm described in:
-	Semi-synthetic Document Image Generation Using Texture Mapping
-	on Scanned 3D Document Shapes
-	KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel,
-	MULLOT, Rémy, DOMENGER, Jean-Philippe
-	In : 2013 12th International Conference on Document Analysis
-	and Recognition (ICDAR). IEEE, 2013. p. 489-493.
+	The images are saved as outputPrefix + "_" + their index, padded
+	with zeros to the width of the largest one, + ".png". They have
+	the dtype and shape of img, and a black background. The series
+	is reproducible from one seed, and its images differ from each
+	other.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
-	The background will be black.
+	The rendering needs OSMesa: in a module built without it, a
+	warning is printed on the standard error and no image is
+	saved.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to distort.
 	numOutputImages : int
-		Number of generated output images to save.
+		Number of images to save.
 	meshFilename : str
-		Input mesh filename. Mesh file must an .obj or .brs file,
-		with texture coordinates.
+		Mesh file, in the .obj or the .brs format. The mesh must
+		have texture coordinates.
 	outputPrefix : str
-		Prefix of output images. It may contain the path where to
-		save images.
+		Prefix of the file names. It may contain the directory to
+		save the images into.
 	random : bool
-		Indicates if a random lighting and orientation must be
-		used.
+		Whether the lighting and the orientation of the mesh are
+		random.
 	seed : int, optional
-		Seed of the random lighting and orientation. If None, a non
-		reproducible seed is used. Two calls with the same seed and
-		the same parameters give the same result.
+		Seed of the random lighting and orientation. If None, a
+		non-reproducible seed is used. Two calls with the same seed
+		and the same arguments give the same result.
 
-	Returns
-	-------
-	ndarray
-		The modified image, with same shape and dtype than img.
+	See Also
+	--------
+	degrade3D
 
 	)pbdoc",
 	py::arg("img"), py::arg("numOutputImages"),
@@ -219,44 +220,46 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   m.def("degrade3DWithBackground",
 	&dc::Distortion3D::degrade3DWithBackground, R"pbdoc(
-	Apply 3D distortion to an image, with another image in the
+	Apply a 3D distortion to an image, with another image in the
 	background.
 
-	Algorithm described in:
-	Semi-synthetic Document Image Generation Using Texture Mapping
-	on Scanned 3D Document Shapes
-	KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel,
-	MULLOT, Rémy, DOMENGER, Jean-Philippe
-	In : 2013 12th International Conference on Document Analysis
-	and Recognition (ICDAR). IEEE, 2013. p. 489-493.
+	The distortion is that of degrade3D(), as described in:
 
-	Warnings
-	--------
-	Images must have dtype==np.uint8.
-	Images must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	Kieu, Van Cuong; Journet, Nicholas; Visani, Muriel; Mullot,
+	Rémy; Domenger, Jean-Philippe. Semi-synthetic Document Image
+	Generation Using Texture Mapping on Scanned 3D Document Shapes.
+	In: 2013 12th International Conference on Document Analysis and
+	Recognition (ICDAR). IEEE, 2013, p. 489-493.
+
+	img and backgroundImg must be of dtype uint8, with ndim 2, or
+	ndim 3 and shape[2] 1, 3 or 4. An exception is raised otherwise.
+
+	The rendering needs OSMesa: in a module built without it, a
+	warning is printed on the standard error and a copy of img
+	is returned.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to distort.
 	meshFilename : str
-		Input mesh filename. Mesh file must an .obj or .brs file,
-		with texture coordinates.
+		Mesh file, in the .obj or the .brs format. The mesh must
+		have texture coordinates.
 	backgroundImg : ndarray
-		Background image.
+		Image shown where the mesh does not cover the image.
 	random : bool
-		Indicates if a random lighting and orientation must be
-		used.
+		Whether the lighting and the orientation of the mesh are
+		random.
 	seed : int, optional
-		Seed of the random lighting and orientation. If None, a non
-		reproducible seed is used. Two calls with the same seed and
-		the same parameters give the same result.
+		Seed of the random lighting and orientation. If None, a
+		non-reproducible seed is used. Two calls with the same seed
+		and the same arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape[:2] and dtype than
-		img. shape[3] will be the largest of the input images.
+		The distorted image, of the size of img, and of the number
+		of channels of the input image that has the most.
 
 	)pbdoc",
 	py::arg("img"), py::arg("meshFilename"),
@@ -266,48 +269,41 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
   m.def("degrade3DWithBackgroundN",
 	&dc::Distortion3D::degrade3DWithBackgroundN, R"pbdoc(
-	Apply 3D distortion to an image, with another image in the
-	background, and save N output images.
+	Apply numOutputImages 3D distortions to an image, with another
+	image in the background, and save them as PNG images.
 
-	Algorithm described in:
-	Semi-synthetic Document Image Generation Using Texture Mapping
-	on Scanned 3D Document Shapes
-	KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel,
-	MULLOT, Rémy, DOMENGER, Jean-Philippe
-	In : 2013 12th International Conference on Document Analysis
-	and Recognition (ICDAR). IEEE, 2013. p. 489-493.
+	The images are named as with degrade3DN(). They have the size
+	of img, and the number of channels of the input image that has
+	the most.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img and backgroundImg must be of dtype uint8, with ndim 2, or
+	ndim 3 and shape[2] 1, 3 or 4. An exception is raised otherwise.
 
-	The background will be black.
+	The rendering needs OSMesa: in a module built without it, a
+	warning is printed on the standard error and no image is
+	saved.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to distort.
 	numOutputImages : int
-		Number of generated output images to save.
+		Number of images to save.
 	meshFilename : str
-		Input mesh filename. Mesh file must an .obj or .brs file,
-		with texture coordinates.
+		Mesh file, in the .obj or the .brs format. The mesh must
+		have texture coordinates.
+	backgroundImg : ndarray
+		Image shown where the mesh does not cover the image.
 	outputPrefix : str
-		Prefix of output images. It may contain the path where to
-		save images.
+		Prefix of the file names. It may contain the directory to
+		save the images into.
 	random : bool
-		Indicates if a random lighting and orientation must be
-		used.
+		Whether the lighting and the orientation of the mesh are
+		random.
 	seed : int, optional
-		Seed of the random lighting and orientation. If None, a non
-		reproducible seed is used. Two calls with the same seed and
-		the same parameters give the same result.
-
-	Returns
-	-------
-	ndarray
-		The modified image, with same shape and dtype than img.
+		Seed of the random lighting and orientation. If None, a
+		non-reproducible seed is used. Two calls with the same seed
+		and the same arguments give the same result.
 
 	)pbdoc",
 	py::arg("img"), py::arg("numOutputImages"),
@@ -319,60 +315,63 @@ PYBIND11_MODULE(DocCreatorPy, m) {
  //--------------
 
   
- py::enum_<dc::ElasticDeformation::BorderReplication>(m, "ElasticBorderReplication", "Elastic border replication")
-   .value("REPLICATE", dc::ElasticDeformation::BorderReplication::REPLICATE, "Replicate aaaaaa|abcdefgh|hhhhhhh")
-   .value("REFLECT", dc::ElasticDeformation::BorderReplication::REFLECT, "Reflect fedcba|abcdefgh|hgfedcb")
-   .value("WRAP", dc::ElasticDeformation::BorderReplication::WRAP, "Wrap cdefgh|abcdefgh|abcdefg")
-   .value("REFLECT101", dc::ElasticDeformation::BorderReplication::REFLECT101, "Reflect101 gfedcb|abcdefgh|gfedcba ")
-   .value("BLACK", dc::ElasticDeformation::BorderReplication::BLACK, "Black 000000|abcdefgh|000000");
+ py::enum_<dc::ElasticDeformation::BorderReplication>(m, "ElasticBorderReplication", "How the pixels that come from outside the image are filled")
+   .value("REPLICATE", dc::ElasticDeformation::BorderReplication::REPLICATE, "aaaaaa|abcdefgh|hhhhhhh")
+   .value("REFLECT", dc::ElasticDeformation::BorderReplication::REFLECT, "fedcba|abcdefgh|hgfedcb")
+   .value("WRAP", dc::ElasticDeformation::BorderReplication::WRAP, "cdefgh|abcdefgh|abcdefg")
+   .value("REFLECT101", dc::ElasticDeformation::BorderReplication::REFLECT101, "gfedcb|abcdefgh|gfedcba")
+   .value("BLACK", dc::ElasticDeformation::BorderReplication::BLACK, "000000|abcdefgh|000000");
   
 
-  py::enum_<dc::ElasticDeformation::Interpolation>(m, "ElasticInterpolation", "Elastic interpolation")
-    .value("NEAREST", dc::ElasticDeformation::Interpolation::NEAREST, "Nearest-neighbour interpolation")
-    .value("BILINEAR", dc::ElasticDeformation::Interpolation::BILINEAR, "Bilinear interpolation")
-    .value("AREA", dc::ElasticDeformation::Interpolation::AREA, "Area interpolation")
-    .value("BICUBIC", dc::ElasticDeformation::Interpolation::BICUBIC, "Bicubic interpolation")
-    .value("LANCZOS", dc::ElasticDeformation::Interpolation::LANCZOS, "Lanczos interpolation");
+  py::enum_<dc::ElasticDeformation::Interpolation>(m, "ElasticInterpolation", "How the deformed image is resampled")
+    .value("NEAREST", dc::ElasticDeformation::Interpolation::NEAREST, "nearest neighbor")
+    .value("BILINEAR", dc::ElasticDeformation::Interpolation::BILINEAR, "bilinear")
+    .value("AREA", dc::ElasticDeformation::Interpolation::AREA, "resampling using pixel area relation, cf. cv2.INTER_AREA")
+    .value("BICUBIC", dc::ElasticDeformation::Interpolation::BICUBIC, "bicubic, over a 4x4 neighborhood")
+    .value("LANCZOS", dc::ElasticDeformation::Interpolation::LANCZOS, "Lanczos, over an 8x8 neighborhood");
 
   
   m.def("elasticTransform",
 	&dc::ElasticDeformation::transform,  R"pbdoc(
 	Apply an elastic deformation to an image.
 
-	Apply an elastic deformation to an image as described in:
-	Best Practices for Convolutional Neural Networks applied to
-	Visual Document Analysis,
-	Simard, Steinkraus and Platt,
-	in Proc. of the International Conference on Document Analysis
-	and Recognition, 2003.
+	A random displacement field, smoothed by a Gaussian, moves every
+	pixel of the image, as described in:
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	Simard, Steinkraus and Platt. Best Practices for Convolutional
+	Neural Networks Applied to Visual Document Analysis. In: Proc.
+	of the International Conference on Document Analysis and
+	Recognition, 2003.
+
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to deform.
 	alpha : float
-		Scaling factor controlling the intensity of deformation.
+		Scaling factor, which controls the intensity of the
+		deformation. It is multiplied by the smaller of the width
+		and the height of img.
 	sigma : float
-		Elasticity coefficient (standard deviation of Gaussian).
+		Elasticity coefficient: the standard deviation of the
+		Gaussian that smooths the displacements, multiplied by the
+		smaller of the width and the height of img. When it is
+		large, the displacements become close to affine.
 	borderMode : DocCreatorPy.ElasticBorderReplication
-		Border replication method.
-	Interpolation : DocCreatorPy.ElasticInterpolation
-		Interpolation method.
-
+		How the pixels that come from outside the image are filled.
+	interpolation : DocCreatorPy.ElasticInterpolation
+		Resampling method.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The deformed image, of the dtype and shape of img.
 
 	)pbdoc",
  	py::arg("img"),
@@ -383,47 +382,48 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
   m.def("elasticTransform2",
 	&dc::ElasticDeformation::transform2, R"pbdoc(
-	Apply an elastic deformation to an image, after a first affine
-	transformation.
+	Apply a random affine transformation to an image, then an
+	elastic deformation.
 
-	Apply an elastic deformation to an image, after a first affine
-	transformation, as described in:
-	Best Practices for Convolutional Neural Networks applied to
-	Visual Document Analysis,
-	Simard, Steinkraus and Platt,
-	in Proc. of the International Conference on Document Analysis
-	and Recognition, 2003.
+	The elastic deformation is that of elasticTransform(), as
+	described in:
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	Simard, Steinkraus and Platt. Best Practices for Convolutional
+	Neural Networks Applied to Visual Document Analysis. In: Proc.
+	of the International Conference on Document Analysis and
+	Recognition, 2003.
+
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to deform.
 	alpha : float
-		Scaling factor controlling the intensity of deformation.
+		Scaling factor, which controls the intensity of the
+		deformation. It is multiplied by the smaller of the width
+		and the height of img.
 	sigma : float
-		Elasticity coefficient (standard deviation of Gaussian).
+		Elasticity coefficient: the standard deviation of the
+		Gaussian that smooths the displacements, multiplied by the
+		smaller of the width and the height of img. When it is
+		large, the displacements become close to affine.
 	alphaAffine : float
-		Scaling factor controlling the intensity of the initial
-		affine deformation.
+		Scaling factor of the affine transformation.
 	borderMode : DocCreatorPy.ElasticBorderReplication
-		Border replication method.
-	Interpolation : DocCreatorPy.ElasticInterpolation
-		Interpolation method.
-
+		How the pixels that come from outside the image are filled.
+	interpolation : DocCreatorPy.ElasticInterpolation
+		Resampling method.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The deformed image, of the dtype and shape of img.
 
 	)pbdoc",
  	py::arg("img"),
@@ -436,57 +436,57 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   //--------------
 
-  py::enum_<dc::GradientDomainDegradation::InsertType>(m, "GDDInsertion", "GradientDomainDegradation insertion type")
-    .value("GDD_INSERT_AS_IS", dc::GradientDomainDegradation::InsertType::INSERT_AS_IS, "GradientDomainDegradation insertion type: stain image is not transformed before insertion")
-    .value("GDD_INSERT_AS_GRAY", dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY, "GradientDomainDegradation insertion type: stain image is transformed to gray before insertion")
-    .value("GDD_INSERT_AS_GRAY_IF_GRAY", dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY, "GradientDomainDegradation insertion type: stain image is transformed to gray before insertion only if the destination image is gray");
+  py::enum_<dc::GradientDomainDegradation::InsertType>(m, "GDDInsertion", "How the stain images are inserted")
+    .value("GDD_INSERT_AS_IS", dc::GradientDomainDegradation::InsertType::INSERT_AS_IS, "the stain images are inserted as they are")
+    .value("GDD_INSERT_AS_GRAY", dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY, "the stain images are converted to gray before insertion")
+    .value("GDD_INSERT_AS_GRAY_IF_GRAY", dc::GradientDomainDegradation::InsertType::INSERT_AS_GRAY_IF_GRAY, "the stain images are converted to gray before insertion if the image is gray");
   
 
   m.def("gddDegradation",
 	&dc::GradientDomainDegradation::degradation, R"pbdoc(
-	Apply a gradient domain degradation.
+	Insert stain images at random positions into an image.
 
-	Implements gradient-domain degradation, using
-	OpenCV seamlessClone(), as described in:
-	Gradient-domain degradations for improving historical
-	documents images layout analysis.
-	SEURET, Mathias, CHEN, Kai, EICHENBERGERY, Nicole,
-	LIWICKI, Markus, INGOLD, Rolf.
-	In : 2015 13th International Conference on Document Analysis
-	and Recognition (ICDAR). IEEE, 2015. p. 1006-1010.
+	The stains are inserted with OpenCV seamlessClone(), as
+	described in:
 
-	Several stain images are copied at random positions onto the
-	input image.
+	Seuret, Mathias; Chen, Kai; Eichenberger, Nicole; Liwicki,
+	Marcus; Ingold, Rolf. Gradient-domain degradations for improving
+	historical documents images layout analysis. In: 2015 13th
+	International Conference on Document Analysis and Recognition
+	(ICDAR). IEEE, 2015, p. 1006-1010.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	The stain images are the image files of stainImageDir, chosen at
+	random. If there is none, a warning is printed on the standard
+	error and a copy of img is returned.
+
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	This implementation is rather slow.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	stainImageDir : str
-		Directory to load stain images from.
+		Directory of the stain images.
 	numStainsToInsert : int
 		Number of stain images to insert.
 	insertType : DocCreatorPy.GDDInsertion
-		Insertion type.
+		Whether the stain images are converted to gray.
 	doRotations : bool
-		Indicates whether stain images are rotated before insertion.
-
+		Whether the stain images are, at random, mirrored
+		horizontally, vertically, or turned by 180 degrees before
+		insertion.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The degraded image, of the dtype and shape of img.
 
 	See Also
 	--------
@@ -506,30 +506,35 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   m.def("gddCopyOnto",
 	&dc::GradientDomainDegradation::copyOnto, R"pbdoc(
-	Copy stain image on destination image in the gradient domain.
+	Insert one stain image into an image, with OpenCV
+	seamlessClone().
 
-	Warnings
-	--------
-	images must have dtype==np.uint8.
-	images must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	Only the part of stainImg that overlaps img is inserted; if they
+	do not overlap, a copy of img is returned. stainImg is neither
+	converted to gray nor turned, but the result has the dtype and
+	shape of img: into a gray image, the stain is inserted in gray.
+	The alpha channel of img is kept.
 
-	This implementation is rather slow.
+	img and stainImg must be of dtype uint8, with ndim 2, or ndim 3
+	and shape[2] 1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to insert into.
 	stainImg : ndarray
 		Stain image to insert.
-	numStainsToInsert : int
-		Number of stain images to insert.
 	posCenter : tuple
-		Position of center of stainImg on destination image.
+		Position (x, y), in img, of the center of stainImg.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The image with the stain, of the dtype and shape of img.
+
+	See Also
+	--------
+	gddDegradation
 
 	)pbdoc",
 	py::arg("img"), py::arg("stainImg"),
@@ -539,50 +544,52 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   m.def("characterDegradation",
 	&dc::GrayscaleCharsDegradation::degradation, R"pbdoc(
-	Apply character degradation on image.
+	Degrade the characters of an image.
 
-	Implements ink degradation model detailled in:
-	An Efficient Parametrization of Character Degradation Model
-	for Semi-synthetic Image Generation
-	KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel,
-	MULLOT, Rémy, DOMENGER, Jean-Philippe
-	In : 2nd International Workshop on Historical Document
-	Imaging and Processing. 2013.
+	The ink of the characters is degraded around seed points chosen
+	near their contours, as described in:
 
-	There are 3 kinds of degradation spots: independent spots,
-	overlapping spots and disconnection spots.
-	Ratio of disconnection spots will be determined as
-	(1.0 - indepentSpotsRatio - overlappingSpotsRatio).
+	Kieu, Van Cuong; Journet, Nicholas; Visani, Muriel; Mullot,
+	Rémy; Domenger, Jean-Philippe. An Efficient Parametrization of
+	Character Degradation Model for Semi-synthetic Image Generation.
+	In: 2nd International Workshop on Historical Document Imaging
+	and Processing, 2013.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	There are three kinds of degradation spots: independent spots,
+	overlapping spots and disconnection spots. The ratio of
+	disconnection spots is
+	1 - indepentSpotsRatio - overlappingSpotsRatio.
+
+	The model works on gray levels: a color image is converted to
+	gray, and comes back gray, in its shape. The alpha channel of a
+	4 channel image is kept.
+
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4, the two ratios in [0; 1], and their sum at most 1.
+	An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	level : int
-		scale factor, in [0; 10]. The number of
-		degradation spots will be determined according to the
-		number of connected components in image and multiplied by
-		this scale factor. The higher the level, the higher the
-		number of degradation spots.
+		Scale factor, typically in [0; 10]. The number of
+		degradation spots is proportional to the number of
+		connected components of the image and to level: the higher
+		the level, the more spots. 0 gives none.
 	indepentSpotsRatio : float
-		Ratio of independent spots, in [0.0; 1.0]
+		Ratio of independent spots, in [0; 1].
 	overlappingSpotsRatio : float
-		Ratio of overlapping spots, in [0.0; 1.0]
-
+		Ratio of overlapping spots, in [0; 1].
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The degraded image, of the dtype and shape of img.
 
 	)pbdoc",
 	py::arg("img"), py::arg("level"),
@@ -593,73 +600,76 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
   //--------------
 
-  py::enum_<dc::HoleDegradation::HoleType>(m, "HoleType", "Hole type")
-    .value("CENTER", dc::HoleDegradation::HoleType::CENTER, "Hole center")
-    .value("BORDER", dc::HoleDegradation::HoleType::BORDER, "Hole border")
-    .value("CORNER", dc::HoleDegradation::HoleType::CORNER, "Hole corner");
+  py::enum_<dc::HoleDegradation::HoleType>(m, "HoleType", "Where a hole is on the page")
+    .value("CENTER", dc::HoleDegradation::HoleType::CENTER, "anywhere in the page")
+    .value("BORDER", dc::HoleDegradation::HoleType::BORDER, "on a border, cf. HoleSide")
+    .value("CORNER", dc::HoleDegradation::HoleType::CORNER, "in a corner, cf. HoleSide");
 
-  py::enum_<dc::HoleDegradation::HoleSide>(m, "HoleSide", "Hole side")
-    .value("BORDER_TOP", dc::HoleDegradation::HoleSide::BORDER_TOP, "Hole top border")
-    .value("BORDER_RIGHT", dc::HoleDegradation::HoleSide::BORDER_RIGHT, "Hole right border")
-    .value("BORDER_BOTTOM", dc::HoleDegradation::HoleSide::BORDER_BOTTOM, "Hole bottom border")
-    .value("BORDER_LEFT", dc::HoleDegradation::HoleSide::BORDER_LEFT, "Hole left border")
-    .value("CORNER_TOPLEFT", dc::HoleDegradation::HoleSide::CORNER_TOPLEFT, "Hole top left corner")
-    .value("CORNER_TOPRIGHT", dc::HoleDegradation::HoleSide::CORNER_TOPRIGHT, "Hole top right corner")
-    .value("CORNER_BOTTOMRIGHT", dc::HoleDegradation::HoleSide::CORNER_BOTTOMRIGHT, "Hole bottom right corner")
-    .value("CORNER_BOTTOMLEFT", dc::HoleDegradation::HoleSide::CORNER_BOTTOMLEFT, "Hole bottom left corner");
+  py::enum_<dc::HoleDegradation::HoleSide>(m, "HoleSide", "The border or corner where a hole is, read with the HoleType it goes with")
+    .value("BORDER_TOP", dc::HoleDegradation::HoleSide::BORDER_TOP, "top border")
+    .value("BORDER_RIGHT", dc::HoleDegradation::HoleSide::BORDER_RIGHT, "right border")
+    .value("BORDER_BOTTOM", dc::HoleDegradation::HoleSide::BORDER_BOTTOM, "bottom border")
+    .value("BORDER_LEFT", dc::HoleDegradation::HoleSide::BORDER_LEFT, "left border")
+    .value("CORNER_TOPLEFT", dc::HoleDegradation::HoleSide::CORNER_TOPLEFT, "top left corner")
+    .value("CORNER_TOPRIGHT", dc::HoleDegradation::HoleSide::CORNER_TOPRIGHT, "top right corner")
+    .value("CORNER_BOTTOMRIGHT", dc::HoleDegradation::HoleSide::CORNER_BOTTOMRIGHT, "bottom right corner")
+    .value("CORNER_BOTTOMLEFT", dc::HoleDegradation::HoleSide::CORNER_BOTTOMLEFT, "bottom left corner");
 
   m.def("addHole", &dc::HoleDegradation::addHole, R"pbdoc(
-	Add a hole pattern to an image at a given position.
+	Add a hole to an image, at a given position.
 
-	Add a hole pattern to an image at a given position.
-	Pixels inside hole are filled with pixels from belowImg if
-	belowImg is not empty and visible, or with color belowColor
+	img and holePattern must be of dtype uint8, with ndim 2, or ndim
+	3 and shape[2] 1, 3 or 4, and belowImg, if not None, of the
+	dtype and number of channels of img. An exception is raised
 	otherwise.
-
-	Warnings
-	--------
-	Images must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-	holePattern must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-	It may be converted to grayscale and used as a binary mask.
-	If not empty, belowImg must have the same dtype and shape[2]
-	than img.
-
-	Border hole images are considered to be for the top border side.
-	Corner hole images are considered to be for the left border side.
-	They will be transformed according to the specified side.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to add a hole to.
 	holePattern : ndarray
-		Hole pattern image.
+		Pattern of the hole: its black (0) pixels are the hole. It
+		may have 1, 3 or 4 channels, and is converted to gray.
 	pos : tuple
-		Position of holePattern in img.
+		Position (x, y) of the top left corner of the pattern in
+		img. The pattern may extend outside the image.
 	size : int
-		Increment (in each dimension) for hole pattern image.
+		Number of pixels added to the width and to the height of
+		the pattern, which is resized accordingly. 0 keeps its
+		size.
 	type : DocCreatorPy.HoleType
-		Type of hole pattern.
+		Whether the hole is in the middle of the page, on a border
+		or in a corner.
 	side : DocCreatorPy.HoleSide
-		Side of hole. For a center hole, this value is node used.
-		For a border or corner hole pattern image, the image will
-		be transformed according to the specified side.
+		Border or corner of the hole, for a border or a corner
+		hole; not used for a center hole. Border patterns are
+		drawn for the top border, and corner patterns for the top
+		left corner: they are turned to side.
 	belowColor : tuple
-		Color used to fill the applied hole pattern image, only
-		if belowImg is not empty.
+		Color of the hole where belowImg does not cover it:
+		everywhere if belowImg is None.
+	belowImg : ndarray, optional
+		Image seen through the hole: the page below. It must be
+		None, or of the dtype and number of channels of img. Where
+		it does not cover the hole, belowColor is used.
 	shadowBorderWidth : int
-		Width in pixels of shadow added around hole border.
-		If zero, no shadow is added.
+		Width, in pixels, of the shadow along the edge of the hole.
+		The pixels of the hole closer than this to its edge are
+		multiplied by shadowBorderIntensity. 0 adds no shadow.
 	shadowBorderIntensity : float
-		Intensity in [0; 1] by which the original below
-		color/image is multiplied to obtain the shadow value on
-		hole border. The closer to 0, the darker the shadow.
+		Factor of the shadow, in [0; 1]: the closer to 0, the
+		darker the shadow (default 0.1). Values above 1
+		lighten the edge instead. The alpha channel is not
+		changed.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The image with the hole, of the dtype and shape of img.
+
+	See Also
+	--------
+	addHoleAtRandom
 
 	)pbdoc",
 	py::arg("img"), py::arg("holePattern"),
@@ -676,60 +686,69 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   m.def("addHoleAtRandom",
 	&dc::HoleDegradation::addHoleAtRandom, R"pbdoc(
-	Add a hole pattern to an image at a random position.
+	Add a hole to an image, at a random position.
 
-	Warnings
-	--------
-	Images must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-	holePattern must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-	It may be converted to grayscale and used as a binary mask.
-	If not empty, belowImg must have the same dtype and shape[2]
-	than img.
+	A center hole is anywhere in the image. A border or corner hole
+	is on its border or corner, and may extend outside the image by
+	up to ratioOutside of its width and height.
 
-	Border hole images are considered to be for the top border side.
-	Corner hole images are considered to be for the left border side.
-	They will be transformed according to the specified side.
+	img and holePattern must be of dtype uint8, with ndim 2, or ndim
+	3 and shape[2] 1, 3 or 4, and belowImg, if not None, of the
+	dtype and number of channels of img. An exception is raised
+	otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to add a hole to.
 	holePattern : ndarray
-		Hole pattern image.
+		Pattern of the hole: its black (0) pixels are the hole. It
+		may have 1, 3 or 4 channels, and is converted to gray.
 	size : int
-		Increment (in each dimension) for hole pattern image.
+		Number of pixels added to the width and to the height of
+		the pattern, which is resized accordingly. 0 keeps its
+		size.
 	type : DocCreatorPy.HoleType
-		Type of hole pattern.
+		Whether the hole is in the middle of the page, on a border
+		or in a corner.
 	ratioOutside : float
-		value in [0; 1.0] that indicates the ratio of holePattern
-		image that can be outside image. 0.6 means 60% of pattern
-		can be outside image, 1.0 means pattern is completely
-		outside.
+		Part, in [0; 1], of the pattern that may be outside the
+		image: 0.6 means 60 % of it. Not used for a center hole.
 	side : DocCreatorPy.HoleSide
-		Side of hole. For a center hole, this value is node used.
-		For a border or corner hole pattern image, the image will
-		be transformed according to the specified side.
+		Border or corner of the hole, for a border or a corner
+		hole; not used for a center hole. Border patterns are
+		drawn for the top border, and corner patterns for the top
+		left corner: they are turned to side.
 	belowColor : tuple
-		Color used to fill the applied hole pattern image, only
-		if belowImg is not empty.
+		Color of the hole where belowImg does not cover it:
+		everywhere if belowImg is None.
+	belowImg : ndarray, optional
+		Image seen through the hole: the page below. It must be
+		None, or of the dtype and number of channels of img. Where
+		it does not cover the hole, belowColor is used.
 	shadowBorderWidth : int
-		Width in pixels of shadow added around hole border.
-		If zero, no shadow is added.
+		Width, in pixels, of the shadow along the edge of the hole.
+		The pixels of the hole closer than this to its edge are
+		multiplied by shadowBorderIntensity. 0 adds no shadow.
 	shadowBorderIntensity : float
-		Intensity in [0; 1] by which the original below
-		color/image is multiplied to obtain the shadow value on
-		hole border. The closer to 0, the darker the shadow.
-
+		Factor of the shadow, in [0; 1]: the closer to 0, the
+		darker the shadow (default 0.1). Values above 1
+		lighten the edge instead. The alpha channel is not
+		changed.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The image with the hole, of the dtype and shape of img.
+
+	See Also
+	--------
+	addHole
+
 	)pbdoc",
 	py::arg("img"), py::arg("holePattern"), 
 	py::arg("size"),
@@ -744,42 +763,42 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
   //--------------
 
-  py::enum_<dc::NoiseDegradation::AddNoiseType>(m, "AddNoiseType", "Noise add type")
-    .value("AS_IS", dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS, "Added noise is independant on all channels. In particular, it may change a grayscale image in a color image")
-    .value("AS_GRAY", dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY, "Added noise is the same on all channels")
-    .value("AS_GRAY_IF_GRAY", dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY, "Added noise is the same on all channels only if the destination image is gray");
+  py::enum_<dc::NoiseDegradation::AddNoiseType>(m, "AddNoiseType", "Whether the noise added to a gray image may make it a color image")
+    .value("AS_IS", dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_IS, "the noise is drawn independently for each channel: a gray image may become a color image")
+    .value("AS_GRAY", dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY, "the same noise is added to every channel")
+    .value("AS_GRAY_IF_GRAY", dc::NoiseDegradation::AddNoiseType::ADD_NOISE_AS_GRAY_IF_GRAY, "the same noise is added to every channel if the image is gray, independent noise otherwise");
 
 
   m.def("addGaussianNoise",
 	&dc::NoiseDegradation::addGaussianNoise, R"pbdoc(
-	Add Gaussian-distributed additive noise on image.
+	Add Gaussian-distributed additive noise to an image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
+	The alpha channel of a 4 channel image is left unchanged.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	average : float
-		Average of the Gaussian distribution.
+		Mean of the Gaussian distribution, in gray levels.
 	standardDeviation : float
-		Standard deviation of the Gaussian distribution.
+		Standard deviation of the Gaussian distribution, in gray
+		levels.
 	addType : DocCreatorPy.AddNoiseType
-		Tells whether noise may or may not change image into a
-		color image.
-
+		Whether the noise may make a gray image a color image.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The noisy image, saturated to [0; 255], of the dtype and
+		shape of img.
+
 	)pbdoc",
 	py::arg("img"),
 	py::arg("average") = 0.0f, 
@@ -789,34 +808,34 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
   m.def("addSpeckleNoise",
 	&dc::NoiseDegradation::addSpeckleNoise, R"pbdoc(
-	Add speckle/multiplicative noise on image.
+	Add multiplicative (speckle) noise to an image: each pixel p
+	becomes p + n * p, where n is drawn from a Gaussian distribution.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
+	The alpha channel of a 4 channel image is left unchanged.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	average : float
-		Average of the Gaussian distribution.
+		Mean of the Gaussian distribution.
 	standardDeviation : float
 		Standard deviation of the Gaussian distribution.
 	addType : DocCreatorPy.AddNoiseType
-		Tells whether noise may or may not change image into a
-		color image.
-
+		Whether the noise may make a gray image a color image.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The noisy image, saturated to [0; 255], of the dtype and
+		shape of img.
+
 	)pbdoc",
 	py::arg("img"),
 	py::arg("average") = 0.0f, 
@@ -826,34 +845,33 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
   m.def("addSaltAndPepperNoise",
 	&dc::NoiseDegradation::addSaltAndPepperNoise, R"pbdoc(
-	Add Salt and pepper noise on image.
+	Add salt and pepper noise to an image: random pixels become
+	black (0) or white (255).
 
-	Replaces random pixels with 0 or 1.
-
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4, and amount and ratio in [0; 1]. An exception is
+	raised otherwise. The alpha channel of a 4 channel image is left
+	unchanged.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	amount : float
-		Amount of noise, in [0.0; 1.0].
+		Proportion of the pixels changed, in [0; 1].
 	ratio : float
-		Ratio of black pixels, in [0.0; 1.0].
-		Ratio of white pixels will be 1.0-ratio.
-
+		Proportion of the changed pixels that become black, in
+		[0; 1]; the others become white.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The noisy image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"),
 	py::arg("amount") = 0.15f, 
@@ -864,32 +882,44 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 
   m.def("phantomCharacter",
 	&dc::PhantomCharacter::phantomCharacter, R"pbdoc(
-	Add phantom characters to an image.
+	Add phantom characters to an image: faint marks, taken from the
+	pattern images of phantomPatternsPath, pasted next to characters,
+	in the gaps between the characters of a word, as left by the ink
+	of another page or of a previous impression.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	With an occurenceProbability of 0.15, phantom characters appear
+	rarely; with 0.40, rather frequently; with 0.70, very
+	frequently. If phantomPatternsPath holds no image file, a copy
+	of img is returned.
+
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4, and occurenceProbability in [0; 1]. An exception is
+	raised otherwise.
+
+	occurenceProbability has a default but phantomPatternsPath, which
+	follows it, has none: to use the default, pass
+	phantomPatternsPath by keyword.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	occurenceProbability : float
-		Probability of occurence of phantom characters,
-		in [0.0; 1.0].
+		Probability that a phantom character is added at a place
+		where it can be, in [0; 1].
 	phantomPatternsPath : str
-		Directory to load phantom patterns from.
-
+		Directory of the phantom patterns, which are loaded as gray
+		images.
 	seed : int, optional
-		Seed of the random generator. If None, a non reproducible
+		Seed of the random generator. If None, a non-reproducible
 		seed is used. Two calls with the same seed and the same
-		parameters give the same result.
+		arguments give the same result.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The degraded image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"),
 	py::arg("occurenceProbability") = 0.5f, 
@@ -901,97 +931,94 @@ PYBIND11_MODULE(DocCreatorPy, m) {
   
    m.def("rotateFillColor",
 	&dc::RotationDegradation::rotateFillColor, R"pbdoc(
-	Rotate image and fill appearing background pixels with
-	uniform color.
+	Rotate an image, and fill the uncovered pixels with a color.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	color : tuple
-		Fill color.
+		Color of the uncovered pixels, in the order of the channels
+		of img (blue, green, red and alpha).
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"), py::arg("angle"),
 	py::arg("color"));
 
    m.def("rotateFillImage",
 	&dc::RotationDegradation::rotateFillImage, R"pbdoc(
-	Rotate image and fill appearing background pixels with given
-	background image.
+	Rotate an image, and fill the uncovered pixels with a background
+	image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-
-	Background image may be converted to the same type than
-	the input image. In particular if input image is grayscale,
-	background image will be converted to gray. Background image
-	may also be resized to the size of input img.
+	img and backgroundImg must be of dtype uint8, with ndim 2, or
+	ndim 3 and shape[2] 1, 3 or 4. An exception is raised otherwise.
+	A background image is converted to the dtype and number of
+	channels of img (to gray for a gray image) and resized to its
+	size.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	backgroundImg : ndarray
-		Background image.
+		Background image. If None, the uncovered pixels are black.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"),	py::arg("angle"),
 	py::arg("backgroundImg"));
 
    m.def("rotateFillImageN",
 	&dc::RotationDegradation::rotateFillImageN, R"pbdoc(
-	Rotate image and fill appearing background pixels with given
-	background image repeated several times.
+	Rotate an image, and fill the uncovered pixels with a background
+	image inserted several times, as a stack of pages.
 
-	The background image is inserted (repeats + 1) times.
-	First at angle 0, then at angle (angle/(repeast + 1)), ...
+	The background image is inserted (repeats + 1) times: at angle
+	0, then at angle angle / (repeats + 1), and so on, under the
+	rotated image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-
-	Background image may be converted to the same type than
-	the input image. In particular if input image is grayscale,
-	background image will be converted to gray. Background image
-	may also be resized to the size of input img.
+	img and backgroundImg must be of dtype uint8, with ndim 2, or
+	ndim 3 and shape[2] 1, 3 or 4. An exception is raised otherwise.
+	A background image is converted to the dtype and number of
+	channels of img (to gray for a gray image) and resized to its
+	size.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	backgroundImg : ndarray
 		Background image.
 	repeats : int
-		Number of intermediary images between the background
-		image and the foreground image.
+		Number of intermediate images between the background image
+		and the rotated image.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"), py::arg("angle"),
 	py::arg("backgroundImg"), py::arg("repeats"));
@@ -999,212 +1026,221 @@ PYBIND11_MODULE(DocCreatorPy, m) {
    
    //TODO: rotateFillImages() : how to pass std::vector<cv::Mat> ???
 
-   py::enum_<dc::RotationDegradation::BorderReplication>(m, "RotationBorderReplication", "Rotation border replication")
-     .value("REPLICATE", dc::RotationDegradation::BorderReplication::REPLICATE, "Replicate aaaaaa|abcdefgh|hhhhhhh")
-     .value("REFLECT", dc::RotationDegradation::BorderReplication::REFLECT, "Reflect fedcba|abcdefgh|hgfedcb")
-     .value("WRAP", dc::RotationDegradation::BorderReplication::WRAP, "Wrap cdefgh|abcdefgh|abcdefg")
-     .value("REFLECT101", dc::RotationDegradation::BorderReplication::REFLECT101, "Reflect101 gfedcb|abcdefgh|gfedcba ");
+   py::enum_<dc::RotationDegradation::BorderReplication>(m, "RotationBorderReplication", "How the uncovered pixels are filled from the image")
+     .value("REPLICATE", dc::RotationDegradation::BorderReplication::REPLICATE, "aaaaaa|abcdefgh|hhhhhhh")
+     .value("REFLECT", dc::RotationDegradation::BorderReplication::REFLECT, "fedcba|abcdefgh|hgfedcb")
+     .value("WRAP", dc::RotationDegradation::BorderReplication::WRAP, "cdefgh|abcdefgh|abcdefg")
+     .value("REFLECT101", dc::RotationDegradation::BorderReplication::REFLECT101, "gfedcb|abcdefgh|gfedcba");
 
 
    m.def("rotateFillBorder",
 	&dc::RotationDegradation::rotateFillBorder, R"pbdoc(
-	Rotate image and fill appearing background pixels replicating
-	input image.
+	Rotate an image, and fill the uncovered pixels by replicating
+	the image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	borderMode : DocCreatorPy.RotationBorderReplication
-		mode of replication of pixels on border.
+		How the image is replicated.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"), py::arg("angle"),
 	py::arg("borderMode") = dc::RotationDegradation::BorderReplication::WRAP);
    
    m.def("rotateFillInpaint1",
 	&dc::RotationDegradation::rotateFillInpaint1, R"pbdoc(
-	Rotate image and fill appearing background pixels with inpainting.
+	Rotate an image, and fill the uncovered pixels by inpainting
+	from the image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	inpaintingRatio : float
-		Ratio of pixels of img to use for inpainting, in [0; 1].
-		For a low value, only the pixels from the borders of img
-		will be used.
+		Part of img used for the inpainting, in [0; 1], clamped to
+		[0.001; 0.999]: the lower it is, the closer to its borders
+		the pixels used.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"), py::arg("angle"),
 	py::arg("inpaintingRatio") = 0.05f);
    
    m.def("rotateFillInpaint2",
 	&dc::RotationDegradation::rotateFillInpaint2, R"pbdoc(
-	Rotate image and fill appearing background pixels with
-	inpainting.
+	Rotate an image, and fill the uncovered pixels by inpainting
+	from a background image.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	The background image is rotated too, and the rotated image is
+	copied onto it.
 
-	Background image may be converted to the same type than
-	the input image. In particular if input image is grayscale,
-	background image will be converted to gray. Background image
-	may also be resized to the size of input img.
+	img and backgroundImg must be of dtype uint8, with ndim 2, or
+	ndim 3 and shape[2] 1, 3 or 4. An exception is raised otherwise.
+	A background image is converted to the dtype and number of
+	channels of img (to gray for a gray image) and resized to its
+	size.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	backgroundImg : ndarray
-		Background image used for inpainting.
+		Background image used for the inpainting. If None, the
+		background is extracted from img.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"), py::arg("angle"),
 	py::arg("backgroundImg"));
    
    m.def("rotateFillInpaint3",
 	&dc::RotationDegradation::rotateFillInpaint3, R"pbdoc(
-	Rotate image and fill appearing background pixels with
-	inpainting.
+	Rotate an image, and fill the uncovered pixels by inpainting
+	from a background image, as rotateFillInpaint2() does, but the
+	rotated image is inserted into the background with
+	gddCopyOnto().
 
-	If backgroundImg is empty, the background of img is extracted
-	and used for inpainting.
-	img is rotated and copied onto rotated background with
-	DocCreatorPy::copyOnto().
-
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
-
-	Background image may be converted to the same type than
-	the input image. In particular if input image is grayscale,
-	background image will be converted to gray. Background image
-	may also be resized to the size of input img.
+	img and backgroundImg must be of dtype uint8, with ndim 2, or
+	ndim 3 and shape[2] 1, 3 or 4. An exception is raised otherwise.
+	A background image is converted to the dtype and number of
+	channels of img (to gray for a gray image) and resized to its
+	size.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to rotate.
 	angle : float
-		Rotation angle in degrees.
+		Rotation angle, in degrees. Positive values rotate
+		counter-clockwise, around the center of the image.
 	backgroundImg : ndarray
-		Background image used for inpainting.
+		Background image used for the inpainting. If None, the
+		background is extracted from img.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The rotated image, of the dtype and shape of img.
+
 	)pbdoc",
 	py::arg("img"), py::arg("angle"),
 	py::arg("backgroundImg"));
    
    //--------------
 
-  py::enum_<dc::ShadowBinding::Border>(m, "ShadowBorder", "Shadow border")
-    .value("TOP", dc::ShadowBinding::Border::TOP, "Shadow top border")
-    .value("RIGHT", dc::ShadowBinding::Border::RIGHT, "Shadow right border")
-    .value("BOTTOM", dc::ShadowBinding::Border::BOTTOM, "Shadow bottom border")
-    .value("LEFT", dc::ShadowBinding::Border::LEFT, "Shadow left border");
+  py::enum_<dc::ShadowBinding::Border>(m, "ShadowBorder", "The border of the image the shadow is on")
+    .value("TOP", dc::ShadowBinding::Border::TOP, "top border")
+    .value("RIGHT", dc::ShadowBinding::Border::RIGHT, "right border")
+    .value("BOTTOM", dc::ShadowBinding::Border::BOTTOM, "bottom border")
+    .value("LEFT", dc::ShadowBinding::Border::LEFT, "left border");
 
    m.def("shadowBinding",
 	&dc::ShadowBinding::shadowBinding, R"pbdoc(
-	Add a shadow on a given border of image.
+	Add the shadow of the binding along a border of an image, as a
+	page scanned from a bound book has, after the "non-linear
+	illumination model" of:
 
-	angle corresponds to the angle between the page and the
-	spine of the book when a page is scanned.
+	Kanungo, Tapas; Haralick, Robert M.; Phillips, Ihsin T. Global
+	and Local Document Degradation Models. In: Proc. of the
+	International Conference on Document Analysis and Recognition
+	(ICDAR), 1993.
 
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	border : DocCreatorPy.ShadowBorder
 		Border on which the shadow is added.
 	distance : int
-		Size in pixels of degradation.
-	intensity : float.
-		Intensity, in [0.0; 1.0].
-		The higher, the darker the shadow.
-	angle : float.
-		Angle in degrees, in [0.0; 90.0].
-		The higher, the darker the shadow.
+		Width of the shadow, in pixels.
+	intensity : float
+		Intensity, in [0; 1]. The higher, the darker the shadow.
+	angle : float
+		Angle in degrees, in [0; 90]: the angle between the page and
+		the spine of the book when the page is scanned. The higher,
+		the darker the shadow.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The image with the shadow, of the dtype and shape of img.
+
+	See Also
+	--------
+	shadowBinding2
+
 	)pbdoc",
 	py::arg("img"), py::arg("border"),
 	py::arg("distance"), py::arg("intensity"), py::arg("angle"));
 
    m.def("shadowBinding2",
 	&dc::ShadowBinding::shadowBinding2, R"pbdoc(
-	Add a shadow on a given border of image, proportional to image size.
+	Add the shadow of the binding along a border of an image, of a
+	width relative to the image: distanceRatio times its width for
+	the left and right borders, times its height for the top and
+	bottom borders.
 
-	angle corresponds to the angle between the page and the
-	spine of the book when a page is scanned.
-
-	Warnings
-	--------
-	img must have dtype==np.uint8.
-	img must have ndim==2 or (ndim==3 and shape[2]==1,3 or 4).
+	img must be of dtype uint8, with ndim 2, or ndim 3 and shape[2]
+	1, 3 or 4. An exception is raised otherwise.
 
 	Parameters
 	----------
 	img : ndarray
-		Input image.
+		Image to degrade.
 	distanceRatio : float
-		Ratio of width or height used to compute size in pixels
-		of degradation, in [0; 1].
+		Width of the shadow, relative to the width or the height of
+		the image, in [0; 1].
 	border : DocCreatorPy.ShadowBorder
 		Border on which the shadow is added.
-	intensity : float.
-		Intensity, in [0.0; 1.0].
-		The higher, the darker the shadow.
-	angle : float.
-		Angle in degrees, in [0.0; 90.0].
-		The higher, the darker the shadow.
+	intensity : float
+		Intensity, in [0; 1]. The higher, the darker the shadow.
+	angle : float
+		Angle in degrees, in [0; 90]: the angle between the page and
+		the spine of the book when the page is scanned. The higher,
+		the darker the shadow.
 
 	Returns
 	-------
 	ndarray
-		The modified image, with same shape and dtype than img.
+		The image with the shadow, of the dtype and shape of img.
+
+	See Also
+	--------
+	shadowBinding
+
 	)pbdoc",
 	py::arg("img"),
 	py::arg("distanceRatio"), py::arg("border"),
