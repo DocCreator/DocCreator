@@ -66,7 +66,8 @@ namespace dc {
       (void)seed;
       
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
-      return img;
+      //B: was img itself, which shares its pixels with the caller's image
+      return img.clone();
 #endif //USE_NATIVE_OSMESA
     }
 
@@ -175,7 +176,8 @@ namespace dc {
       (void)seed;
 
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
-      return img;
+      //B: was img itself, which shares its pixels with the caller's image
+      return img.clone();
 #endif //USE_NATIVE_OSMESA
       
 
