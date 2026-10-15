@@ -58,7 +58,7 @@ BinarizationDialog::eventFilter(QObject *watched, QEvent *event)
     updateView();
   }
 
-  return QObject::eventFilter(watched, event);
+  return QDialog::eventFilter(watched, event);
 }
 
 void

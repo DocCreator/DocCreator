@@ -112,11 +112,11 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
         m_currentLetter = f;
 	
 	updateView();
-        return QObject::eventFilter(watched, event);
+        return QDialog::eventFilter(watched, event);
       }
     }
   }
-  return QObject::eventFilter(watched, event);
+  return QDialog::eventFilter(watched, event);
 }
 
 void
