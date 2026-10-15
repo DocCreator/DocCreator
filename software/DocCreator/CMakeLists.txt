@@ -47,8 +47,11 @@ IF(BUILD_TESSERACT)
   
   message(STATUS "Will download and build leptonica and tesseract from sources")
 
-  SET(LEPTONICA_VERSION 1.82.0)
-  SET(TESSERACT_VERSION 531)
+  #The versions name the libraries on Windows: leptonica-1.87.0.lib and
+  #tesseract55.lib (major and minor only). They must be those of the
+  #GIT_TAGs below.
+  SET(LEPTONICA_VERSION 1.87.0)
+  SET(TESSERACT_VERSION 55)
 
   
   # download tessdata
@@ -110,16 +113,23 @@ IF(BUILD_TESSERACT)
 
   include(ExternalProject)
 
-  #build static library with -DSTATIC=ON
+  #static libraries, with -DBUILD_SHARED_LIBS=OFF (-DSTATIC=ON before 1.84)
   ExternalProject_Add(leptonica
     # URL ${LEPTONICA_SRC_DIR}
     GIT_REPOSITORY https://github.com/DanBloomberg/leptonica.git
     #GIT_TAG 5ad7a0a3adcfa8944c082732b69b733917a54242
     #GIT_TAG f4138265b390f1921b9891d6669674d3157887d8  # 1.82.0
-    GIT_TAG b667978e86c4bf74f7fdd75f833127d2de327550  # 1.83.1
+    #GIT_TAG b667978e86c4bf74f7fdd75f833127d2de327550  # 1.83.1
+    GIT_TAG 13275a278eb55b5746e33f95fbf5a2c8f604b3ab  # 1.87.0
     PREFIX ${PROJECT_BINARY_DIR}/leptonica
     # PATCH_COMMAND patch -p0 < ${PROJECT_SOURCE_DIR}/thirdparty/leptonica-1.80.0.patch
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DSTATIC=ON -DSW_BUILD=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    #Without WebP and OpenJPEG: 1.87.0 links them as the imported targets
+    # WebP::webp and openjp2, which its installed LeptonicaConfig.cmake
+    # never looks for (its find_dependency() calls are under an empty
+    # if()), so configuring tesseract against it fails. DocCreator gives
+    # tesseract pixels, not files, and does not need leptonica to read
+    # either format.
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DBUILD_SHARED_LIBS=OFF -DSW_BUILD=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     BUILD_BYPRODUCTS ${LEPTONICA_LIBRARY}
     )
 
@@ -148,6 +158,8 @@ IF(BUILD_TESSERACT)
   #message("moi Lept_INCLUDE_DIRS=${Lept_INCLUDE_DIRS}")
   #message("Leptonica_LIBRARIES=${Leptonica_LIBRARIES}")
 
+  #Without curl and libarchive, which tesseract links when it finds them
+  #and which DocCreator does not link: it reads plain .traineddata files.
   #Tesseract is built with the compiler DocCreator is built with, and its
   #default standard library: it is linked into the same executable.
   #B: Clang used to be given -stdlib=libc++ here. On Linux, where Clang uses
@@ -161,11 +173,12 @@ IF(BUILD_TESSERACT)
     GIT_REPOSITORY https://github.com/tesseract-ocr/tesseract.git
     #GIT_TAG 8081cae82ee5649cf28a61533aeedee2b4ce4964
     #GIT_TAG 5ad5325a0aa8effc47ca033625b6a51682f82767 #5.2.0
-    GIT_TAG 71af4542990adae6d9f31d6657068bc0139c6ec4 #5.3.1
+    #GIT_TAG 71af4542990adae6d9f31d6657068bc0139c6ec4 #5.3.1
+    GIT_TAG db0ec62f81b0737fbbe184d8fea40af5738f8eef #5.5.3
     PREFIX ${PROJECT_BINARY_DIR}/tesseract
     ##CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     #CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/lib/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DSW_BUILD=OFF -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/lib/cmake/leptonica -DPKG_CONFIG_EXECUTABLE="" -DLeptonica_FOUND=TRUE -DDISABLE_CURL=ON -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DSW_BUILD=OFF -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/lib/cmake/leptonica -DPKG_CONFIG_EXECUTABLE="" -DLeptonica_FOUND=TRUE -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DBUILD_SHARED_LIBS=OFF -DSW_BUILD=OFF -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     BUILD_BYPRODUCTS ${TESSERACT_LIBRARY}
     )
 
