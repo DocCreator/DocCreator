@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <type_traits>
 
 #include "Validate.hpp"
 
@@ -92,27 +93,7 @@ namespace dc {
 
     assert(_originalFrontImg.type() == _front.type());
     assert(_front.type() == _back.type());
-  
-    assert(_out.type() == _front.type());
-    assert(_out.type() == _back.type());
-  }
-
-  template <>
-  BleedThroughDiffusionThreadA<uchar>::BleedThroughDiffusionThreadA(const cv::Mat &originalFrontImg,
-								    const cv::Mat &front,
-								    const cv::Mat &back,
-								    cv::Mat &out) :
-    _originalFrontImg(originalFrontImg),
-    _front(front),
-    _back(back),
-    _out(out)
-  {
-    assert(_originalFrontImg.size() == _front.size());
-    assert(_front.size() == _back.size());
-
-    assert(_originalFrontImg.type() == _front.type());
-    assert(_front.type() == _back.type());
-    assert(_originalFrontImg.type() == CV_8UC1);
+    assert(_originalFrontImg.channels() == cv::DataType<T>::channels);
   
     assert(_out.type() == _front.type());
     assert(_out.type() == _back.type());
@@ -129,9 +110,7 @@ namespace dc {
     assert(_back.type() == _front.type());
     assert(_back.type() == _originalFrontImg.type());
     assert(_back.type() == _out.type());
-  
-    const int numChan = _back.channels();
-  
+
     for (int y = y0; y<y1; ++y) {
       const T *v = _back.ptr<T>(y);
       const T *sr = _originalFrontImg.ptr<T>(y);
@@ -146,79 +125,19 @@ namespace dc {
     
       for (int x=x0; x<x1; ++x) {
 
-	const T &r_v = r[x];
-	const T &sr_v = sr[x];
-
 	const int px = (x > 0 ? x - 1 : 0);
 	const int nx = (x < _back.cols-1 ? x + 1 : _back.cols-1);
 
-	const T &iyn_v = v_py[x];
-	const T &ixp_v = v[px];
-	const T &ixn_v = v[nx];
-	const T &iyp_v = v_ny[x];
-
-	T &o_v = o[x];
-      
-	for (int k=0; k<numChan; ++k) {
-
-	  const int current = r_v[k];
-	  const int iyn = iyn_v[k];
-	  const int ixp = ixp_v[k];
-	  const int ixn = ixn_v[k];
-	  const int iyp = iyp_v[k];
-	  const int u = sr_v[k];
-
-	  const int g = bleedThrough_kernel(u, current, ixp, ixn, iyp, iyn);
-	  o_v[k] = g;
+	//B: a uchar pixel has no channel to index, a cv::Vec has
+	if constexpr (std::is_same_v<T, uchar>) {
+	  o[x] = bleedThrough_kernel(sr[x], r[x], v[px], v[nx], v_ny[x], v_py[x]);
 	}
-
-      }
-    }
-  }
-
-  //bleedThrough4b
-  template <>
-  void BleedThroughDiffusionThreadA<uchar>::process(int x0, int y0, int x1, int y1) const
-  {
-    assert(_back.size() == _front.size());
-    assert(_back.size() == _originalFrontImg.size());
-    assert(_back.size() == _out.size());
-  
-    assert(_back.type() == _front.type());
-    assert(_back.type() == _originalFrontImg.type());
-    assert(_back.type() == _out.type());
-  
-    assert(_back.type() == CV_8UC1);
-  
-    for (int y = y0; y<y1; ++y) {
-      const uchar *v = _back.ptr<uchar>(y);
-      const uchar *sr = _originalFrontImg.ptr<uchar>(y);
-      const uchar *r = _front.ptr<uchar>(y);
-      uchar *o = _out.ptr<uchar>(y);
-
-      const int py = (y > 0 ? y - 1 : 0);
-      const int ny = (y < _back.rows-1 ? y + 1 : _back.rows-1);
-    
-      const uchar *v_py = _back.ptr<uchar>(py);
-      const uchar *v_ny = _back.ptr<uchar>(ny);
-    
-      for (int x=x0; x<x1; ++x) {
-
-	const int current = r[x];
-	const int u = sr[x];
-
-	const int px = (x > 0 ? x - 1 : 0);
-	const int nx = (x < _back.cols-1 ? x + 1 : _back.cols-1);
-
-	const int iyn = v_py[x];
-	const int  ixp = v[px];
-	const int ixn = v[nx];
-	const int iyp = v_ny[x];
-
-
-	const int g = bleedThrough_kernel(u, current, ixp, ixn, iyp, iyn);
-	o[x] = g;
-
+	else {
+	  for (int k=0; k<T::channels; ++k) {
+	    o[x][k] = bleedThrough_kernel(sr[x][k], r[x][k], v[px][k], v[nx][k],
+					  v_ny[x][k], v_py[x][k]);
+	  }
+	}
       }
     }
   }
@@ -229,11 +148,6 @@ namespace dc {
     process(0, r.start, _front.cols, r.end);
   }
 
-  template <>
-  void BleedThroughDiffusionThreadA<uchar>::operator()(const cv::Range &r) const
-  {
-    process(0, r.start, _front.cols, r.end);
-  }
 
 
 
