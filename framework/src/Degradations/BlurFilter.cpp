@@ -1,7 +1,12 @@
 #include "BlurFilter.hpp"
 
 #include <cassert>
+#include <algorithm> //clamp
 #include <cmath> //sqrt, log
+#include <cstdint>
+#include <cstdlib> //abs
+#include <optional>
+#include <vector>
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -21,38 +26,62 @@ namespace dc {
       y2 = (-b - sqrtf(discr)) / (2 * a);
     }
 
-    static constexpr int
+    //B: the four curves below return their row as a float, and toRow()
+    // makes it an int: they did the conversion themselves, which is
+    // undefined for log(0), at the first column.
+
+    static constexpr float
     fctLinear(int x, int rows, float coeff, int vertical)
     {
-      return static_cast<int>(rows - (x * coeff + vertical));
+      return rows - (x * coeff + vertical);
     }
 
-    static int
+    static float
     fctLog(int x, int rows, float coeff, int vertical)
     {
-      return static_cast<int>(rows - (logf(static_cast<float>(x)) * coeff + vertical));
+      return rows - (logf(static_cast<float>(x)) * coeff + vertical);
     }
 
-    static constexpr int
+    static constexpr float
     fctParabola(int x, int rows, float coeff, int vertical, int horizontal)
     {
-      return static_cast<int>(rows - ((coeff * (x + horizontal) * (x + horizontal)) +
-		     (COEFF_PARABOLA * (x + horizontal)) + vertical));
+      return rows - ((coeff * (x + horizontal) * (x + horizontal)) +
+		     (COEFF_PARABOLA * (x + horizontal)) + vertical);
     }
 
-    static int
+    static float
     fctSinus(int x, int rows, float coeff, int vertical, int horizontal)
     {
-      return static_cast<int>(rows - (coeff * sinf((x + horizontal) / 200.f) + vertical));
+      return rows - (coeff * sinf((x + horizontal) / 200.f) + vertical);
     }
 
-    static void
-    fctEllipse(int x,
-	       int horizontal,
-	       int vertical,
-	       float coeff,
-	       float &y1,
-	       float &y2)
+    /*
+      The rows where a conic crosses a column: none, one or two.
+    */
+    struct Solutions
+    {
+      std::optional<float> first;
+      std::optional<float> second;
+    };
+
+    static Solutions
+    solveQuadratic(float a, float b, float c)
+    {
+      const float discr = b * b - (4.f * a * c);
+      if (discr > 0) {
+        float y1 = 0;
+        float y2 = 0;
+        calcSolutions(a, b, discr, y1, y2);
+        return {y1, y2};
+      }
+      if (discr == 0) {
+        return {-b / (2 * a), std::nullopt};
+      }
+      return {};
+    }
+
+    static Solutions
+    fctEllipse(int x, int horizontal, int vertical, float coeff)
     {
       //Pattern : 0.2*x*x + 0.5*y*y + 0.27*x*y - 330.71*x - 554.29*y = -170351.99
       //others numbers are here to ajust the coefficient chosen to Resize the ellipse. (For example, the variable y is multiplied by 0.1 when the size is increased by one). These coefficients were computed for this pattern thanks to Geogebra
@@ -61,31 +90,18 @@ namespace dc {
       const float c = (170351.99f - (coeff * 34.61f)) +
 	(0.2f * (x + horizontal) * (x + horizontal)) -
 	((330.71f - (coeff * 0.03f)) * (x + horizontal));
-      const float discr = b * b - (4.f * a * c);
 
-      if (discr > 0) {
-	calcSolutions(a, b, discr, y1, y2);
-	y1 += vertical;
-	y2 += vertical;
+      Solutions s = solveQuadratic(a, b, c);
+      for (std::optional<float> *y : {&s.first, &s.second}) {
+        if (*y) {
+          **y += vertical;
+        }
       }
-      else if (discr == 0) {
-	y1 = -b / (2 * a);
-	y1 += vertical;
-	y2 = -FLT_MAX;
-      }
-      else {
-	y1 = -FLT_MAX;
-      }
+      return s;
     }
 
-    static void
-    fctHyperbola(int x,
-		 int rows,
-		 int horizontal,
-		 int vertical,
-		 float coeff,
-		 float &y1,
-		 float &y2)
+    static Solutions
+    fctHyperbola(int x, int rows, int horizontal, int vertical, float coeff)
     {
       //Pattern : 0.00801*x*x - 0.03214*y*y + 0.1146*x*y - 123.95975*x - 17.44726*y = -81903.06188
       //others numbers are here to ajust the coefficient chosen to Resize the hyperbola. (For example, the variable x*x is multiplied by 0.00012 when the size is increase by one). These coefficient were computed for this pattern thanks to Geogebra
@@ -95,107 +111,130 @@ namespace dc {
 	(81903.06188f + (coeff * 206.34517f)) +
 	((0.00801f - (coeff * 0.00012f)) * (x + horizontal) * (x + horizontal)) -
 	((123.95975f + (coeff * 0.17438f)) * (x + horizontal));
-      const float discr = b * b - (4 * a * c);
-      if (discr > 0) {
-	calcSolutions(a, b, discr, y1, y2);
-	y1 = rows - (y1 + vertical);
-	y2 = rows - (y2 + vertical);
+
+      Solutions s = solveQuadratic(a, b, c);
+      for (std::optional<float> *y : {&s.first, &s.second}) {
+        if (*y) {
+          **y = rows - (**y + vertical);
+        }
       }
-      else if (discr == 0) {
-	y1 = -b / (2 * a);
-	y1 = rows - (y1 + vertical);
-	y2 = -FLT_MAX;
-      }
+      return s;
     }
 
-    void
-    calculFunction(Function fct,
-		   int rows,
-		   int x,
-		   int y,
-		   int vertical,
-		   int horizontal,
-		   float coeff,
-		   int &yFunction,
-		   int &y2Function)
-    {
+    /*
+      @return the row @a y truncated towards zero, as the curves always were,
+      or nothing for a NaN.
 
+      B: the value is clamped first: log(0), at the first column, is
+      infinite, and converting an infinite or out of range float to int is
+      undefined. Any row this far from the image compares with the rows of
+      the image, give or take a radius, as the exact value would.
+    */
+    static std::optional<int>
+    toRow(float y)
+    {
+      if (std::isnan(y)) {
+        return std::nullopt;
+      }
+      constexpr float LIMIT = 1 << 24;
+      return static_cast<int>(std::clamp(y, -LIMIT, LIMIT));
+    }
+
+    /*
+      The rows where the curve @a fct crosses the column @a x: the
+      function curves cross it once, the conics none, once or twice.
+
+      B: this filled two int out-parameters, with -1 meaning "no row", and
+      a curve really crossing the column at -1 was then taken for no
+      crossing. Worse, the ellipse tested the pixel row it was given,
+      instead of the solution, against -FLT_MAX: with no solution,
+      -FLT_MAX was converted to an int, which is undefined, and gave
+      INT_MIN on x86, from which isNearFunction() subtracted the radius.
+      That pixel row was used for nothing else and is no longer passed.
+    */
+    struct CurveRows
+    {
+      std::optional<int> first;
+      std::optional<int> second;
+    };
+
+    static CurveRows
+    curveRows(Function fct,
+	      int rows,
+	      int x,
+	      int vertical,
+	      int horizontal,
+	      float coeff)
+    {
       switch (fct) {
       case Function::LINEAR:
-	yFunction = fctLinear(x, rows, coeff, vertical);
-	break;
+	return {toRow(fctLinear(x, rows, coeff, vertical)), std::nullopt};
 
       case Function::LOG:
-	yFunction = fctLog(x, rows, coeff, vertical);
-	break;
+	return {toRow(fctLog(x, rows, coeff, vertical)), std::nullopt};
 
       case Function::PARABOLA:
-	yFunction = fctParabola(x, rows, coeff, vertical, horizontal);
-	break;
+	return {toRow(fctParabola(x, rows, coeff, vertical, horizontal)), std::nullopt};
 
       case Function::SINUS:
-	yFunction = fctSinus(x, rows, coeff, vertical, horizontal);
-	break;
+	return {toRow(fctSinus(x, rows, coeff, vertical, horizontal)), std::nullopt};
 
       case Function::ELLIPSE:
 	{
-	  float y1 = 0;
-	  float y2 = 0;
-	  fctEllipse(x, horizontal, vertical, coeff, y1, y2);
-	  yFunction = (y != -FLT_MAX ? static_cast<int>(y1)
-		       : -1); //To be sure we are in ellipse
-	  y2Function =
-	    (y2 != -FLT_MAX ? static_cast<int>(y2)
-	     : -1); //To know if their are just one solution
-
-	  if (yFunction < 0 || yFunction > rows) {
-	    y2Function = -1;
+	  const Solutions s = fctEllipse(x, horizontal, vertical, coeff);
+	  CurveRows c{s.first ? toRow(*s.first) : std::nullopt,
+		      s.second ? toRow(*s.second) : std::nullopt};
+	  //the second row only counts when the first is in the image
+	  if (!c.first || *c.first < 0 || *c.first > rows) {
+	    c.second.reset();
 	  }
+	  return c;
 	}
-	break;
 
       case Function::HYPERBOLA:
 	{
-	  float y1 = 0;
-	  float y2 = 0;
-	  fctHyperbola(x, rows, horizontal, vertical, coeff, y1, y2);
-	  yFunction = static_cast<int>(y1);
-	  y2Function = (y2 != -FLT_MAX ? static_cast<int>(y2) : -1);
+	  const Solutions s = fctHyperbola(x, rows, horizontal, vertical, coeff);
+	  return {s.first ? toRow(*s.first) : std::nullopt,
+		  s.second ? toRow(*s.second) : std::nullopt};
 	}
-	break;
       }
+      return {};
     }
 
-    bool
-    isNearFunction(int x,
-		   int y,
-		   int rows,
-		   Function fct,
-		   int horizontal,
-		   int vertical,
-		   float coeff,
-		   int radius)
+    static bool
+    isNear(int y, std::optional<int> row, int radius)
     {
-      int yFunction = -1;
-      int y2Function = -1;
+      //in 64 bits: neither the difference nor the radius can overflow
+      return row && std::abs(static_cast<int64_t>(y) - *row) <= radius;
+    }
 
-      calculFunction(
-		     fct, rows, x, y, vertical, horizontal, coeff, yFunction, y2Function);
+    /*
+      The rows of the curve in each of the @a cols columns.
 
-      if (yFunction != -1) {
-	if ((yFunction - radius <= y)
-	    && (y <= yFunction + radius)
-	    && (y2Function != 1)) {
-	  return true;
-	}
-	if ((y2Function != -1)
-	    && (y2Function - radius <= y)
-	    && (y <= y2Function + radius)) {
-	  return true;
-	}
+      B: they were computed again for every pixel, though they depend only
+      on the column.
+    */
+    static std::vector<CurveRows>
+    curveRowsOfColumns(Function fct,
+		       int rows,
+		       int cols,
+		       int vertical,
+		       int horizontal,
+		       float coeff)
+    {
+      std::vector<CurveRows> columns(cols);
+      for (int x = 0; x < cols; ++x) {
+	columns[x] = curveRows(fct, rows, x, vertical, horizontal, coeff);
       }
+      return columns;
+    }
 
-      return false;
+    static bool
+    isNearFunction(int y, const CurveRows &c, int radius)
+    {
+      //B: the first test also required y2Function != 1, a typo for -1
+      // that made a curve whose second row is 1 never near its first one
+      return isNear(y, c.first, radius) || isNear(y, c.second, radius);
     }
 
     template <typename V>
@@ -211,6 +250,9 @@ namespace dc {
       const int rows = blurredMat.rows;
       const int cols = blurredMat.cols;
 
+      const std::vector<CurveRows> columns =
+	curveRowsOfColumns(function, rows, cols, vertical, horizontal, coeff);
+
       assert(resultMat.type() == blurredMat.type());
       assert(blurredMat.size() == resultMat.size());
 
@@ -218,8 +260,7 @@ namespace dc {
 	const V *b = blurredMat.ptr<V>(y);
 	V *r = resultMat.ptr<V>(y);
 	for (int x = 0; x < cols; ++x) {
-	  if (isNearFunction(x, y, rows, function,
-			     horizontal, vertical, coeff, radius)) { //Center
+	  if (isNearFunction(y, columns[x], radius)) { //Center
 	    r[x] = b[x];
 	  }
 	  //else
@@ -257,37 +298,18 @@ namespace dc {
       return blurredMat;
     }
 
-    bool
-    upperThan(Function fct,
-	      int rows,
-	      int x,
-	      int y,
-	      int vertical,
-	      int horizontal,
-	      float coeff)
+    static bool
+    upperThan(Function fct, int y, const CurveRows &c)
     {
-      int yFunction = -1;
-      int y2Function = -1;
-      calculFunction(
-		     fct, rows, x, y, vertical, horizontal, coeff, yFunction, y2Function);
-
       if (fct == Function::ELLIPSE || fct == Function::HYPERBOLA) {
-	if (y2Function == -1) { //Mean there are juste one solution
-	  if (y == yFunction) {
-	    return true;
-	  }
+	if (!c.second) { //one solution, or none
+	  return c.first && y == *c.first;
 	}
-	else { //Two solutions
-	  if (y < yFunction && y > y2Function) {
-	    return true;
-	  }
-	}
-      }
-      else if (y > yFunction) {
-	return true;
+	//two solutions
+	return c.first && y < *c.first && y > *c.second;
       }
 
-      return false;
+      return c.first && y > *c.first;
     }
 
     template <typename V>
@@ -307,13 +329,15 @@ namespace dc {
       const int rows = resultMat.rows;
       const int cols = resultMat.cols;
 
+      const std::vector<CurveRows> columns =
+	curveRowsOfColumns(function, rows, cols, vertical, horizontal, coeff);
+
       if (area == Area::UP) {
 	for (int y = 0; y < rows; ++y) {
 	  const V *b = blurredMat.ptr<V>(y);
 	  V *r = resultMat.ptr<V>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (upperThan(function, rows, x, y,
-			  vertical, horizontal, coeff)) {
+	    if (upperThan(function, y, columns[x])) {
 	      r[x] = b[x];
 	    }
 	  }
@@ -324,8 +348,7 @@ namespace dc {
 	  const V *b = blurredMat.ptr<V>(y);
 	  V *r = resultMat.ptr<V>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (!upperThan(function, rows, x, y,
-			   vertical, horizontal, coeff)) {
+	    if (!upperThan(function, y, columns[x])) {
 	      r[x] = b[x];
 	    }
 	  }
@@ -473,18 +496,14 @@ namespace dc {
       const int rows = originalMat.rows;
       const int cols = originalMat.cols;
 
+      const std::vector<CurveRows> columns =
+	curveRowsOfColumns(function, rows, cols, vertical, horizontal, coeff);
+
       if (area == Area::CENTERED) {
 	for (int y = 0; y < rows; ++y) {
 	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (!isNearFunction(x,
-				y,
-				rows,
-				function,
-				horizontal,
-				vertical,
-				coeff,
-				radius)) { //Center
+	    if (!isNearFunction(y, columns[x], radius)) { //Center
 	      r[x] = WHITE;
 	    }
 	  }
@@ -494,8 +513,7 @@ namespace dc {
 	for (int y = 0; y < rows; ++y) {
 	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (!upperThan(function, rows, x, y,
-			   vertical, horizontal, coeff)) {
+	    if (!upperThan(function, y, columns[x])) {
 	      r[x] = WHITE;
 	    }
 	  }
@@ -506,8 +524,7 @@ namespace dc {
 	for (int y = 0; y < rows; ++y) {
 	  uchar *r = resultMat.ptr<uchar>(y);
 	  for (int x = 0; x < cols; ++x) {
-	    if (upperThan(function, rows, x, y,
-			  vertical, horizontal, coeff)) {
+	    if (upperThan(function, y, columns[x])) {
 	      r[x] = WHITE;
 	    }
 	  }

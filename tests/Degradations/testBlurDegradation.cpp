@@ -1,4 +1,6 @@
+#include <cstdlib>
 #include <iostream>
+#include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -149,6 +151,77 @@ testSimple2(int imageType)
 }
 
 
+/*
+  The curves of a pattern are continuous, so a column of the pattern does
+  not differ from both its neighbours by more than half its height.
+
+  Two that did: the first column of a LOG pattern, where log(0) was
+  converted to an int (undefined, INT_MIN on x86), and a HYPERBOLA column
+  whose second row truncated to -1, which was taken for "no second row".
+  The ellipse converted -FLT_MAX to an int too, with no visible effect but
+  an overflow the undefined behaviour sanitizer reports.
+*/
+static
+void
+testPatternColumnsAreContinuous(int rows, int cols)
+{
+  using namespace dc::BlurFilter;
+
+  const cv::Mat img(rows, cols, CV_8UC1, cv::Scalar(0));
+
+  for (Function f : {Function::LINEAR, Function::LOG, Function::PARABOLA,
+		     Function::SINUS, Function::ELLIPSE, Function::HYPERBOLA}) {
+    for (Area a : {Area::UP, Area::DOWN, Area::CENTERED}) {
+      for (float coeff : {1.f, 5.f}) {
+	for (int vertical : {-50, 0, 100}) {
+	  const cv::Mat pattern = makePattern(img, f, a, coeff, vertical, 0, 10);
+	  REQUIRE( pattern.size() == img.size() );
+
+	  std::vector<int> white(cols);
+	  for (int x = 0; x < cols; ++x) {
+	    white[x] = cv::countNonZero(pattern.col(x));
+	  }
+	  for (int x = 0; x < cols; ++x) {
+	    const bool farFromPrevious =
+	      (x == 0) || std::abs(white[x] - white[x-1]) > rows / 2;
+	    const bool farFromNext =
+	      (x == cols - 1) || std::abs(white[x] - white[x+1]) > rows / 2;
+	    INFO( "function " << static_cast<int>(f) << " area " << static_cast<int>(a)
+		  << " coeff " << coeff << " vertical " << vertical << " column " << x );
+	    REQUIRE_FALSE( (farFromPrevious && farFromNext) );
+	  }
+	}
+      }
+    }
+  }
+}
+
+/*
+  A curve crossing a column at row -1 is a curve, -1 having been used to
+  mean "no row": it is near the first radius rows of the image.
+*/
+static
+void
+testCurveAtRowMinusOne()
+{
+  using namespace dc::BlurFilter;
+
+  const int rows = 300;
+  const int cols = 400;
+  const int radius = 10;
+  const cv::Mat img(rows, cols, CV_8UC1, cv::Scalar(0));
+
+  //LINEAR, coeff 1, vertical 0: row = rows - x, so -1 at x = rows + 1
+  const cv::Mat pattern =
+    makePattern(img, Function::LINEAR, Area::CENTERED, 1.f, 0, 0, radius);
+
+  const cv::Mat column = pattern.col(rows + 1);
+  //the pattern is white where the image is not near the curve
+  REQUIRE( cv::countNonZero(column.rowRange(0, radius)) == 0 );
+  REQUIRE( cv::countNonZero(column.rowRange(radius, rows)) == rows - radius );
+}
+
+
 TEST_CASE( "Testing BlurFilter" )
 { 
 
@@ -171,6 +244,17 @@ TEST_CASE( "Testing BlurFilter" )
     testSimple2(CV_8UC1);
     testSimple2(CV_8UC3);
     testSimple2(CV_8UC4);
+  }
+
+  SECTION("Testing the curves of a pattern are continuous")
+  {
+    testPatternColumnsAreContinuous(300, 400);
+    testPatternColumnsAreContinuous(1600, 1200);
+  }
+
+  SECTION("Testing a curve crossing row -1 is a curve")
+  {
+    testCurveAtRowMinusOne();
   }
 
   //TODO: test blur with even kernelSize (ex: 2, 4, ...)
