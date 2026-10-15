@@ -69,7 +69,14 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC")
 #include/ -- are not run by "make install".
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lzham_codec EXCLUDE_FROM_ALL)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVE}")
-SET(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVE} CACHE BOOL "build shared libs?" FORCE)
+#If BUILD_SHARED_LIBS was not set before, remove it again: an empty cached
+#value counts as "defined and false" and makes e.g. OpenCVConfig.cmake look
+#for static OpenCV libraries on the next configure.
+IF("${BUILD_SHARED_LIBS_SAVE}" STREQUAL "")
+  UNSET(BUILD_SHARED_LIBS CACHE)
+ELSE()
+  SET(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVE} CACHE BOOL "build shared libs?" FORCE)
+ENDIF()
 FIND_PATH(LZHAM_INCLUDE_DIR lzham.h ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lzham_codec/include NO_CMAKE_PATH NO_CMAKE_SYSTEM_PATH)
 SET(LZHAM_LIBRARY lzhamdll)
 LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/thirdparty/lzham_codec/lzhamdll)
