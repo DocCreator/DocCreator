@@ -588,6 +588,12 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
   DocumentController *controller =
     static_cast<DocumentController *>(getController()); //B:dynamic_cast?
   Doc::Page *currentDocPage = controller->getDocument()->currentPage();
+  //B: a document without a page: the background alone. This was a call
+  // through a null pointer.
+  if (currentDocPage == nullptr) {
+    painter.end();
+    return outImg;
+  }
 
   if (flags.testFlag(WithTextBlocks)) {
 
@@ -617,6 +623,12 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
 
               const Models::Character *character =
                 currentFont->getCharacter(cDisplay);
+              //B: a character the font does not hold -- after a change of
+              // font, for example -- is not drawn. This was a call through
+              // a null pointer.
+              if (character == nullptr) {
+                continue;
+              }
               const QImage charImage =
                 character->getCharacterDataOrFirst(c->getId()).getImage();
 

@@ -335,9 +335,15 @@ ChooseLabelForComponentForm::addImageBlock(const QImage &image, int x, int y)
     return false;
   }
 
+  //B: a document without a page has nowhere to put the block: this was a
+  // call through a null pointer
+  Doc::Page *currentPage = _docController->getDocument()->currentPage();
+  if (currentPage == nullptr) {
+    return false;
+  }
   auto *imageBlock =
     new Doc::DocImageBlock(path, image.width(), image.height(), x, y);
-  _docController->getDocument()->currentPage()->add(imageBlock);
+  currentPage->add(imageBlock);
   ++_imageBlockID;
   return true;
 }
@@ -625,9 +631,6 @@ ChooseLabelForComponentForm::createNewFont()
 
     Models::Character *character =
       new Models::Character(display, _upLine, _baseLine, _leftLine, _rightLine);
-
-    Doc::Page *currentPage = _docController->getDocument()->currentPage();
-    Q_ASSERT(currentPage != nullptr);
 
     QMap<Doc::DocComponentBlock *, QImage> *mapComponentBlockWithImage =
       iter.value();
@@ -1057,7 +1060,10 @@ QImage ChooseLabelForComponentForm::getCharacterDataOf_display(int &x_i, int &y_
         //qDebug() << " char i : x_i, y_i =" << x_i << " , "  << y_i;
 
         // remove item + componentblock;
-        (_docController->getDocument()->currentPage())->remove(dcb);
+        //B: the block is taken out of the current page if there is one
+        if (Doc::Page *currentPage = _docController->getDocument()->currentPage()) {
+          currentPage->remove(dcb);
+        }
         _componentBlocks.removeOne(dcb);
         map_ComponentBlock_DisplayForListWidget[dcb] = false;
         found =true;

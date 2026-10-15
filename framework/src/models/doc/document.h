@@ -53,7 +53,11 @@ namespace Doc
         void removePages();
 	
         void setCurrentPage(Page* p);
-        Page* currentPage();
+        /**
+           @return the current page, or nullptr when the document has none:
+           a new document, or one whose current page has been removed.
+        */
+        [[nodiscard]] Page* currentPage();
         const QList<Page*> &getPages() const { return _pages; }
 
         Block* currentBlock();

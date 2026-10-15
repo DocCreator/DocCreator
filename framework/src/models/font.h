@@ -47,7 +47,7 @@ public:
      Get Character corresponding to @a charValue if it exists in font.
      Return nullptr otherwise.
    */
-  const Character *getCharacter(const QString &charValue) const;
+  [[nodiscard]] const Character *getCharacter(const QString &charValue) const;
 
   /**
      Get Character corresponding to @a charValue if it exists in font.

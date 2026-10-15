@@ -147,7 +147,11 @@ CharacterButtonView::openCharacterChoice()
   const QString charValue = QString(QChar(fontCode));
   const Models::Character *c =
     Context::FontContext::instance()->getCurrentFont()->getCharacter(charValue);
-  assert(c);
+  //B: was assert(c) only: a button whose character is not, or no longer,
+  // in the current font has no versions to choose from
+  if (c == nullptr) {
+    return;
+  }
   //Models::CharacterDataList charDatas = c->getAllCharacterData();
 
   auto characterList =
