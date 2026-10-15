@@ -13,7 +13,12 @@ IF(CCACHE_PROGRAM)
 ENDIF(CCACHE_PROGRAM)
 
 
-PROJECT(DocCreator)
+#The version of the project: of the CMake package the degradation library
+#installs (cf. cmake/DocCreatorConfig.cmake.in) and of the python module.
+PROJECT(DocCreator VERSION 0.0.0)
+
+#where "make install" puts libraries, headers and package files
+INCLUDE(GNUInstallDirs)
 SET( CMAKE_COLOR_MAKEFILE ON )
 #SET( CMAKE_VERBOSE_MAKEFILE ON )
 
@@ -63,14 +68,19 @@ ADD_CUSTOM_TARGET(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 
 
-FIND_PACKAGE(OpenCV REQUIRED core imgproc highgui photo)
+SET(DOCCREATOR_OPENCV_COMPONENTS core imgproc highgui photo)
+FIND_PACKAGE(OpenCV REQUIRED ${DOCCREATOR_OPENCV_COMPONENTS})
 if( OpenCV_FOUND )
   if (OpenCV_VERSION VERSION_GREATER 3.0)
-    FIND_PACKAGE(OpenCV QUIET REQUIRED core imgproc highgui imgcodecs photo)
+    #the installed package asks for the same components, cf. below
+    SET(DOCCREATOR_OPENCV_COMPONENTS core imgproc highgui imgcodecs photo)
+    FIND_PACKAGE(OpenCV QUIET REQUIRED ${DOCCREATOR_OPENCV_COMPONENTS})
   else()
     message(STATUS "Found OpenCV: ${OpenCV_DIR} (found version \"${OpenCV_VERSION}\")")
   endif()
   list( APPEND ThirdParty_LIBS ${OpenCV_LIBS} )
+  #the second FIND_PACKAGE() above adds its libraries to those of the first
+  list( REMOVE_DUPLICATES ThirdParty_LIBS )
 endif( OpenCV_FOUND )
 
 
@@ -328,6 +338,33 @@ ENDIF()
 if (BUILD_FUZZERS)
   add_subdirectory (${PROJECT_SOURCE_DIR}/fuzz)
 endif (BUILD_FUZZERS)
+
+# The CMake package of the degradation library, so that a project outside
+# this tree can, once "make install" has run:
+#   find_package(DocCreator REQUIRED COMPONENTS Degradations)
+#   target_link_libraries(myprog PRIVATE DocCreator::Degradations)
+# The 3D distortion with OSMesa needs libraries that are not installed: the
+# package is not made then.
+IF(BUILD_WITH_OSMESA)
+  MESSAGE(STATUS "DocCreator CMake package DISABLED: the 3D distortion with OSMesa needs libraries that are not installed")
+ELSE()
+  INCLUDE(CMakePackageConfigHelpers)
+  SET(DOCCREATOR_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/DocCreator)
+  INSTALL(EXPORT DocCreatorTargets
+    NAMESPACE DocCreator::
+    DESTINATION ${DOCCREATOR_INSTALL_CMAKEDIR}
+    COMPONENT Degradations)
+  CONFIGURE_PACKAGE_CONFIG_FILE(${PROJECT_SOURCE_DIR}/cmake/DocCreatorConfig.cmake.in
+    ${PROJECT_BINARY_DIR}/DocCreatorConfig.cmake
+    INSTALL_DESTINATION ${DOCCREATOR_INSTALL_CMAKEDIR})
+  WRITE_BASIC_PACKAGE_VERSION_FILE(${PROJECT_BINARY_DIR}/DocCreatorConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
+  INSTALL(FILES ${PROJECT_BINARY_DIR}/DocCreatorConfig.cmake
+    ${PROJECT_BINARY_DIR}/DocCreatorConfigVersion.cmake
+    DESTINATION ${DOCCREATOR_INSTALL_CMAKEDIR}
+    COMPONENT Degradations)
+ENDIF()
 
 # The API documentation, with Doxygen when it is found: "make doc", then
 # doc/html/index.html in the build directory. Cf doc/Doxyfile.in.

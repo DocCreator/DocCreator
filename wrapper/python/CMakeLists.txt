@@ -43,7 +43,8 @@ target_include_directories(DocCreatorPy PRIVATE ${Python_NumPy_INCLUDE_DIRS})
 target_link_libraries(DocCreatorPy PRIVATE DocCreatorDegradations)
 
 set(DOCCREATOR_PYTHON_NAME "DocCreatorPy") #B:TODO
-set(DOCCREATOR_PYTHON_VERSION "0.0") #${DocCreatorMajorVersion}.${DocCreatorMinorVersion}") #B:TODO
+#the version of the project, cf. PROJECT() in the root CMakeLists.txt
+set(DOCCREATOR_PYTHON_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
 set(PACKAGE_DIR "PACKAGE")
 

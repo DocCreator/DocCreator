@@ -318,6 +318,23 @@ With -DBUILD_TESTING=ON, gcc and [gcovr](https://gcovr.com), the option -DENABLE
 
 Use a Debug build: optimisations move and merge code, and the lines counted are then not the lines written.
 
+### Using the degradation library in another project
+
+The degradation library can be installed, with its headers and a CMake package, and used by a C++ program outside this tree. For the library alone:
+
+    cmake -S . -B builddeg -DBUILD_ONLY_DEGRADATIONS=ON -DCMAKE_INSTALL_PREFIX=/path/to/prefix
+    cmake --build builddeg -j8
+    cmake --install builddeg --component Degradations
+
+The other project then needs only:
+
+    find_package(DocCreator REQUIRED COMPONENTS Degradations)
+    target_link_libraries(myprog PRIVATE DocCreator::Degradations)
+
+configured with `-DCMAKE_PREFIX_PATH=/path/to/prefix`. Its sources include the headers as `<Degradations/...hpp>` (`<Degradations/Degradations.hpp>` for all of them); the package brings OpenCV and C++17 with it. tests/package is such a project.
+
+The package is not made with `-DBUILD_WITH_OSMESA=ON`: the 3D distortion then needs libraries that are not installed.
+
 ## FAQ 
 
  See [FAQ.md](FAQ.md).
