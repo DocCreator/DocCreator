@@ -74,6 +74,10 @@ if( OpenCV_FOUND )
   if (OpenCV_VERSION VERSION_GREATER 3.0)
     #the installed package asks for the same components, cf. below
     SET(DOCCREATOR_OPENCV_COMPONENTS core imgproc highgui imgcodecs photo)
+    if (OpenCV_VERSION VERSION_GREATER_EQUAL 5.0)
+      #OpenCV 5 moved minAreaRect, boundingRect, getAffineTransform... from imgproc to geometry
+      list(APPEND DOCCREATOR_OPENCV_COMPONENTS geometry)
+    endif()
     FIND_PACKAGE(OpenCV QUIET REQUIRED ${DOCCREATOR_OPENCV_COMPONENTS})
   else()
     message(STATUS "Found OpenCV: ${OpenCV_DIR} (found version \"${OpenCV_VERSION}\")")

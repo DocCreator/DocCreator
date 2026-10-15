@@ -2,6 +2,10 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/core/version.hpp>
+#if CV_VERSION_MAJOR >= 5
+#include <opencv2/geometry.hpp> //minAreaRect, boundingRect, getAffineTransform, getRotationMatrix2D: moved out of imgproc in OpenCV 5
+#endif
 #include <Utils/convertor.h>
 
 static const double MIN_LINE_ANGLE = 2.8;

@@ -9,6 +9,10 @@
 
 #include "Random.hpp"
 #include "Validate.hpp"
+#include <opencv2/core/version.hpp>
+#if CV_VERSION_MAJOR >= 5
+#include <opencv2/geometry.hpp> //minAreaRect, boundingRect, getAffineTransform, getRotationMatrix2D: moved out of imgproc in OpenCV 5
+#endif
 
 namespace dc {
   namespace ElasticDeformation {
