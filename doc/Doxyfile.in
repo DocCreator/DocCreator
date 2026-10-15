@@ -1,0 +1,45 @@
+# Doxygen configuration of the DocCreator framework API.
+#
+# Configured by CMake into the build directory: run "make doc" there, and
+# open doc/html/index.html. The warnings, of which there should be none for
+# framework/src/Degradations, are in doc/warnings.txt.
+
+PROJECT_NAME           = DocCreator
+PROJECT_BRIEF          = "Synthetic document image generation"
+OUTPUT_DIRECTORY       = @PROJECT_BINARY_DIR@/doc
+
+INPUT                  = @PROJECT_SOURCE_DIR@/framework/src
+RECURSIVE              = YES
+# the API is in the headers; the .cpp hold the implementation details
+FILE_PATTERNS          = *.h *.hpp
+# the libraries carried in the tree, the 3D rendering, and an internal
+# helper of the character degradation, which are not part of the API
+EXCLUDE_PATTERNS       = */thirdparty/* */Distortion3DModel/* */EllipseRasteriser.hpp
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/framework/src
+STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/framework/src
+
+# the comments say "@param x  description": a first sentence is a brief
+JAVADOC_AUTOBRIEF      = YES
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = NO
+EXTRACT_PRIVATE        = NO
+INTERNAL_DOCS          = NO
+HIDE_UNDOC_MEMBERS     = NO
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = FRAMEWORK_EXPORT=
+
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_IF_INCOMPLETE_DOC = YES
+WARN_NO_PARAMDOC       = YES
+WARN_LOGFILE           = @PROJECT_BINARY_DIR@/doc/warnings.txt
+
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+SEARCHENGINE           = YES

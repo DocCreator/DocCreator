@@ -329,3 +329,16 @@ if (BUILD_FUZZERS)
   add_subdirectory (${PROJECT_SOURCE_DIR}/fuzz)
 endif (BUILD_FUZZERS)
 
+# The API documentation, with Doxygen when it is found: "make doc", then
+# doc/html/index.html in the build directory. Cf doc/Doxyfile.in.
+FIND_PACKAGE(Doxygen QUIET)
+IF(DOXYGEN_FOUND)
+  CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/doc/Doxyfile.in
+                 ${PROJECT_BINARY_DIR}/doc/Doxyfile @ONLY)
+  ADD_CUSTOM_TARGET(doc
+    COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/doc/Doxyfile
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating the API documentation with Doxygen"
+    VERBATIM)
+ENDIF()
+
