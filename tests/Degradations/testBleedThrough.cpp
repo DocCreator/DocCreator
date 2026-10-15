@@ -385,6 +385,36 @@ testEqualToGT4(int nbThreads)
 
 
 
+/*
+  numThreads is the maximum number of threads used, 0 or negative meaning
+  as many as OpenCV uses: the result must not depend on it. The verso is
+  placed at an offset, so that only part of the recto is degraded, and a
+  height of 37 rows does not divide evenly between the threads.
+*/
+static
+void
+testIndependentOfNumThreads(int imageType)
+{
+  cv::Mat recto(37, 53, imageType);
+  cv::Mat verso(41, 47, imageType);
+  cv::randn(recto, 128, 40);
+  cv::randn(verso, 100, 40);
+
+  const int nbIters = 7;
+  const cv::Point pos(5, -3);
+
+  const cv::Mat ref = dc::BleedThrough::bleedThrough(recto, verso, nbIters, pos, 1);
+  const cv::Mat refInc = dc::BleedThrough::bleedThroughInc(recto, ref, verso, nbIters, pos, 1);
+  REQUIRE_FALSE( checkEqual(ref, recto) );
+
+  for (int numThreads : {-1, 0, 2, 3, 7, 100}) {
+    INFO( "numThreads=" << numThreads );
+    REQUIRE( checkEqual(dc::BleedThrough::bleedThrough(recto, verso, nbIters, pos, numThreads), ref) );
+    REQUIRE( checkEqual(dc::BleedThrough::bleedThroughInc(recto, ref, verso, nbIters, pos, numThreads), refInc) );
+  }
+}
+
+
 TEST_CASE( "Testing BleedThrough" )
 { 
 
@@ -421,6 +451,13 @@ TEST_CASE( "Testing BleedThrough" )
     testEqualToGT3(nbThreads);
     testEqualToGT3b(nbThreads);
     testEqualToGT4(nbThreads);
+  }
+
+  SECTION("Testing BleedThrough gives the same result for any numThreads")
+  {
+    testIndependentOfNumThreads(CV_8UC1);
+    testIndependentOfNumThreads(CV_8UC3);
+    testIndependentOfNumThreads(CV_8UC4);
   }
 
   SECTION("Testing BleedThrough non regression with 3 threads")

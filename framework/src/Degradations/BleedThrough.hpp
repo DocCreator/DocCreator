@@ -28,7 +28,7 @@ namespace dc {
       @param backImg  back image.
       @param numIter   number of iterations. The higher the number of iterations, the more the back image will bleed through the front image.
       @param pos  position of @a backImg image origine in @a frontImg frame. Coordinates may be negative.
-      @param numThreads  number of threads used to tompute the effect. If @a numThreads is negative a value is automatically computed according to the image size and the number of available CPU cores.
+      @param numThreads  maximum number of threads used to compute the effect. If 0 or negative, as many threads as OpenCV uses (cf cv::setNumThreads()). The result does not depend on it.
       @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat bleedThrough(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
@@ -53,7 +53,7 @@ namespace dc {
       @param backImg  verso image.
       @param numIter   number of iterations. The higher the number of iterations, the more the verso image will bleed through the recto image.
       @param pos  position of @a backImg image origine in @a frontImg frame. Coordinates may be negative.
-      @param numThreads  number of threads. If @a numThreads is negative a value is determined according to image size and number of available CPU cores.
+      @param numThreads  maximum number of threads used to compute the effect. If 0 or negative, as many threads as OpenCV uses (cf cv::setNumThreads()). The result does not depend on it.
       @return modified image.
     */
     extern FRAMEWORK_EXPORT cv::Mat bleedThroughInc(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);

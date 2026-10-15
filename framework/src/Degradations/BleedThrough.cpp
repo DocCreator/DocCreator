@@ -151,9 +151,14 @@ namespace dc {
 
 
 
+  /*
+    @a stripes is the number of pieces the rows are cut into, at each
+    iteration, cf the nstripes argument of cv::parallel_for_(): at most
+    that many threads work at once. -1 lets OpenCV choose.
+  */
   template <typename T>
   cv::Mat
-  bleedThroughMT0(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads=5)
+  bleedThroughMT0(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, double stripes)
   {
     assert(frontImg.size() == backImg.size());
     assert(originalFrontImg.size() == backImg.size());
@@ -173,7 +178,7 @@ namespace dc {
 
       cv::parallel_for_(cv::Range(0, height),
 			BleedThroughDiffusionThreadA<T>(originalFrontImg, currFront, backImg, out),
-			numThreads);
+			stripes);
 
       cv::swap(currFront, out);
     }
@@ -183,39 +188,39 @@ namespace dc {
     return out;
   }
 
+  /*
+    @a numThreads is the maximum number of threads, as in bleedThrough().
+
+    B: it is given to cv::parallel_for_() as its nstripes, which is not a
+    number of threads: the threads are OpenCV's, cf cv::setNumThreads(),
+    and the rows are cut into that many pieces, so that at most that many
+    threads work at once. 0 or negative used to mean two different things
+    -- cv::getNumThreads() pieces for a negative value, and, passed on as
+    it was, one piece per row for 0 -- and the docs said the image size was
+    taken into account, which it never was. Both now let OpenCV choose,
+    which measured as fast as either. The result is the same for any
+    value: each iteration reads one image and writes another.
+  */
   cv::Mat
-  bleedThroughMT0(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads=16)
+  bleedThroughMT0(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads)
   {
     assert(frontImg.size() == backImg.size());
     assert(originalFrontImg.size() == backImg.size());
 
-    if (numThreads < 0) {
-      numThreads = cv::getNumThreads(); //B:TODO: use also height of images to decide numThreads ?
-    }
+    const double stripes = (numThreads > 0) ? numThreads : -1;
 
     if (frontImg.type() == CV_8UC1)
-      return bleedThroughMT0<uchar>(originalFrontImg, frontImg, backImg, numIter, numThreads);
+      return bleedThroughMT0<uchar>(originalFrontImg, frontImg, backImg, numIter, stripes);
     else if (frontImg.type() == CV_8UC3)
-      return bleedThroughMT0<cv::Vec3b>(originalFrontImg, frontImg, backImg, numIter, numThreads);
+      return bleedThroughMT0<cv::Vec3b>(originalFrontImg, frontImg, backImg, numIter, stripes);
     else if (frontImg.type() == CV_8UC4)
-      return bleedThroughMT0<cv::Vec4b>(originalFrontImg, frontImg, backImg, numIter, numThreads); //B:TODO: does it make sense to do bleedThrough in alpha channel ????
+      return bleedThroughMT0<cv::Vec4b>(originalFrontImg, frontImg, backImg, numIter, stripes); //B:TODO: does it make sense to do bleedThrough in alpha channel ????
     else {
       std::cerr<<"ERROR: bleedThrough: unhandled image type\n";
       assert(false);
       return originalFrontImg;
     }
   }
-
-  /*
-  cv::Mat
-  bleedThroughMT0(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, int numThreads=16)
-  {
-    assert(frontImg.size() == backImg.size());
-
-    return bleedThroughMT0(frontImg.clone(), frontImg, backImg, numIter, numThreads);
-  }
-  */
-
 
   /*
     compute crop of @a img copied onto destination of image of size @a width x @a height, 

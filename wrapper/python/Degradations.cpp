@@ -74,9 +74,9 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 		backImg is positionned at position pos in fronImage
 		frame. Coordinates may be negative.
 	numThreads : int
-		Number of threads used to compute the effect. If negative,
-		a value is automatically computed according to the image
-		size and the number of available CPU cores.
+		Maximum number of threads used to compute the effect. If 0
+		or negative, as many threads as OpenCV uses (cf
+		cv2.setNumThreads()). The result does not depend on it.
 
 	Returns
 	-------

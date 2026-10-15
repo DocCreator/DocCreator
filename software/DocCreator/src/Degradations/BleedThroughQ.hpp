@@ -17,7 +17,9 @@ namespace dc {
       
       @warning @a imgVerso is not transformed. In particular, it is considered already mirrored.
       
-      If @a numThreads is negative a value is determined according to image size.
+      @a numThreads is the maximum number of threads used. If 0 or negative,
+      as many threads as OpenCV uses (cf cv::setNumThreads()). The result
+      does not depend on it.
       
       @return modified image.
     */
