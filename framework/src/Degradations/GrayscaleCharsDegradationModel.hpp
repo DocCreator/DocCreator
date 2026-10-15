@@ -61,7 +61,7 @@ namespace dc {
      same arguments give the same result.
      @return the degraded image, of the type and size of @a img.
   */
-    extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img, int level = 1,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img, int level = 1,
 						float indepentSpotsRatio = 0.33f,
 						float overlappingSpotsRatio = 0.33,
 						std::optional<uint32_t> seed = std::nullopt);
@@ -128,7 +128,7 @@ namespace dc {
 	 @return the degraded image, of the type and size of the prepared
 	 image.
       */
-      cv::Mat degradation(int level = 1,
+      [[nodiscard]] cv::Mat degradation(int level = 1,
 			  float indepentSpotsRatio = 0.33f,
 			  float overlappingSpotsRatio = 0.33f,
 			  std::optional<uint32_t> seed = std::nullopt);

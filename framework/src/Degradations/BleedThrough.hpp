@@ -38,7 +38,7 @@ namespace dc {
       cv::setNumThreads()). The result does not depend on it.
       @return the degraded image, of the type and size of @a frontImg.
     */
-    extern FRAMEWORK_EXPORT cv::Mat bleedThrough(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat bleedThrough(const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
     
     /**
       Apply a bleed-through effect of @a backImg onto @a frontImg, with
@@ -68,7 +68,7 @@ namespace dc {
       cv::setNumThreads()). The result does not depend on it.
       @return the degraded image, of the type and size of @a frontImg.
     */
-    extern FRAMEWORK_EXPORT cv::Mat bleedThroughInc(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat bleedThroughInc(const cv::Mat &originalFrontImg, const cv::Mat &frontImg, const cv::Mat &backImg, int numIter, cv::Point pos = cv::Point(0, 0), int numThreads=-1);
 
   } //namespace BleedThrough
 

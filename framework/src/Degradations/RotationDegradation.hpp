@@ -26,7 +26,7 @@ namespace dc {
        channels of @a img (blue, green, red and alpha).
        @return the rotated image, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillColor(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillColor(const cv::Mat &img,
 						    float angle,
 						    const cv::Scalar &color);
 
@@ -47,7 +47,7 @@ namespace dc {
        @param backgroundImg  background image.
        @return the rotated image, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillImage(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillImage(const cv::Mat &img,
 						    float angle,
 						    const cv::Mat &backgroundImg);
 
@@ -72,7 +72,7 @@ namespace dc {
        image and the rotated image.
        @return the rotated image, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillImageN(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillImageN(const cv::Mat &img,
 						     float angle,
 						     const cv::Mat &backgroundImg,
 						     int repeats);
@@ -97,7 +97,7 @@ namespace dc {
        @param backgroundImgs  background images.
        @return the rotated image, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillImages(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillImages(const cv::Mat &img,
 						     float angle,
 						     const std::vector<cv::Mat> &backgroundImgs);
     
@@ -125,7 +125,7 @@ namespace dc {
        @param borderMode  how the image is replicated.
        @return the rotated image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillBorder(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillBorder(const cv::Mat &img,
 						     float angle,
 						     BorderReplication borderMode = BorderReplication::WRAP);
     
@@ -145,7 +145,7 @@ namespace dc {
        borders the pixels used.
        @return the rotated image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint1(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint1(const cv::Mat &img,
 						       float angle,
 						       float inpaintingRatio = 0.05f);
 
@@ -169,7 +169,7 @@ namespace dc {
        @param backgroundImg  background image used for the inpainting.
        @return the rotated image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint2(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint2(const cv::Mat &img,
 						       float angle,
 						       const cv::Mat &backgroundImg = cv::Mat());
 
@@ -193,7 +193,7 @@ namespace dc {
        @param backgroundImg  background image used for the inpainting.
        @return the rotated image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint3(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat rotateFillInpaint3(const cv::Mat &img,
 						       float angle,
 						       const cv::Mat &backgroundImg = cv::Mat());
 

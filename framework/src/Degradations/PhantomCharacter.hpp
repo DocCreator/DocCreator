@@ -40,7 +40,7 @@ namespace dc {
       same arguments give the same result.
       @return the degraded image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat phantomCharacter(const cv::Mat &img,
 						     float occurenceProbability,
 						     const std::string &phantomPatternsPath,
 						     std::optional<uint32_t> seed = std::nullopt);

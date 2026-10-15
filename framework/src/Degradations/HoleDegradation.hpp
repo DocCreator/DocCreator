@@ -76,7 +76,7 @@ namespace dc {
       not changed.
       @return the image with the hole, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat addHole(const cv::Mat &img, const cv::Mat &holePattern, cv::Point pos, int size, HoleType type, HoleSide side, const cv::Scalar &color, const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=0.1f);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat addHole(const cv::Mat &img, const cv::Mat &holePattern, cv::Point pos, int size, HoleType type, HoleSide side, const cv::Scalar &color, const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=0.1f);
 
     /**
       Draw a random position for a hole: a position of the top left corner
@@ -100,7 +100,7 @@ namespace dc {
       same arguments give the same result.
       @return the position of the top left corner of the pattern.
      */
-    extern FRAMEWORK_EXPORT cv::Point getRandomPosition(const cv::Size &imgSize,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Point getRandomPosition(const cv::Size &imgSize,
 							const cv::Size &holePatternSize,
 							HoleType type,
 							float ratioOutside,
@@ -148,7 +148,7 @@ namespace dc {
       same arguments give the same result.
       @return the image with the hole, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat addHoleAtRandom(const cv::Mat &img, const cv::Mat &holePattern, int size, HoleType type, float ratioOutside, HoleSide side, const cv::Scalar &color = cv::Scalar(0, 0, 0, 255), const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=1000.f, std::optional<uint32_t> seed = std::nullopt);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat addHoleAtRandom(const cv::Mat &img, const cv::Mat &holePattern, int size, HoleType type, float ratioOutside, HoleSide side, const cv::Scalar &color = cv::Scalar(0, 0, 0, 255), const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=1000.f, std::optional<uint32_t> seed = std::nullopt);
 
 
     

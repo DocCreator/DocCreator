@@ -53,7 +53,7 @@ namespace dc {
       seed and the same arguments give the same result.
       @return the distorted image, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random=true, std::optional<uint32_t> seed = std::nullopt);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random=true, std::optional<uint32_t> seed = std::nullopt);
 
     
     /**
@@ -113,7 +113,7 @@ namespace dc {
       @return the distorted image, of the size of @a img and of the type
       of the input image that has the most channels.
      */
-    extern FRAMEWORK_EXPORT cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random=true, std::optional<uint32_t> seed = std::nullopt);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random=true, std::optional<uint32_t> seed = std::nullopt);
     
     /**
       Apply @a numOutputImages 3D distortions to an image, with another image

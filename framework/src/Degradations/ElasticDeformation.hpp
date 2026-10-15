@@ -63,7 +63,7 @@ namespace dc {
        same arguments give the same result.
        @return the deformed image, of the type and size of @a img.
      */    
-    extern FRAMEWORK_EXPORT cv::Mat transform(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat transform(const cv::Mat &img,
 					      float alpha = 2.0f,
 					      float sigma = 0.08f,
 					      BorderReplication borderMode = BorderReplication::BLACK,
@@ -87,7 +87,7 @@ namespace dc {
        transform().
        @return the deformed image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat transform_rects(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat transform_rects(const cv::Mat &img,
 						    const std::vector<cv::Rect> &rects,
 						    std::vector<std::vector<cv::Point2f> > &rects_pts,
 						    float alpha = 2.0f,
@@ -110,7 +110,7 @@ namespace dc {
        @param alphaAffine  scaling factor of the affine transformation.
        @return the deformed image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat transform2(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat transform2(const cv::Mat &img,
 					       float alpha = 2.0f,
 					       float sigma = 0.08f,
 					       float alphaAffine = 9.0f,
@@ -131,7 +131,7 @@ namespace dc {
        for transform2().
        @return the deformed image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat transform2_rects(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat transform2_rects(const cv::Mat &img,
 						     const std::vector<cv::Rect> &rects,
 						     std::vector<std::vector<cv::Point2f> > &rects_pts,
 						     float alpha = 2.0f,
@@ -149,7 +149,7 @@ namespace dc {
        @return the smallest oriented rectangle that contains each list
        (cf. cv::minAreaRect()).
     */
-    extern FRAMEWORK_EXPORT std::vector<cv::RotatedRect> getRotatedRects(const std::vector<std::vector<cv::Point2f> > &rects_pts);
+    [[nodiscard]] extern FRAMEWORK_EXPORT std::vector<cv::RotatedRect> getRotatedRects(const std::vector<std::vector<cv::Point2f> > &rects_pts);
 
 
   } //namespace ElasticDeformation

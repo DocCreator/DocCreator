@@ -42,7 +42,7 @@ namespace dc {
        @return the noisy image, saturated to [0; 255], of the type and size
        of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat addGaussianNoise(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat addGaussianNoise(const cv::Mat &img,
 						     float average=0.0f,
 						     float standardDeviation=10.0f,
 						     AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS,
@@ -68,7 +68,7 @@ namespace dc {
        @return the noisy image, saturated to [0; 255], of the type and size
        of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat addSpeckleNoise(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat addSpeckleNoise(const cv::Mat &img,
 						    float average=0.0f,
 						    float standardDeviation=1.0f,
 						    AddNoiseType addType=AddNoiseType::ADD_NOISE_AS_IS,
@@ -92,7 +92,7 @@ namespace dc {
        same arguments give the same result.
        @return the noisy image, of the type and size of @a img.
      */
-    extern FRAMEWORK_EXPORT cv::Mat addSaltAndPepperNoise(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat addSaltAndPepperNoise(const cv::Mat &img,
 							  float amount=0.15f,
 							  float ratio=0.5f,
 							  std::optional<uint32_t> seed = std::nullopt);

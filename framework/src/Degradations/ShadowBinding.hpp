@@ -37,7 +37,7 @@ namespace dc {
       shadow.
       @return the image with the shadow, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img,
 						  Border border,
 						  int distance,
 						  float intensity,
@@ -64,7 +64,7 @@ namespace dc {
       shadow.
       @return the image with the shadow, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat shadowBinding2(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat shadowBinding2(const cv::Mat &img,
 						   float distanceRatio,
 						   Border border,
 						   float intensity,

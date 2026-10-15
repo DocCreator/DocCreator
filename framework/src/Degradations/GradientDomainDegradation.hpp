@@ -54,7 +54,7 @@ namespace dc {
        same arguments give the same result.
        @return the degraded image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img,
 						const std::string &stainImageDir,
 						size_t numStainsToInsert = 20,
 						InsertType insertType = InsertType::INSERT_AS_GRAY_IF_GRAY,
@@ -78,7 +78,7 @@ namespace dc {
       @param posCenter  position, in @a img, of the center of @a stainImg.
       @return the image with the stain, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat copyOnto(const cv::Mat &img,
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat copyOnto(const cv::Mat &img,
 					     const cv::Mat &stainImg,
 					     const cv::Point &posCenter);
 

@@ -63,7 +63,7 @@ namespace dc {
       odd for Method::GAUSSIAN and Method::MEDIAN.
       @return the blurred image, of the type and size of @a img.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int kernelSize);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat blur(const cv::Mat &img, Method method, int kernelSize);
 
     /**
       Blur the part of an image delimited by a curve.
@@ -90,7 +90,7 @@ namespace dc {
       @return the image blurred in the area, of the type and size of @a img.
       @see makePattern(), which gives the area as an image.
     */
-    extern FRAMEWORK_EXPORT cv::Mat blurArea(const cv::Mat &img, Method method, int kernelSize, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat blurArea(const cv::Mat &img, Method method, int kernelSize, Function function, Area area=Area::UP, float coeff=1.f, int vertical=0, int horizontal=0, int radius=0);
 
     /**
       Make the pattern of the area blurArea() blurs: an image whose black
@@ -106,7 +106,7 @@ namespace dc {
       @return a CV_8UC1 image of the size of @a originalMat: black (0) in
       the area, white (255) elsewhere.
      */
-    extern FRAMEWORK_EXPORT cv::Mat makePattern(const cv::Mat &originalMat, Function function, Area area, float coeff1, int vertical, int horizontal, int radius = 10);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat makePattern(const cv::Mat &originalMat, Function function, Area area, float coeff1, int vertical, int horizontal, int radius = 10);
 
     /**
       Blur the pixels of an image that are black in a pattern.
@@ -125,7 +125,7 @@ namespace dc {
       size of @a originalMat.
       @see makePattern()
      */
-    extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int kernelSize);
+    [[nodiscard]] extern FRAMEWORK_EXPORT cv::Mat applyPattern(const cv::Mat &originalMat, const cv::Mat &patternMat, Method method, int kernelSize);
 
     /**
       Measure the blur of an image, from its Fourier transform.
@@ -143,7 +143,7 @@ namespace dc {
       @return the radius of the Fourier transform of @a img: the more
       blurred the image, the smaller the radius.
     */
-    extern FRAMEWORK_EXPORT float getRadiusFourier(const cv::Mat &img);
+    [[nodiscard]] extern FRAMEWORK_EXPORT float getRadiusFourier(const cv::Mat &img);
 
 
     /**
@@ -160,7 +160,7 @@ namespace dc {
       @param dstRadius  Fourier radius to reach.
       @return an odd kernel size, between 3 and 19.
     */
-    extern FRAMEWORK_EXPORT int searchFitFourier(const cv::Mat &img, float dstRadius);
+    [[nodiscard]] extern FRAMEWORK_EXPORT int searchFitFourier(const cv::Mat &img, float dstRadius);
 
   } //namespace BlurFilter
     
