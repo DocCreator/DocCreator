@@ -349,6 +349,9 @@ class TestTheOtherDegradations:
         assert out.shape == expected_shape(img) and out.dtype == img.dtype
         assert np.array_equal(img, before)
         assert not np.array_equal(out, img.reshape(out.shape))
+        #the dark blocks of the image are kept: rotateFillInpaint3 once
+        # gave the rotated background alone, of the value 120 everywhere
+        assert out[..., :3].min() < 100 if out.ndim == 3 else out.min() < 100
 
     def test_rotate_fill_image_n(self):
         img = make_image(3)

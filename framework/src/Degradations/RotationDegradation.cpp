@@ -446,7 +446,12 @@ namespace dc {
       cv::inpaint(rotatedBackground, rotatedBackgroundMask,
 		  rotatedBackgroundInpainted, inpaintedRadius, cv::INPAINT_TELEA);
 
-      dc::GradientDomainDegradation::copyOnto(rotatedAndInpaintedImg, rotatedBackgroundInpainted, cv::Point(img2.cols/2, img2.rows/2));
+      //B: was copyOnto(rotatedAndInpaintedImg, rotatedBackgroundInpainted, ...)
+      // with its result ignored: the order of the arguments of the
+      // older copyOnto(stain, dst&, pos), which modified dst. Since
+      // copyOnto(dst, stain, pos) returns the result, the rotated image
+      // was lost and only the rotated background was returned.
+      rotatedBackgroundInpainted = dc::GradientDomainDegradation::copyOnto(rotatedBackgroundInpainted, rotatedAndInpaintedImg, cv::Point(img2.cols/2, img2.rows/2));
 
       if (img.channels() == 4) {
 	assert(rotatedBackgroundInpainted.channels() == 3);
