@@ -23,12 +23,17 @@ IF(BUILD_OTHER_PROGS)
     ENDIF(WIN32)
 
 
-    ADD_EXECUTABLE(convertOF convertOF.cpp)
-    TARGET_LINK_LIBRARIES(convertOF DocCreatorFramework)
-    SET_TARGET_PROPERTIES(convertOF PROPERTIES CXX_STANDARD 17
-      CXX_STANDARD_REQUIRED YES
-      CXX_EXTENSIONS NO
-      )
+    #convertOF reads and writes fonts, with the framework: it is not built
+    #with the degradations alone. (The framework is added after this
+    #directory, so its target cannot be tested for here.)
+    IF(NOT BUILD_ONLY_DEGRADATIONS)
+      ADD_EXECUTABLE(convertOF convertOF.cpp)
+      TARGET_LINK_LIBRARIES(convertOF DocCreatorFramework)
+      SET_TARGET_PROPERTIES(convertOF PROPERTIES CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED YES
+	CXX_EXTENSIONS NO
+	)
+    ENDIF()
     
 ENDIF()
 
