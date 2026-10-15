@@ -1,5 +1,5 @@
 # DocCreator [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
-[![Build Status](https://api.travis-ci.org/DocCreator/DocCreator.svg?branch=master)](https://travis-ci.org/DocCreator/DocCreator)
+[![CI](https://github.com/DocCreator/DocCreator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/DocCreator/DocCreator/actions/workflows/ci.yml)
 
 
  [DocCreator](https://doc-creator.labri.fr/) is an open source, cross-platform software allowing to generate synthetic document images and the accompanying groundtruth. Various degradation models can be applied on original document images to create virtually unlimited amounts of different images.
