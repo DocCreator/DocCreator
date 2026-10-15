@@ -296,7 +296,7 @@ namespace dc {
 #if CV_MAJOR_VERSION < 3
 	const int code = CV_StsUnsupportedFormat;
 #else
-	constexpr int code = cv::Error::StsUnsupportedFormat;
+	constexpr auto code = cv::Error::StsUnsupportedFormat; //enum cv::Error::Code, required by cv::error() in OpenCV 5
 #endif
 	CV_Error(code, error_msg);
       }
@@ -376,7 +376,7 @@ namespace dc {
 #if CV_MAJOR_VERSION < 3
 	const int code = CV_StsUnsupportedFormat;
 #else
-	constexpr int code = cv::Error::StsUnsupportedFormat;
+	constexpr auto code = cv::Error::StsUnsupportedFormat; //enum cv::Error::Code, required by cv::error() in OpenCV 5
 #endif
 	CV_Error(code, error_msg);
       }
