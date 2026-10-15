@@ -31,7 +31,7 @@ public:
         return NDArrayConverter::toMat(src.ptr(), value);
     }
     
-    static handle cast(const cv::Mat &m, return_value_policy, handle defval) {
+    static handle cast(const cv::Mat &m, return_value_policy, handle /*defval*/) {
         return handle(NDArrayConverter::toNDArray(m));
     }
 };

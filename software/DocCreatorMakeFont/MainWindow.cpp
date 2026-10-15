@@ -19,6 +19,16 @@
 
 #include "CharacterWidget.hpp"
 
+/*
+  B: the functions of QFontDatabase are static since Qt 6, where
+  constructing one is deprecated; Qt 5 needs an instance to call them on.
+*/
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#define FONT_DATABASE QFontDatabase::
+#else
+#define FONT_DATABASE QFontDatabase().
+#endif
+
 
 static
 RangeVector
@@ -499,11 +509,10 @@ MainWindow::updateOutputFilename()
 void
 MainWindow::findStyles(const QFont &font)
 {
-  QFontDatabase fontDatabase;
   const QString currentItem = m_styleCB->currentText();
   m_styleCB->clear();
 
-  const QStringList styles = fontDatabase.styles(font.family());
+  const QStringList styles = FONT_DATABASE styles(font.family());
   for (const QString &style : styles)
     m_styleCB->addItem(style);
 
@@ -516,7 +525,6 @@ MainWindow::findStyles(const QFont &font)
 
 void MainWindow::findSizes(const QFont &font)
 {
-  QFontDatabase fontDatabase;
   const QString currentSize = m_sizeCB->currentText();
 
   {
@@ -528,7 +536,7 @@ void MainWindow::findSizes(const QFont &font)
     // m_sizeCB signals are now blocked until end of scope
     m_sizeCB->clear();
     
-    if (fontDatabase.isSmoothlyScalable(font.family(), fontDatabase.styleString(font))) {
+    if (FONT_DATABASE isSmoothlyScalable(font.family(), FONT_DATABASE styleString(font))) {
       const QList<int> sizes = QFontDatabase::standardSizes();
       for (const int size : sizes) {
 	m_sizeCB->addItem(QVariant(size).toString());
@@ -537,7 +545,7 @@ void MainWindow::findSizes(const QFont &font)
       
     }
     else {
-      const QList<int> sizes = fontDatabase.smoothSizes(font.family(), fontDatabase.styleString(font));
+      const QList<int> sizes = FONT_DATABASE smoothSizes(font.family(), FONT_DATABASE styleString(font));
       for (const int size : sizes ) {
 	m_sizeCB->addItem(QVariant(size).toString());
 	m_sizeCB->setEditable(false);
@@ -754,8 +762,7 @@ MainWindow::saveCharacters()
 
   const QString filename = m_outputFileLE->text();
 
-  QFontDatabase fontDatabase;
-  QFont font = fontDatabase.font(m_fontCB->currentFont().family(), m_styleCB->currentText(), m_sizeCB->currentText().toInt());
+  QFont font = FONT_DATABASE font(m_fontCB->currentFont().family(), m_styleCB->currentText(), m_sizeCB->currentText().toInt());
 
   if (m_fontMergingCB->isChecked())
     font.setStyleStrategy(QFont::PreferDefault);

@@ -172,6 +172,7 @@ namespace dc {
       (void)meshFilename;
       (void)backgroundImg;
       (void)random;
+      (void)seed;
 
       std::cerr<<"Warning: Distortion3D not supported when not compiled with OSMesa\n";
       return img;
