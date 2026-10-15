@@ -25,7 +25,7 @@ using CCs = std::vector<CC>;
 struct LabelledPixel
 {
   cv::Point pixel;
-  int label;
+  int label = 0;
 };
 
 class FRAMEWORK_EXPORT ConnectedComponentExtraction

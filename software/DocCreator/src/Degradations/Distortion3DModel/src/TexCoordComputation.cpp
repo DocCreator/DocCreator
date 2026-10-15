@@ -571,6 +571,15 @@ getIntersectionPlanes(const Mesh &mesh, std::vector<Y_Idx> &ys)
   ys.erase(std::unique(ys.begin(), ys.end(), Y_Idx_CompareY()), ys.end());
 }
 
+/*
+  B: these helpers are only used in this file, and TexCoordComputation.cpp
+  and TexCoordComputationB.cpp each define their own X_Z, L3, IndiceSorterE
+  and SpacePartionnerYEdges: two definitions of one class in one program
+  break the one definition rule. The anonymous namespace makes them two
+  classes.
+*/
+namespace {
+
 struct X_Z
 {
   float x;
@@ -948,6 +957,7 @@ private:
   std::vector<size_t> m_binStarts;
   //we store a vector of vector as two vectors.
 };
+} //end anonymous namespace
 
 #ifdef TIME_TEXCOORDS
 #include <sys/time.h>

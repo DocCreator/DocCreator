@@ -20,6 +20,15 @@
 
 //#define VERBOSE 1
 
+/*
+  B: these helpers are only used in this file, and TexCoordComputation.cpp
+  and TexCoordComputationB.cpp each define their own X_Z, L3, IndiceSorterE
+  and SpacePartionnerYEdges: two definitions of one class in one program
+  break the one definition rule. The anonymous namespace makes them two
+  classes.
+*/
+namespace {
+
 struct X_Z
 {
   float x;
@@ -188,7 +197,9 @@ public:
     }//DEBUG
     */
 
+#ifdef DEBUG_TEXCOORDS
     size_t DBG_NB_ON_SEVERAL_BINS = 0;
+#endif
 
     const uint32_t INVALID_BIN = m_numBins + 1;
 
@@ -230,6 +241,7 @@ public:
         edgesIdx.push_back(i);
       }
 
+#ifdef DEBUG_TEXCOORDS
       { //DEBUG
         if (bin_min != bin_max)
           ++DBG_NB_ON_SEVERAL_BINS;
@@ -237,6 +249,7 @@ public:
         //if (bin_max >= m_numBins-1)
         //std::cerr<<"triangle "<<i<<" bins vert="<<bin_0<<", "<< bin_1<<", "<<bin_2<<" -> ["<<bin_min<<", "<<bin_max<<"]  !!!\n";
       } //DEBUG
+#endif
 
       /*
       std::cerr<<"edge "<<i<<" bins vert="<<bin_0<<", "<< bin_1<<" -> ["<<bin_min<<", "<<bin_max<<"]";
@@ -406,6 +419,7 @@ private:
   std::vector<size_t> m_binStarts;
   //we store a vector of vector as two vectors.
 };
+} //end anonymous namespace
 
 namespace {
 struct VSorter
@@ -774,8 +788,8 @@ struct Path : public Segment
 {
   std::deque<uint32_t> vIndices;
   std::deque<float> lengths;
-  bool startIsTri;
-  bool endIsTri;
+  bool startIsTri = true;
+  bool endIsTri = true;
 
   //lengths.size() == vIndices.size() && lengths[i] is the legnth for vidx vIndices[i].
 

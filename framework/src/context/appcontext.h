@@ -19,7 +19,7 @@ public:
   static AppContext *instance();
 
  private:
-  Mvc::IController *_activeController;
+  Mvc::IController *_activeController = nullptr;
   static AppContext *_instance;
 };
 }
