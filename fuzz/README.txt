@@ -1,10 +1,11 @@
 Fuzz targets
 ============
 
-Two readers take bytes they do not control and build an object from them:
-the font readers (FontFileManager::readFont, which dispatches to the
-binary .bof reader and the XML .of one) and the document XML loader
-(XMLDocumentLoader). Every size, count and geometry of the result comes
+Three readers take bytes they do not control and build an object from
+them: the font readers (FontFileManager::readFont, which dispatches to the
+binary .bof reader and the XML .of one), the document XML loader
+(XMLDocumentLoader), and the BRS mesh reader (readBRS, and
+decodeBRSData for what its decompression gives). Every size, count and geometry of the result comes
 from the file, and the sizes end up in allocations, which is where the
 bugs those two readers have had came from. They are pure
 bytes -> object functions, which is the shape libFuzzer wants.
@@ -17,7 +18,7 @@ libFuzzer is a clang feature; there is no gcc equivalent.
   cmake -S . -B buildfuzz -DCMAKE_CXX_COMPILER=clang++ \
         -DCMAKE_C_COMPILER=clang -DBUILD_FUZZERS=ON \
         -DSANITIZER=address+undefined
-  make -C buildfuzz fuzz_font fuzz_xmldocument -j8
+  make -C buildfuzz fuzz_font fuzz_xmldocument fuzz_brs -j8
 
 A fuzz target without a sanitiser only finds the crashes that happen to be
 fatal, which misses most of the point: pass SANITIZER as above.
@@ -28,6 +29,7 @@ Running
   cd buildfuzz/fuzz
   ./fuzz_font corpus_font -max_total_time=600
   ./fuzz_xmldocument corpus_xmldocument -max_total_time=600
+  ./fuzz_brs corpus_brs -max_total_time=600 -max_len=100000
 
 The corpus directories are filled at configure time with the fonts of
 data/font and the document of fuzz/corpus_xmldocument, so that a run

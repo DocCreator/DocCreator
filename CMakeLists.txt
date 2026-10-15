@@ -220,6 +220,14 @@ OPTION(BUILD_PYTHON_WRAPPER "Build python wrapper" OFF)
 OPTION(BUILD_TESTING "Build tests" OFF)
 
 OPTION(BUILD_FUZZERS "Build the libFuzzer targets of fuzz/ (needs clang)" OFF)
+# The fuzz targets steer by the code coverage of what they call, which is
+# in the libraries: those have to be instrumented too, without the
+# libFuzzer main(), which only the targets link.
+# B: without this, only the few lines of each fuzz_*.cpp were
+# instrumented, and the fuzzers mutated blind -- fuzz_brs reached 32 edges.
+IF(BUILD_FUZZERS)
+  ADD_COMPILE_OPTIONS(-fsanitize=fuzzer-no-link)
+ENDIF()
 
 if (BUILD_TESTING)
   ENABLE_TESTING()
