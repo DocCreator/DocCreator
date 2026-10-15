@@ -143,6 +143,34 @@ IF(NOT SANITIZER STREQUAL "none")
   MESSAGE(STATUS "  suppressions and recommended options: cmake/sanitizers/README.txt")
 ENDIF()
 
+########################################################################
+## Coverage
+
+# B: -fprofile-arcs -ftest-coverage used to be added to every gcc Debug
+# build with tests, and nothing read what they produce. They are now asked
+# for, and the "coverage" target turns them into a report.
+OPTION(ENABLE_COVERAGE "Instrument the build for gcov, and add a 'coverage' target that runs the tests and writes a report (needs gcc, gcovr and BUILD_TESTING)" OFF)
+
+IF(ENABLE_COVERAGE)
+  IF(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    MESSAGE(FATAL_ERROR "ENABLE_COVERAGE needs gcc, whose gcov the report is made with, not ${CMAKE_CXX_COMPILER_ID}")
+  ENDIF()
+  IF(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    MESSAGE(WARNING "ENABLE_COVERAGE with CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}: optimisations inline and move code, and the lines counted are then not the lines written. Use -DCMAKE_BUILD_TYPE=Debug.")
+  ENDIF()
+
+  # --coverage is -fprofile-arcs -ftest-coverage when compiling, and links
+  # the gcov runtime when linking. On every target of the tree; not on
+  # leptonica and tesseract, which are separate projects.
+  # -fprofile-update=atomic: the degradations run on several threads, and
+  # counters updated without it race, which gcov then reads as negative
+  # counts (gcc bug 68080) and gcovr refuses.
+  ADD_COMPILE_OPTIONS(--coverage -fprofile-update=atomic)
+  ADD_LINK_OPTIONS(--coverage)
+
+  MESSAGE(STATUS "Building with coverage instrumentation: 'make coverage' writes the report")
+ENDIF()
+
 # Turns the misuse of QList::at() and std::vector::operator[] into a clean
 # abort instead of an out-of-bounds read. Debug only: it costs a bounds
 # check on every access.
@@ -206,10 +234,10 @@ if (BUILD_TESTING)
   ENDIF(CMAKE_CONFIGURATION_TYPES)
 
   if (CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -Wall -Wextra -pedantic -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused  -Wno-long-long -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -Wall -Wextra -pedantic -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused  -Wno-long-long -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings")
   endif(CMAKE_COMPILER_IS_GNUCXX)
   if (CMAKE_COMPILER_IS_GNUCC)
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -Wall -Wextra -W -Wno-long-long -pedantic -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -Wall -Wextra -W -Wno-long-long -pedantic")
   endif (CMAKE_COMPILER_IS_GNUCC)
 else (BUILD_TESTING)
   message(STATUS "Build test files DISABLED (you can activate unit tests with '-DBUILD_TESTING=ON' cmake option)")
@@ -257,6 +285,37 @@ endif(BUILD_PYTHON_WRAPPER)
 if (BUILD_TESTING)
   add_subdirectory (${PROJECT_SOURCE_DIR}/tests)
 endif (BUILD_TESTING)
+
+IF(ENABLE_COVERAGE)
+  IF(NOT BUILD_TESTING)
+    MESSAGE(FATAL_ERROR "ENABLE_COVERAGE needs BUILD_TESTING=ON: the report is of what the tests run")
+  ENDIF()
+  FIND_PROGRAM(GCOVR_EXECUTABLE gcovr)
+  IF(NOT GCOVR_EXECUTABLE)
+    MESSAGE(FATAL_ERROR "ENABLE_COVERAGE needs gcovr (https://gcovr.com, 'pip install gcovr' or the distribution's package)")
+  ENDIF()
+  #the gcov of the compiler: another version's misreads the counters
+  GET_FILENAME_COMPONENT(COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+  STRING(REGEX MATCH "[0-9]+" COMPILER_MAJOR "${CMAKE_CXX_COMPILER_VERSION}")
+  FIND_PROGRAM(GCOV_EXECUTABLE NAMES gcov-${COMPILER_MAJOR} gcov HINTS ${COMPILER_DIR})
+  IF(NOT GCOV_EXECUTABLE)
+    MESSAGE(FATAL_ERROR "ENABLE_COVERAGE needs gcov")
+  ENDIF()
+  CMAKE_HOST_SYSTEM_INFORMATION(RESULT COVERAGE_JOBS QUERY NUMBER_OF_LOGICAL_CORES)
+
+  ADD_CUSTOM_TARGET(coverage
+    COMMAND ${CMAKE_COMMAND}
+            -DSOURCE_DIR=${PROJECT_SOURCE_DIR}
+            -DBINARY_DIR=${PROJECT_BINARY_DIR}
+            -DGCOVR=${GCOVR_EXECUTABLE}
+            -DGCOV=${GCOV_EXECUTABLE}
+            -DCTEST=${CMAKE_CTEST_COMMAND}
+            -DJOBS=${COVERAGE_JOBS}
+            -P ${PROJECT_SOURCE_DIR}/cmake/coverage/Coverage.cmake
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMENT "Running the tests and writing the coverage report"
+    USES_TERMINAL)
+ENDIF()
 
 if (BUILD_FUZZERS)
   add_subdirectory (${PROJECT_SOURCE_DIR}/fuzz)

@@ -308,6 +308,16 @@ When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PR
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_TESTING=ON to cmake. It will be build degradations unit tests.
 
+#### -DENABLE_COVERAGE=ON
+
+With -DBUILD_TESTING=ON, gcc and [gcovr](https://gcovr.com), the option -DENABLE_COVERAGE=ON instruments the build for gcov and adds a `coverage` target. It removes the counters of earlier runs, runs the tests, and writes a report in the build directory: `coverage/index.html` (browsable, line and branch coverage file by file), `coverage/coverage.txt` and `coverage/coverage.xml` (Cobertura, for CI services). It covers the code of the project, not the libraries it downloads nor the tests.
+
+    cmake -S . -B buildcov -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DENABLE_COVERAGE=ON
+    make -C buildcov -j8
+    make -C buildcov coverage
+
+Use a Debug build: optimisations move and merge code, and the lines counted are then not the lines written.
+
 ## FAQ 
 
  See [FAQ.md](FAQ.md).
