@@ -5,6 +5,10 @@
 #include "Degradations/HoleDegradation.hpp"
 
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/version.hpp>
+#if CV_VERSION_MAJOR >= 5
+#include <opencv2/geometry.hpp> //boundingRect: moved out of imgproc in OpenCV 5
+#endif
 
 #include "testCommon.hpp" //checkEqual
 

@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #ifndef WIN32
 #include <unistd.h>
+#else
+#include <direct.h> //_mkdir
 #endif
 
 /*
