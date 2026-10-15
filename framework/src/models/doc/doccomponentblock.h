@@ -25,14 +25,12 @@
 #include "doczone.h"
 #include "nodeofnodes.h"
 
-/**
-  * \mainpage
-  * This class header describe a block of unknown elements of Document Image. At the firt time, the document image is loaded.
-  * All components are extracted but they are still unknown elements called component element.
-  *
-  */
 namespace Doc
 {
+/**
+   A block of components of a document image, not recognized yet, grouped in
+   zones (cf. DocZone).
+*/
 class FRAMEWORK_EXPORT DocComponentBlock : public NodeOfNodes<DocZone>, public Block
 {
 public:

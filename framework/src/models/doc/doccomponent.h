@@ -26,16 +26,14 @@
 #include <vector>
 #include "leaf.h"
 
-/**
-  * \mainpage
-  * This class header describe un unknown element of Document Image. At the firt time, the document image is loaded.
-  * All components are extracted but they are still unknown elements called component element.
-  *
-  */
 namespace Doc
 {
   using Scanlines = QMap<int, std::vector<int> >; // map of scanline in one component.
 
+/**
+   An element of a document image that is not recognized yet: when the image
+   is loaded, all its connected components are extracted, as components.
+*/
 class FRAMEWORK_EXPORT DocComponent : public Leaf
 {
 public :

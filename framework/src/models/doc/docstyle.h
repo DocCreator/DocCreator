@@ -12,7 +12,7 @@ namespace Doc
         explicit DocStyle(const QString &name);
 	DocStyle(const QString &name, const QString &fontName);
 	
-	//B: I don't really undestand why a style has two names ???
+	//B: I don't really understand why a style has two names ???
 	// Is it to have a display name and a real name ???
 	// It seems that we always use them with two same names !
 

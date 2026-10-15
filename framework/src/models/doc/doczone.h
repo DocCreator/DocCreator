@@ -23,13 +23,12 @@
 #include "doccomponent.h"
 #include "nodeofleafs.h"
 
-/**
-  * \mainpage
-  * This class header describe a list of component in document image such as WORD, LINE,TABLE
-  *
-  */
 namespace Doc
 {
+/**
+   A list of components of a document image, such as a word, a line or a
+   table.
+*/
 class FRAMEWORK_EXPORT DocZone : public NodeOfLeafs<DocComponent>
 {
 public:

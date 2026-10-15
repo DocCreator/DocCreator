@@ -28,17 +28,29 @@ struct LabelledPixel
   int label = 0;
 };
 
+/**
+   Extraction of the connected components of an image, as components of a
+   document.
+*/
 class FRAMEWORK_EXPORT ConnectedComponentExtraction
 {
 public:
+  /**
+     Extract the connected components of an image.
+
+     The image is binarized with Otsu's method. Two dark pixels are
+     connected when they are at most 2 apart, in x and in y; a component of
+     a single pixel is dropped.
+
+     @param src  image.
+     @param document  document the components belong to.
+     @return a new component per connected component, in the order a scan
+     by rows meets them, with its pixels as scanlines. Its bounding box
+     starts one pixel before the component and ends on its last row and
+     column. The caller owns the components.
+  */
   static QList<Doc::DocComponent *> getListComponents(const QImage &src,
                                                       Doc::Document *document);
-
-  /**
-       @brief extract all connected componenents from image @a input and fill @a ccs.
-
-       @a connectivity must be 4 or 8.
-     */
 
 private:
   static void insertToStack(int x,
