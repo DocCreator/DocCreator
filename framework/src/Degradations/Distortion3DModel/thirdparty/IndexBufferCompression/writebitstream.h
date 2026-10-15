@@ -108,7 +108,12 @@ private:
 
 WBS_INLINE void WriteBitstream::Write( uint32_t value, uint32_t bitCount )
 {
-    m_bitBuffer |= ( static_cast<uint64_t>( value ) << ( 64 - m_bitsLeft ) ) & ( m_bitsLeft == 0 ? 0 : 0xFFFFFFFFFFFFFFFF );
+    // DocCreator: the mask made the result 0 when no bit is left, but the
+    // shift by 64 it masked was evaluated first, and is undefined.
+    if ( m_bitsLeft != 0 )
+    {
+        m_bitBuffer |= static_cast<uint64_t>( value ) << ( 64 - m_bitsLeft );
+    }
 
     if ( bitCount > m_bitsLeft )
     {
