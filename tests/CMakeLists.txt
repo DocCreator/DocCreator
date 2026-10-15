@@ -45,5 +45,8 @@ IF(NOT BUILD_WITH_OSMESA)
             -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DOPENCV_DIR=${OpenCV_DIR}
             -DCONFIG=$<CONFIG>
+            "-DGENERATOR=${CMAKE_GENERATOR}"
+            "-DGENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
+            "-DMAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}"
             -P ${CMAKE_CURRENT_SOURCE_DIR}/package/RunPackageTest.cmake)
 ENDIF()

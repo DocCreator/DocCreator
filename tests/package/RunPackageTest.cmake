@@ -1,6 +1,6 @@
 # Run by testInstalledPackage (cf. tests/CMakeLists.txt), as "cmake -P",
 # with: BINARY_DIR CONSUMER_SOURCE_DIR WORK_DIR CXX_COMPILER CXX_FLAGS
-# BUILD_TYPE OPENCV_DIR CONFIG
+# BUILD_TYPE OPENCV_DIR CONFIG GENERATOR GENERATOR_PLATFORM MAKE_PROGRAM
 #
 # 1. installs the component Degradations of the build in BINARY_DIR into
 #    WORK_DIR/prefix: the library, its headers and its CMake package;
@@ -30,12 +30,27 @@ if(CONFIG)
   set(configArgs --config "${CONFIG}")
 endif()
 
+#the consumer is built with the generator and the build tool of this
+#build: CMake's default generator may have no build tool on the machine,
+#as make on a machine that builds with Ninja
+set(generatorArgs)
+if(GENERATOR)
+  list(APPEND generatorArgs -G "${GENERATOR}")
+endif()
+if(GENERATOR_PLATFORM)
+  list(APPEND generatorArgs -A "${GENERATOR_PLATFORM}")
+endif()
+if(MAKE_PROGRAM)
+  list(APPEND generatorArgs "-DCMAKE_MAKE_PROGRAM=${MAKE_PROGRAM}")
+endif()
+
 run("installing the component Degradations"
   "${CMAKE_COMMAND}" --install "${BINARY_DIR}" --prefix "${prefix}"
   --component Degradations ${configArgs})
 
 run("configuring the consumer project"
   "${CMAKE_COMMAND}" -S "${CONSUMER_SOURCE_DIR}" -B "${build}"
+  ${generatorArgs}
   "-DCMAKE_PREFIX_PATH=${prefix}"
   "-DOpenCV_DIR=${OPENCV_DIR}"
   "-DCMAKE_CXX_COMPILER=${CXX_COMPILER}"
