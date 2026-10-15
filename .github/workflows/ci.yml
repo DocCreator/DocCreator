@@ -128,3 +128,76 @@ jobs:
             cat "$failed"
             exit 1
           fi
+
+  windows:
+    name: ${{ matrix.name }}
+    runs-on: windows-2025
+    timeout-minutes: 120
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows, degradations, MSVC, Release
+            cmake: >-
+              -DBUILD_ONLY_DEGRADATIONS=ON
+              -DBUILD_OTHER_PROGS=ON
+
+          # Leptonica and tesseract are built from sources, as on Linux.
+          - name: Windows, full, MSVC, Release
+            qt: true
+            cmake: >-
+              -DBUILD_OTHER_PROGS=ON
+
+    steps:
+      # The test data must be compared as they are in the repository, not
+      # with CRLF line endings.
+      - name: Keep the line endings of the repository
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+
+      - name: Install OpenCV and ninja
+        run: |
+          choco install opencv ninja -y --no-progress
+          $bin = (Get-ChildItem C:\tools\opencv\build\x64\vc*\bin | Select-Object -Last 1).FullName
+          "$bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      # It also adds Qt's bin directory, with its DLLs, to the PATH.
+      - name: Install Qt
+        if: ${{ matrix.qt }}
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Set up the MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache the tesseract models
+        if: ${{ !contains(matrix.cmake, 'BUILD_ONLY_DEGRADATIONS=ON') }}
+        uses: actions/cache@v4
+        with:
+          path: thirdparty/tessdata
+          key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
+
+      # Release only: the tesseract built from sources is not found in Debug
+      # (cf. README.md).
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+          -DOpenCV_DIR=C:/tools/opencv/build
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+          -DBUILD_TESTING=ON
+          ${{ matrix.cmake }}
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 4
