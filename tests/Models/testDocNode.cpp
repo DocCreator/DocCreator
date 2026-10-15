@@ -7,6 +7,8 @@
 #include "models/doc/docstring.h"
 #include "models/doc/docstyle.h"
 #include "models/doc/document.h"
+#include "models/doc/doctextblock.h"
+#include "models/doc/page.h"
 
 /*
   The cursor machinery of the document model -- Node, NodeOfLeafs and
@@ -492,5 +494,36 @@ TEST_CASE( "Testing DocParagraph, a node of nodes" )
     REQUIRE( p.lineSpacing() == 0 );
     p.setTabulationSize(-1);
     REQUIRE( p.tabulationSize() == 0 );
+  }
+}
+
+
+TEST_CASE( "Testing Page::add() with no current block" )
+{
+  //Page::add() of a paragraph, a string or a character creates the text
+  //block to hold it when the page has none. It used to add that block, then
+  //add the element to the null pointer it had found before.
+  Doc::Document document;
+
+  SECTION("a paragraph goes in a new text block")
+  {
+    Doc::Page page(&document);
+    REQUIRE( page.getTextBlocks().empty() );
+
+    auto paragraph = new Doc::DocParagraph(&document);
+    page.add(paragraph);
+
+    REQUIRE( page.getTextBlocks().size() == 1 );
+    REQUIRE( page.currentBlock() == page.getTextBlocks().at(0) );
+    REQUIRE( page.getTextBlocks().at(0)->getParagraphs().contains(paragraph) );
+  }
+
+  SECTION("a second paragraph goes in the same block")
+  {
+    Doc::Page page(&document);
+    page.add(new Doc::DocParagraph(&document));
+    page.add(new Doc::DocParagraph(&document));
+
+    REQUIRE( page.getTextBlocks().size() == 1 );
   }
 }

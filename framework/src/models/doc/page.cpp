@@ -228,9 +228,11 @@ void Page::add(DocParagraph* e)
 {
     DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
     if (current == nullptr) {
-      add(new DocTextBlock(_document)); //B return;
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocTextBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
@@ -238,9 +240,11 @@ void Page::add(const QList<DocParagraph*> &e)
 {
     DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
     if (current == nullptr) {
-        add(new DocTextBlock(_document)); //B return;
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocTextBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
@@ -248,9 +252,11 @@ void Page::add(DocString* e)
 {
     DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
     if (current == nullptr) {
-        add(new DocTextBlock(_document)); //B return;
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocTextBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
@@ -258,9 +264,11 @@ void Page::add(const QList<DocString*> &e)
 {
     DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
     if (current == nullptr) {
-        add(new DocTextBlock(_document)); //B return;
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocTextBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
@@ -268,9 +276,11 @@ void Page::add(DocCharacter* e)
 {
     DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
     if (current == nullptr) {
-        add(new DocTextBlock(_document)); //B return;
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocTextBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
@@ -278,45 +288,55 @@ void Page::add(const QList<DocCharacter*> &e)
 {
     DocTextBlock* current = dynamic_cast<DocTextBlock*>(_currentElement);
     if (current == nullptr) {
-        add(new DocTextBlock(_document)); //B return;
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocTextBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
 void Page::add(DocComponent *e){
     DocComponentBlock* current = dynamic_cast<DocComponentBlock*>(_currentElement);
-    if(current == nullptr)  {
-      add(new DocComponentBlock(_document)); //B return;
+    if (current == nullptr) {
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocComponentBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
 void Page::add(const QList<DocComponent*> &e){
     DocComponentBlock* current = dynamic_cast<DocComponentBlock*>(_currentElement);
-    if(current == nullptr) {
-      add(new DocComponentBlock(_document)); //B return;
+    if (current == nullptr) {
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocComponentBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
 void Page::add(DocZone *e){
     DocComponentBlock* current = dynamic_cast<DocComponentBlock*>(_currentElement);
-    if(current == nullptr)  {
-      add(new DocComponentBlock(_document)); //B return;
+    if (current == nullptr) {
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocComponentBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 
 void Page::add(const QList<DocZone*> &e){
     DocComponentBlock* current = dynamic_cast<DocComponentBlock*>(_currentElement);
-    if(current == nullptr)  {
-      add(new DocComponentBlock(_document)); //B return;
+    if (current == nullptr) {
+      //B: the block added here becomes the current one, but 'current'
+      // was left null, and dereferenced below
+      current = new DocComponentBlock(_document);
+      add(current);
     }
-    assert(current);
     current->add(e);
 }
 }//namespace Doc
