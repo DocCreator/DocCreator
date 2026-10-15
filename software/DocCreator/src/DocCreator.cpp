@@ -1262,8 +1262,12 @@ DocCreator::createControllers()
   _docController->addObserver(_docPropertiesView);
   _docController->addObserver(this); // For title update
 
-  _keyboardView->drawKeyboard(
-    Context::FontContext::instance()->getCurrentFont());
+  //B: _keyboardView is checked for nullptr above, and was then used
+  // without the check here
+  if (_keyboardView != nullptr) {
+    _keyboardView->drawKeyboard(
+      Context::FontContext::instance()->getCurrentFont());
+  }
   qDebug() << "\t create controller: finished";
 }
 
