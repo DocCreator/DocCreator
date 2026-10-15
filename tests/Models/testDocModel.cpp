@@ -2,6 +2,8 @@
 
 #include <QString>
 
+#include <memory>
+
 #include "models/doc/block.h"
 #include "models/doc/doccharacter.h"
 #include "models/doc/doccomponent.h"
@@ -308,4 +310,57 @@ TEST_CASE( "DocComponentBlock: content and copies" )
   }
 
   delete block;
+}
+
+TEST_CASE( "DocString: a copy into another document outlives its source" )
+{
+  //what pasting does: the strings of a document loaded from the
+  //clipboard go into the edited document, and the loaded one is deleted.
+  //Adding the strings themselves left the edited document with freed
+  //strings, whose document and style were freed too.
+  Doc::Document target;
+  Doc::DocStyle *targetDefault = makeStyle(target, QStringLiteral("default"));
+
+  auto source = std::make_unique<Doc::Document>();
+  auto *sourceDefault = new Doc::DocStyle(QStringLiteral("default"), QStringLiteral("sourceFont"));
+  source->addStyle(sourceDefault);
+  Doc::DocStyle *sourceOther = makeStyle(*source, QStringLiteral("other"));
+
+  auto makeString = [&](Doc::DocStyle *style, const QString &text) {
+    auto s = std::make_unique<Doc::DocString>(style, source.get());
+    for (const QChar &c : text)
+      s->add(new Doc::DocCharacter(QString(c), 7, source.get()));
+    return s;
+  };
+  auto first = makeString(sourceDefault, QStringLiteral("ab"));
+  auto second = makeString(sourceOther, QStringLiteral("xyz"));
+
+  std::unique_ptr<Doc::DocString> firstCopy(first->cloneInto(&target));
+  std::unique_ptr<Doc::DocString> secondCopy(second->cloneInto(&target));
+
+  first.reset();
+  second.reset();
+  source.reset();
+
+  REQUIRE( firstCopy->getDocument() == &target );
+  REQUIRE( firstCopy->length() == 2 );
+  REQUIRE( firstCopy->getCharacters().at(1)->getDisplay() == QStringLiteral("b") );
+  REQUIRE( firstCopy->getCharacters().at(1)->getId() == 7 );
+  REQUIRE( firstCopy->getCharacters().at(1)->getDocument() == &target );
+
+  SECTION("a style the target has is the target's")
+  {
+    REQUIRE( firstCopy->getStyle() == targetDefault );
+    REQUIRE( firstCopy->getStyle()->getFontName() == QStringLiteral("defaultFont") );
+  }
+
+  SECTION("a style the target does not have is copied into it")
+  {
+    REQUIRE( secondCopy->length() == 3 );
+    Doc::DocStyle *style = secondCopy->getStyle();
+    REQUIRE( style != nullptr );
+    REQUIRE( style != sourceOther );
+    REQUIRE( style == target.getStyle(QStringLiteral("other")) );
+    REQUIRE( style->getFontName() == QStringLiteral("otherFont") );
+  }
 }

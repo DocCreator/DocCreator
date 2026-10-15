@@ -19,6 +19,18 @@ namespace Doc
 
         DocString* clone() override;
 
+        /**
+           @return a copy of this string that belongs to @a document, and
+           that the caller owns: its characters are copied, and its style
+           is the style of @a document of the same name, or a copy of this
+           string's style registered in @a document if it has none.
+
+           clone() keeps the document of this string. This one is for a
+           string taken from another document, which may be destroyed
+           while the copy is still in use.
+        */
+        [[nodiscard]] DocString* cloneInto(Document* document);
+
         DocString* getSelection() override;
 
         DocCharacter* currentCharacter();

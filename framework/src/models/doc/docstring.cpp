@@ -1,5 +1,6 @@
 #include "docstring.h"
 
+#include "docstyle.h"
 #include "document.h"
 
 namespace Doc
@@ -29,6 +30,20 @@ namespace Doc
         e->_isSplitting = _isSplitting;
         e->setLength(this->length());
         e->setOffset(this->offset());
+
+        return e;
+    }
+
+    DocString* DocString::cloneInto(Document* document)
+    {
+        DocStyle* style = this->getStyle();
+        if (style != nullptr && document != nullptr) {
+            DocStyle* own = document->getStyle(style->getName());
+            style = (own != nullptr) ? own : style->clone();
+        }
+        auto e = new DocString(style, document);
+        for (DocCharacter* c : this->getElements())
+            e->add(new DocCharacter(c->getDisplay(), c->getId(), document));
 
         return e;
     }

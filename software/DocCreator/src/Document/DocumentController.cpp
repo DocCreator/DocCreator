@@ -982,18 +982,26 @@ DocumentController::paste()
           stringsToPaste.append(paragraph->getStrings());
       }
     }
+    //B: pop_back() of an empty list is undefined: pasted XML without text
+    if (stringsToPaste.isEmpty()) {
+      return;
+    }
     stringsToPaste.pop_back();
+    /*
+      B: the strings themselves were added, with the paragraphs made for
+      the line breaks, and docToPaste was then deleted: it deleted them,
+      and the text block went on with freed strings, whose document and
+      style were freed too. They are copied into _document instead.
+    */
     for (Doc::DocString *s : stringsToPaste) {
-      QList<Doc::DocCharacter *> c = s->getCharacters();
+      const QList<Doc::DocCharacter *> &c = s->getCharacters();
       if (c.count() == 1 && c.at(0)->getDisplay() == QLatin1String("\n")) {
-        currentTextBlock->add(new Doc::DocParagraph(s->getDocument()));
+        currentTextBlock->add(new Doc::DocParagraph(_document));
       }
       else {
-        currentTextBlock->add(s);
+        currentTextBlock->add(s->cloneInto(_document));
       }
     }
-
-
   }
 
   _view->drawElement(_document, false);
