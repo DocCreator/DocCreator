@@ -216,7 +216,7 @@ BlurFilterDialog::nextClicked()
 void
 BlurFilterDialog::updateExamples()
 {
-  if (_currentExample < 0 || _currentExample > _examples.size())
+  if (_currentExample < 0 || _currentExample >= _examples.size())
     return;
 
   QString path =
@@ -230,7 +230,7 @@ BlurFilterDialog::updateExamples()
 void
 BlurFilterDialog::exampleChosen()
 {
-  if (_currentExample < 0 || _currentExample > _examples.size())
+  if (_currentExample < 0 || _currentExample >= _examples.size())
     return;
 
   _exampleChosen = _currentExample;
@@ -368,7 +368,7 @@ BlurFilterDialog::nextPatternClicked()
 void
 BlurFilterDialog::changePatterns()
 {
-  if (_currentPattern < 0 || _currentPattern > _patterns.size())
+  if (_currentPattern < 0 || _currentPattern >= _patterns.size())
     return;
 
   QString path =
