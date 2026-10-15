@@ -49,7 +49,7 @@ public:
     void add(const QList<DocZone*> &l) override;
 
     DocZone* currentZone();
-    QList<DocZone*> getZones();
+    const QList<DocZone*> &getZones() const;
 
     QString content() const override;
 

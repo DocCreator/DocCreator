@@ -36,7 +36,7 @@ namespace Doc
         //void removeAfterCursor();
 
         DocParagraph* currentParagraph();
-        QList<DocParagraph*> getParagraphs();
+        const QList<DocParagraph*> &getParagraphs() const;
 
         void changeStyle(DocStyle* style);
         DocStyle* getStyle();

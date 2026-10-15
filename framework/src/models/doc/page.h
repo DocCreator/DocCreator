@@ -49,11 +49,11 @@ namespace Doc
 
 
     void remove(Block* e);
-    QList<DocTextBlock*> getTextBlocks() { return _textBlocks; }
-    QList<DocImageBlock*> getImageBlocks() { return _imageBlocks; }
-    QList<DocTestBlock*> getTestBlocks() { return _testBlocks; }
+    const QList<DocTextBlock*> &getTextBlocks() const { return _textBlocks; }
+    const QList<DocImageBlock*> &getImageBlocks() const { return _imageBlocks; }
+    const QList<DocTestBlock*> &getTestBlocks() const { return _testBlocks; }
     // added by kvcuong 09/05/2012
-    QList<DocComponentBlock*> getComponentBlocks(){return _componentBlocks;}
+    const QList<DocComponentBlock*> &getComponentBlocks() const { return _componentBlocks; }
 
     /**
      * Remove all text blocks from page.
@@ -62,7 +62,7 @@ namespace Doc
      */
     void removeTextBlocks();
 
-    QList<Block*> getOtherBlocks() { return _otherBlocks; }
+    const QList<Block*> &getOtherBlocks() const { return _otherBlocks; }
 
     void setCurrentBlock(Block* e);
     Block* currentBlock();

@@ -41,7 +41,7 @@ public:
 
     DocComponent* currentComponent();
 
-    QList<DocComponent*> getComponents();
+    const QList<DocComponent*> &getComponents() const;
 
     QList<DocZone*> splitAtPosition(int position);
 };

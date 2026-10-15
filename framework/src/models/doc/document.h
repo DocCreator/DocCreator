@@ -54,7 +54,7 @@ namespace Doc
 	
         void setCurrentPage(Page* p);
         Page* currentPage();
-        QList<Page*> getPages() { return _pages; }
+        const QList<Page*> &getPages() const { return _pages; }
 
         Block* currentBlock();
         DocParagraph* currentParagraph();

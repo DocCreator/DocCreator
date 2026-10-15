@@ -163,7 +163,7 @@ namespace Doc
         return this->currentElement();
     }
 
-    QList<DocParagraph*> DocTextBlock::getParagraphs()
+    const QList<DocParagraph*> &DocTextBlock::getParagraphs() const
     {
       return _elements;
     }

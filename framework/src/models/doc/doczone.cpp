@@ -56,7 +56,7 @@ DocComponent* DocZone::currentComponent(){
     return this->currentElement();
 }
 
-QList<DocComponent*> DocZone::getComponents(){
+const QList<DocComponent*> &DocZone::getComponents() const {
     return _elements;
 }
 

@@ -119,7 +119,7 @@ DocZone* DocComponentBlock::currentZone()
     return this->currentElement();
 }
 
-QList<DocZone*> DocComponentBlock::getZones()
+const QList<DocZone*> &DocComponentBlock::getZones() const
 {
   return _elements;
 }
