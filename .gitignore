@@ -4,3 +4,28 @@ review_*.md
 #python bytecode, written next to the test files when pytest runs
 __pycache__/
 *.pyc
+
+#editor backups and lock files (Emacs, vim, ...)
+*~
+\#*\#
+.\#*
+
+#downloaded, and unpacked, at configure time (cf DOWNLOAD_VERIFIED()).
+#thirdparty/catch/CMakeLists.txt, which does it for Catch2, is tracked.
+/thirdparty/catch/Catch2-*/
+/thirdparty/catch/Catch2-*.tar.gz
+/thirdparty/tessdata/
+/framework/src/Degradations/Distortion3DModel/thirdparty/eigen-*/
+/framework/src/Degradations/Distortion3DModel/thirdparty/glfw-*/
+/framework/src/Degradations/Distortion3DModel/thirdparty/*.tar.gz
+/wrapper/python/pybind11-*/
+/wrapper/python/v*.tar.gz
+#where the tesseract models were downloaded before they moved to /thirdparty
+/software/DocCreator/thirdparty/tessdata/
+
+#written in the current directory by the tests, when run from the sources
+tmp_*
+
+#outputs of the static analysers
+output_clang-tidy*.txt
+log_cppcheck*.txt
