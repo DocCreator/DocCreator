@@ -454,3 +454,38 @@ TEST_CASE("removeDegenerateTrianglesIndices keeps a mesh without degenerates")
   REQUIRE(m.numTriangles() == 2);
   REQUIRE(std::equal(tris, tris + 6, m.triangles.begin()));
 }
+
+TEST_CASE("getLargestBorderEdges of a mesh with no border is empty")
+{
+  //No contour, so no largest one: the index of the largest stayed one past
+  //the end of the contours, and was read there when asserts are off.
+  std::vector<Edge> edges(3);
+
+  SECTION("an empty mesh")
+  {
+    const Mesh m;
+    getLargestBorderEdges(m, edges);
+    REQUIRE(edges.empty());
+  }
+
+  SECTION("a closed mesh: a tetrahedron")
+  {
+    Mesh m = makeMesh(4, 4, false, false);
+    const uint32_t tris[12] = { 0, 1, 2,  0, 3, 1,  1, 3, 2,  2, 3, 0 };
+    std::copy(tris, tris + 12, m.triangles.begin());
+
+    getLargestBorderEdges(m, edges);
+    REQUIRE(edges.empty());
+  }
+}
+
+TEST_CASE("getLargestBorderEdges of a quad is its four sides")
+{
+  Mesh m = makeMesh(4, 2, false, false);
+  const uint32_t tris[6] = { 0, 1, 2,  0, 2, 3 };
+  std::copy(tris, tris + 6, m.triangles.begin());
+
+  std::vector<Edge> edges;
+  getLargestBorderEdges(m, edges);
+  REQUIRE(edges.size() == 4);
+}

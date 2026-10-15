@@ -10,6 +10,7 @@
 #include <cstring>  //memset
 #include <iostream> //DEBUG
 #include <limits>
+#include <utility> //move
 #include <vector>
 
 void
@@ -1875,9 +1876,15 @@ getLargestBorderEdges(const Mesh &mesh, std::vector<Edge> &edges)
       ind = i;
     }
   }
-  assert(ind < numContours);
+  //B: a mesh with no border -- closed, or empty -- has no contour, or only
+  // empty ones, and ind was then numContours: outEdges[ind] was read past
+  // its end when asserts are compiled out.
+  if (ind == numContours) {
+    edges.clear();
+    return;
+  }
 
-  edges = outEdges[ind]; //TODO:OPTIM: use C+11 move
+  edges = std::move(outEdges[ind]);
 }
 
 std::vector<uint32_t>
