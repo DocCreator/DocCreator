@@ -102,6 +102,9 @@ protected:
 
   void printGLInfos();
 
+  //Report an OpenGL setup problem to the user (once, without blocking initializeGL())
+  void reportGLError(const QString &message);
+
   void initGLForMesh();
 
   void updateCameraLookAt();
@@ -192,6 +195,13 @@ private:
   Eigen::Matrix3f m_backgroundTexMat;
 
   std::vector<uint32_t> m_selectedVertices;
+
+  //true once initializeGL() has loaded the OpenGL functions, found
+  //OpenGL >= 3.3 and compiled the shaders. Every method that issues GL
+  //calls checks it, so a machine without a usable OpenGL gets an error
+  //message instead of a crash.
+  bool m_glReady;
+  bool m_glErrorReported;
 };
 
 #endif /* ! GLWIDGET_HPP */

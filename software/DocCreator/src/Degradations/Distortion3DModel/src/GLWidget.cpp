@@ -27,7 +27,9 @@
 #include <QWheelEvent>
 
 #include <QGuiApplication>
+#include <QMessageBox>
 #include <QScreen>
+#include <QTimer>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 #include <QOpenGLContext>
@@ -103,6 +105,8 @@ GLWidget::GLWidget(QWidget *parent)
   , m_backgroundMinFilter(GL_NEAREST)
   , m_backgroundMagFilter(GL_NEAREST)
   , m_selectedVertices()
+  , m_glReady(false)
+  , m_glErrorReported(false)
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   QSurfaceFormat format;
@@ -167,8 +171,15 @@ thus inside or after initializeGL()
 void
 GLWidget::printGLInfos()
 {
-  std::cout << "OpenGL version: \"" << glGetString(GL_VERSION) << "\""
-            << std::endl;
+  //glGetString() returns nullptr when no usable context is current:
+  //streaming that nullptr as a C string crashed in ucrtbase.dll.
+  const GLubyte *version = glGetString(GL_VERSION);
+  const GLubyte *renderer = glGetString(GL_RENDERER);
+  std::cout << "OpenGL version: \""
+            << (version ? reinterpret_cast<const char *>(version) : "(null)")
+            << "\"  renderer: \""
+            << (renderer ? reinterpret_cast<const char *>(renderer) : "(null)")
+            << "\"" << std::endl;
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
   QGLFormat format = context()->format();
@@ -191,17 +202,68 @@ GLWidget::printGLInfos()
             << format.minorVersion() << " " << profileStr << "\n";
 }
 
+#if defined(_WIN32) || defined(_WIN64)
+//Resolve OpenGL functions through Qt's current context.
+//glad's own gladLoadGL() opens the system opengl32.dll, which is not the
+//OpenGL implementation Qt uses when it falls back to its software renderer
+//(opengl32sw.dll: no GPU driver, remote desktop, virtual machine...).
+//Loading then failed and the next GL call crashed.
+static void *
+getGLProcAddress(const char *name)
+{
+  QOpenGLContext *ctx = QOpenGLContext::currentContext();
+  return ctx ? reinterpret_cast<void *>(ctx->getProcAddress(name)) : nullptr;
+}
+#endif //_WIN32 || _WIN64
+
+void
+GLWidget::reportGLError(const QString &message)
+{
+  std::cerr << "ERROR: " << message.toStdString() << "\n";
+  if (m_glErrorReported)
+    return;
+  m_glErrorReported = true;
+  //Do not open a modal dialog from inside initializeGL(): defer it.
+  QTimer::singleShot(0, this, [this, message]() {
+    QMessageBox::critical(this, tr("3D distortion"), message);
+  });
+}
+
 void
 GLWidget::initializeGL()
 {
+  m_glReady = false;
 
 #if defined(_WIN32) || defined(_WIN64)
-  if (!gladLoadGL()) {
-    std::cerr << "ERROR: unable to initialize OpenGL functions via GLAD !!!\n";
+  if (!gladLoadGLLoader(&getGLProcAddress)) {
+    reportGLError(tr("Unable to load the OpenGL functions.\n"
+                     "The 3D view is disabled."));
+    return;
   }
 #endif //_WIN32 || _WIN64
 
   printGLInfos();
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
+  {
+    const QSurfaceFormat fmt = context()->format();
+    if (fmt.version() < qMakePair(3, 3)) {
+      const GLubyte *renderer = glGetString(GL_RENDERER);
+      reportGLError(
+        tr("The 3D view needs OpenGL 3.3, but only OpenGL %1.%2 is available "
+           "(renderer: %3).\n\n"
+           "Install the driver of your graphics card, or replace "
+           "opengl32sw.dll next to DocCreator.exe with a newer Mesa "
+           "llvmpipe build.\n\nThe 3D view is disabled.")
+          .arg(fmt.majorVersion())
+          .arg(fmt.minorVersion())
+          .arg(renderer ? QString::fromLatin1(
+                            reinterpret_cast<const char *>(renderer))
+                        : QStringLiteral("?")));
+      return;
+    }
+  }
+#endif
 
   glClearColor(0., 0., 0., 1.);
 
@@ -214,7 +276,7 @@ GLWidget::initializeGL()
   if (!ok) {
     //B: exit() here used to take the whole application down, unsaved
     // document included.
-    std::cerr << "ERROR: unable to load shaders\n";
+    reportGLError(tr("Unable to compile the OpenGL shaders.\nThe 3D view is disabled."));
     return;
   }
 
@@ -225,7 +287,7 @@ GLWidget::initializeGL()
 #include "shader_sphere.hpp"
   const bool okS = m_sphereProgram.loadFromStrings(vs_sphere, fs_sphere);
   if (!okS) {
-    std::cerr << "ERROR: unable to load (sphere) shaders\n";
+    reportGLError(tr("Unable to compile the OpenGL sphere shaders.\nThe 3D view is disabled."));
     return;
   }
 
@@ -247,7 +309,7 @@ GLWidget::initializeGL()
 #include "shader_background.hpp"
   const bool okP = m_backgroundProgram.loadFromStrings(vs_background, fs_background);
   if (!okP) {
-    std::cerr << "ERROR: unable to load (background) shaders\n";
+    reportGLError(tr("Unable to compile the OpenGL background shaders.\nThe 3D view is disabled."));
     return;
   }
 
@@ -267,12 +329,19 @@ GLWidget::initializeGL()
 
   GL_CHECK_ERROR_ALWAYS();
 
+  m_glReady = true;
+
   //std::cerr << "GLWidget::initializeGL() done\n";
 }
 
 bool
 GLWidget::loadMesh(const QString &meshFilename)
 {
+  if (!m_glReady) {
+    std::cerr << "GLWidget: OpenGL is not available\n";
+    return false;
+  }
+
   bool result = false;
 
   //std::cerr<<"loadMesh "<<meshFilename.toStdString()<<"\n";
@@ -413,6 +482,11 @@ nextPowerOfTwo(unsigned int v)
 void
 GLWidget::setTexture(const QImage &image)
 {
+  if (!m_glReady) {
+    emit hasImage(false);
+    return;
+  }
+
   if (image.isNull()) {
     emit hasImage(false);
     return; //exit(10);
@@ -502,6 +576,9 @@ GLWidget::setTexture(const QImage &image)
 void
 GLWidget::resizeGL(int w, int h)
 {
+  if (!m_glReady)
+    return;
+
   //std::cerr<<"resizeGL w="<<w<<" h="<<h<<"\n";
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
@@ -533,6 +610,9 @@ GLWidget::updateCameraLookAt()
 void
 GLWidget::paintGL()
 {
+  if (!m_glReady)
+    return;
+
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
   assert(context() == QOpenGLContext::currentContext());
@@ -1209,6 +1289,9 @@ writeMesh(const Mesh &mesh, const std::string &outputMeshFilename)
 void
 GLWidget::updateMeshGL()
 {
+  if (!m_glReady)
+    return;
+
   //for now, we delete & rebuild
   //TODO:OPTIM: do not re-allocate VBO if same size...
 
@@ -1381,7 +1464,7 @@ GLWidget::setUseBackgroundTexture(bool onoff)
 void
 GLWidget::updateBackgroundTransformation()
 {
-  if (m_mesh.isValid() && m_useBackground) {
+  if (m_mesh.isValid() && m_useBackground && m_backgroundObject != nullptr) {
 
     float minB[3], maxB[3];
     m_mesh.getAABB(minB, maxB);
@@ -1407,6 +1490,9 @@ GLWidget::updateBackgroundTransformation()
 void
 GLWidget::setBackgroundTexture(const QImage &image)
 {
+  if (!m_glReady)
+    return;
+
   if (image.isNull()) {
     return;
   }
