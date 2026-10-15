@@ -12,6 +12,8 @@ The seeded degradations are also checked end to end: the seed is the only
 way a generated corpus can be reproduced, and it crosses the binding.
 """
 
+import pathlib
+
 import numpy as np
 import pytest
 
@@ -19,6 +21,12 @@ import DocCreatorPy as dc
 
 
 ROWS, COLS = 60, 80
+
+#the data of the repository: stain images, phantom patterns, meshes
+DATA = pathlib.Path(__file__).resolve().parents[2] / "data"
+STAINS = str(DATA / "Image" / "stainImages" / "images")
+PHANTOM_PATTERNS = str(DATA / "Image" / "phantomPatterns")
+MESH = str(DATA / "Mesh" / "PlaneRegular.brs")
 
 SEED_A = 42
 SEED_B = 43
@@ -262,3 +270,130 @@ class TestOutOfRangeValues:
         img = make_image(3)
         with pytest.raises((ValueError, TypeError)):
             dc.addSaltAndPepperNoise(img, amount, .5, SEED_A)
+
+
+def expected_shape(img):
+    """A single channel image comes back without its channel axis, cf
+    test_accepts_every_documented_shape."""
+    return img.shape[:2] if img.ndim == 3 and img.shape[2] == 1 else img.shape
+
+
+class TestTheOtherDegradations:
+    """The bindings the tests above do not reach: those that read data from
+    a directory or a file, and those that take a background image."""
+
+    @pytest.mark.parametrize("channels", GOOD_SHAPES)
+    def test_gdd_degradation(self, channels):
+        img = make_image(channels)
+        before = img.copy()
+        a = dc.gddDegradation(img, STAINS, 3, dc.GDDInsertion.GDD_INSERT_AS_IS, True, SEED_A)
+        assert a.shape == expected_shape(img) and a.dtype == img.dtype
+        assert np.array_equal(img, before)
+        assert not np.array_equal(a, img.reshape(a.shape))
+        #the seed crosses the binding
+        assert np.array_equal(a, dc.gddDegradation(img, STAINS, 3, dc.GDDInsertion.GDD_INSERT_AS_IS, True, SEED_A))
+
+    @pytest.mark.parametrize("insert", list(dc.GDDInsertion.__members__.values()))
+    def test_gdd_degradation_insertion_types(self, insert):
+        img = make_image(3)
+        out = dc.gddDegradation(img, STAINS, 2, insert, False, SEED_A)
+        assert out.shape == img.shape
+
+    def test_gdd_degradation_of_no_stain_is_the_image(self):
+        img = make_image(3)
+        assert np.array_equal(dc.gddDegradation(img, STAINS, 0, seed=SEED_A), img)
+
+    def test_gdd_degradation_with_no_stain_directory_is_the_image(self):
+        img = make_image(3)
+        assert np.array_equal(dc.gddDegradation(img, "/nonexistent", 3, seed=SEED_A), img)
+
+    def test_gdd_copy_onto(self):
+        img = make_image(3)
+        stain = np.full((20, 20, 3), 90, dtype=np.uint8)
+        stain[5:15, 5:15] = 10
+        before = img.copy()
+        inside = dc.gddCopyOnto(img, stain, (COLS // 2, ROWS // 2))
+        assert inside.shape == img.shape
+        assert np.array_equal(img, before)
+        assert not np.array_equal(inside, img)
+        #a stain wholly outside the image leaves it as it is
+        assert np.array_equal(dc.gddCopyOnto(img, stain, (10 * COLS, 10 * ROWS)), img)
+
+    @pytest.mark.parametrize("channels", GOOD_SHAPES)
+    def test_phantom_character(self, channels):
+        img = make_image(channels)
+        before = img.copy()
+        a = dc.phantomCharacter(img, .9, PHANTOM_PATTERNS, SEED_A)
+        assert a.shape == expected_shape(img) and a.dtype == img.dtype
+        assert np.array_equal(img, before)
+        assert np.array_equal(a, dc.phantomCharacter(img, .9, PHANTOM_PATTERNS, SEED_A))
+
+    def test_phantom_character_takes_its_path_by_keyword(self):
+        #the probability has a default but comes before the path, which
+        # has none: the default is reachable by keyword only
+        img = make_image(3)
+        out = dc.phantomCharacter(img, phantomPatternsPath=PHANTOM_PATTERNS, seed=SEED_A)
+        assert out.shape == img.shape
+
+    def test_phantom_character_of_probability_zero_is_the_image(self):
+        img = make_image(3)
+        assert np.array_equal(dc.phantomCharacter(img, 0., PHANTOM_PATTERNS, SEED_A), img)
+
+    @pytest.mark.parametrize("name", ["rotateFillImage", "rotateFillInpaint2", "rotateFillInpaint3"])
+    @pytest.mark.parametrize("channels", GOOD_SHAPES)
+    def test_rotations_with_a_background(self, name, channels):
+        img = make_image(channels)
+        background = np.full_like(img, 120)
+        before = img.copy()
+        out = getattr(dc, name)(img, 10., background)
+        assert out.shape == expected_shape(img) and out.dtype == img.dtype
+        assert np.array_equal(img, before)
+        assert not np.array_equal(out, img.reshape(out.shape))
+
+    def test_rotate_fill_image_n(self):
+        img = make_image(3)
+        background = np.full_like(img, 120)
+        out = dc.rotateFillImageN(img, 10., background, 2)
+        assert out.shape == img.shape
+        assert not np.array_equal(out, img)
+
+    def test_degrade_3d_keeps_the_shape(self):
+        #without OSMesa, the 3D degradation gives the image back as it is
+        img = make_image(3)
+        before = img.copy()
+        out = dc.degrade3D(img, MESH, True, SEED_A)
+        assert out.shape == img.shape and out.dtype == img.dtype
+        assert np.array_equal(img, before)
+        background = np.full((ROWS + 10, COLS + 10, 3), 120, dtype=np.uint8)
+        out = dc.degrade3DWithBackground(img, MESH, background, True, SEED_A)
+        assert out.shape == img.shape
+
+
+class TestWhatTheConverterIsGiven:
+    """The ndarray converter also takes python numbers and tuples, which it
+    turns into a column of doubles, and copies the arrays whose layout a
+    cv::Mat cannot have. Neither is an image; the copies must give the image
+    the array holds."""
+
+    @pytest.mark.parametrize("value", [7, 7.5, (1, 2), (1, "a"),
+                                       np.zeros((ROWS, COLS), dtype=np.int64)])
+    def test_refuses_numbers_tuples_and_64_bit_integers(self, value):
+        with pytest.raises((ValueError, TypeError)):
+            dc.blur(value, dc.BlurMethod.GAUSSIAN, 3)
+
+    @pytest.mark.parametrize("view", ["transposed", "flipped rows", "flipped columns", "every other row"])
+    @pytest.mark.parametrize("channels", [None, 3])
+    def test_a_copied_layout_gives_the_same_image(self, view, channels):
+        base = make_image(channels)
+        base = (base.astype(np.int32) + np.arange(base.shape[1]).reshape(1, -1, *([1] * (base.ndim - 2)))).astype(np.uint8)
+        views = {
+            "transposed": lambda a: a.swapaxes(0, 1),
+            "flipped rows": lambda a: a[::-1],
+            "flipped columns": lambda a: a[:, ::-1],
+            "every other row": lambda a: a[::2],
+        }
+        v = views[view](base)
+        assert not v.flags["C_CONTIGUOUS"]
+        out_view = dc.blur(v, dc.BlurMethod.GAUSSIAN, 3)
+        out_copy = dc.blur(np.ascontiguousarray(v), dc.BlurMethod.GAUSSIAN, 3)
+        assert np.array_equal(out_view, out_copy)
