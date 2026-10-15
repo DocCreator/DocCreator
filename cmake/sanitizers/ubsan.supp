@@ -1,0 +1,13 @@
+# UndefinedBehaviorSanitizer suppressions.
+#
+# One entry per line: <check>:<pattern>, the pattern matching a function
+# name, a source file or a library where the check fails. A suppressed
+# report is neither printed nor counted by halt_on_error.
+
+# lzham, the codec of the .brs meshes, under thirdparty/: on x86 it reads
+# its bit stream and its match buffers with unaligned integer loads, on
+# purpose (LZHAM_USE_UNALIGNED_INT_LOADS), and its vector copies an empty
+# vector with memcpy(nullptr, nullptr, 0). Both are harmless on the
+# platforms it is built for, and it is not our code to rewrite.
+alignment:lzham_codec
+nonnull-attribute:lzham_codec

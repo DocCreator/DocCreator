@@ -24,10 +24,13 @@ AddressSanitizer and UndefinedBehaviorSanitizer
 
   export ASAN_OPTIONS=detect_leaks=1:detect_stack_use_after_return=1:abort_on_error=0
   export LSAN_OPTIONS=suppressions=$PWD/cmake/sanitizers/lsan.supp
-  export UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1
+  export UBSAN_OPTIONS=suppressions=$PWD/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
 
 UBSan prints and goes on by default, which hides the first error in the
-noise of the ones after it: halt_on_error=1 stops at the first.
+noise of the ones after it: halt_on_error=1 stops at the first. It also
+stops at the reports of lzham, the codec of the .brs meshes, which reads
+unaligned integers on purpose: ubsan.supp drops those, and the suite is
+then quiet.
 
 ThreadSanitizer
 ---------------
