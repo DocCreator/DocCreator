@@ -116,7 +116,7 @@ readOBJ(const std::string &filename, Mesh &mesh)
                 << " != numVertices=" << numVertices << "\n";
 
       tmpNormals.resize(3 * numNormals);
-      normals = &tmpNormals[0];
+      normals = tmpNormals.data();
     } else {
       mesh.allocateNormals();
       normals = mesh.normals.data();
@@ -134,7 +134,7 @@ readOBJ(const std::string &filename, Mesh &mesh)
                 << " != numVertices=" << numVertices << "\n";
 
       tmpTexCoords.resize(2 * numTexCoords);
-      texCoords = &tmpTexCoords[0];
+      texCoords = tmpTexCoords.data();
     } else {
       mesh.allocateTexCoords();
       texCoords = mesh.texCoords.data();

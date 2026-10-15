@@ -794,7 +794,7 @@ writeBRS(const std::string &filename, const Mesh &mesh)
           }
         }
         const size_t s = nv3 * sizeof(float);
-        out.write((const char *)&v[0], s);
+        out.write((const char *)v.data(), s);
         if (out.bad())
           return false;
       }
@@ -815,7 +815,7 @@ writeBRS(const std::string &filename, const Mesh &mesh)
           }
         }
         const size_t s = nv2 * sizeof(float);
-        out.write((const char *)&v[0], s);
+        out.write((const char *)v.data(), s);
         if (out.bad())
           return false;
       }
@@ -837,7 +837,7 @@ writeBRS(const std::string &filename, const Mesh &mesh)
           }
         }
         const size_t s = nv3 * sizeof(float);
-        out.write((const char *)&v[0], s);
+        out.write((const char *)v.data(), s);
         if (out.bad())
           return false;
       }

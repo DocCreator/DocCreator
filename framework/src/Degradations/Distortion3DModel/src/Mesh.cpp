@@ -177,7 +177,7 @@ Mesh::computeNormals()
     }
   }
 
-  assert(normals);
+  assert(! normals.empty());
 
   /*
   {
@@ -411,7 +411,7 @@ Mesh::removeDuplicatedVertices()
                 << " duplicate vertices\n";
 
       Mesh m;
-      copyToWithNewIndices(m, &newVIndices[0], vi);
+      copyToWithNewIndices(m, newVIndices.data(), vi);
       this->swap(m);
 
       removeDegenerateTrianglesIndices();
@@ -430,7 +430,7 @@ Mesh::removeNonReferencedVertices()
   size_t numUsed = 0;
   const uint32_t numTriangles3 = numTriangles() * 3;
   for (uint32_t i = 0; i < numTriangles3; ++i) {
-    assert(triangles);
+    assert(! triangles.empty());
     const uint32_t ind = triangles[i];
     numUsed += (referenced[ind] == false);
 
@@ -458,7 +458,7 @@ Mesh::removeNonReferencedVertices()
     assert(vi == numUsed);
 
     Mesh m;
-    copyToWithNewIndices(m, &newVIndices[0], vi);
+    copyToWithNewIndices(m, newVIndices.data(), vi);
     this->swap(m);
   }
 
@@ -467,13 +467,13 @@ Mesh::removeNonReferencedVertices()
 
 #ifndef NDEBUG
 static void
-checkIndices(uint32_t numVertices(), uint32_t numIndices, uint32_t *indices)
+checkIndices(uint32_t numVertices, uint32_t numIndices, const uint32_t *indices)
 {
   bool hasError = false;
   for (uint32_t i = 0; i < numIndices; ++i) {
-    if (indices[i] >= numVertices()) {
+    if (indices[i] >= numVertices) {
       std::cerr << "ERROR: i=" << i << " indices[i]=" << indices[i]
-                << " >= numVertices()=" << numVertices() << "\n";
+                << " >= numVertices=" << numVertices << "\n";
       hasError = true;
       break;
     }
@@ -508,13 +508,13 @@ Mesh::optimizeTriangleOrdering()
   }
 
 #ifndef NDEBUG
-  checkIndices(numVertices(), numTriangles() * 3, m.triangles);
+  checkIndices(numVertices(), numTriangles() * 3, m.triangles.data());
 #endif
 
   optimizeIndexOrder(numVertices(), numTriangles3, m.triangles.data());
 
 #ifndef NDEBUG
-  checkIndices(numVertices(), numTriangles() * 3, m.triangles);
+  checkIndices(numVertices(), numTriangles() * 3, m.triangles.data());
 #endif
 
   //TODO: some CODE DUPLICATION with removeNonReferencedVertices()
@@ -858,7 +858,7 @@ makePlane()
   m.triangles[1 * 3 + 1] = 2;
   m.triangles[1 * 3 + 2] = 3;
 
-  assert(m.vertices);
+  assert(! m.vertices.empty());
   m.vertices[0 * 3 + 0] = -1;
   m.vertices[0 * 3 + 1] = -1;
   m.vertices[0 * 3 + 2] = 0;
@@ -875,7 +875,7 @@ makePlane()
   m.vertices[3 * 3 + 1] = 1;
   m.vertices[3 * 3 + 2] = 0;
 
-  assert(m.texCoords);
+  assert(! m.texCoords.empty());
   m.texCoords[0 * 2 + 0] = 0;
   m.texCoords[0 * 2 + 1] = 0;
 
@@ -1163,7 +1163,7 @@ getEdges(const Mesh &mesh)
   const size_t maxEdgeCount = triangleCount * 3;
 
   edges.resize(maxEdgeCount);
-  Edge *edgeArray = &edges[0];
+  Edge *edgeArray = edges.data();
 
   uint32_t *firstEdge = new uint32_t[vertexCount + maxEdgeCount];
   uint32_t *nextEdge = firstEdge + vertexCount;
@@ -1293,7 +1293,7 @@ getEdgesF(const Mesh &mesh, std::vector<EdgeF> &edges)
   const size_t maxEdgeCount = triangleCount * 3;
 
   edges.resize(maxEdgeCount);
-  EdgeF *edgeArray = &edges[0];
+  EdgeF *edgeArray = edges.data();
 
   uint32_t *firstEdge = new uint32_t[vertexCount + maxEdgeCount];
   uint32_t *nextEdge = firstEdge + vertexCount;
@@ -1432,7 +1432,11 @@ getBorderEdges(const Mesh &mesh)
   borderEdges.reserve(triangleCount / 2); //arbitrary
 
   std::vector<Edge> edges(maxEdgeCount); //useless hidden memset
-  Edge *edgeArray = &edges[0];
+  //B: was &edges[0], which indexes an empty vector for a mesh with no
+  // triangle: undefined, and an abort with _GLIBCXX_ASSERTIONS (Debug).
+  // data() is the same pointer otherwise. Same change in the other
+  // functions of this file that took &v[0].
+  Edge *edgeArray = edges.data();
 
   uint32_t *firstEdge = new uint32_t[vertexCount + maxEdgeCount];
   uint32_t *nextEdge = firstEdge + vertexCount;
@@ -2143,7 +2147,7 @@ getAdjacentTriangles(const Mesh &mesh, std::vector<uint32_t> &adjacentTris)
   const size_t maxEdgeCount = triangleCount * 3;
 
   edges.resize(maxEdgeCount);
-  Edge1I *edgeArray = &edges[0];
+  Edge1I *edgeArray = edges.data();
 
   uint32_t *firstEdge = new uint32_t[vertexCount + maxEdgeCount];
   uint32_t *nextEdge = firstEdge + vertexCount;
@@ -2353,7 +2357,7 @@ keepOnlyLargestCC(Mesh &mesh)
     if (mesh.hasTexCoords())
       mesh2.allocateTexCoords();
 
-    assert(mesh2.triangles);
+    assert(! mesh2.triangles.empty());
     const uint32_t oldNumTriangles = mesh.numTriangles();
     uint32_t idx = 0;
     for (uint32_t i = 0; i < oldNumTriangles; ++i) {

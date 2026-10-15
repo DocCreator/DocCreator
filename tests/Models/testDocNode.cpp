@@ -258,6 +258,9 @@ TEST_CASE( "Testing DocString, a node of leafs" )
     delete s;
   }
 
+#ifdef NDEBUG
+  //A debug build asserts on the duplicate, which is a programming error:
+  //what is checked here is that a release build survives it.
   SECTION("the same character cannot be added twice")
   {
     //insertElement() called exit() on a duplicate, which threw away the
@@ -270,6 +273,7 @@ TEST_CASE( "Testing DocString, a node of leafs" )
     REQUIRE( s.length() == 1 );
     REQUIRE( s.getCharacters().size() == 1 );
   }
+#endif
 }
 
 TEST_CASE( "Testing DocParagraph, a node of nodes" )
