@@ -8,46 +8,97 @@
 #include <opencv2/core/core.hpp>
 
 namespace dc {
+
+  /**
+     Holes: parts of the page missing, in its middle, on a border or in a
+     corner, through which the page below or a color is seen.
+  */
   namespace HoleDegradation {
 
-    enum class HoleSide {BORDER_TOP=0, BORDER_RIGHT, BORDER_BOTTOM, BORDER_LEFT, CORNER_TOPLEFT=0, CORNER_TOPRIGHT, CORNER_BOTTOMRIGHT, CORNER_BOTTOMLEFT};
-    enum class HoleType {CENTER=0, BORDER, CORNER, NUM_HOLE_TYPES};
+    /**
+       The border or corner where a hole is.
 
-    /*
-      Add hole to an image at a given position.
+       The border and the corner values overlap (BORDER_TOP and
+       CORNER_TOPLEFT are both 0): a value is to be read with the HoleType it
+       goes with.
+    */
+    enum class HoleSide {
+      BORDER_TOP=0,       /**< top border */
+      BORDER_RIGHT,       /**< right border */
+      BORDER_BOTTOM,      /**< bottom border */
+      BORDER_LEFT,        /**< left border */
+      CORNER_TOPLEFT=0,   /**< top left corner */
+      CORNER_TOPRIGHT,    /**< top right corner */
+      CORNER_BOTTOMRIGHT, /**< bottom right corner */
+      CORNER_BOTTOMLEFT   /**< bottom left corner */
+    };
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
-      Output image will be of the same type.
-      @a holePattern may be of type CV_8UC1, CV_8UC3 or CV_8UC4 and will be converted to grayscale and used as a binary mask.
+    /** Where a hole is on the page. */
+    enum class HoleType {
+      CENTER=0,      /**< anywhere in the page */
+      BORDER,        /**< on a border, cf. HoleSide */
+      CORNER,        /**< in a corner, cf. HoleSide */
+      NUM_HOLE_TYPES /**< the number of hole types, not a type */
+    };
 
-      pixels inside hole are filled with pixels from @a belowImg if
-      @a belowImg is not empty and visible, or with color @a color otherwise.
-      If not empty, @a belowImg must be of the same type than @a img.
+    /**
+      Add a hole to an image, at a given position.
 
-      @a side is used only if @a type is BORDER or CORNER.
-      @a holePattern for corner or border must be oriented for top left corner or top border. It will be rotated if necessary.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4, @a holePattern
+      too, and @a belowImg, if not empty, of the type of @a img. A
+      std::invalid_argument exception is thrown otherwise.
 
-      @a holePattern is inserted at position (@a xOrigin, @a yOrigin).
-
-      @param img image to add holes onto.
-      @param holePattern hole pattern image. It must be of type CV_8UC1.
-      @param pos position of holePattern in @a img.
-      @param size size increment (in each dimension) for hole pattern image.
-      @param type type of hole on pattern image (center, border or corner).
-      @param side side of hole. For a center hole, this value is not used. For a border or corner hole, the hole pattern image will be transformed. Border hole images are considered to be for the top border side. Corner hole images are considered to be for the top left border side.
-      @param color color used to fill the applied hole pattern image, only if @a belowImg is not empty.
-      @param belowImg below image used to fill the applied hole pattern image. In this case, @a color is not used.
-      @param shadowBorderWidth width in pixels of shadow added around hole border. If zero, no shadow is added.
-      @param shadowBorderIntensity intensity in [0; 1] by which the original below color/image is multiplied to obtain shadow value on hole border. The closer to 0, the darker the shadow.
-      @return modified image
+      @param img  image to add a hole to.
+      @param holePattern  pattern of the hole: its black (0) pixels are the
+      hole. It may be of type CV_8UC1, CV_8UC3 or CV_8UC4, and is converted
+      to gray.
+      @param size  number of pixels added to the width and to the height of
+      the pattern, which is resized accordingly. 0 keeps its size.
+      @param type  whether the hole is in the middle of the page, on a
+      border or in a corner.
+      @param pos  position of the top left corner of the pattern in
+      @a img. The pattern may extend outside the image.
+      @param side  border or corner of the hole, for a border or a corner
+      hole; not used for a center hole. Border patterns are drawn for the top
+      border, and corner patterns for the top left corner: they are turned
+      to @a side.
+      @param color  color of the hole where @a belowImg does not cover it:
+      everywhere if @a belowImg is empty.
+      @param belowImg  image seen through the hole: the page below. It must
+      be empty, or of the type of @a img. Where it does not cover the hole,
+      @a color is used.
+      @param shadowBorderWidth  width, in pixels, of the shadow along the
+      edge of the hole. The pixels of the hole closer than this to its edge
+      are multiplied by @a shadowBorderIntensity. 0 adds no shadow.
+      @param shadowBorderIntensity  factor of the shadow, in [0; 1]: the
+      closer to 0, the darker the shadow. Values above 1 lighten the edge
+      instead; the result is saturated to [0; 255]. The alpha channel is
+      not changed.
+      @return the image with the hole, of the type and size of @a img.
     */
     extern FRAMEWORK_EXPORT cv::Mat addHole(const cv::Mat &img, const cv::Mat &holePattern, cv::Point pos, int size, HoleType type, HoleSide side, const cv::Scalar &color, const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=0.1f);
 
-    /*
-      Get random position for hole.
+    /**
+      Draw a random position for a hole: a position of the top left corner
+      of its pattern, as addHole() takes it.
 
-      @a ratioOutside value in [0; 1.0]. Indicates ratio of @a holePattern image that can be outside image.  0.6 means 60% of pattern can be outside image. 1.0 means pattern is completely outside.
+      A center hole is anywhere in the image. A border or corner hole is on
+      its border or corner, and may extend outside the image by up to
+      @a ratioOutside of its width and height. If the image is too small for
+      the pattern, the center of the image is returned.
 
+      @param imgSize  size of the image.
+      @param holePatternSize  size of the hole pattern, as drawn: for the top
+      border, or for the top left corner.
+      @param type  whether the hole is in the middle of the page, on a
+      border or in a corner.
+      @param ratioOutside  part, in [0; 1], of the pattern that may be
+      outside the image: 0.6 means 60 % of it. Not used for a center hole.
+      @param side  border or corner of the hole. Not used for a center hole.
+      @param seed  seed of the random generator. If not provided, a
+      non-reproducible seed is used. Two calls with the same seed and the
+      same arguments give the same result.
+      @return the position of the top left corner of the pattern.
      */
     extern FRAMEWORK_EXPORT cv::Point getRandomPosition(const cv::Size &imgSize,
 							const cv::Size &holePatternSize,
@@ -56,26 +107,46 @@ namespace dc {
 							HoleSide side,
 							std::optional<uint32_t> seed = std::nullopt);
 
-    /*
-      Add hole to an image at a random position.
+    /**
+      Add a hole to an image, at a random position.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
-      Output image will be of the same type.
-      @a holePattern may be of type CV_8UC1, CV_8UC3 or CV_8UC4 and will be converted to grayscale and used as a binary mask.
+      The position is drawn by getRandomPosition(), then the hole is added
+      by addHole().
 
-      @a holePattern is inserted at random position according to @a holePattern size and @a ratioOutside value.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4, @a holePattern
+      too, and @a belowImg, if not empty, of the type of @a img. A
+      std::invalid_argument exception is thrown otherwise.
 
-      @param img image to add holes onto.
-      @param holePattern hole pattern image. It must be of type CV_8UC1.
-      @param size size increment (in each dimension) for hole pattern image.
-      @param type type of hole on pattern image (center, border or corner).
-      @a ratioOutside value in [0; 1.0] that indicates the ratio of @a holePattern image that can be outside image. 0.6 means 60% of pattern can be outside image, 1.0 means pattern is completely outside.
-      @param side side of hole. For a center hole, this value is not used. For a border or corner hole, the hole pattern image will be transformed. Border hole images are considered to be for the top border side. Corner hole images are considered to be for the top left border side.
-      @param color color used to fill the applied hole pattern image, only if @a belowImg is not empty.
-      @param belowImg below image used to fill the applied hole pattern image. In this case, @a color is not used.
-      @param shadowBorderWidth width in pixels of shadow added around hole border. If zero, no shadow is added.
-      @param shadowBorderIntensity intensity in [0; 1] by which the original below color/image is multiplied to obtain shadow value on hole border. The closer to 0, the darker the shadow.
-      @return modified image
+      @param img  image to add a hole to.
+      @param holePattern  pattern of the hole: its black (0) pixels are the
+      hole. It may be of type CV_8UC1, CV_8UC3 or CV_8UC4, and is converted
+      to gray.
+      @param size  number of pixels added to the width and to the height of
+      the pattern, which is resized accordingly. 0 keeps its size.
+      @param type  whether the hole is in the middle of the page, on a
+      border or in a corner.
+      @param ratioOutside  part, in [0; 1], of the pattern that may be
+      outside the image. Not used for a center hole.
+      @param side  border or corner of the hole, for a border or a corner
+      hole; not used for a center hole. Border patterns are drawn for the top
+      border, and corner patterns for the top left corner: they are turned
+      to @a side.
+      @param color  color of the hole where @a belowImg does not cover it:
+      everywhere if @a belowImg is empty.
+      @param belowImg  image seen through the hole: the page below. It must
+      be empty, or of the type of @a img. Where it does not cover the hole,
+      @a color is used.
+      @param shadowBorderWidth  width, in pixels, of the shadow along the
+      edge of the hole. The pixels of the hole closer than this to its edge
+      are multiplied by @a shadowBorderIntensity. 0 adds no shadow.
+      @param shadowBorderIntensity  factor of the shadow, in [0; 1]: the
+      closer to 0, the darker the shadow. Values above 1 lighten the edge
+      instead; the result is saturated to [0; 255]. The alpha channel is
+      not changed.
+      @param seed  seed of the random generator. If not provided, a
+      non-reproducible seed is used. Two calls with the same seed and the
+      same arguments give the same result.
+      @return the image with the hole, of the type and size of @a img.
      */
     extern FRAMEWORK_EXPORT cv::Mat addHoleAtRandom(const cv::Mat &img, const cv::Mat &holePattern, int size, HoleType type, float ratioOutside, HoleSide side, const cv::Scalar &color = cv::Scalar(0, 0, 0, 255), const cv::Mat &belowImg=cv::Mat(), int shadowBorderWidth=0, float shadowBorderIntensity=1000.f, std::optional<uint32_t> seed = std::nullopt);
 

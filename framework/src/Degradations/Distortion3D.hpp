@@ -11,6 +11,18 @@
 namespace dc {
 
   /**
+     3D distortion: the image is mapped as a texture onto a 3D mesh of a
+     scanned document, which is rendered with a lighting, as described in:
+
+     Kieu, Van Cuong; Journet, Nicholas; Visani, Muriel; Mullot, Rémy;
+     Domenger, Jean-Philippe. Semi-synthetic Document Image Generation
+     Using Texture Mapping on Scanned 3D Document Shapes. In: 2013 12th
+     International Conference on Document Analysis and Recognition (ICDAR).
+     IEEE, 2013, p. 489-493.
+
+     The rendering needs OSMesa: without it (cf. USE_NATIVE_OSMESA), these
+     functions do nothing but print a warning.
+
      @warning unlike the other degradations, these four functions are not
      reentrant: they drive a single OpenGL context, through GLFW, whose
      documentation requires that it be used by one thread at a time. They
@@ -19,86 +31,117 @@ namespace dc {
   */
   namespace Distortion3D {
 
-    /*
-      Apply 3D distortion to an image.
+    /**
+      Apply a 3D distortion to an image.
 
-      Described in [1]
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. A
+      std::invalid_argument exception is thrown otherwise.
 
-      [1]
-      Semi-synthetic Document Image Generation Using Texture Mapping on Scanned 3D Document Shapes
-      KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel, MULLOT, Rémy, DOMENGER, Jean-Philippe
-      In : 2013 12th International Conference on Document Analysis and Recognition (ICDAR). IEEE, 2013. p. 489-493.
+      The background, where the mesh does not cover the image, is black.
 
+      Without OSMesa (cf. USE_NATIVE_OSMESA), the 3D distortion is not
+      available: a warning is printed on the standard error, and the
+      function returns a copy of @a img.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
-      Output image will be of the same type and size than @a img.
-
-      The background will be black.
-      
-      @prama[in] img  input original image.
-      @prama[in] meshFilename  input mesh filename. Only .obj and .brs mesh file format is supported. Mesh must have texture coordinates.
-      @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
-      @prama[in] seed  seed of the random lighting and orientation. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
-
-      @return modified image.
-
+      @param img  image to distort.
+      @param meshFilename  mesh file, in the .obj or the .brs format. The
+      mesh must have texture coordinates.
+      @param random  whether the lighting and the orientation of the mesh
+      are random.
+      @param seed  seed of the random lighting and orientation. If not
+      provided, a non-reproducible seed is used. Two calls with the same
+      seed and the same arguments give the same result.
+      @return the distorted image, of the type and size of @a img.
      */
     extern FRAMEWORK_EXPORT cv::Mat degrade3D(const cv::Mat &img, const std::string &meshFilename, bool random=true, std::optional<uint32_t> seed = std::nullopt);
 
     
-    /*
-      Apply different 3D distortions to an image and save them as png images.
+    /**
+      Apply @a numOutputImages 3D distortions to an image, and save them as
+      PNG images.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
-      Output image will be of the same type and size than @a img.
+      The images are saved as @a outputPrefix + "_" + their index, padded
+      with zeros to the width of the largest one, + ".png". They have the
+      type and size of @a img, and a black background. The series is
+      reproducible from one seed, and its images differ from each other.
 
-      The background will be black.
-      
-      @prama[in] img  input original image.
-      @prama[in] numOutputImages  number of output images to save.
-      @prama[in] meshFilename  input mesh filename. Only .obj and .brs mesh file format is supported. Mesh must have texture coordinates.
-      @prama[in] outputPrefix  prefix of output images. It may contain the path where to save images.
-      @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
-      @prama[in] seed  seed of the random lighting and orientation. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. A
+      std::invalid_argument exception is thrown otherwise.
 
-    */
+      Without OSMesa (cf. USE_NATIVE_OSMESA), the 3D distortion is not
+      available: a warning is printed on the standard error, and no
+      image is saved.
+
+      @param img  image to distort.
+      @param numOutputImages  number of images to save.
+      @param meshFilename  mesh file, in the .obj or the .brs format. The
+      mesh must have texture coordinates.
+      @param outputPrefix  prefix of the file names. It may contain the
+      directory to save the images into.
+      @param random  whether the lighting and the orientation of the mesh
+      are random.
+      @param seed  seed of the random lighting and orientation. If not
+      provided, a non-reproducible seed is used. Two calls with the same
+      seed and the same arguments give the same result.
+     */
     extern FRAMEWORK_EXPORT void degrade3DN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const std::string &outputPrefix, bool random=true, std::optional<uint32_t> seed = std::nullopt);
 
     //extern FRAMEWORK_EXPORT void degrade3D(cv::Mat &img, const std::string &meshDir, size_t numOutputImages, const std::string &prefix);
 
     
-    /*
-      Apply 3D distortion to an image, with another image in the background.
+    /**
+      Apply a 3D distortion to an image, with another image in the
+      background.
 
-      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
-      Output image will have the largest of the two input images types.
-      Output image will be of the same type and size than @a img.
-      
-      @prama[in] img  input original image.
-      @prama[in] meshFilename  input mesh filename. Only .obj and .brs mesh file format is supported. Mesh must have texture coordinates.
-      @prama[in] backgroundImg  input background image.
-      @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
-      @prama[in] seed  seed of the random lighting and orientation. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
+      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or
+      CV_8UC4. A std::invalid_argument exception is thrown otherwise.
 
-      @return modified image.
+      Without OSMesa (cf. USE_NATIVE_OSMESA), the 3D distortion is not
+      available: a warning is printed on the standard error, and the
+      function returns a copy of @a img.
 
+      @param img  image to distort.
+      @param meshFilename  mesh file, in the .obj or the .brs format. The
+      mesh must have texture coordinates.
+      @param backgroundImg  image shown where the mesh does not cover the
+      image.
+      @param random  whether the lighting and the orientation of the mesh
+      are random.
+      @param seed  seed of the random lighting and orientation. If not
+      provided, a non-reproducible seed is used. Two calls with the same
+      seed and the same arguments give the same result.
+      @return the distorted image, of the size of @a img and of the type
+      of the input image that has the most channels.
      */
     extern FRAMEWORK_EXPORT cv::Mat degrade3DWithBackground(const cv::Mat &img, const std::string &meshFilename, const cv::Mat &backgroundImg, bool random=true, std::optional<uint32_t> seed = std::nullopt);
     
-    /*
-      Apply different 3D distortions to an image, with another image in the background, and save them as png images.
+    /**
+      Apply @a numOutputImages 3D distortions to an image, with another image
+      in the background, and save them as PNG images.
 
-      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise. 
-      Output image will have the largest of the two input images types.
-      Output image will be of the same type and size than @a img.
+      The images are named as with degrade3DN(). They have the size of
+      @a img and the type of the input image that has the most channels.
 
-      @prama[in] img  input original image.
-      @prama[in] numOutputImages  number of output images to save.
-      @prama[in] meshFilename  input mesh filename. Only .obj and .brs mesh file format is supported. Mesh must have texture coordinates.
-      @prama[in] outputPrefix  prefix of output images. It may contain the path where to save images.
-      @prama[in] random  input boolean value indicating if a random lighting and orientation must be used.
-      @prama[in] seed  seed of the random lighting and orientation. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
+      @a img and @a backgroundImg must be of type CV_8UC1, CV_8UC3 or
+      CV_8UC4. A std::invalid_argument exception is thrown otherwise.
 
+      Without OSMesa (cf. USE_NATIVE_OSMESA), the 3D distortion is not
+      available: a warning is printed on the standard error, and no
+      image is saved.
+
+      @param img  image to distort.
+      @param numOutputImages  number of images to save.
+      @param meshFilename  mesh file, in the .obj or the .brs format. The
+      mesh must have texture coordinates.
+      @param backgroundImg  image shown where the mesh does not cover the
+      image.
+      @param outputPrefix  prefix of the file names. It may contain the
+      directory to save the images into.
+      @param random  whether the lighting and the orientation of the mesh
+      are random.
+      @param seed  seed of the random lighting and orientation. If not
+      provided, a non-reproducible seed is used. Two calls with the same
+      seed and the same arguments give the same result.
     */
     extern FRAMEWORK_EXPORT void degrade3DWithBackgroundN(const cv::Mat &img, size_t numOutputImages, const std::string &meshFilename, const cv::Mat &backgroundImg, const std::string &outputPrefix, bool random=true, std::optional<uint32_t> seed = std::nullopt);
 

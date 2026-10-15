@@ -6,32 +6,36 @@
 
 namespace dc {
 
-  namespace ShadowBinding {
-  
-    /**
-       Implements "non-linear illumination model" from :
-       "Global and Local Document Degradation Models"
-       Tapas Kanungo, Robert M. Haralick and Thsin Phillips
-       ICDAR 1993
-    */
+  /**
+     Shadow of the binding: the shadow along a border of a page scanned
+     from a bound book, after the "non-linear illumination model" of:
 
+     Kanungo, Tapas; Haralick, Robert M.; Phillips, Ihsin T. Global and
+     Local Document Degradation Models. In: Proc. of the International
+     Conference on Document Analysis and Recognition (ICDAR), 1993.
+  */
+  namespace ShadowBinding {
+
+    /** The border of the image the shadow is on. */
     enum class Border {TOP=0, RIGHT, BOTTOM, LEFT};
 
-    /*
-      Add a shadow on a given border of image.
+    /**
+      Add a shadow along a border of an image.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
-      Output image will be of the same type and size than @a img.
+      @a angle is the angle between the page and the spine of the book when
+      the page is scanned.
 
-      @a angle corresponds to the angle between the page and the spine of the book when a page is scanned.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. A
+      std::invalid_argument exception is thrown otherwise.
 
-      @prama[in] img  input original image.
-      @param[in] border  border on which the shadow is added.
-      @param[in] distance   size in pixels of degradation.
-      @param[in] intensity  intensity in [0; 1]. The higher, the darker the shadow.
-      @param[in] angle angle in degrees in [0; 90]. The higher, the darker the shadow.
-
-      @return modified image.
+      @param img  image to degrade.
+      @param border  border on which the shadow is added.
+      @param distance  width of the shadow, in pixels.
+      @param intensity  intensity, in [0; 1]. The higher, the darker the
+      shadow.
+      @param angle  angle in degrees, in [0; 90]. The higher, the darker the
+      shadow.
+      @return the image with the shadow, of the type and size of @a img.
     */
     extern FRAMEWORK_EXPORT cv::Mat shadowBinding(const cv::Mat &img,
 						  Border border,
@@ -39,23 +43,26 @@ namespace dc {
 						  float intensity,
 						  float angle);
 
-    /*
-      Add a shadow on a given border of image.
+    /**
+      Add a shadow along a border of an image, of a width relative to the
+      image: @a distanceRatio times its width for the left and right
+      borders, times its height for the top and bottom borders.
 
-      Shadow width is computed as @a distanceRatio * image width if border is LEFT or RIGHT, @a distanceRatio * image height if border is TOP or BOTTOM. 
+      @a angle is the angle between the page and the spine of the book when
+      the page is scanned.
 
-      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
-      Output image will be of the same type and size than @a img.
+      @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. A
+      std::invalid_argument exception is thrown otherwise.
 
-      @a angle corresponds to the angle between the page and the spine of the book when a page is scanned.
-
-      @prama[in] img  input original image.
-      @param[in] border  border on which the shadow is added.
-      @param[in] distanceRatio  ratio of width or height used to compute size in pixels of degradation, in [0; 1].
-      @param[in] intensity intinsity in [0; 1]. The higher, the darker the shadow.
-      @param[in] angle angle in degrees in [0; 90]. The higher, the darker the shadow.
-
-      @return modified image.
+      @param img  image to degrade.
+      @param distanceRatio  width of the shadow, relative to the width or
+      the height of the image, in [0; 1].
+      @param border  border on which the shadow is added.
+      @param intensity  intensity, in [0; 1]. The higher, the darker the
+      shadow.
+      @param angle  angle in degrees, in [0; 90]. The higher, the darker the
+      shadow.
+      @return the image with the shadow, of the type and size of @a img.
     */
     extern FRAMEWORK_EXPORT cv::Mat shadowBinding2(const cv::Mat &img,
 						   float distanceRatio,

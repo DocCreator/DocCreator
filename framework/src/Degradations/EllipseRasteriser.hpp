@@ -8,35 +8,35 @@
 
 namespace dc {
 
-  /*
+  /**
+    @internal
     The pixels of one segment, from the centre of a noise region to a point
     of its elliptical contour, with what the degradation needs to shade
     them.
   */
   struct NoiseLine
   {
-    //distance from the centre of the region to the contour point
-    float distanceToCentre = 0.f;
-    //gray level of the image at the contour point
-    int borderGrayLevel = 0;
-    std::vector<cv::Point> points;
+    float distanceToCentre = 0.f; ///< distance from the centre of the region to the contour point
+    int borderGrayLevel = 0; ///< gray level of the image at the contour point
+    std::vector<cv::Point> points; ///< the pixels of the segment
   };
 
 
-  /*
+  /**
+    @internal
     Cuts the elliptical noise region of a seed point into the segments that
-    go from its centre to each point of its contour.
+    go from its centre to each point of its contour, for the character
+    degradation.
 
-    Extracted from GrayscaleCharsDegradationModel, which held the scratch
-    buffer below among its twenty-five members. It reads the image and
-    writes nothing but that buffer, so one instance may be reused for a
-    whole image but not shared between threads.
+    It reads the image and writes nothing but a scratch buffer of its own,
+    so one instance may be reused for a whole image but not shared between
+    threads.
   */
   class EllipseRasteriser
   {
   public:
 
-    /*
+    /**
       Fill the first elements of @a lines with one NoiseLine per point of the
       contour of the ellipse of centre @a centre, of semi axes @a
       semiMinorAxis and @a semiMajorAxis, rotated by @a theta degrees, and

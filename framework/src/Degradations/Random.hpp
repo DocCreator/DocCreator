@@ -11,7 +11,7 @@
 
 namespace dc {
 
-  /*
+  /**
     Random number generator used by the degradations.
 
     cv::RNG is used, and not a standard engine, because it can fill a whole
@@ -22,8 +22,9 @@ namespace dc {
   */
   using RandomEngine = cv::RNG;
 
-  /*
-    @return a generator seeded with @a seed, or seeded non deterministically
+  /**
+    @param seed  seed of the generator.
+    @return a generator seeded with @a seed, or seeded non-deterministically
     when @a seed is not provided.
 
     Two generators built with the same seed give the same sequence: pass a
@@ -33,25 +34,30 @@ namespace dc {
   RandomEngine
   makeRandomEngine(std::optional<uint32_t> seed = std::nullopt);
 
-  /*
+  /**
     Adapts a RandomEngine to the UniformRandomBitGenerator concept, so that it
-    can be used with the standard library algorithms (std::shuffle and co).
+    can be used with the algorithms of the standard library (std::shuffle()
+    and others).
   */
   class RandomBitGenerator
   {
   public:
-    using result_type = unsigned;
+    using result_type = unsigned; ///< type of the values generated
 
+    /** @param engine  generator to draw from. It must outlive this object. */
     explicit RandomBitGenerator(RandomEngine &engine)
       : m_engine(engine)
     {}
 
+    /** @return the smallest value generated: 0. */
     static constexpr result_type min() { return 0; }
+    /** @return the largest value generated. */
     static constexpr result_type max()
     {
       return std::numeric_limits<result_type>::max();
     }
 
+    /** @return the next value of the engine. */
     result_type operator()() { return m_engine.next(); }
 
   private:

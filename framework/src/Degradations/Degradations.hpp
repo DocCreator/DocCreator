@@ -39,6 +39,22 @@
    call.
 */
 
+/**
+   @namespace dc
+
+   The degradations of DocCreator, one namespace each, and what they share:
+   the random number generators (Random.hpp), the validation of their
+   arguments (Validate.hpp) and the listing of data directories
+   (FileUtils.hpp).
+
+   Unless its documentation says otherwise, a degradation takes an 8 bit
+   image of 1, 3 or 4 channels (CV_8UC1, CV_8UC3 or CV_8UC4), throws
+   std::invalid_argument for any other, leaves its input unchanged, and
+   returns a new image of the same type and size. A degradation that draws
+   random numbers takes an optional seed: two calls with the same seed and
+   the same arguments give the same image.
+*/
+
 #include "BleedThrough.hpp"
 #include "BlurFilter.hpp"
 #include "ColorUtils.hpp"

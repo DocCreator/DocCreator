@@ -7,8 +7,9 @@
 
 namespace dc {
 
-  /*
-    Validation of the image arguments of the exported degradations.
+  /**
+    @file
+    Validation of the arguments of the exported degradations.
 
     The preconditions documented in the headers ("@a img must be of type
     CV_8UC1, CV_8UC3 or CV_8UC4") used to be checked with assert() only.
@@ -23,20 +24,22 @@ namespace dc {
     types have already been checked, assert() remains the right tool.
   */
 
-  /*
+  /**
     Why an image argument was rejected.
   */
   enum class ImgError
   {
-    Ok = 0,
-    Empty,        /** image has no pixel */
-    BadDimensions,/** image is not two-dimensional */
-    BadDepth,     /** image is not 8 bits unsigned */
-    BadChannels   /** image has an unsupported number of channels */
+    Ok = 0,       /**< the image is accepted */
+    Empty,        /**< the image has no pixel */
+    BadDimensions,/**< the image is not two-dimensional */
+    BadDepth,     /**< the image is not of 8 bit unsigned values */
+    BadChannels   /**< the image has an unsupported number of channels */
   };
 
-  /*
-    @return whether @a img is a non empty CV_8UC1, CV_8UC3 or CV_8UC4 image.
+  /**
+    @param img  image to check.
+    @return ImgError::Ok if @a img is a non-empty CV_8UC1, CV_8UC3 or
+    CV_8UC4 image, why it is not otherwise.
   */
   [[nodiscard]] inline ImgError
   check8UC134(const cv::Mat &img) noexcept
@@ -55,8 +58,10 @@ namespace dc {
     return ImgError::Ok;
   }
 
-  /*
-    @return whether @a img is a non empty CV_8UC1 image.
+  /**
+    @param img  image to check.
+    @return ImgError::Ok if @a img is a non-empty CV_8UC1 image, why it is
+    not otherwise.
   */
   [[nodiscard]] inline ImgError
   check8UC1(const cv::Mat &img) noexcept
@@ -72,11 +77,17 @@ namespace dc {
     return ImgError::Ok;
   }
 
-  /*
-    Throws std::invalid_argument describing @a img if @a err is not
-    ImgError::Ok. @a argName and @a funcName are used in the message.
+  /**
+    Throw a std::invalid_argument exception describing @a img if @a err is
+    not ImgError::Ok.
 
-    pybind11 translates std::invalid_argument into a python ValueError.
+    pybind11 translates std::invalid_argument into a Python ValueError.
+
+    @param err  result of a check of @a img.
+    @param img  image checked.
+    @param argName  name of the argument, for the message.
+    @param funcName  name of the function, for the message.
+    @throw std::invalid_argument if @a err is not ImgError::Ok.
   */
   extern FRAMEWORK_EXPORT void
   throwIfInvalid(ImgError err,
@@ -84,8 +95,12 @@ namespace dc {
 		 const char *argName,
 		 const char *funcName);
 
-  /*
-    Checks that @a img is a non empty CV_8UC1, CV_8UC3 or CV_8UC4 image.
+  /**
+    Check that @a img is a non-empty CV_8UC1, CV_8UC3 or CV_8UC4 image.
+
+    @param img  image to check.
+    @param argName  name of the argument, for the message.
+    @param funcName  name of the function, for the message.
 
     @throw std::invalid_argument if it is not.
   */
@@ -95,8 +110,12 @@ namespace dc {
     throwIfInvalid(check8UC134(img), img, argName, funcName);
   }
 
-  /*
-    Checks that @a img is a non empty CV_8UC1 image.
+  /**
+    Check that @a img is a non-empty CV_8UC1 image.
+
+    @param img  image to check.
+    @param argName  name of the argument, for the message.
+    @param funcName  name of the function, for the message.
 
     @throw std::invalid_argument if it is not.
   */
@@ -106,8 +125,12 @@ namespace dc {
     throwIfInvalid(check8UC1(img), img, argName, funcName);
   }
 
-  /*
-    Checks that @a img1 and @a img2 have the same type.
+  /**
+    Check that @a img1 and @a img2 have the same type.
+
+    @param img1, img2  images to check.
+    @param argName1, argName2  names of the arguments, for the message.
+    @param funcName  name of the function, for the message.
 
     @throw std::invalid_argument if they do not.
   */
@@ -118,8 +141,12 @@ namespace dc {
 		  const char *argName2,
 		  const char *funcName);
 
-  /*
-    Checks that @a img1 and @a img2 have the same type and the same size.
+  /**
+    Check that @a img1 and @a img2 have the same type and the same size.
+
+    @param img1, img2  images to check.
+    @param argName1, argName2  names of the arguments, for the message.
+    @param funcName  name of the function, for the message.
 
     @throw std::invalid_argument if they do not.
   */
@@ -130,8 +157,13 @@ namespace dc {
 			 const char *argName2,
 			 const char *funcName);
 
-  /*
-    Checks that @a value is in [@a minValue; @a maxValue].
+  /**
+    Check that @a value is in [@a minValue; @a maxValue].
+
+    @param value  value to check.
+    @param minValue, maxValue  bounds of the range, included.
+    @param argName  name of the argument, for the message.
+    @param funcName  name of the function, for the message.
 
     @throw std::invalid_argument if it is not.
   */
@@ -142,9 +174,13 @@ namespace dc {
 		 const char *argName,
 		 const char *funcName);
 
-  /*
-    Checks an arbitrary precondition on the arguments. @a what describes what
-    is expected, for example "kernelSize must be positive and odd".
+  /**
+    Check an arbitrary precondition on the arguments.
+
+    @param condition  the precondition.
+    @param what  what is expected, for example "kernelSize must be positive
+    and odd", for the message.
+    @param funcName  name of the function, for the message.
 
     @throw std::invalid_argument if @a condition is false.
   */

@@ -128,9 +128,6 @@ namespace dc {
 	: distanceRatio * h;
     }
 
-    /**
-       @param[in, out] matOut.
-    */
     cv::Mat
     shadowBinding2(const cv::Mat &img,
 		   float distanceRatio,

@@ -14,37 +14,52 @@
 
 namespace dc {
 
+  /**
+     Character degradation: the ink of the characters degraded around
+     seed points chosen near their contours, as described in:
+
+     Kieu, Van Cuong; Journet, Nicholas; Visani, Muriel; Mullot, Rémy;
+     Domenger, Jean-Philippe. An Efficient Parametrization of Character
+     Degradation Model for Semi-synthetic Image Generation. In: 2nd
+     International Workshop on Historical Document Imaging and Processing,
+     2013.
+  */
   namespace GrayscaleCharsDegradation {
 
   /**
-     Implements ink degradation model detailled in [1]
+     Degrade the characters of an image.
 
-     [1]
-     An Efficient Parametrization of Character Degradation Model for Semi-synthetic Image Generation
-     KIEU, Van Cuaong, JOURNET, Nicholas, VISANI, Muriel, MULLOT, Rémy, DOMENGER, Jean-Philippe
-     In : 2nd International Workshop on Historical Document Imaging and Processing. 2013.
+     The model is a local noise model for gray images. It degrades the image
+     in the neighborhoods of seed points chosen close to the contours of
+     the characters: each seed point is the center of a noise region, whose
+     pixel values are changed with a Gaussian random distribution. Where
+     the Kanungo model simulates the artifacts of scanning, this one
+     simulates the degradations due to the age of the document and to the
+     printing or writing process: ink splotches, white specks, streaks.
 
+     There are three kinds of degradation spots: independent spots,
+     overlapping spots and disconnection spots. The ratio of disconnection
+     spots is 1 - @a indepentSpotsRatio - @a overlappingSpotsRatio.
 
-     We propose a local noise model for GRAYSCALE images. Its main principle is to locally degrade
-     the image in the neighbourhoods of “seed-points” selected close to the character boundary.
-     These points define the center of “noise regions”. The pixel values inside the noise region
-     are modified by a Gaussian random distribution to make the final result more realistic.
-     While Kanungo noise models scanning artifacts, our model simulates degradations due to the age
-     of the document itself and printing/writing process such as ink splotches, white specks or
-     streaks.
+     The model works on gray levels: a color image is converted to gray,
+     and comes back gray, in its type. The alpha channel of a 4 channel
+     image is kept.
 
-     There are 3 kinds of degradation spots: independent spots, overlapping spots and disconnection
-     spots.
-     Ratio of disconnection spots will be determined as (1.0 - @a indepentSpotsRatio - @a overlappingSpotsRatio).
+     @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4, the two ratios in
+     [0; 1], and their sum at most 1. A std::invalid_argument exception is
+     thrown otherwise.
 
-     @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An std::invalid_argument exception is thrown otherwise.
-     Output image will be of the same type.
-
-     @param level scale factor, in [0; 10]. The number of degradation spots will be determined according to the number of connected components in image and multiplied by this scale factor. The higher the level, the higher the number of degradation spots.
-     @param indepentSpotsRatio ratio of independent spots, in [0.0; 1.0]
-     @param overlappingSpotsRatio ratio of overlapping spots, in [0.0; 1.0]
-      @param seed  seed of the random generator. If not provided, a non reproducible seed is used. Two calls with the same seed and the same parameters give the same result.
-
+     @param img  image to degrade.
+     @param level  scale factor, typically in [0; 10]. The number of
+     degradation spots is proportional to the number of connected
+     components of the image and to @a level: the higher the level, the
+     more spots. 0 gives none.
+     @param indepentSpotsRatio  ratio of independent spots, in [0; 1].
+     @param overlappingSpotsRatio  ratio of overlapping spots, in [0; 1].
+     @param seed  seed of the random generator. If not provided, a
+     non-reproducible seed is used. Two calls with the same seed and the
+     same arguments give the same result.
+     @return the degraded image, of the type and size of @a img.
   */
     extern FRAMEWORK_EXPORT cv::Mat degradation(const cv::Mat &img, int level = 1,
 						float indepentSpotsRatio = 0.33f,
@@ -55,12 +70,12 @@ namespace dc {
        One image, prepared once, degraded as many times as wanted.
 
        Most of the work of degradation() does not depend on the level, the
-       ratios or the seed: the conversion to gray, the binarisation, the
+       ratios or the seed: the conversion to gray, the binarization, the
        connected components and the distance of every candidate pixel to
-       the nearest contour are a function of the image alone. On a
-       4721x6564 page that is 503 ms of the 676 one degradation takes, and
-       a caller that wants N degradations of the same image -- which is
-       what generating a corpus is -- pays it N times.
+       the nearest contour are a function of the image alone, and they are
+       most of the time one degradation takes. A caller that wants N
+       degradations of the same image -- which is what generating a corpus
+       is -- pays it N times.
 
        Preparing the image once and drawing from it N times costs that
        once:
@@ -77,16 +92,22 @@ namespace dc {
        depend on each other, and the i-th does not depend on how many came
        before it.
 
-       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. An
+       @a img must be of type CV_8UC1, CV_8UC3 or CV_8UC4. A
        std::invalid_argument exception is thrown otherwise.
 
-       Not thread-safe: one instance is used by one thread at a time, and
-       holds the whole state of the preparation. Several instances on
-       several threads are fine, as everything else in this library.
+       Not thread-safe: an instance holds the whole state of the
+       preparation, and is to be used by one thread at a time. Several
+       instances on several threads are fine, as is everything else in this
+       library.
     */
     class FRAMEWORK_EXPORT PreparedImage
     {
     public:
+      /**
+	 Prepare @a img.
+
+	 @param img  image to degrade, of type CV_8UC1, CV_8UC3 or CV_8UC4.
+      */
       explicit PreparedImage(const cv::Mat &img);
       ~PreparedImage();
 
@@ -94,7 +115,18 @@ namespace dc {
       PreparedImage &operator=(const PreparedImage &) = delete;
 
       /**
-	 @see degradation(), whose arguments and guarantees these are.
+	 Degrade the prepared image.
+
+	 The result and the exceptions are those of the free function
+	 GrayscaleCharsDegradation::degradation() for the same arguments.
+
+	 @param level  scale factor of the number of degradation spots.
+	 @param indepentSpotsRatio  ratio of independent spots, in [0; 1].
+	 @param overlappingSpotsRatio  ratio of overlapping spots, in [0; 1].
+	 @param seed  seed of the random generator. If not provided, a
+	 non-reproducible seed is used.
+	 @return the degraded image, of the type and size of the prepared
+	 image.
       */
       cv::Mat degradation(int level = 1,
 			  float indepentSpotsRatio = 0.33f,

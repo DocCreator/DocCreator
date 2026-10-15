@@ -192,12 +192,12 @@ namespace dc {
 
   //#include <iostream>//DEBUG
 
-  /**
-   * \mainpage
-   We propose a local noise model for grayscale document images.
+  /*
+   The model, as its authors describe it: a local noise model for
+   grayscale document images.
    The main principle of our model is to locally degrade the image in the
    neighborhoods of “seed-points”, randomly selected. These points define the centers of
-   ellipse-shape “noise regions” where the axis of the ellipse are measured by local gradient value.
+   ellipse-shaped “noise regions” where the axes of the ellipse are measured by local gradient value.
    A degradation level of each pixel in the noise region is set by a Gaussian random distribution,
    based on its distance towards the center of its noise region. Our model can
    simulate common defects, seen in old documents e.g. splotches, specks and streaks.
