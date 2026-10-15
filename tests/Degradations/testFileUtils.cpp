@@ -131,3 +131,27 @@ TEST_CASE("listImageFiles() on a directory that does not exist")
 {
   REQUIRE( dc::listImageFiles("/nonexistent_directory_for_the_tests").empty() );
 }
+
+
+TEST_CASE("makePath()")
+{
+  //joined with the separator of the system, which on Windows is "\\"
+#ifdef _WIN32
+  const std::string sep = "\\";
+#else
+  const std::string sep = "/";
+#endif
+  REQUIRE( dc::makePath("dir", "file.png") == "dir" + sep + "file.png" );
+  REQUIRE( dc::makePath("a" + sep + "b", "c") == "a" + sep + "b" + sep + "c" );
+  //no second separator after a directory that ends with one
+  REQUIRE( dc::makePath("dir" + sep, "file.png") == "dir" + sep + "file.png" );
+  //an empty directory is the current one: the file name alone, not a path
+  // from the root
+  REQUIRE( dc::makePath("", "file.png") == "file.png" );
+}
+
+TEST_CASE("listing a directory that does not exist gives nothing")
+{
+  REQUIRE( dc::listDirectory("no_such_directory_of_testFileUtils").empty() );
+  REQUIRE( dc::listImageFiles("no_such_directory_of_testFileUtils").empty() );
+}

@@ -12,7 +12,7 @@ namespace dc {
     List the entries of a directory, not recursively: files and
     subdirectories, but not "." and "..".
 
-    If the directory cannot be opened, an error is printed on the standard
+    If the directory cannot be read, an error is printed on the standard
     error and the list is empty.
 
     @param dirname  directory to list.
@@ -30,7 +30,7 @@ namespace dc {
     meant for cv::imread(), and there is no reason to give every file of a
     user-provided directory to the image decoders.
 
-    If the directory cannot be opened, an error is printed on the standard
+    If the directory cannot be read, an error is printed on the standard
     error and the list is empty.
 
     @param dirname  directory to list.
@@ -51,8 +51,10 @@ namespace dc {
   /**
     @param dirname  directory.
     @param filename  name of a file in @a dirname.
-    @return the path of @a filename in @a dirname: @a dirname + "/" +
-    @a filename, with "\\" instead of "/" on Windows.
+    @return the path of @a filename in @a dirname, joined with the
+    separator of the system ("/", or "\\" on Windows) unless @a dirname
+    already ends with one: std::filesystem::path(@a dirname) / @a filename.
+    An empty @a dirname gives @a filename.
   */
   extern FRAMEWORK_EXPORT std::string
   makePath(const std::string &dirname, const std::string &filename);
