@@ -64,7 +64,10 @@ SET(BUILD_SHARED_LIBS_SAVE ${BUILD_SHARED_LIBS})
 SET(CMAKE_CXX_FLAGS_SAVE "${CMAKE_CXX_FLAGS}")
 SET(BUILD_SHARED_LIBS OFF CACHE BOOL "build shared libs?" FORCE)
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC")
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lzham_codec)
+#EXCLUDE_FROM_ALL: lzham is built for the targets that need it, and its
+#install rules -- its libraries, and its headers, among which a zlib.h, into
+#include/ -- are not run by "make install".
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lzham_codec EXCLUDE_FROM_ALL)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVE}")
 SET(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVE} CACHE BOOL "build shared libs?" FORCE)
 FIND_PATH(LZHAM_INCLUDE_DIR lzham.h ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lzham_codec/include NO_CMAKE_PATH NO_CMAKE_SYSTEM_PATH)
@@ -108,7 +111,8 @@ IF(BUILD_WITH_OSMESA)
 
   SET(GLFW_DIR ${GLFW_SRC_DIR})
 
-  ADD_SUBDIRECTORY(${GLFW_DIR})
+  #EXCLUDE_FROM_ALL: built for the renderer, not installed (cf. lzham above)
+  ADD_SUBDIRECTORY(${GLFW_DIR} EXCLUDE_FROM_ALL)
 
   SET(GLAD_GL_SRCS "${GLFW_DIR}/deps/glad/gl.h"
             "${GLFW_DIR}/deps/glad_gl.c")
