@@ -1001,9 +1001,9 @@ namespace std {
 
 template<>
 struct hash<Edge>
-#if __cplusplus <= 199711L
-  : public std::unary_function<Edge, std::size_t>
-#endif
+//no std::unary_function base: it was removed in C++17 (and from the VS 2026
+//standard library), and std::hash specialisations never needed it. The old
+//__cplusplus guard did not work with MSVC, which reports 199711L by default.
 {
   std::size_t operator()(Edge e) const
   {
