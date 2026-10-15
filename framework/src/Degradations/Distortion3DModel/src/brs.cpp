@@ -1,8 +1,10 @@
 #include "brs.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstring> //memcpy
 #include <fstream>
+#include <new> //bad_alloc
 #include <iostream> //DEBUG
 #include <vector>
 
@@ -58,21 +60,24 @@ readHeader(std::ifstream &in, BRSType &type)
 {
   uint32_t t;
   in.read((char *)&t, sizeof(t));
-  if (in.bad()) {
+  if (!in) { //B: in.bad() is not set by a short read
     return false;
   }
 
   if ((t & HEADER_MASK) != HEADER) {
     return false;
   }
-  type = static_cast<BRSType>(t & TYPE_MASK);
 
-  if (type != VERTICES
-      && type != (VERTICES | TEXCOORDS)
-      && type != (VERTICES | NORMALS)
-      && type != (VERTICES | TEXCOORDS | NORMALS)) {
+  //B: checked as an integer before the cast: casting a value that is not
+  // one of BRSType's to it is undefined
+  const uint32_t typeValue = (t & TYPE_MASK);
+  if (typeValue != VERTICES
+      && typeValue != (VERTICES | TEXCOORDS)
+      && typeValue != (VERTICES | NORMALS)
+      && typeValue != (VERTICES | TEXCOORDS | NORMALS)) {
     return false;
   }
+  type = static_cast<BRSType>(typeValue);
 
   return true;
 }
@@ -200,6 +205,24 @@ writeLZHAM(std::ostream &out, const char *data, size_t szb)
 }
 
 /*
+  @return the number of bytes left to read in @a in, or 0 if it cannot
+  tell. A size read from a file cannot be larger than that.
+*/
+static uint64_t
+bytesLeft(std::istream &in)
+{
+  const std::streampos current = in.tellg();
+  if (!in || current < 0)
+    return 0;
+  in.seekg(0, std::ios::end);
+  const std::streampos end = in.tellg();
+  in.seekg(current);
+  if (!in || end < current)
+    return 0;
+  return static_cast<uint64_t>(end - current);
+}
+
+/*
   Read buffer @a data of size @a szb from input stream @a in compressed with LZHAM.
 
   @param[in] szb  size in Bytes to read
@@ -209,14 +232,16 @@ bool
 readLZHAM(std::istream &in, char *data, size_t szb)
 {
 
+  //B: the reads are checked with !in: in.bad() is not set by a short
+  // read, which left the values read uninitialised
   lzham_uint32 dict_size_log2 = 0;
   in.read((char *)&dict_size_log2, sizeof(dict_size_log2));
-  if (in.bad())
+  if (!in)
     return false;
 
   lzham_uint32 table_update_rate = 0;
   in.read((char *)&table_update_rate, sizeof(table_update_rate));
-  if (in.bad())
+  if (!in)
     return false;
 
   lzham_decompress_params params;
@@ -243,9 +268,14 @@ readLZHAM(std::istream &in, char *data, size_t szb)
       return false;
     }
 
-    size_t comp_size;
+    size_t comp_size = 0;
     in.read((char *)&comp_size, sizeof(comp_size));
     //std::cerr<<"readC "<<comp_size<<"\n";
+    //B: and checked against the file before it is allocated
+    if (!in || comp_size == 0 || comp_size > bytesLeft(in)) {
+      free(src);
+      return false;
+    }
 
     if (srcSize < comp_size) {
       free(src);
@@ -257,8 +287,9 @@ readLZHAM(std::istream &in, char *data, size_t szb)
     }
 
     in.read((char *)src, comp_size);
-    if (in.bad()) {
+    if (!in) {
       std::cerr << "LZHAM: failed to read compressed data\n";
+      free(src);
       return false;
     }
 
@@ -314,8 +345,12 @@ readLZHAM(std::istream &in, char *data, size_t szb)
       return false;
     }
 
+    //B: a chunk that decompresses to nothing would loop for ever
+    if (uncomp_size == 0 || uncomp_size > toReadSize) {
+      free(src);
+      return false;
+    }
     shift += uncomp_size;
-    assert(uncomp_size <= toReadSize);
     toReadSize -= uncomp_size;
   }
 
@@ -384,7 +419,8 @@ readBRS(const std::string &filename, Mesh &mesh)
 #ifndef NDEBUG
       {
         std::cerr << "READ mesh.triangles: ";
-        for (size_t i = 0; i < 21; ++i)
+        //B: was 21 indices whatever the mesh holds
+        for (size_t i = 0; i < std::min<size_t>(21, mesh.triangles.size()); ++i)
           std::cerr << mesh.triangles[i] << " ";
         std::cerr << "\n";
       }
@@ -449,205 +485,254 @@ readBRS(const std::string &filename, Mesh &mesh)
 #else //USE_LZHAM
 
 //use LZHAM compression
-bool
-readBRS(const std::string &filename, Mesh &mesh)
-{
-  std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
-  if (!in) {
-    return false;
+
+/*
+  B: readBRS() trusted every count and size of the file. A crafted or
+  corrupt mesh could:
+   - give an index buffer size near SIZE_MAX, which (size + 7) & ~7
+     wrapped to 0: 8 bytes were allocated and @a size copied into them;
+   - give an index buffer, a vertex count or a triangle count that do not
+     match the decompressed data, which was then read past its end by the
+     memcpy() of the vertices, or by the index decompressor, whose bit
+     reader did no bounds checking;
+   - decode triangle indices past the vertices, for whoever draws the mesh;
+   - be truncated: the reads were checked with in.bad(), which a short
+     read does not set (it sets failbit and eofbit).
+  The decompressed buffer was also never freed.
+
+  Every size is now checked against the layout writeBRS() produces --
+  [size_t: index data size][index data][vertices][texcoords][normals] --
+  before it is used, the bit reader cannot read past its buffer and says
+  when the stream asked for more than it holds, every index is checked,
+  every read is checked with !in, and the buffers are vectors. A file
+  that fails any check gives false and an empty @a mesh.
+*/
+namespace {
+
+  template <typename T>
+  bool
+  readValue(std::istream &in, T &value)
+  {
+    in.read(reinterpret_cast<char *>(&value), sizeof(value));
+    return static_cast<bool>(in);
   }
+
+} //anonymous namespace
+
+static bool
+readBRSAux(std::ifstream &in, Mesh &mesh)
+{
   BRSType type;
-  bool readHeaderOk = readHeader(in, type);
-  if (!readHeaderOk)
+  if (!readHeader(in, type))
     return false;
 
   uint32_t numVertices = 0;
-  in.read((char *)&numVertices, sizeof(numVertices));
-  if (in.bad())
-    return false;
   uint32_t numTris = 0;
-  in.read((char *)&numTris, sizeof(numTris));
-  if (in.bad())
+  if (!readValue(in, numVertices) || !readValue(in, numTris))
     return false;
   if (numVertices == 0 || numTris == 0)
     return false;
 
   size_t totalSize = 0;
-  in.read((char *)&totalSize, sizeof(totalSize));
-  if (in.bad())
+  if (!readValue(in, totalSize))
     return false;
+
+  //what the counts imply, in 64 bits: none of this can overflow
+  const uint64_t sv3 = uint64_t(numVertices) * 3 * sizeof(float);
+  const uint64_t sv2 = uint64_t(numVertices) * 2 * sizeof(float);
+  const uint64_t verticesSize =
+    sv3 + ((type & TEXCOORDS) ? sv2 : 0) + ((type & NORMALS) ? sv3 : 0);
+  //a compressed index or triangle is a code of a few bits and at most a
+  // 5 byte variable length int per index: 32 bytes a triangle is a wide
+  // upper bound. It only keeps the allocation below in proportion to the
+  // counts; decodeBRSData() checks the layout exactly.
+  const uint64_t maxIndicesSize = uint64_t(numTris) * 32 + 64;
+  if (totalSize < sizeof(size_t) + verticesSize
+      || totalSize > sizeof(size_t) + maxIndicesSize + verticesSize)
+    return false;
+
+  //The counts can be 2^32-1 each, so the bound above still allows a
+  // terabyte. The data is compressed in what is left of the file, and
+  // compression does not multiply data without bound: the meshes of
+  // data/Mesh expand 2 to 12 times. 1024 times is far above that, and caps
+  // what a small file can make this allocate.
+  const uint64_t MAX_EXPANSION = 1024;
+  if (totalSize > bytesLeft(in) * MAX_EXPANSION)
+    return false;
+
+  std::vector<unsigned char> buffer(totalSize);
 
 #ifdef USE_LZHAM_HIGHLEVEL
 
   //Warning: we do not check buffer size ! We consider that we only have one chunk of data
 
   uLong cmp_len = 0;
-  in.read((char *)&cmp_len, sizeof(cmp_len));
-  if (in.bad())
-    return false;
-
   lzham_uint32 dict_size_log2 = 0;
-  in.read((char *)&dict_size_log2, sizeof(dict_size_log2));
-  if (in.bad())
-    return false;
-
   lzham_uint32 table_update_rate = 0;
-  in.read((char *)&table_update_rate, sizeof(table_update_rate));
-  if (in.bad())
+  if (!readValue(in, cmp_len) || !readValue(in, dict_size_log2)
+      || !readValue(in, table_update_rate))
     return false;
 
-#ifndef NDEBUG
-  std::cerr << "totalSize=" << totalSize << "\n";
-  std::cerr << "cmp_len=" << cmp_len << "\n";
-  std::cerr << "dict_size_log2=" << dict_size_log2 << "\n";
-  std::cerr << "table_update_rate=" << table_update_rate << "\n";
-#endif //NDEBUG
-
-  unsigned char *BUFCOMP = (unsigned char *)malloc(cmp_len);
-  if (BUFCOMP == nullptr)
+  std::vector<unsigned char> compressed(cmp_len);
+  in.read(reinterpret_cast<char *>(compressed.data()), cmp_len);
+  if (!in)
     return false;
-
-  in.read((char *)BUFCOMP, cmp_len);
-  if (in.bad()) {
-    free(BUFCOMP);
-    return false;
-  }
-
-  const size_t totalSizeComp = cmp_len;
-
-  unsigned char *BUF = (unsigned char *)malloc(totalSize);
-  if (BUF == nullptr) {
-    free(BUFCOMP);
-    return false;
-  }
 
   uLong uncomp_len = totalSize;
-  const int cmp_status = uncompress(BUF, &uncomp_len, BUFCOMP, cmp_len);
-  if (cmp_status != Z_OK || totalSize != uncomp_len) {
-    free(BUF);
-    free(BUFCOMP);
+  const int cmp_status =
+    uncompress(buffer.data(), &uncomp_len, compressed.data(), cmp_len);
+  if (cmp_status != Z_OK || totalSize != uncomp_len)
     return false;
-  }
 
 #else
   //Use low level functions of LZHAM
   // (it seems we are able to write more compressed data, see writeBRS()).
 
-  unsigned char *BUF = static_cast<unsigned char *>( malloc(totalSize) );
-  if (BUF == nullptr) {
+  if (!readLZHAM(in, reinterpret_cast<char *>(buffer.data()), totalSize))
     return false;
-  }
-
-  const bool readOk = readLZHAM(in, (char *)BUF, totalSize);
-  if (!readOk) {
-    free(BUF);
-    return false;
-  }
-
-  size_t totalSizeComp = 0;
-  unsigned char *BUFCOMP = nullptr;
 
 #endif //USE_LZHAM_HIGHLEVEL
 
-  unsigned char *cBUF = BUF;
+  return decodeBRSData(type, numVertices, numTris, buffer.data(), totalSize, mesh);
+}
+
+#endif //USE_LZHAM
+
+static bool
+decodeBRSDataAux(int type,
+              uint32_t numVertices,
+              uint32_t numTris,
+              const unsigned char *data,
+              size_t totalSize,
+              Mesh &mesh)
+{
+  mesh.clear();
+  if (numVertices == 0 || numTris == 0 || data == nullptr)
+    return false;
+  if (type != VERTICES
+      && type != (VERTICES | TEXCOORDS)
+      && type != (VERTICES | NORMALS)
+      && type != (VERTICES | TEXCOORDS | NORMALS))
+    return false;
+
+  const uint64_t sv3 = uint64_t(numVertices) * 3 * sizeof(float);
+  const uint64_t sv2 = uint64_t(numVertices) * 2 * sizeof(float);
+  const uint64_t verticesSize =
+    sv3 + ((type & TEXCOORDS) ? sv2 : 0) + ((type & NORMALS) ? sv3 : 0);
+
+  const unsigned char *cBUF = data;
 
 #ifndef USE_INDEXBUFFERCOMPRESSION
   {
-    free(BUFCOMP);
+    const uint64_t st3 = uint64_t(numTris) * 3 * sizeof(int32_t);
+    if (totalSize != st3 + verticesSize)
+      return false;
 
     mesh.allocateTriangles(numTris);
-
-    const size_t st3 = numTris * 3 * sizeof(int32_t);
     memcpy(mesh.triangles.data(), cBUF, st3);
     cBUF += st3;
   }
 #else
   {
-    mesh.allocateTriangles(numTris);
+    if (totalSize < sizeof(size_t) + verticesSize)
+      return false;
 
     size_t size = 0;
-    size_t s1 = sizeof(size);
-    memcpy(&size, cBUF, s1);
-    cBUF += s1;
+    memcpy(&size, cBUF, sizeof(size));
+    cBUF += sizeof(size);
 
-    const size_t size8 = (size + 7) & (~7); //must be a multiple of 8 bytes.
+    //the index data is what is left before the vertices
+    if (size != totalSize - sizeof(size_t) - verticesSize)
+      return false;
+    //a triangle takes at least one bit: this caps the allocation below by
+    // the data, rather than by a count a file can set to 2^32-1
+    if (uint64_t(numTris) > uint64_t(size) * 8)
+      return false;
 
-    /*
-      B: ReadBitstream::Read() refills its 64 bit buffer with an
-      unconditional 8 byte read at the cursor, with no bounds check, so the
-      last refill of a stream reads up to 8 bytes past its end. The buffer
-      is padded by that much, and the padding zeroed, so that the over-read
-      stays inside the allocation and reads nothing that matters.
-    */
-    const size_t PADDING = 8;
-    const size_t sizeAllocated = size8 + PADDING;
+    mesh.allocateTriangles(numTris);
 
-    //use BUFCOMP as temporary buffer
-    if (sizeAllocated > totalSizeComp) {
-      free(BUFCOMP);
-      BUFCOMP = static_cast<unsigned char *>( malloc(sizeAllocated) );
-      if (BUFCOMP == nullptr)
-	return false;
-      totalSizeComp = sizeAllocated;
-    }
-
-    assert(BUFCOMP);
-    memcpy(BUFCOMP, cBUF, size);
-    memset(BUFCOMP + size, 0, sizeAllocated - size);
-    cBUF += size;
-
-    ReadBitstream rb(BUFCOMP, size8);
+    //cf readbitstream.h: the reader stops at the end of the index data,
+    // and says if the decoder asked for more
+    ReadBitstream rb(cBUF, size);
     DecompressIndexBuffer(mesh.triangles.data(), mesh.numTriangles(), rb);
-
-    free(BUFCOMP);
-
-#ifndef NDEBUG
-    {
-      std::cerr << "READ mesh.triangles: ";
-      for (size_t i = 0; i < 21; ++i)
-        std::cerr << mesh.triangles[i] << " ";
-      std::cerr << "\n";
-    }
-#endif //NDEBUG
+    if (rb.Overrun())
+      return false;
+    cBUF += size;
   }
 #endif //USE_INDEXBUFFERCOMPRESSION
   assert(mesh.numTriangles() == numTris);
 
-  const size_t sv3 = numVertices * 3 * sizeof(float);
-  const size_t sv2 = numVertices * 2 * sizeof(float);
-
-  assert(type & VERTICES);
-  {
-    mesh.allocateVertices(numVertices);
-
-    memcpy(mesh.vertices.data(), cBUF, sv3);
-    cBUF += sv3;
+  for (const uint32_t index : mesh.triangles) {
+    if (index >= numVertices)
+      return false;
   }
-  assert(mesh.numVertices() == numVertices);
+
+  mesh.allocateVertices(numVertices);
+  memcpy(mesh.vertices.data(), cBUF, sv3);
+  cBUF += sv3;
 
   if ((type & TEXCOORDS) != 0) {
     mesh.allocateTexCoords();
-
     memcpy(mesh.texCoords.data(), cBUF, sv2);
     cBUF += sv2;
-
-    assert(mesh.hasTexCoords());
   }
 
   if ((type & NORMALS) != 0) {
     mesh.allocateNormals();
-
     memcpy(mesh.normals.data(), cBUF, sv3);
     cBUF += sv3;
-
-    assert(mesh.hasNormals());
   }
 
-  assert((size_t)(cBUF - BUF) == totalSize);
-
+  assert(static_cast<size_t>(cBUF - data) == totalSize);
   assert(mesh.isValid());
 
   return true;
+}
+
+bool
+decodeBRSData(int type,
+              uint32_t numVertices,
+              uint32_t numTris,
+              const unsigned char *data,
+              size_t totalSize,
+              Mesh &mesh)
+{
+  bool ok = false;
+  try {
+    ok = decodeBRSDataAux(type, numVertices, numTris, data, totalSize, mesh);
+  }
+  catch (const std::bad_alloc &) {
+    ok = false;
+  }
+  if (!ok)
+    mesh.clear();
+  return ok;
+}
+
+#ifdef USE_LZHAM
+
+bool
+readBRS(const std::string &filename, Mesh &mesh)
+{
+  mesh.clear();
+
+  std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
+  if (!in) {
+    return false;
+  }
+
+  bool ok = false;
+  try {
+    ok = readBRSAux(in, mesh);
+  }
+  catch (const std::bad_alloc &) {
+    //counts that are consistent, but too large for this machine
+    ok = false;
+  }
+  if (!ok) {
+    mesh.clear();
+  }
+  return ok;
 }
 
 #endif //USE_LZHAM
@@ -719,7 +804,8 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 #ifndef NDEBUG
       {
         std::cerr << "SAVE mesh.triangles: ";
-        for (size_t i = 0; i < 21; ++i)
+        //B: was 21 indices whatever the mesh holds
+        for (size_t i = 0; i < std::min<size_t>(21, mesh.triangles.size()); ++i)
           std::cerr << mesh.triangles[i] << " ";
         std::cerr << "\n";
       }
@@ -1002,7 +1088,8 @@ writeBRS(const std::string &filename, const Mesh &mesh)
 #ifndef NDEBUG
       {
         std::cerr << "SAVE mesh.triangles: ";
-        for (size_t i = 0; i < 21; ++i)
+        //B: was 21 indices whatever the mesh holds
+        for (size_t i = 0; i < std::min<size_t>(21, mesh.triangles.size()); ++i)
           std::cerr << mesh.triangles[i] << " ";
         std::cerr << "\n";
       }

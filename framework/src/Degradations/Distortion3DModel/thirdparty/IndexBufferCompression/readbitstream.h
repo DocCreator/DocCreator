@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _MSC_VER
 
@@ -63,12 +64,25 @@ struct PrefixCodeTableEntry
     uint8_t codeLength;
 };
 
-// Very simple reader bitstream, note it does not do any overflow checking, etc.
+/*
+  Simple reader bitstream.
+
+  DocCreator: the original did no overflow checking: it refilled its bit
+  buffer with 8 (or 4) byte reads at a cursor it never compared with the
+  end of the buffer, so a stream asking for more bits than it holds -- a
+  corrupt or crafted file -- read past the buffer for as long as the
+  decoder kept asking. The bytes past the end now read as zeros, the
+  position is an offset rather than a pointer, so that no pointer past the
+  buffer is ever formed, and Overrun() tells whether more bits were
+  consumed than the buffer holds. ReadVInt() also stops after the five
+  bytes a 32 bit value takes, instead of shifting by 35 bits and more.
+  Reading a valid stream gives the same values as before.
+*/
 class ReadBitstream
 {
 public:
 
-    // Construct the bitstream with a fixed byte buffer (which should be padded out to multiples of 8 bytes, as we read in 8 byte chunks).
+    // Construct the bitstream with a fixed byte buffer.
     ReadBitstream( const uint8_t* buffer, size_t bufferSize );
 
     ~ReadBitstream() {}
@@ -87,12 +101,19 @@ public:
     // Also note, this uses 4 byte reads/only partially refills the bit-buffer.
     uint32_t Decode( const PrefixCodeTableEntry* table, const uint32_t maximumCodeLength );
 
+    // true if more bits have been read than the buffer holds
+    bool Overrun() const { return m_offset * 8 - m_bitsLeft > m_bufferSize * 8; }
+
 private:
+
+    // @return the @a count bytes (at most 8) at the current offset, little
+    // endian, those past the end of the buffer as zeros; and advance.
+    uint64_t Fetch( uint32_t count );
 
     uint64_t m_bitBuffer;
 
     const uint8_t* m_buffer;
-    const uint8_t* m_cursor;
+    size_t m_offset;
 
     size_t m_bufferSize;
     uint32_t m_bitsLeft;
@@ -100,30 +121,48 @@ private:
 };
 
 
+RBS_INLINE uint64_t ReadBitstream::Fetch( uint32_t count )
+{
+    uint64_t value = 0;
+
+    if ( m_offset <= m_bufferSize && count <= m_bufferSize - m_offset )
+    {
+#if defined( RBS_LITTLE_ENDIAN_UNALIGNED )
+        memcpy( &value, m_buffer + m_offset, count );
+#else
+        for ( uint32_t i = 0; i < count; ++i )
+        {
+            value |= static_cast< uint64_t >( m_buffer[ m_offset + i ] ) << ( 8 * i );
+        }
+#endif
+    }
+    else
+    {
+        for ( uint32_t i = 0; i < count; ++i )
+        {
+            const size_t index = m_offset + i;
+            if ( index < m_bufferSize )
+            {
+                value |= static_cast< uint64_t >( m_buffer[ index ] ) << ( 8 * i );
+            }
+        }
+    }
+
+    m_offset += count;
+
+    return value;
+}
+
+
 RBS_INLINE uint32_t ReadBitstream::Decode( const PrefixCodeTableEntry* table, uint32_t maximumCodeSize )
 {
     if ( m_bitsLeft < maximumCodeSize )
     {
-#if defined( RBS_LITTLE_ENDIAN_UNALIGNED )
-
-        // We're on x86/x64, so we're little endian and can do an un-aligned read.
-        uint64_t intermediateBitBuffer = *(const uint32_t*)m_cursor;
-
-#else
-
-        // other processor architecture, unknown endian/unaligned read support
-        uint64_t intermediateBitBuffer = m_cursor[ 0 ];
-
-        intermediateBitBuffer |= static_cast< uint64_t >( m_cursor[ 1 ] ) << 8;
-        intermediateBitBuffer |= static_cast< uint64_t >( m_cursor[ 2 ] ) << 16;
-        intermediateBitBuffer |= static_cast< uint64_t >( m_cursor[ 3 ] ) << 24;
-
-#endif
+        uint64_t intermediateBitBuffer = Fetch( 4 );
 
         m_bitBuffer           |= intermediateBitBuffer << m_bitsLeft;
 
         m_bitsLeft            += 32;
-        m_cursor              += 4;
     }
 
     // mask should be constant collasped due to maximumCodeSize being fixed and this being inlined.
@@ -140,28 +179,12 @@ RBS_INLINE uint32_t ReadBitstream::Decode( const PrefixCodeTableEntry* table, ui
 
 inline ReadBitstream::ReadBitstream( const uint8_t* buffer, size_t bufferSize )
 {
-    m_cursor     =
     m_buffer     = buffer;
+    m_offset     = 0;
     m_bufferSize = bufferSize;
 
-    if ( bufferSize >= 8 )
-    {
-        m_bitBuffer  = m_cursor[ 0 ];
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 1 ] ) << 8;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 2 ] ) << 16;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 3 ] ) << 24;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 4 ] ) << 32;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 5 ] ) << 40;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 6 ] ) << 48;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 7 ] ) << 56;
-
-        m_cursor  += 8;
-        m_bitsLeft = 64;
-    }
-    else
-    {
-        m_bitsLeft = 0;
-    }
+    m_bitBuffer  = Fetch( 8 );
+    m_bitsLeft   = 64;
 }
 
 
@@ -174,26 +197,7 @@ RBS_INLINE uint32_t ReadBitstream::Read( uint32_t bitCount )
 
     if ( m_bitsLeft < bitCount )
     {
-#if defined( RBS_LITTLE_ENDIAN_UNALIGNED )
-
-        // We're on x86/x64, so we're little endian and can do an un-aligned read.
-        m_bitBuffer = *(const uint64_t*)m_cursor;
-
-#else
-
-        // other processor architecture, unknown endian/unaligned read support
-        m_bitBuffer  = m_cursor[ 0 ];
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 1 ] ) << 8;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 2 ] ) << 16;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 3 ] ) << 24;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 4 ] ) << 32;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 5 ] ) << 40;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 6 ] ) << 48;
-        m_bitBuffer |= static_cast< uint64_t >( m_cursor[ 7 ] ) << 56;
-
-#endif
-
-        m_cursor += 8;
+        m_bitBuffer = Fetch( 8 );
 
         uint32_t leftOverBits = bitCount - m_bitsLeft;
 
@@ -224,7 +228,7 @@ RBS_INLINE uint32_t ReadBitstream::ReadVInt()
         bitsToShift  += 7;
 
     }
-    while ( readByte & 0x80 );
+    while ( ( readByte & 0x80 ) && bitsToShift < 32 );
 
     return result;
 }

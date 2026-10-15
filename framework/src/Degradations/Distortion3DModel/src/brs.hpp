@@ -18,6 +18,8 @@
 
 */
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
 class Mesh;
 
@@ -26,6 +28,28 @@ isBRSFile(const std::string &filename);
 
 bool
 readBRS(const std::string &filename, Mesh &mesh);
+
+/**
+   Decode the decompressed data of a BRS file: what readBRS() does once the
+   file has been read and decompressed. It is separate so that it can be
+   tested with data no compressor would produce.
+
+   @a type is the type of the header (1, 3, 5 or 7), @a data the
+   @a size bytes of decompressed data: the size of the compressed index
+   buffer (a size_t), the compressed index buffer, then the vertices, and
+   the texture coordinates and the normals if @a type has them.
+
+   @return true and @a mesh filled if @a data is consistent with
+   @a numVertices, @a numTriangles and @a type, and every index it decodes
+   is a vertex; false and @a mesh empty otherwise.
+ */
+bool
+decodeBRSData(int type,
+              uint32_t numVertices,
+              uint32_t numTriangles,
+              const unsigned char *data,
+              size_t size,
+              Mesh &mesh);
 
 /**
    @warning it is recommanded to call optimizeTriangleOrdering() on @a mesh before calling this function.
