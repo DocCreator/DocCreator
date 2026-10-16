@@ -293,7 +293,7 @@ IF(BUILD_TESSERACT)
 
 
   #install tessdata
-  install(DIRECTORY ${PROJECT_SOURCE_DIR}/thirdparty/tessdata DESTINATION share/DocCreator)
+  install(DIRECTORY ${TESSDATA_DST} DESTINATION share/DocCreator)
 
   set(Tesseract_TESSDATA_PARENT_DIR "") #empty to be found dynamically
 
