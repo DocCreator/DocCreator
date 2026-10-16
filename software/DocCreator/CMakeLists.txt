@@ -702,25 +702,21 @@ IF(WIN32)
 	"$<TARGET_FILE:${PROGNAME}>" 			
 	)
 
-      MACRO (COPY_DLL libname)
-	ADD_CUSTOM_COMMAND (
-	  TARGET copy_qt_dlls
-	  POST_BUILD
-	  COMMAND ${CMAKE_COMMAND}
-	  #ARGS -E copy "${libname}" "${CMAKE_INSTALL_PREFIX}/programs"
-	  ARGS -E copy $<TARGET_FILE:${libname}> "${CMAKE_INSTALL_PREFIX}/programs"
-	  )
-	ADD_CUSTOM_COMMAND (
-	  TARGET copy_qt_dlls
-	  POST_BUILD
-	  COMMAND  ${CMAKE_COMMAND}
-	  ARGS -E echo $<TARGET_FILE:${libname}>
-	  )
-      ENDMACRO (COPY_DLL)
-
+      #B: the OpenCV DLLs are copied with a single command, each once. With
+      # one copy and one echo per library, the commands of the target were
+      # joined in one cmd.exe line, longer than its 8191 characters with
+      # the libraries of OpenCV (all opencv_world*.dll with a prebuilt
+      # OpenCV): "The input line is too long".
+      set(_opencv_dlls "")
       foreach(LIB ${OpenCV_LIBS})
-	COPY_DLL(${LIB})
+	list(APPEND _opencv_dlls "$<TARGET_FILE:${LIB}>")
       endforeach()
+      ADD_CUSTOM_COMMAND (
+	TARGET copy_qt_dlls
+	POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<REMOVE_DUPLICATES:${_opencv_dlls}>" "${CMAKE_INSTALL_PREFIX}/programs"
+	COMMAND_EXPAND_LISTS
+	)
 
       add_dependencies(copy_qt_dlls ${PROGNAME})
 
