@@ -1964,7 +1964,7 @@ DocCreator::createFontSelector()
   t->addWidget(_fontComboBox);
 
   connect(_fontComboBox,
-          SIGNAL(currentIndexChanged(QString)),
+          SIGNAL(currentTextChanged(QString)),
           this,
           SLOT(changeFont(QString)));
 }
@@ -2030,7 +2030,7 @@ DocCreator::createBackgroundSelector()
   t->addWidget(_backgroundComboBox);
 
   connect(_backgroundComboBox,
-          SIGNAL(currentIndexChanged(QString)),
+          SIGNAL(currentTextChanged(QString)),
           this,
           SLOT(changeBackground(QString)));
 }

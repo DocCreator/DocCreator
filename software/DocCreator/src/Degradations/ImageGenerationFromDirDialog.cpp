@@ -1257,7 +1257,7 @@ ImageGenerationFromDirDialog::createFontSelector()
     Context::FontContext::instance()->getCurrentFont()->getName()));
 
   connect(this->ui->cbFontType,
-          SIGNAL(currentIndexChanged(QString)),
+          SIGNAL(currentTextChanged(QString)),
           this,
           SLOT(changeFont(QString)));
 }
@@ -1289,7 +1289,7 @@ ImageGenerationFromDirDialog::createBackgroundSelector()
     Context::BackgroundContext::instance()->getCurrentBackground()));
 
   connect(this->ui->cbBackground,
-          SIGNAL(currentIndexChanged(QString)),
+          SIGNAL(currentTextChanged(QString)),
           this,
           SLOT(changeBackground(QString)));
 }
