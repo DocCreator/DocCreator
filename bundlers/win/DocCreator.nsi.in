@@ -1,3 +1,5 @@
+ï»¿Unicode true
+
 !define PRODUCT_NAME "DocCreator"
 !define PRODUCT_VERSION "@DocCreatorVersion@"
 !define PRODUCT_PUBLISHER "LaBRI"
@@ -7,6 +9,7 @@
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
 !include "MUI.nsh"
+!include "x64.nsh"
 
 Var StartMenuFolder
 
@@ -20,8 +23,9 @@ Var StartMenuFolder
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
 ;Start Menu Folder Page Configuration
-!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\DocCreator" 
+;HKLM, as the shortcuts are made for all users
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\DocCreator"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "DocCreator-@DocCreatorVersion@"
 
 
@@ -40,14 +44,30 @@ Var StartMenuFolder
 !insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_LANGUAGE "French"
 
+LangString Needs64Bit ${LANG_ENGLISH} "$(^Name) requires a 64-bit version of Windows."
+LangString Needs64Bit ${LANG_FRENCH} "$(^Name) nÃ©cessite une version 64 bits de Windows."
+LangString UninstConfirm ${LANG_ENGLISH} "Are you sure you want to completely remove $(^Name) and all of its components?"
+LangString UninstConfirm ${LANG_FRENCH} "ÃŠtes-vous certain de vouloir dÃ©sinstaller totalement $(^Name) et tous ses composants ?"
+LangString UninstSuccess ${LANG_ENGLISH} "$(^Name) was successfully removed from your computer."
+LangString UninstSuccess ${LANG_FRENCH} "$(^Name) a Ã©tÃ© dÃ©sinstallÃ© avec succÃ¨s de votre ordinateur."
+
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "DocCreator-@DocCreatorVersion@_setup.exe"
-InstallDir "$PROGRAMFILES\DocCreator-@DocCreatorVersion@"
+;DocCreator is a 64-bit program
+InstallDir "$PROGRAMFILES64\DocCreator-@DocCreatorVersion@"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+RequestExecutionLevel admin
 ShowInstDetails show
 ShowUnInstDetails show
 
 Function .onInit
+  ${IfNot} ${RunningX64}
+    MessageBox MB_ICONSTOP|MB_OK "$(Needs64Bit)"
+    Abort
+  ${EndIf}
+  ;the 64-bit registry, and the shortcuts of all users
+  SetRegView 64
+  SetShellVarContext all
   !insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
 
@@ -55,16 +75,13 @@ Section "SectionPrincipale" SEC01
   SetOutPath $INSTDIR
   File /r "@CMAKE_INSTALL_PREFIX@\programs"
   File /r "@CMAKE_INSTALL_PREFIX@\share"
-  
-  CreateShortCut "$SMPROGRAMS\DocCreator\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
+
   CreateShortCut "$DESKTOP\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
 SectionEnd
 
 Section -AdditionalIcons
   SetOutPath $INSTDIR
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
-  CreateShortCut "$SMPROGRAMS\DocCreator\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\DocCreator\Uninstall.lnk" "$INSTDIR\uninst.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
@@ -89,23 +106,19 @@ SectionEnd
 
 Function un.onUninstSuccess
   HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) a été désinstallé avec succès de votre ordinateur."
+  MessageBox MB_ICONINFORMATION|MB_OK "$(UninstSuccess)"
 FunctionEnd
 
 Function un.onInit
-!insertmacro MUI_UNGETLANGUAGE
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Êtes-vous certains de vouloir désinstaller totalement $(^Name) et tous ses composants ?" IDYES +2
+  SetRegView 64
+  SetShellVarContext all
+  !insertmacro MUI_UNGETLANGUAGE
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UninstConfirm)" IDYES +2
   Abort
 FunctionEnd
 
 Section Uninstall
-  Delete "$INSTDIR\${PRODUCT_NAME}.url"
-  Delete "$INSTDIR\uninst.exe"
-  
-  Delete "$SMPROGRAMS\DocCreator\Uninstall.lnk"
-  Delete "$SMPROGRAMS\DocCreator\Website.lnk"
   Delete "$DESKTOP\DocCreator.lnk"
-  Delete "$SMPROGRAMS\DocCreator\DocCreator.lnk"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
@@ -113,10 +126,17 @@ Section Uninstall
   Delete "$SMPROGRAMS\$StartMenuFolder\DocCreator.lnk"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
+  ;only what was installed: $INSTDIR may be a directory chosen by the
+  ;user, with other files, which are kept (and $INSTDIR with them)
+  RMDir /r "$INSTDIR\programs"
+  RMDir /r "$INSTDIR\share"
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
+  Delete "$INSTDIR\uninst.exe"
+  RMDir "$INSTDIR"
 
-  RMDir /r "$SMPROGRAMS\DocCreator-@DocCreatorVersion@"
-  RMDir /r "$INSTDIR"
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+  DeleteRegValue HKLM "Software\DocCreator" "DocCreator-@DocCreatorVersion@"
+  DeleteRegKey /ifempty HKLM "Software\DocCreator"
   SetAutoClose true
 SectionEnd
