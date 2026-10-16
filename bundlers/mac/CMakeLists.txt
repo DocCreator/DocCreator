@@ -1,9 +1,12 @@
 
 IF(APPLE)
-  get_target_property(_qmake_location Qt5::qmake IMPORTED_LOCATION)
-  get_filename_component(_qt_bin_path "${_qmake_location}" DIRECTORY)
+  #Qt5::qmake or Qt6::qmake, according to the Qt found
+  IF(TARGET Qt${QT_VERSION_MAJOR}::qmake)
+    get_target_property(_qmake_location Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_path "${_qmake_location}" DIRECTORY)
+  ENDIF()
   find_program(QT_MACDEPLOYQT_EXECUTABLE macdeployqt
-      HINTS "${_qmake_location}"
+      HINTS "${_qt_bin_path}"
       DOC "Path to the macdeployqt utility."
       )
   if (NOT "${QT_MACDEPLOYQT_EXECUTABLE}" STREQUAL "QT_MACDEPLOYQT_EXECUTABLE-NOTFOUND")
