@@ -81,7 +81,7 @@ do
 
     install_name_tool -id @executable_path/../Frameworks/${blib} ${DST_LIB}
 
-    opencvDepLibs=$(otool -L ${DST_LIB} | grep opencv | cut -d' ' -f 1)
+    opencvDepLibs=$(otool -L ${DST_LIB} | tail -n +2 | grep opencv | cut -d' ' -f 1) #the first line is the file name
     
     for deplib in ${opencvDepLibs}
     do
@@ -97,7 +97,28 @@ done
 
 
 
-@QT_MACDEPLOYQT_EXECUTABLE@ "${DST_DIR}/application/DocCreator.app" 
+@QT_MACDEPLOYQT_EXECUTABLE@ "${DST_DIR}/application/DocCreator.app"
+
+#macdeployqt only reports the libraries it cannot deploy, and the dmg of a
+#broken application would still be made: check that the application
+#depends only on the system and on itself (@rpath is Contents/Frameworks)
+APP_CONTENTS="${DST_DIR}/application/DocCreator.app/Contents"
+missingLibs=$(find "${APP_CONTENTS}" -type f \( -perm -u+x -o -name "*.dylib" \) -exec otool -L {} + 2>/dev/null \
+    | grep -E '^[[:space:]]' | awk '{print $1}' | sort -u \
+    | while read -r dep ; do
+	case "${dep}" in
+	    (/System/*|/usr/lib/*) ;;
+	    (@rpath/*) [ -e "${APP_CONTENTS}/Frameworks/${dep#@rpath/}" ] || echo "${dep}" ;;
+	    (@executable_path/*) [ -e "${APP_CONTENTS}/MacOS/${dep#@executable_path/}" ] || echo "${dep}" ;;
+	    (@loader_path/*) ;;
+	    (*) echo "${dep}" ;;
+	esac
+    done)
+if [ -n "${missingLibs}" ] ; then
+    echo "ERROR: the application depends on libraries that are not in it:"
+    echo "${missingLibs}"
+    exit 11
+fi
 
 mv "${DST_DIR}/application/DocCreator.app" "${DST_DIR}/application/${APP_NAME}-${APP_VERSION}.app"   #B ???
 
