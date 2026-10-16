@@ -16,7 +16,7 @@
 ## Dependencies
 
 The program has the following dependencies :
-* **OpenCV** (3.x or 4.x)  
+* **OpenCV** (3.x, 4.x or 5.x)  
 * **Qt 5 or 6**  
 * **Tesseract** [optional] If Tesseract is not found on the system, it will be compiled from (provided) sources. 
 However, you will need to have network access during the configuration step to download tessdata, tesseract languages data.
@@ -25,7 +25,7 @@ However, you will need to have network access during the configuration step to d
 * **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
 * **git** (1.6.5 or later) [for tesseract download from CMake]
 * ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
-It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.15), Windows 10.
+It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.15, and 27 on Apple silicon), Windows 10.
 
 
 ### Linux
@@ -74,24 +74,51 @@ Binary packages of Ninja are available from https://github.com/ninja-build/ninja
  To add ninja to your path on Windows, you may open a cmd prompt "CMD.exe" with Administrator privileges (right click), and do:  
  `setx -m PATH "%PATH%;<PATH_to_ninja>"`  
 
- For macOS, Ninja binary packages (ninja-mac.zip) are also available from https://github.com/ninja-build/ninja/releases
- You will have to copy the ninja executable to a directory in your path (for example /usr/local/bin)
- On Mac OS 10.15 Catalina, you may also have to specify that ninja is not a malware.
- Run `ninja --version` (you should have a message preventing the execution). Go to "Apple menu" -> "System Preferences", click "Security & Privacy", then click "General". You should see "ninja" : click "open anyway"
- Run `ninja --version` a second time, you should have a dialog where you can choose "open".
+ On macOS, you can install ninja with Homebrew (`brew install ninja`) or with pip (`pip3 install ninja`).
+ The binary package (ninja-mac.zip) is also available from https://github.com/ninja-build/ninja/releases: copy the ninja executable to a directory in your PATH (for example /usr/local/bin).
+ As it is downloaded from a browser, macOS may refuse to run it. You can then remove its quarantine attribute with:  
+ `xattr -d com.apple.quarantine /usr/local/bin/ninja`
 
  For Ubuntu:
  `sudo apt-get install ninja-build`
 
 
-### Mac
+### macOS
 
-On OSX (10.9, 10.10 or 10.11) with [Homebrew](https://brew.sh/), you can install the required dependencies with the following commands:
-`brew install qt5`  
-`brew linkapps qt5`  
-`brew link --force qt5`  
-`brew tap homebrew/science`  
-`brew install opencv`  
+DocCreator builds on Intel and Apple silicon Macs with Apple clang. It is tested on macOS 27 (Apple silicon) with Qt 6.12 and OpenCV 5.0.0, and on macOS 15 by the continuous integration.
+You need the Xcode command line tools (`xcode-select --install`) and CMake (see below).
+
+#### With Homebrew
+
+With [Homebrew](https://brew.sh/), you can install the dependencies with:  
+`brew install cmake ninja qt opencv`  
+and then pass `-DCMAKE_PREFIX_PATH=$(brew --prefix)` to cmake.
+
+This is enough to build DocCreator, run its tests, and run it from its build or installation directory.
+To make an application bundle (see "macOS application bundle" below), use Qt from its installer and OpenCV built from sources instead:
+Homebrew installs each Qt module in its own prefix, which macdeployqt does not handle, and its OpenCV depends on many other libraries.
+
+#### With the Qt installer and OpenCV from sources
+
+Install Qt with the Qt installer (see "Qt" below), for example in `~/Qt/6.12.0/macos`.
+Build OpenCV from sources (see "OpenCV from sources" below). With OpenCV 5, the following command configures a minimal version compatible with DocCreator:
+```
+cmake -S opencv-5.0.0 -B build-opencv -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<OPENCV_PREFIX> -DBUILD_LIST=core,imgproc,imgcodecs,highgui,photo,geometry,videoio -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_opencv_apps=OFF -DBUILD_JAVA=OFF -DWITH_CUDA=OFF -DWITH_FFMPEG=OFF -DWITH_OPENCL=OFF -DWITH_OPENEXR=OFF -DWITH_OPENJPEG=OFF -DWITH_JASPER=OFF -DWITH_WEBP=OFF -DWITH_AVIF=OFF -DWITH_EIGEN=OFF -DWITH_PROTOBUF=OFF -DWITH_VTK=OFF -DPYTHON3_EXECUTABLE="" -DPYTHON2_EXECUTABLE="" -DBUILD_ZLIB=ON -DBUILD_PNG=ON -DBUILD_JPEG=ON -DBUILD_TIFF=ON
+cmake --build build-opencv
+cmake --install build-opencv
+```
+The image formats are built from the sources of OpenCV, so that it does not depend on other libraries.
+Then pass the two directories to cmake when configuring DocCreator:  
+`-DCMAKE_PREFIX_PATH="<OPENCV_PREFIX>;$HOME/Qt/6.12.0/macos"`
+
+#### Python bindings
+
+To build the python bindings (`-DBUILD_PYTHON_WRAPPER=ON`) and run their tests, you need python 3 (from https://www.python.org/downloads/macos/ or Homebrew) with numpy, pytest, build, setuptools and wheel. For example, in a virtual environment:
+```
+python3 -m venv <VENV>
+<VENV>/bin/pip install numpy pytest build setuptools wheel
+```
+and pass `-DPython_EXECUTABLE=<VENV>/bin/python` to cmake.
 
 
 ### Qt
@@ -178,6 +205,17 @@ You can also pass other options to cmake. See below.
 You can then launch the executable:  
 `<MyInstallationPrefix>/bin/DocCreator`  
 
+### macOS application bundle
+
+On macOS, after `make install`, the configuration has written a script that makes an application bundle, DocCreator.app, and a disk image (dmg) with it.
+From the build directory:  
+`mkdir bundle`  
+`cd bundle`  
+`sh ../bundlers/mac/mac_bundle.sh "$PWD"`  
+The application is in `bundle/application`, and the dmg is written in the current directory.
+macdeployqt copies Qt, OpenCV and the libraries they depend on in the application. The script then checks that the application only depends on the system and on itself, and stops otherwise: use Qt from its installer and OpenCV built from sources (see "macOS" above).
+The script asks Finder to lay out the window of the dmg: macOS may ask you to allow your terminal to control Finder.
+
 ### Windows 
 
 On Windows, with Visual Studio:  
@@ -251,44 +289,29 @@ On Fedora (30 and above), you can install OSMesa with the following command as r
 
  ##### On macOS
 
- Only python 2.7 is available on macOS. You can install python 3.5+ (for example 3.8.5) with "macOS 64-bit installer" available from https://www.python.org/downloads/mac-osx/
+ Mesa 25.1 removed OSMesa: use a 24.x release, for example mesa-24.3.4.tar.xz, from https://archive.mesa3d.org/
 
- You should then be able to install meson and mako packages locally with pip3:
-  `pip3 install --user meson`
-  `pip3 install --user mako`
-
- You may have to add python bin path to your PATH:
- `export PATH=/Users/mansencal/Library/Python/3.8/bin:$PATH`
-
- As meson uses ninja, you should also install ninja (see Ninja section).
-
- With these dependencies installed, you should be now able to compile Mesa.
- First, get (latest) mesa archive from https://archive.mesa3d.org/
- For example mesa-20.1.7.tar.xz
+ Install meson, mako and ninja with pip, for example in a virtual environment, and put its bin directory in your PATH:
  ```
-tar xvJf mesa-20.1.7.tar.xz
-cd mesa-20.1.7
-mkdir build
+python3 -m venv <VENV>
+<VENV>/bin/pip install meson mako pyyaml packaging ninja
+export PATH=<VENV>/bin:$PATH
  ```
 
- On macOS 10.15 Catalina, you may first have to edit the meson.build file: remove `'timespec_get', ` from the foreach command (line 1168).
-
- You should be able to configure with meson:
+ Then configure a software renderer (softpipe), without LLVM, and build:
  ```
- meson build -Dosmesa=gallium -Dgallium-drivers=swrast -Ddri-drivers=[] -Dvulkan-drivers=[] -Dprefix=$PWD/build/install -Dplatforms=surfaceless -Dglx=disabled
- ```
- and build with ninja: 
-  ```
-ninja -C build install
+tar xJf mesa-24.3.4.tar.xz
+meson setup build-mesa mesa-24.3.4 --prefix=<MESA_PREFIX> --buildtype=release -Dosmesa=true -Dgallium-drivers=softpipe -Dvulkan-drivers= -Dplatforms= -Dglx=disabled -Degl=disabled -Dgbm=disabled -Dgles1=disabled -Dgles2=disabled -Dllvm=disabled -Dshared-glapi=enabled -Dvalgrind=disabled -Dlibunwind=disabled -Dzstd=disabled -Dexpat=disabled -Dbuild-tests=false
+ninja -C build-mesa install
  ```
 
- When configuring DocCreator, you may have to pass the OSMESA location:
+ When configuring DocCreator, pass the OSMesa location:
  ```
-cmake .. -DBUILD_WITH_OSMESA=ON -DOSMESA_INCLUDE_DIR=<mesa_directory>/build/install/include -DOSMESA_LIBRARY=<mesa_directory>/build/install/lib/libOSMesa.dylib
+cmake .. -DBUILD_WITH_OSMESA=ON -DOSMESA_INCLUDE_DIR=<MESA_PREFIX>/include -DOSMESA_LIBRARY=<MESA_PREFIX>/lib/libOSMesa.dylib
  ```
- Besides, if osmesa library is not installed in a standard path, you may have to add it to DYLD_LIBRARY_PATH:
+ OSMesa is loaded when the program runs, by its name only (libOSMesa.8.dylib). If it is not installed in a standard path, add its directory to DYLD_LIBRARY_PATH, to run the program or the tests:
  ```
- export DYLD_LIBRARY_PATH=<mesa_directory>/build/install/lib:$DYLD_LIBRARY_PATH
+ export DYLD_LIBRARY_PATH=<MESA_PREFIX>/lib:$DYLD_LIBRARY_PATH
  ```
 
 
@@ -342,12 +365,11 @@ The package is not made with `-DBUILD_WITH_OSMESA=ON`: the 3D distortion then ne
 ## Troubleshooting
 
 
-* If you encounter a problem with Qt during the cmake process, ensure that the qmake executable is in your PATH
-  You maye have to do:  
-  `export PATH=/Users/XXX/Qt/5.6/clang_64/bin:$PATH`  
-  or  
-  `export PATH=/usr/local/opt/qt5/bin:$PATH`  
-  before executing `cmake ..`
+* If you encounter a problem with Qt during the cmake process, pass the directory of your Qt installation to cmake.
+  For example, on macOS:  
+  `cmake .. -DCMAKE_PREFIX_PATH=$HOME/Qt/6.12.0/macos`  
+  or, with Homebrew:  
+  `cmake .. -DCMAKE_PREFIX_PATH=$(brew --prefix)`
 
 * If you encounter a problem with OpenCV during the cmake process, you may have to specify the directory containing the file OpenCVConfig.cmake
  For example, on linux and macOS:    
