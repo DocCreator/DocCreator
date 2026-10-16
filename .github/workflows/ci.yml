@@ -201,3 +201,98 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure --parallel 4
+
+  # Apple silicon, with the dependencies of Homebrew. Clang's UBSan checks
+  # more than gcc's (float-cast-overflow, for example), and arm64 contracts
+  # floating point operations in fused multiply-adds by default: both have
+  # caught bugs that the linux jobs did not see.
+  macos:
+    name: ${{ matrix.name }}
+    runs-on: macos-15
+    timeout-minutes: 90
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Everything, with Qt 6, the python bindings and the bundle.
+          # Leptonica and tesseract are built from sources, as they are
+          # not found.
+          - name: macOS, full, AppleClang, Release
+            packages: qt
+            python: true
+            bundle: true
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DBUILD_OTHER_PROGS=ON
+              -DBUILD_PYTHON_WRAPPER=ON
+
+          - name: macOS, degradations, AppleClang, AddressSanitizer + UndefinedBehaviorSanitizer
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              -DBUILD_ONLY_DEGRADATIONS=ON
+              -DSANITIZER=address+undefined
+
+    env:
+      # cf. cmake/sanitizers/README.txt. LeakSanitizer is not supported on
+      # Apple silicon: detect_leaks=1 would stop every test.
+      ASAN_OPTIONS: detect_stack_use_after_return=1
+      UBSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the dependencies
+        run: brew install ninja opencv ${{ matrix.packages }}
+
+      # The python of Homebrew does not let pip install packages
+      - uses: actions/setup-python@v5
+        if: ${{ matrix.python }}
+        with:
+          python-version: '3.13'
+
+      - name: Install the python packages
+        if: ${{ matrix.python }}
+        run: |
+          python -m pip install numpy pytest build setuptools wheel
+          echo "PYTHON_CMAKE=-DPython_EXECUTABLE=$(which python)" >> "$GITHUB_ENV"
+
+      - name: Cache the tesseract models
+        if: ${{ !contains(matrix.cmake, 'BUILD_ONLY_DEGRADATIONS=ON') }}
+        uses: actions/cache@v4
+        with:
+          path: thirdparty/tessdata
+          key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja -DBUILD_TESTING=ON
+          -DCMAKE_PREFIX_PATH="$(brew --prefix)"
+          -DCMAKE_INSTALL_PREFIX="$PWD/install"
+          $PYTHON_CMAKE ${{ matrix.cmake }}
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 4
+
+      # mac_bundle.sh checks that the application only depends on the
+      # system and on itself. make_dmg.sh writes the dmg in the current
+      # directory.
+      - name: Make the application bundle and the dmg
+        if: ${{ matrix.bundle }}
+        run: |
+          cmake --install build
+          mkdir bundle
+          cd bundle
+          sh ../build/bundlers/mac/mac_bundle.sh "$PWD"
+
+      - name: Upload the dmg
+        if: ${{ matrix.bundle }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocCreator-macOS-dmg
+          path: bundle/*.dmg
