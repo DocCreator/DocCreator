@@ -623,18 +623,15 @@ TARGET_LINK_LIBRARIES(${PROGNAME} ${EXTRA_LIBS} ${LIBNAME})
 #SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES INSTALL_RPATH "@loader_path/../lib")
 
 
-#B: is there a better way to find the Qt installation path ?
-get_target_property(QtCore_location Qt${QT_VERSION_MAJOR}::Core LOCATION)
-#get_filename_component(QTCORE_INSTALL_PATH "${QtCore_location}" ABSOLUTE)
-#get_filename_component(QT_INSTALL_PATH "${QTCORE_INSTALL_PATH}/.." ABSOLUTE)
-get_filename_component(QT_INSTALL_PATH "${QtCore_location}/../.." ABSOLUTE)
-#message("QT_INSTALL_PATH=${QT_INSTALL_PATH}")
-
 set(PROG_RPATH "@loader_path/../lib") #B: necessary as we install libs (LipsumQt, framework, doc3D) in ../lib directory [Non-bundle case]
-set(PROG_RPATH "${PROG_RPATH};${QT_INSTALL_PATH}") #B: necessary as Qt libs are marked @rpath in exe
 set(PROG_RPATH "${PROG_RPATH};${LEPTONICA_INSTALL_PATH};${TESSERACT_INSTALL_PATH}") #B: added to be able to launch app without install
 #message("PROG_RPATH=${PROG_RPATH}")
 SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES INSTALL_RPATH "${PROG_RPATH}")
+#Qt and OpenCV libs are marked @rpath in exe: the directories of the
+#linked libraries are added to the install RPATH. (The Qt directory was
+#computed from the location of QtCore, which is two directories deeper in
+#a Qt 6 framework than in a Qt 5 one.)
+SET_TARGET_PROPERTIES(${PROGNAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
 #GET_TARGET_PROPERTY(CURRENT_INSTALL_RPATHS ${PROGNAME} INSTALL_RPATH)
