@@ -2,6 +2,7 @@
 #include "Random.hpp"
 
 #include <cassert>
+#include <algorithm> //max
 #include <cmath> //sqrt
 #include <ctime> //time
 #include <iostream>
@@ -1138,14 +1139,18 @@ namespace dc {
 	m2 += areaAABB * areaAABB;
       }
       assert(m0 > 0);
-      const float inv_m0 = 1.f / m0;
-      const float avg = m1 * inv_m0;
-      const float standard_deviation = std::sqrt((m2 - m1 * m1 * inv_m0) * inv_m0);
+      const double avg = static_cast<double>(m1) / m0;
+      //B: the variance is clamped as rounding can make it slightly negative
+      // when all the areas are equal (in float, and with a fused
+      // multiply-add, as on arm64), which made the deviation NaN and
+      // filtered out every component.
+      const double variance = std::max(0., static_cast<double>(m2) / m0 - avg * avg);
+      const double standard_deviation = std::sqrt(variance);
 
       //Filtering of ccs
       constexpr float factor = 1.f;
-      const float lowTh = avg * 0.6f;
-      const float highTh = avg + (factor * standard_deviation);
+      const double lowTh = avg * 0.6;
+      const double highTh = avg + (factor * standard_deviation);
       CCs filteredCCs;
       filteredCCs.reserve(sz);
       for (size_t i = 0; i < sz; ++i) {
