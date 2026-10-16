@@ -73,7 +73,7 @@ jobs:
       UBSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # git: leptonica and tesseract are cloned when they are built from
       # sources.
@@ -87,7 +87,7 @@ jobs:
       # downloads and checks.
       - name: Cache the tesseract models
         if: ${{ !contains(matrix.cmake, 'BUILD_ONLY_DEGRADATIONS=ON') }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: thirdparty/tessdata
           key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
@@ -112,7 +112,7 @@ jobs:
 
       - name: Upload the coverage report
         if: ${{ matrix.coverage }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: build/coverage/
@@ -155,7 +155,7 @@ jobs:
       - name: Keep the line endings of the repository
         run: git config --global core.autocrlf false
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install OpenCV and ninja
         run: |
@@ -179,7 +179,7 @@ jobs:
 
       - name: Cache the tesseract models
         if: ${{ !contains(matrix.cmake, 'BUILD_ONLY_DEGRADATIONS=ON') }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: thirdparty/tessdata
           key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
@@ -249,7 +249,7 @@ jobs:
       OPENCV_SHA256: b0528f5a1d379d59d4701cb28c36e22214cc51cf64594e5b56f2d3e6c0233095
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install the dependencies
         run: |
@@ -272,7 +272,7 @@ jobs:
       - name: Cache OpenCV
         if: ${{ matrix.opencv_from_sources }}
         id: cache-opencv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/opencv
           key: opencv-${{ env.OPENCV_VERSION }}-${{ runner.os }}-${{ runner.arch }}-1
@@ -304,7 +304,7 @@ jobs:
         run: echo "DEPS_PREFIX_PATH=$HOME/opencv;$QT_ROOT_DIR" >> "$GITHUB_ENV"
 
       # The python of Homebrew does not let pip install packages
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         if: ${{ matrix.python }}
         with:
           python-version: '3.13'
@@ -317,7 +317,7 @@ jobs:
 
       - name: Cache the tesseract models
         if: ${{ !contains(matrix.cmake, 'BUILD_ONLY_DEGRADATIONS=ON') }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: thirdparty/tessdata
           key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
@@ -348,7 +348,7 @@ jobs:
 
       - name: Upload the dmg
         if: ${{ matrix.bundle }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: DocCreator-macOS-dmg
           path: bundle/*.dmg
