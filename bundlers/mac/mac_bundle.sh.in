@@ -8,7 +8,6 @@ APP_INFO=@CMAKE_SOURCE_DIR@/bundlers/mac/Info.plist
 MAKE_DMG_SCRIPT=@CMAKE_SOURCE_DIR@/bundlers/mac/make_dmg.sh
 
 INSTALL_PREFIX_DIR=@CMAKE_INSTALL_PREFIX@
-OPENCV_INSTALL_DIR=@OpenCV_INSTALL_PATH@
 
 DST_DIR=$1
 if [ "${DST_DIR}" = "" ] ; then
@@ -52,51 +51,8 @@ cp ${INSTALL_PREFIX_DIR}/bin/DocCreator "${DST_DIR}/application/DocCreator.app/C
 cp ${APP_INFO} "${DST_DIR}/application/DocCreator.app/Contents/"
 
 
-##Copy OpenCV libs
-NEW_BIN="${DST_DIR}/application/DocCreator.app/Contents/MacOS/DocCreator"
-opencvLibs=$(otool -L ${INSTALL_PREFIX_DIR}/bin/DocCreator | grep opencv | cut -d' ' -f 1)
-for lib in ${opencvLibs} 
-do
-    echo "lib=$lib"
-    
-    #with OpenCV 3.1.0, we have for example: lib/libopencv_imgproc.3.1.dylib
-    #with OpenCV 3.2.0, we have for example: @rpath/libopencv_imgproc.3.2.dylib 
-
-
-    lib=$(echo $lib | sed 's/@rpath/lib/') #replace "@rpath" with "lib" if present
-
-    SRC_LIB="${OPENCV_INSTALL_DIR}/${lib}"
-    blib=$(basename $lib) #change "lib/libopencv_highgui.3.1.dylib" in "libopencv_highgui.3.1.dylib" for example
-    DST_LIB="${DST_DIR}/application/DocCreator.app/Contents/Frameworks/${blib}"
-
-    if [ ! -f ${SRC_LIB} ] ; then
-	echo "ERROR: unable to find OpenCV lib ${SRC_LIB}"
-	exit 10
-    fi
-
-    cp ${SRC_LIB} ${DST_LIB}
-
-
-    install_name_tool -change ${lib} @executable_path/../Frameworks/${blib} ${NEW_BIN}
-
-    install_name_tool -id @executable_path/../Frameworks/${blib} ${DST_LIB}
-
-    opencvDepLibs=$(otool -L ${DST_LIB} | tail -n +2 | grep opencv | cut -d' ' -f 1) #the first line is the file name
-    
-    for deplib in ${opencvDepLibs}
-    do
-	echo "deplib=$deplib"
-
-	bdeplib=$(basename $deplib)
-	
-	install_name_tool -change ${deplib} @executable_path/../Frameworks/${bdeplib} ${DST_LIB}
-    done
-
-
-done
-
-
-
+#macdeployqt copies the libraries the application depends on, Qt, OpenCV
+#and theirs, wherever they are and whatever their install names
 @QT_MACDEPLOYQT_EXECUTABLE@ "${DST_DIR}/application/DocCreator.app"
 
 #macdeployqt only reports the libraries it cannot deploy, and the dmg of a
