@@ -202,10 +202,10 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure --parallel 4
 
-  # Apple silicon, with the dependencies of Homebrew. Clang's UBSan checks
-  # more than gcc's (float-cast-overflow, for example), and arm64 contracts
-  # floating point operations in fused multiply-adds by default: both have
-  # caught bugs that the linux jobs did not see.
+  # Apple silicon. Clang's UBSan checks more than gcc's (float-cast-overflow,
+  # for example), and arm64 contracts floating point operations in fused
+  # multiply-adds by default: both have caught bugs that the linux and
+  # windows jobs did not see.
   macos:
     name: ${{ matrix.name }}
     runs-on: macos-15
@@ -215,11 +215,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Everything, with Qt 6, the python bindings and the bundle.
-          # Leptonica and tesseract are built from sources, as they are
-          # not found.
+          # Everything, with the python bindings and the bundle. Qt comes
+          # from its installer and OpenCV is built from sources: macdeployqt
+          # puts them in the application, which the Qt of Homebrew, split in
+          # several prefixes, and its OpenCV, with its many dependencies, do
+          # not allow. Leptonica and tesseract are built from sources, as
+          # they are not found.
           - name: macOS, full, AppleClang, Release
-            packages: qt
+            qt: true
+            opencv_from_sources: true
             python: true
             bundle: true
             cmake: >-
@@ -228,6 +232,7 @@ jobs:
               -DBUILD_PYTHON_WRAPPER=ON
 
           - name: macOS, degradations, AppleClang, AddressSanitizer + UndefinedBehaviorSanitizer
+            packages: opencv
             cmake: >-
               -DCMAKE_BUILD_TYPE=RelWithDebInfo
               -DBUILD_ONLY_DEGRADATIONS=ON
@@ -240,12 +245,63 @@ jobs:
       UBSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+      OPENCV_VERSION: 5.0.0
+      OPENCV_SHA256: b0528f5a1d379d59d4701cb28c36e22214cc51cf64594e5b56f2d3e6c0233095
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install the dependencies
-        run: brew install ninja opencv ${{ matrix.packages }}
+        run: |
+          brew install ninja ${{ matrix.packages }}
+          echo "DEPS_PREFIX_PATH=$(brew --prefix)" >> "$GITHUB_ENV"
+
+      - name: Install Qt
+        if: ${{ matrix.qt }}
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          host: mac
+          target: desktop
+          arch: clang_64
+          cache: true
+
+      # The modules of OpenCV that DocCreator uses, and the image formats
+      # it builds itself: nothing that the application would have to carry.
+      # The last part of the key changes with the options of the build.
+      - name: Cache OpenCV
+        if: ${{ matrix.opencv_from_sources }}
+        id: cache-opencv
+        uses: actions/cache@v4
+        with:
+          path: ~/opencv
+          key: opencv-${{ env.OPENCV_VERSION }}-${{ runner.os }}-${{ runner.arch }}-1
+
+      - name: Build OpenCV
+        if: ${{ matrix.opencv_from_sources && steps.cache-opencv.outputs.cache-hit != 'true' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/opencv-src"
+          cd "$RUNNER_TEMP/opencv-src"
+          curl -sSL -o opencv.tar.gz "https://github.com/opencv/opencv/archive/refs/tags/$OPENCV_VERSION.tar.gz"
+          echo "$OPENCV_SHA256  opencv.tar.gz" | shasum -a 256 -c -
+          tar xzf opencv.tar.gz
+          cmake -S "opencv-$OPENCV_VERSION" -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/opencv" \
+            -DBUILD_LIST=core,imgproc,imgcodecs,highgui,photo,geometry,videoio \
+            -DENABLE_FAST_MATH=ON -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF \
+            -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_opencv_apps=OFF \
+            -DBUILD_JAVA=OFF -DWITH_CUDA=OFF -DWITH_FFMPEG=OFF \
+            -DWITH_OPENJPEG=OFF -DWITH_JASPER=OFF -DWITH_OPENCL=OFF \
+            -DWITH_OPENEXR=OFF -DWITH_VTK=OFF -DWITH_WEBP=OFF -DWITH_AVIF=OFF \
+            -DWITH_EIGEN=OFF -DWITH_PROTOBUF=OFF \
+            -DPYTHON3_EXECUTABLE="" -DPYTHON2_EXECUTABLE="" \
+            -DBUILD_ZLIB=ON -DBUILD_PNG=ON -DBUILD_JPEG=ON -DBUILD_TIFF=ON
+          cmake --build build --parallel
+          cmake --install build
+
+      - name: Use Qt and OpenCV
+        if: ${{ matrix.opencv_from_sources }}
+        run: echo "DEPS_PREFIX_PATH=$HOME/opencv;$QT_ROOT_DIR" >> "$GITHUB_ENV"
 
       # The python of Homebrew does not let pip install packages
       - uses: actions/setup-python@v5
@@ -269,7 +325,7 @@ jobs:
       - name: Configure
         run: >-
           cmake -S . -B build -G Ninja -DBUILD_TESTING=ON
-          -DCMAKE_PREFIX_PATH="$(brew --prefix)"
+          -DCMAKE_PREFIX_PATH="$DEPS_PREFIX_PATH"
           -DCMAKE_INSTALL_PREFIX="$PWD/install"
           $PYTHON_CMAKE ${{ matrix.cmake }}
 
