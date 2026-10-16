@@ -23,7 +23,7 @@ testSimple0a(int imageType)
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -57,9 +57,9 @@ testSimple0b(int imageType)
   cv::Mat backgroundImg(ROWS*2, COLS/3, CV_8UC3);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
-  cv::randn(backgroundImg, 128, 30);
+  cv::randn(backgroundImg, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -95,9 +95,9 @@ testSimple0b2(int imageType)
   cv::Mat backgroundImg(ROWS*2, COLS/3, CV_8UC3);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
-  cv::randn(backgroundImg, 128, 30);
+  cv::randn(backgroundImg, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -133,7 +133,7 @@ testSimple0b3(int imageType)
   cv::Mat backgroundImg;
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -169,7 +169,7 @@ testSimple0b4(int imageType)
   cv::Mat backgroundImg;
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -201,7 +201,7 @@ testSimple0c(int imageType)
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -236,7 +236,7 @@ testSimple0d(int imageType)
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -266,7 +266,7 @@ testSimple0e(int imageType)
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -295,7 +295,7 @@ testSimple0f(int imageType)
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 

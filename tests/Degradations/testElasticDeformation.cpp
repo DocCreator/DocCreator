@@ -21,7 +21,7 @@ testSimple0(int imageType)
 
   cv::Mat img(ROWS, COLS, imageType);
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );  
 
@@ -55,7 +55,7 @@ testSimple1(int imageType)
 
   cv::Mat img(ROWS, COLS, imageType);
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -91,7 +91,7 @@ testSimple2(int imageType)
 
   cv::Mat img(ROWS, COLS, imageType);
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -141,7 +141,7 @@ testSimple3(int imageType)
 
   cv::Mat img(ROWS, COLS, imageType);
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );
 
@@ -198,7 +198,7 @@ testLargeImage(int imageType)
   const int COLS = 601;
 
   cv::Mat img(ROWS, COLS, imageType);
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
   const cv::Mat imgClone = img.clone();
 
   const float alpha = 20.f;

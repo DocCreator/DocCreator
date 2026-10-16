@@ -27,7 +27,7 @@ testSimple0(int imageType)
   cv::Mat imgRecto(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(imgRecto, 128, 30);
+  cv::randn(imgRecto, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == imgRecto.type() );
 
@@ -66,7 +66,7 @@ testSimple0b(int imageType)
   cv::Mat imgRecto(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(imgRecto, 128, 30);
+  cv::randn(imgRecto, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == imgRecto.type() );
 
@@ -105,7 +105,7 @@ testSimple0c(int imageType)
   cv::Mat imgRecto(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(imgRecto, 128, 30);
+  cv::randn(imgRecto, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == imgRecto.type() );
 
@@ -138,10 +138,10 @@ testSimple1(int imageType)
   //Pixels outside intersection should not be modified.
 
   cv::Mat imgRecto(3, 4, imageType);
-  cv::randn(imgRecto, 128, 30);
+  cv::randn(imgRecto, cv::Scalar::all(128), cv::Scalar::all(30));
 
   cv::Mat imgVerso(4, 5, imageType);
-  cv::randn(imgVerso, 128, 30);
+  cv::randn(imgVerso, cv::Scalar::all(128), cv::Scalar::all(30));
 
   cv::Mat imgRectoClone = imgRecto.clone();
   cv::Mat imgVersoClone = imgVerso.clone();
@@ -178,10 +178,10 @@ testSimple1b(int imageType)
   //Pixels outside intersection should not be modified.
 
   cv::Mat imgRecto(3, 4, imageType);
-  cv::randn(imgRecto, 128, 30);
+  cv::randn(imgRecto, cv::Scalar::all(128), cv::Scalar::all(30));
 
   cv::Mat imgVerso(7, 4, imageType);
-  cv::randn(imgVerso, 128, 30);
+  cv::randn(imgVerso, cv::Scalar::all(128), cv::Scalar::all(30));
 
   cv::Mat imgRectoClone = imgRecto.clone();
   cv::Mat imgVersoClone = imgVerso.clone();
@@ -397,8 +397,8 @@ testIndependentOfNumThreads(int imageType)
 {
   cv::Mat recto(37, 53, imageType);
   cv::Mat verso(41, 47, imageType);
-  cv::randn(recto, 128, 40);
-  cv::randn(verso, 100, 40);
+  cv::randn(recto, cv::Scalar::all(128), cv::Scalar::all(40));
+  cv::randn(verso, cv::Scalar::all(100), cv::Scalar::all(40));
 
   const int nbIters = 7;
   const cv::Point pos(5, -3);

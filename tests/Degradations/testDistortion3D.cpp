@@ -26,7 +26,7 @@ testSimple0(int imageType)
   cv::Mat img(ROWS, COLS, imageType);
 
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   REQUIRE( imageType == img.type() );  
 
@@ -61,11 +61,11 @@ testSimple1(int imageType, int imageBackgroundType, int outputType)
     
   cv::Mat img(ROWS, COLS, imageType);
   //add gaussian noise
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   cv::Mat imgBackground(ROWS+13, COLS+17, imageBackgroundType);
   //add gaussian noise
-  cv::randn(imgBackground, 128, 30);
+  cv::randn(imgBackground, cv::Scalar::all(128), cv::Scalar::all(30));
 
 
   REQUIRE( imageType == img.type() );  
@@ -127,7 +127,7 @@ testReproducible(int imageType)
   const int COLS = 201;
 
   cv::Mat img(ROWS, COLS, imageType);
-  cv::randn(img, 128, 30);
+  cv::randn(img, cv::Scalar::all(128), cv::Scalar::all(30));
 
   const std::string meshFilename = dc::makePath(MESHES_PATH, "PlaneRegular.brs");
   const bool random = true;
