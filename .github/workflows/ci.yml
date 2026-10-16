@@ -146,6 +146,7 @@ jobs:
           # Leptonica and tesseract are built from sources, as on Linux.
           - name: Windows, full, MSVC, Release
             qt: true
+            installer: true
             cmake: >-
               -DBUILD_OTHER_PROGS=ON
 
@@ -193,6 +194,7 @@ jobs:
           -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
           -DOpenCV_DIR=C:/tools/opencv/build
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+          -DCMAKE_INSTALL_PREFIX="$PWD/install"
           -DBUILD_TESTING=ON
           ${{ matrix.cmake }}
 
@@ -201,6 +203,60 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure --parallel 4
+
+      # The installer packages the programs/ and share/ directories of the
+      # install prefix: the build (copy_qt_dlls) has already put the Qt and
+      # OpenCV DLLs in programs/. -WX: a warning of makensis fails the job.
+      - name: Make the installer
+        if: ${{ matrix.installer }}
+        run: |
+          cmake --install build
+          choco install nsis -y --no-progress
+          & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" -V2 -WX build\bundlers\win\DocCreator.nsi
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      # The runner is thrown away afterwards: install, run and uninstall for
+      # real, silently (/S).
+      - name: Install, run and uninstall
+        if: ${{ matrix.installer }}
+        run: |
+          $setup = Get-Item build\bundlers\win\DocCreator-*_setup.exe
+          $version = $setup.Name -replace '^DocCreator-(.*)_setup\.exe$', '$1'
+          $dir = "$env:ProgramFiles\DocCreator-$version"
+          $key = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DocCreator'
+          $shortcut = "$env:PUBLIC\Desktop\DocCreator.lnk"
+
+          $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($p.ExitCode) { throw "the installer exited with $($p.ExitCode)" }
+          foreach ($f in "$dir\programs\DocCreator.exe", "$dir\share\DocCreator\data", "$dir\uninst.exe", $shortcut) {
+            if (-not (Test-Path $f)) { throw "not installed: $f" }
+          }
+          if (-not (Test-Path $key)) { throw "no uninstall key in the 64-bit registry" }
+
+          # With only the DLLs installed with it, and the system ones.
+          $env:PATH = "$env:SystemRoot\system32;$env:SystemRoot"
+          $app = Start-Process "$dir\programs\DocCreator.exe" -PassThru
+          Start-Sleep -Seconds 15
+          if ($app.HasExited) { throw "DocCreator exited with $($app.ExitCode)" }
+          Stop-Process -Id $app.Id -Force
+          $app.WaitForExit()
+
+          # _?= : the uninstaller runs from $dir, and is waited for. It does
+          # not remove itself, nor $dir with it.
+          $p = Start-Process "$dir\uninst.exe" -ArgumentList '/S', "_?=$dir" -Wait -PassThru
+          if ($p.ExitCode) { throw "the uninstaller exited with $($p.ExitCode)" }
+          foreach ($f in "$dir\programs", "$dir\share", $shortcut, $key) {
+            if (Test-Path $f) { throw "not uninstalled: $f" }
+          }
+
+      - name: Upload the installer
+        if: ${{ matrix.installer }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: DocCreator-Windows-installer
+          path: build/bundlers/win/DocCreator-*_setup.exe
+          # already compressed by makensis
+          compression-level: 0
 
   # Apple silicon. Clang's UBSan checks more than gcc's (float-cast-overflow,
   # for example), and arm64 contracts floating point operations in fused
