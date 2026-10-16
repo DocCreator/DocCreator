@@ -2690,6 +2690,14 @@ namespace dc {
       }
     }
 
+    //B: no border in the local zone: the border is farther than any
+    // distance, which the caller then bounds. sqrt(FLT_MAX) does not fit
+    // in an int: the conversion was undefined, and gave INT_MIN on x86
+    // (a negative distance) and INT_MAX on arm64.
+    if (minDistSq == FLT_MAX) {
+      return std::numeric_limits<int>::max();
+    }
+
     return std::sqrt(minDistSq);  //B:CONVERSION TO INT ? Is it really what we want ???
   }
 
