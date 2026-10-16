@@ -123,13 +123,15 @@ IF(BUILD_TESSERACT)
     GIT_TAG 13275a278eb55b5746e33f95fbf5a2c8f604b3ab  # 1.87.0
     PREFIX ${PROJECT_BINARY_DIR}/leptonica
     # PATCH_COMMAND patch -p0 < ${PROJECT_SOURCE_DIR}/thirdparty/leptonica-1.80.0.patch
-    #Without WebP and OpenJPEG: 1.87.0 links them as the imported targets
-    # WebP::webp and openjp2, which its installed LeptonicaConfig.cmake
-    # never looks for (its find_dependency() calls are under an empty
-    # if()), so configuring tesseract against it fails. DocCreator gives
-    # tesseract pixels, not files, and does not need leptonica to read
-    # either format.
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DBUILD_SHARED_LIBS=OFF -DSW_BUILD=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    #Without any image format: DocCreator gives tesseract pixels, not
+    # files, and does not need leptonica to read or write images. Each
+    # format found on the system would otherwise be one more library for
+    # the program, and the application bundles, to carry. Moreover, 1.87.0
+    # links WebP and OpenJPEG as the imported targets WebP::webp and
+    # openjp2, which its installed LeptonicaConfig.cmake never looks for
+    # (its find_dependency() calls are under an empty if()), so configuring
+    # tesseract against it fails.
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DBUILD_SHARED_LIBS=OFF -DSW_BUILD=OFF -DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_GIF=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     BUILD_BYPRODUCTS ${LEPTONICA_LIBRARY}
     )
 
@@ -193,94 +195,12 @@ IF(BUILD_TESSERACT)
   SET_TARGET_PROPERTIES(tesseractLib PROPERTIES IMPORTED_LOCATION ${TESSERACT_LIBRARY})
   ADD_DEPENDENCIES(tesseractLib tesseract)
 
-  #TODO: the following libraries are already searched by leptonica.
-  #they are in ${install_dir}/cmake/LeptonicaTargets-release.cmake
-  # but I don't know how to retrieve them.
-  # As we use ExternalProject_Add(),
-  # LeptonicaTargets-release.cmake is only created during the build phase (and not the configuration phase)
-  # We cannot use find_package(leptonica) to get them.
+  #leptonica is built without the image formats (cf. above): the static
+  #library needs no other library. The libraries of the formats that
+  #were searched here and linked to the program were those found on the
+  #system, WebP and OpenJPEG included, which leptonica did not use.
+  SET(OTHER_LIBS "")
 
-  FIND_PACKAGE(ZLIB QUIET)  #ZLIB brought by PNG on linux but not on OSX 
-  IF(ZLIB_FOUND)
-    SET(OTHER_LIBS ${ZLIB_LIBRARIES})
-  ENDIF()
-
-  FIND_PACKAGE(PNG QUIET)
-  IF(PNG_FOUND)
-    SET(OTHER_LIBS "${PNG_LIBRARIES};${OTHER_LIBS}")
-  ENDIF()
-
-  FIND_PACKAGE(JPEG QUIET)
-  IF(JPEG_FOUND)
-    SET(OTHER_LIBS "${JPEG_LIBRARIES};${OTHER_LIBS}")
-  ENDIF()
-
-  FIND_PACKAGE(TIFF QUIET)
-  IF(TIFF_FOUND)
-    SET(OTHER_LIBS "${TIFF_LIBRARIES};${OTHER_LIBS}")
-  ENDIF()
-
-  FIND_PACKAGE(GIF QUIET)
-  IF(GIF_FOUND)
-    SET(OTHER_LIBS "${GIF_LIBRARIES};${OTHER_LIBS}")
-  ENDIF()
-
-  #message("OTHER_LIBS=${OTHER_LIBS}")
-  
-  FIND_PACKAGE(PkgConfig QUIET)
-  IF (PKG_CONFIG_FOUND)
-    #message("search with pkg config")
-    pkg_check_modules(WEBP QUIET libwebp)
-    IF(WEBP_FOUND)
-      #SET(OTHER_LIBS "${WEBP_LIBRARIES};${OTHER_LIBS}")
-      #message("WEBP_FOUND=${WEBP_FOUND} by pkg: $WEBP_LIBRARY=${WEBP_LIBRARY} $WEBP_LIBRARIES=${WEBP_LIBRARIES} WEBP=${WEBP}")
-    ENDIF()
-
-    set(MINIMUM_WEBPMUX_VERSION 0.5.0)
-    pkg_check_modules(WEBPMUX libwebpmux>=${MINIMUM_WEBPMUX_VERSION} QUIET)
-    IF(WEBPMUX_FOUND)
-      #SET(OTHER_LIBS "${WEBPMUX_LIBRARIES};${OTHER_LIBS}")
-      #message("WEBP_FOUND=${WEBPMUX_FOUND} by pkg: $WEBPMUX_LIBRARY=${WEBPMUX_LIBRARY} $WEBPMUX_LIBRARIES=${WEBPMUX_LIBRARIES} WEBPMUX=${WEBPMUX}")
-    ENDIF()
-
-    pkg_check_modules(JP2K QUIET libopenjp2)
-    IF(JP2K_FOUND)
-      message("JP2K_FOUND=${JP2K_FOUND} by pkg: $JP2K_LIBRARY=${JP2K_LIBRARY} $JP2K_LIBRARIES=${JP2K_LIBRARIES} JP2K_LINK_LIBRARIES=${JP2K_LINK_LIBRARIES} JP2K=${JP2K}")
-      #SET(OTHER_LIBS "${JP2K_LIBRARIES};${OTHER_LIBS}")
-      SET(OTHER_LIBS "${JP2K_LINK_LIBRARIES};${OTHER_LIBS}") #circleci/macos 22/04/2022
-    ENDIF()
-  ENDIF()
-  if(NOT WEBP)
-    #message("search webp directly")
-    find_path(WEBP_INCLUDE_DIR /webp/decode.h)
-    find_library(WEBP_LIBRARY NAMES webp)
-    if (WEBP_INCLUDE_DIR AND WEBP_LIBRARY)
-      # message("WEBP_FOUND2=${WEBP_FOUND}: $WEBP_LIBRARY=${WEBP_LIBRARY} $WEBP_LIBRARIES=${WEBP_LIBRARIES} WEBP=${WEBP}")
-      set(OTHER_LIBS "${WEBP_LIBRARY};${OTHER_LIBS}")
-    endif()
-  endif()
-  if(NOT JP2K)
-    #message("search jp2k directly")
-    find_path(JP2K_INCLUDE_DIR /openjpeg-2.3/openjpeg.h)
-    find_library(JP2K_LIBRARY NAMES openjp2)
-    if (JP2K_INCLUDE_DIR AND JP2K_LIBRARY)
-      message("JP2K_FOUND=${JP2K_FOUND} for 2.3: $JP2K_LIBRARY=${JP2K_LIBRARY} $JP2K_LIBRARIES=${JP2K_LIBRARIES} JP2K_LINK_LIBRARIES=${JP2K_LINK_LIBRARIES} JP2K=${JP2K}")    
-      # message("JP2K_FOUND2=${JP2K_FOUND}: $JP2K_LIBRARY=${JP2K_LIBRARY} $JP2K_LIBRARIES=${JP2K_LIBRARIES} JP2K=${JP2K}")
-      set(OTHER_LIBS "${JP2K_LIBRARY};${OTHER_LIBS}")
-    endif()
-  endif()
-  if(NOT JP2K)
-    #message("search jp2k directly")
-    find_path(JP2K_INCLUDE_DIR /openjpeg-2.4/openjpeg.h)
-    find_library(JP2K_LIBRARY NAMES openjp2)
-    if (JP2K_INCLUDE_DIR AND JP2K_LIBRARY)
-      message("JP2K_FOUND=${JP2K_FOUND} for 2.4: $JP2K_LIBRARY=${JP2K_LIBRARY} $JP2K_LIBRARIES=${JP2K_LIBRARIES} JP2K_LINK_LIBRARIES=${JP2K_LINK_LIBRARIES} JP2K=${JP2K}")    
-      # message("JP2K_FOUND2=${JP2K_FOUND}: $JP2K_LIBRARY=${JP2K_LIBRARY} $JP2K_LIBRARIES=${JP2K_LIBRARIES} JP2K=${JP2K}")
-      set(OTHER_LIBS "${JP2K_LIBRARY};${OTHER_LIBS}")
-    endif()
-  endif()
-
-  #message("OTHER_LIBS=${OTHER_LIBS}")
     
   SET(Lept_LIBRARIES "${LEPTONICA_LIBRARY};${OTHER_LIBS}")
   SET(Tesseract_LIBRARIES ${TESSERACT_LIBRARY})
