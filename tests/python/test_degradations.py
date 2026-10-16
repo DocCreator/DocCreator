@@ -57,7 +57,8 @@ GOOD_SHAPES = [None, 1, 3, 4]
 def bad_images():
     return [
         ("uint16", make_image(dtype=np.uint16)),
-        ("int8", make_image(dtype=np.int8)),
+        #210 does not fit in an int8: numpy 2 refuses it in np.full()
+        ("int8", make_image().astype(np.int8)),
         ("float32", make_image(dtype=np.float32)),
         ("float64", make_image(dtype=np.float64)),
         ("bool", np.zeros((ROWS, COLS), dtype=bool)),
