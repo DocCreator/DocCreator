@@ -94,7 +94,8 @@
 
 #elif defined(__APPLE__) && !defined(LZHAM_ANSI_CPLUSPLUS)
    // --- Apple: iOS or OSX
-   #if (TARGET_IPHONE_SIMULATOR == 1) || (TARGET_OS_IPHONE == 1)
+   // (OSX on Apple silicon is not a PC either: no x86 instructions)
+   #if (TARGET_IPHONE_SIMULATOR == 1) || (TARGET_OS_IPHONE == 1) || !(defined(__i386__) || defined(__x86_64__))
       #define LZHAM_PLATFORM_PC 0
 
       #if defined(_WIN64) || defined(__MINGW64__) || defined(_LP64) || defined(__LP64__)
