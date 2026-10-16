@@ -116,6 +116,7 @@ jobs:
         with:
           name: coverage
           path: build/coverage/
+          retention-days: 14
 
       # The coverage target writes its report even when tests fail, and
       # only warns: ctest's list of the failed tests says whether they did.
@@ -257,6 +258,7 @@ jobs:
           path: build/bundlers/win/DocCreator-*_setup.exe
           # already compressed by makensis
           compression-level: 0
+          retention-days: 14
 
   # Apple silicon. Clang's UBSan checks more than gcc's (float-cast-overflow,
   # for example), and arm64 contracts floating point operations in fused
@@ -408,3 +410,4 @@ jobs:
         with:
           name: DocCreator-macOS-dmg
           path: bundle/*.dmg
+          retention-days: 14
