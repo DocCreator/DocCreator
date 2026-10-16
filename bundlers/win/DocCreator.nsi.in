@@ -62,10 +62,12 @@ ShowUnInstDetails show
 
 Function .onInit
   ${IfNot} ${RunningX64}
-    MessageBox MB_ICONSTOP|MB_OK "$(Needs64Bit)"
+    MessageBox MB_ICONSTOP|MB_OK "$(Needs64Bit)" /SD IDOK
     Abort
   ${EndIf}
-  ;the 64-bit registry, and the shortcuts of all users
+  ;the 64-bit registry, and the shortcuts of all users. In silent mode
+  ;(/S), the message boxes take their /SD answer, and there is no
+  ;language dialog: an install or uninstall never waits for a click
   SetRegView 64
   SetShellVarContext all
   !insertmacro MUI_LANGDLL_DISPLAY
@@ -106,14 +108,14 @@ SectionEnd
 
 Function un.onUninstSuccess
   HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "$(UninstSuccess)"
+  MessageBox MB_ICONINFORMATION|MB_OK "$(UninstSuccess)" /SD IDOK
 FunctionEnd
 
 Function un.onInit
   SetRegView 64
   SetShellVarContext all
   !insertmacro MUI_UNGETLANGUAGE
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UninstConfirm)" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UninstConfirm)" /SD IDYES IDYES +2
   Abort
 FunctionEnd
 
