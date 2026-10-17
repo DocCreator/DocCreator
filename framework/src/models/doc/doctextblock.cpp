@@ -92,12 +92,22 @@ namespace Doc
 	current = new DocParagraph(getDocument());	
 	//std::cerr<<"DocTextBlock::add(DocCharacter* "<<e<<") document="<< getDocument()<<" new paragrpah="<<current<<"\n";
 	add(current);
+	//B: add() deletes a paragraph it refuses: the current paragraph is
+	// taken from the block again (the new one, in practice)
+	current = currentElement();
+	if (current == nullptr) {
+	  delete e;
+	  return;
+	}
 	assert(getDocument() && getDocument()->currentParagraph() == current);
 
 	setOffset(offset()-1);
       }
+      //B: read before add(), which deletes an element it refuses (cf
+      // Node::insertElement()): e->length() was read after it
+      const int eLength = e->length(); //B: assert(eLength == 1) ???
       current->add(e);
-      setLength(length() + e->length()); //B: assert(e->length() == 1) ???
+      setLength(length() + eLength);
     }
 
     void DocTextBlock::add(const QList<DocCharacter*> &l)
@@ -112,9 +122,19 @@ namespace Doc
       if (current == nullptr) {
 	current = new DocParagraph(getDocument());
 	add(current);
+	//B: add() deletes a paragraph it refuses: the current paragraph is
+	// taken from the block again (the new one, in practice)
+	current = currentElement();
+	if (current == nullptr) {
+	  delete e;
+	  return;
+	}
       }
+      //B: read before add(), which deletes an element it refuses (cf
+      // Node::insertElement()): e->length() was read after it
+      const int eLength = e->length();
       current->add(e);
-      setLength(length()+e->length());
+      setLength(length()+eLength);
     }
 
     void DocTextBlock::add(const QList<DocString*> &l)
