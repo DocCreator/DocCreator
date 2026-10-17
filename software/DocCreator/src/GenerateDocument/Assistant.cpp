@@ -4003,7 +4003,9 @@ Assistant::Blur_LoadPrevImgBlur()
 {
   if (!_inputImageList.empty()) {
     int imgIndex = P_bounded_rand(0, _inputImageList.size());
-    if (!_inputImageList.empty())
+    //B: the test was !_inputImageList.empty(), always true here: with only
+    // one image, no other index could be drawn, and the loop never ended.
+    if (_inputImageList.size() > 1)
       while (_Blur_indexRecto == imgIndex)
         imgIndex = P_bounded_rand(0, _inputImageList.size());
     assert(imgIndex < _inputImageList.size());
