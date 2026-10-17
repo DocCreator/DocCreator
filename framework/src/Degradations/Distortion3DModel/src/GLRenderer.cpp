@@ -1,4 +1,8 @@
 
+//B: for M_PI_2 with MSVC (cf ShadowBinding.cpp, Mesh.cpp), before any
+// header that includes <cmath>
+#define _USE_MATH_DEFINES
+
 #include "GLRenderer.hpp"
 
 #include <cassert>
@@ -250,6 +254,9 @@ GLRenderer::~GLRenderer()
 {
   delete m_object;
   delete m_meshGL;
+  //B: the background was never deleted
+  delete m_backgroundObject;
+  delete m_backgroundMeshGL;
 
   //B: the constructor may have given up half way, so only undo what was done.
   glfwDestroyWindow(m_window); //a no-op for a null window
@@ -456,6 +463,12 @@ GLRenderer::initGLForMesh()
 
 
   GL_CHECK_ERROR_ALWAYS();
+
+  //B: the mesh of a previous loadMesh() was not deleted
+  delete m_object;
+  m_object = nullptr;
+  delete m_meshGL;
+  m_meshGL = nullptr;
 
   m_meshGL = new GLMesh;
 
