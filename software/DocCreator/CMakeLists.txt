@@ -82,33 +82,57 @@ IF(BUILD_TESSERACT)
 
 
 
-  IF(NOT MSVC AND NOT MINGW)
-    SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}leptonica${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    SET(TESSERACT_LIBRARY "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tesseract${CMAKE_STATIC_LIBRARY_SUFFIX}")
-  ELSE(NOT MSVC AND NOT MINGW)
+  #Names of the libraries, as leptonica and tesseract set them (their
+  #OUTPUT_NAME): leptonica-<version> with MSVC (and MinGW, cf its SUFFIX),
+  #tesseract<major><minor> on Windows, and a "d" in Debug, for leptonica
+  #with MSVC only, for tesseract on Windows.
+  #B: the name was chosen once, from CMAKE_BUILD_TYPE, which a multi-config
+  # generator (Visual Studio, Ninja Multi-Config) leaves empty: the Debug
+  # configuration, which builds leptonica-1.87.0d.lib and tesseract55d.lib,
+  # was linked with the names of the Release libraries, which it does not
+  # build (LNK1181). Each configuration now has its name, on the imported
+  # targets leptonicaLib and tesseractLib below, which the program links.
+  IF(MSVC OR MINGW)
+    SET(LEPTONICA_BASENAME "leptonica-${LEPTONICA_VERSION}")
+  ELSE()
+    SET(LEPTONICA_BASENAME "leptonica")
+  ENDIF()
+  IF(MSVC)
+    SET(LEPTONICA_DEBUG_SUFFIX "d")
+  ELSE()
+    SET(LEPTONICA_DEBUG_SUFFIX "")
+  ENDIF()
+  IF(WIN32)
+    SET(TESSERACT_BASENAME "tesseract${TESSERACT_VERSION}")
+    SET(TESSERACT_DEBUG_SUFFIX "d")
+  ELSE()
+    SET(TESSERACT_BASENAME "tesseract")
+    SET(TESSERACT_DEBUG_SUFFIX "")
+  ENDIF()
+  SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}${LEPTONICA_BASENAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  SET(LEPTONICA_LIBRARY_DEBUG "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}${LEPTONICA_BASENAME}${LEPTONICA_DEBUG_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  SET(TESSERACT_LIBRARY "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}${TESSERACT_BASENAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  SET(TESSERACT_LIBRARY_DEBUG "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}${TESSERACT_BASENAME}${TESSERACT_DEBUG_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
-    #set(MY_DEFINITION 
-    #  $<$<CONFIG:Debug>:definition_for_debug>
-    #  $<$<CONFIG:RelWithDebInfo>:definition_for_rel_with_debug>
-    #  $<$<CONFIG:Release>:definition_for_release> 
-    #  $<$<CONFIG:MinSizeRel>:definition_for_tight_release>
-    #  )
-    
-    #set(DEBUG_EXT "$<$<CONFIG:Debug>:d>")
-    set(DEBUG_EXT "")
-    IF(NOT CMAKE_CONFIGURATION_TYPES)
-      #mono-config, e.g., ninja
-      IF("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR
-         "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebugInfo")
-	       set(DEBUG_EXT "d")
-      ENDIF()
+  #The library each build produces, for the generators that need to know
+  #it (Ninja, Makefiles): of CMAKE_BUILD_TYPE with a single-config
+  #generator; of the configuration being built with a multi-config one,
+  #which needs a generator expression in the byproducts (CMake 3.20).
+  IF(NOT CMAKE_CONFIGURATION_TYPES)
+    IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      SET(LEPTONICA_BYPRODUCT "${LEPTONICA_LIBRARY_DEBUG}")
+      SET(TESSERACT_BYPRODUCT "${TESSERACT_LIBRARY_DEBUG}")
+    ELSE()
+      SET(LEPTONICA_BYPRODUCT "${LEPTONICA_LIBRARY}")
+      SET(TESSERACT_BYPRODUCT "${TESSERACT_LIBRARY}")
     ENDIF()
-    
-
-    SET(LEPTONICA_LIBRARY "${PROJECT_BINARY_DIR}/leptonica/lib/${CMAKE_STATIC_LIBRARY_PREFIX}leptonica-${LEPTONICA_VERSION}${DEBUG_EXT}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    SET(TESSERACT_LIBRARY "${PROJECT_BINARY_DIR}/tesseract/lib/${CMAKE_STATIC_LIBRARY_PREFIX}tesseract${TESSERACT_VERSION}${DEBUG_EXT}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-  ENDIF(NOT MSVC AND NOT MINGW)
+  ELSEIF(NOT CMAKE_VERSION VERSION_LESS 3.20)
+    SET(LEPTONICA_BYPRODUCT "$<IF:$<CONFIG:Debug>,${LEPTONICA_LIBRARY_DEBUG},${LEPTONICA_LIBRARY}>")
+    SET(TESSERACT_BYPRODUCT "$<IF:$<CONFIG:Debug>,${TESSERACT_LIBRARY_DEBUG},${TESSERACT_LIBRARY}>")
+  ELSE()
+    SET(LEPTONICA_BYPRODUCT "")
+    SET(TESSERACT_BYPRODUCT "")
+  ENDIF()
 
 
   include(ExternalProject)
@@ -132,7 +156,7 @@ IF(BUILD_TESSERACT)
     # (its find_dependency() calls are under an empty if()), so configuring
     # tesseract against it fails.
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/leptonica -DBUILD_SHARED_LIBS=OFF -DSW_BUILD=OFF -DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_GIF=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    BUILD_BYPRODUCTS ${LEPTONICA_LIBRARY}
+    BUILD_BYPRODUCTS ${LEPTONICA_BYPRODUCT}
     )
 
   #-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is to ensure that leptonica&tesseract are built with the same compiler than DocCreator
@@ -150,7 +174,9 @@ IF(BUILD_TESSERACT)
   #headers are in ${source_dir}/src
 
   ADD_LIBRARY(leptonicaLib STATIC IMPORTED GLOBAL)
-  SET_TARGET_PROPERTIES(leptonicaLib PROPERTIES IMPORTED_LOCATION ${LEPTONICA_LIBRARY})
+  SET_TARGET_PROPERTIES(leptonicaLib PROPERTIES
+    IMPORTED_LOCATION ${LEPTONICA_LIBRARY}
+    IMPORTED_LOCATION_DEBUG ${LEPTONICA_LIBRARY_DEBUG})
   ADD_DEPENDENCIES(leptonicaLib leptonica)
 
   ExternalProject_Get_Property(leptonica install_dir)
@@ -181,7 +207,7 @@ IF(BUILD_TESSERACT)
     ##CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     #CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/lib/cmake -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DSTATIC=ON -DSW_BUILD=OFF -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DLeptonica_DIR=${install_dir}/lib/cmake/leptonica -DPKG_CONFIG_EXECUTABLE="" -DLeptonica_FOUND=TRUE -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/tesseract -DBUILD_SHARED_LIBS=OFF -DSW_BUILD=OFF -DBUILD_TRAINING_TOOLS=OFF -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    BUILD_BYPRODUCTS ${TESSERACT_LIBRARY}
+    BUILD_BYPRODUCTS ${TESSERACT_BYPRODUCT}
     )
 
   ExternalProject_Get_Property(tesseract binary_dir)
@@ -192,7 +218,9 @@ IF(BUILD_TESSERACT)
   set(tess_lib_dirs "${install_dir}/lib") 
 
   ADD_LIBRARY(tesseractLib STATIC IMPORTED GLOBAL)
-  SET_TARGET_PROPERTIES(tesseractLib PROPERTIES IMPORTED_LOCATION ${TESSERACT_LIBRARY})
+  SET_TARGET_PROPERTIES(tesseractLib PROPERTIES
+    IMPORTED_LOCATION ${TESSERACT_LIBRARY}
+    IMPORTED_LOCATION_DEBUG ${TESSERACT_LIBRARY_DEBUG})
   ADD_DEPENDENCIES(tesseractLib tesseract)
 
   #leptonica is built without the image formats (cf. above): the static
@@ -202,10 +230,11 @@ IF(BUILD_TESSERACT)
   SET(OTHER_LIBS "")
 
     
-  SET(Lept_LIBRARIES "${LEPTONICA_LIBRARY};${OTHER_LIBS}")
-  SET(Tesseract_LIBRARIES ${TESSERACT_LIBRARY})
+  #the imported targets, which have the library of each configuration
+  SET(Lept_LIBRARIES "leptonicaLib;${OTHER_LIBS}")
+  SET(Tesseract_LIBRARIES tesseractLib)
   IF(MSVC OR MINGW)
-    SET(Tesseract_LIBRARIES "${TESSERACT_LIBRARY};Ws2_32")
+    SET(Tesseract_LIBRARIES "tesseractLib;Ws2_32")
   ENDIF()
 
   #message("Lept_LIBRARIES=${Lept_LIBRARIES}")
