@@ -483,7 +483,12 @@ DocCreator::newDocument()
 
     switch (response) {
       case QMessageBox::Save:
-        saveDocument();
+        //B: whether the document was saved or not (Save as... cancelled,
+        // or the file not written), it was then thrown away.
+        if (!saveDocument()) {
+          return;
+        }
+        break;
       case QMessageBox::Discard:
         break;
       case QMessageBox::Cancel:
@@ -557,7 +562,12 @@ DocCreator::openDocument()
 
     switch (response) {
       case QMessageBox::Save:
-        saveDocument();
+        //B: whether the document was saved or not (Save as... cancelled,
+        // or the file not written), it was then thrown away.
+        if (!saveDocument()) {
+          return;
+        }
+        break;
       case QMessageBox::Discard:
         break;
       case QMessageBox::Cancel:
@@ -714,19 +724,20 @@ DocCreator::print()
     _docController->printDocument(printer);
 }
 
-void
+bool
 DocCreator::saveDocument()
 {
   if (Context::DocumentContext::instance()->isNewDocument()) {
-    saveDocumentAs();
+    return saveDocumentAs();
   }
-  else if (Context::DocumentContext::instance()->modified()) {
-    saveDocumentToXml(
+  if (Context::DocumentContext::instance()->modified()) {
+    return saveDocumentToXml(
       Context::DocumentContext::instance()->getCurrentDocumentPath());
   }
+  return true;
 }
 
-void
+bool
 DocCreator::saveDocumentAs()
 {
   QString filepath =
@@ -735,12 +746,13 @@ DocCreator::saveDocumentAs()
                                  QString(),
                                  tr("Xml Old Document (*.od *.xml)"));
 
-  if (!filepath.isEmpty()) {
-    saveDocumentToXml(filepath);
+  if (filepath.isEmpty()) {
+    return false; //cancelled
   }
+  return saveDocumentToXml(filepath);
 }
 
-void
+bool
 DocCreator::saveDocumentToXml(const QString &filepath)
 {
   QFileInfo info(filepath);
@@ -757,10 +769,11 @@ DocCreator::saveDocumentToXml(const QString &filepath)
     QMessageBox::warning(this,
                          tr("Error : unable to save document"),
                          tr("Unable to write %1.").arg(lFilePath));
-    return;
+    return false;
   }
   updateTitle(lFilePath);
   Context::DocumentContext::instance()->setCurrentDocumentPath(lFilePath);
+  return true;
 }
 
 void
@@ -2076,7 +2089,10 @@ DocCreator::closeEvent(QCloseEvent *event)
 
     switch (response) {
       case QMessageBox::Save:
-        saveDocument();
+        //B: the window was closed even when the document was not saved
+        if (!saveDocument()) {
+          event->ignore();
+        }
         break;
       case QMessageBox::Cancel:
         event->ignore();

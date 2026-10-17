@@ -44,9 +44,10 @@ private slots:
   //void generateImagesFromDir();
   void newDocument();
   void openDocument();
-  void saveDocument();
+  //@return false if the document was not saved: cancelled, or failed
+  bool saveDocument();
   void exportDocToTxt();
-  void saveDocumentAs();
+  bool saveDocumentAs();
   void print();
   void undo();
   void about();
@@ -104,7 +105,7 @@ private:
   void populateFontSelector();
 
   /* Save functions */
-  void saveDocumentToXml(const QString &filepath);
+  bool saveDocumentToXml(const QString &filepath);
   void saveFontToXml(const QString &filepath);
 
   void updateTitle(const QString &path);
