@@ -137,6 +137,16 @@ copyOntoAux(const cv::Mat &stainImg,
 				     posCenter,
 				     roi,
 				     newPosCenter);
+  //B: cv::seamlessClone() clears a 1-pixel border of the mask, and threw
+  // when what is left is -1, 1 or 2 pixels wide or high (a cv::Exception,
+  // or a std::length_error from its solver): with a stain, or the part of
+  // it overlapping the image, 1, 3 or 4 pixels wide or high. With 0 (2
+  // pixels), it inserts nothing. Such a stain is not inserted.
+  constexpr int MIN_STAIN_SIZE = 5;
+  if (intersection &&
+      (roi.width < MIN_STAIN_SIZE || roi.height < MIN_STAIN_SIZE)) {
+    return false;
+  }
   if (intersection) {
 
     //cv::seamlessClone() needs 3-channel src and dst images

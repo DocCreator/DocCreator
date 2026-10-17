@@ -65,7 +65,9 @@ namespace dc {
       Insert one stain image into an image, with cv::seamlessClone().
 
       Only the part of @a stainImg that overlaps @a img is inserted; if they
-      do not overlap, a copy of @a img is returned. @a stainImg is neither
+      do not overlap, or if that part is less than 5 pixels wide or high,
+      which cv::seamlessClone() cannot insert, a copy of @a img is
+      returned. @a stainImg is neither
       converted to gray nor turned, but the result has the type of @a img:
       into a gray image, the stain is inserted in gray. The alpha channel of
       @a img is kept.

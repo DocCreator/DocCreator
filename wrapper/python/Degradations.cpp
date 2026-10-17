@@ -510,7 +510,8 @@ PYBIND11_MODULE(DocCreatorPy, m) {
 	seamlessClone().
 
 	Only the part of stainImg that overlaps img is inserted; if they
-	do not overlap, a copy of img is returned. stainImg is neither
+	do not overlap, or if that part is less than 5 pixels wide or
+	high, a copy of img is returned. stainImg is neither
 	converted to gray nor turned, but the result has the dtype and
 	shape of img: into a gray image, the stain is inserted in gray.
 	The alpha channel of img is kept.

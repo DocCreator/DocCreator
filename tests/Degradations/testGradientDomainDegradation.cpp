@@ -135,3 +135,38 @@ TEST_CASE( "Testing GradientDomainDegradation" )
 
 
 }
+
+/*
+  cv::seamlessClone() threw (cv::Exception, or std::length_error) when the
+  stain, or the part of it that overlaps the image, was 1, 3 or 4 pixels
+  wide or high: a stain near a border failed whatever its size.
+*/
+TEST_CASE( "Testing copyOnto with small stains and on the borders" )
+{
+  for (const int imageType : {CV_8UC1, CV_8UC3, CV_8UC4}) {
+    INFO( "imageType=" << imageType );
+    const cv::Mat img(60, 80, imageType, cv::Scalar::all(200));
+    const cv::Point positions[] = {cv::Point(40, 30), cv::Point(0, 0), cv::Point(79, 59),
+                                   cv::Point(2, 30), cv::Point(-3, 30)};
+    for (const cv::Point &pos : positions) {
+      for (int w = 1; w <= 12; ++w) {
+        for (int h = 1; h <= 12; ++h) {
+          INFO( "stain " << w << "x" << h << " at (" << pos.x << ", " << pos.y << ")" );
+          const cv::Mat stain(h, w, CV_8UC3, cv::Scalar::all(0));
+          cv::Mat out;
+          REQUIRE_NOTHROW( out = dc::GradientDomainDegradation::copyOnto(img, stain, pos) );
+          REQUIRE( out.type() == imageType );
+          REQUIRE( out.size() == img.size() );
+        }
+      }
+    }
+
+    //too small to be inserted: the image as it was
+    REQUIRE( checkEqual(dc::GradientDomainDegradation::copyOnto(img, cv::Mat(3, 3, CV_8UC3, cv::Scalar::all(0)), cv::Point(40, 30)), img) );
+    //a stain large enough is still inserted
+    cv::Mat stain(20, 20, CV_8UC3, cv::Scalar::all(255));
+    for (int x = 0; x < stain.cols; x += 4)
+      stain.colRange(x, x + 2).setTo(cv::Scalar::all(0));
+    REQUIRE_FALSE( checkEqual(dc::GradientDomainDegradation::copyOnto(img, stain, cv::Point(40, 30)), img) );
+  }
+}
