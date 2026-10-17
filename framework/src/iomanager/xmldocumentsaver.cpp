@@ -275,7 +275,9 @@ XMLDocumentSaver::buildStyle(Doc::DocStyle *s)
 {
   _writer->writeStartElement(QStringLiteral("style"));
   _writer->writeAttribute(QStringLiteral("name"), s->getName());
-  _writer->writeTextElement(QStringLiteral("font"), s->getName());
+  //B: getName() was written: the font of a style was lost on a round
+  // trip, replaced by the name of the style
+  _writer->writeTextElement(QStringLiteral("font"), s->getFontName());
   _writer->writeEndElement(); //</style>
 }
 

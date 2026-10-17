@@ -491,3 +491,36 @@ TEST_CASE( "Testing the text export of a document" )
 
   QFile::remove(filename);
 }
+
+/*
+  The saver wrote the name of each style as its font: the font of a style
+  whose name differs from its font was lost on a round trip. The two
+  successive saves of the round trip test above agreed, both wrong.
+*/
+TEST_CASE( "Testing the font of the saved styles" )
+{
+  Doc::Document *doc =
+    loadXml(QStringLiteral("tmp_doc_style_font.xml"), makeRichDocument());
+  REQUIRE( doc != nullptr );
+  const QString saved = toXml(doc);
+  delete doc;
+
+  REQUIRE( saved.contains(QStringLiteral("<font>JulesVerne</font>")) );
+  REQUIRE( saved.contains(QStringLiteral("<font>Arabic</font>")) );
+  REQUIRE_FALSE( saved.contains(QStringLiteral("<font>first</font>")) );
+  REQUIRE_FALSE( saved.contains(QStringLiteral("<font>second</font>")) );
+
+  Doc::Document *doc2 =
+    loadXml(QStringLiteral("tmp_doc_style_font_1.xml"), saved);
+  REQUIRE( doc2 != nullptr );
+  QString first, second;
+  for (const Doc::DocStyle *s : doc2->getStyles()) {
+    if (s->getName() == QLatin1String("first"))
+      first = s->getFontName();
+    else if (s->getName() == QLatin1String("second"))
+      second = s->getFontName();
+  }
+  REQUIRE( first == QStringLiteral("JulesVerne") );
+  REQUIRE( second == QStringLiteral("Arabic") );
+  delete doc2;
+}
