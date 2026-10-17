@@ -366,14 +366,21 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
 
   //Warning: CODE DUPLICATION with DocumentController::addCharacters() !!!
 
-  const qreal right = findRightPosition(
+  qreal right = findRightPosition(
     character, characterImage.width(), characterImage.height());
 
-  if (right >= (rect().width() - docTextBlock->marginRight())) {
+  //B: the character went to the next line, and drawCharacter() was called
+  // again, until it fitted. A character wider than the block (a block
+  // narrower than one character, which a resize can give) never fits: the
+  // recursion did not end, until the stack overflowed. The character now
+  // only goes to the next line if the line already has something, and is
+  // drawn there even if it overflows the block.
+  // Cf DocumentController::addCharacters(), which must do the same.
+  if (right >= (rect().width() - docTextBlock->marginRight()) &&
+      _cursorRightLine > docTextBlock->marginLeft()) {
     goNextLine(p);
-    drawCharacter(c, offset, style);
-
-    return;
+    right = findRightPosition(
+      character, characterImage.width(), characterImage.height());
   }
 
   //qDebug() << metaObject()->className() << " " << c->getDisplay() << " x, y" << c->x() << " " << c->y();

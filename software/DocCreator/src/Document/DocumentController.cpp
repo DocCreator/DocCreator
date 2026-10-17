@@ -512,8 +512,14 @@ DocumentController::addCharacters(const QList<QString> &charList)
                     (charData.width() *
                      (character->getRightLine() - character->getLeftLine())) /
                       100;
+      //B: as GraphicsTextBlockItem::drawCharacter(): the character goes to
+      // the next line only if the line already has something, and a
+      // character wider than the block is put alone on its line. It was
+      // only refused when it was both too wide and below the block: a
+      // character below the block was added when it was not too wide.
       if (right >=
-          (currentTextBlock->width() - currentTextBlock->marginRight())) {
+            (currentTextBlock->width() - currentTextBlock->marginRight()) &&
+          _cursorRightLine > currentTextBlock->marginLeft()) {
         //Not enough space on line to add character
         _cursorBaseLine += lineSpacing;
         _cursorRightLine = currentTextBlock->marginLeft();
@@ -521,11 +527,9 @@ DocumentController::addCharacters(const QList<QString> &charList)
                 (charData.width() *
                  (character->getRightLine() - character->getLeftLine())) /
                   100;
-        if (right >=
-              (currentTextBlock->width() - currentTextBlock->marginRight()) &&
-            _cursorBaseLine >=
-              (currentTextBlock->height() - currentTextBlock->marginBottom())) {
-          //not enough space on new line
+        if (_cursorBaseLine >=
+            (currentTextBlock->height() - currentTextBlock->marginBottom())) {
+          //no space for a new line
           break;
         }
       }
