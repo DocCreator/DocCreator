@@ -809,9 +809,10 @@ namespace dc {
 		     cv::Mat &degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
 		     , 
-		     const std::string &phantomPatternsPath
+		     const std::vector<cv::Mat> &patterns
 		     )
     {
+      assert(!patterns.empty());
       int minX, maxX, minY, maxY;
       computeRect(degradedCC, minX, maxX, minY, maxY);
       const int width = maxX - minX + 1;
@@ -864,11 +865,6 @@ namespace dc {
 	return false;
       }
 
-      //B: cv::imread() used to be called on every entry of the directory
-      const std::vector<std::string> patterns = dc::listImageFiles(phantomPatternsPath);
-      if (patterns.empty()) {
-	return false;
-      }
       const int numPatterns = static_cast<int>(patterns.size());
 
       for (int side = firstSide; side <= lastSide; ++side) { //0 = left, 1 = right
@@ -879,21 +875,7 @@ namespace dc {
 	  const int yPattern = minY;
 
 	  const int pattern = rng.uniform(0, numPatterns); //choice of pattern
-	  assert((size_t)pattern < patterns.size());
-	  const std::string patternFilename = makePath(phantomPatternsPath, patterns.at(pattern));
-#if CV_MAJOR_VERSION < 4
-	  const int grayFlag = CV_LOAD_IMAGE_GRAYSCALE;
-#else
-	  constexpr int grayFlag = cv::IMREAD_GRAYSCALE;
-#endif
-	  patternMat = cv::imread(patternFilename, grayFlag);
-	  if (patternMat.empty()) {
-	    //B: the assert() here was inert in the default build, and the
-	    // empty pattern was then used.
-	    std::cerr<<"Warning: unable to read phantom pattern image: "
-		     <<patternFilename<<"\n";
-	    continue;
-	  }
+	  assert(pattern < numPatterns);
      
 	  int widthPattern=0, maxWidth=0, minWidth=0;
 	  int heightPattern=0, minHeight=0, maxHeight=0;
@@ -931,7 +913,7 @@ namespace dc {
 	    widthPattern = MIN_WIDTH;
 	  }
 
-	  resize(patternMat, patternMat, cv::Size(widthPattern, heightPattern));
+	  resize(patterns[pattern], patternMat, cv::Size(widthPattern, heightPattern));
 
 	  origin =
 	    contains(outputBin, degradedCC, minX, maxX, minY, maxY, patternMat);
@@ -949,7 +931,10 @@ namespace dc {
 	    if (!maxReach) {
 	      origin = contains(outputBin, ccs[posDegraded + pos], patternMat);
 	    }
-	    if (origin != INVALID_POINT && !minReach) {
+	    //B: the test was origin != INVALID_POINT: the left neighbours
+	    // were only searched once a right one had been found, and the
+	    // place found was then replaced, often by INVALID_POINT.
+	    if (origin == INVALID_POINT && !minReach) {
 	      origin = contains(outputBin, ccs[posDegraded - pos], patternMat);
 	    }
 	    ++pos;
@@ -1010,7 +995,6 @@ namespace dc {
 	  if (origin !=
 	      INVALID_POINT) { //If we found a place where copy, we can apply
 
-	    applied = true;
 	    int xMinPattern = 0, xMaxPattern = 0;
 
 	    if (side == 0) { //LEFT
@@ -1066,10 +1050,24 @@ namespace dc {
 	      }
 	    }
 
+	    //B: on the right of a narrow component near the left border, with
+	    // no neighbour, xMaxPattern = maxX + MAX_MARGIN - patternMat.cols,
+	    // and then xMinPattern, were negative: transferPattern() wrote
+	    // before the beginning of the rows, and the rectangle of the blur
+	    // below was out of the image (cv::Exception). And xPattern could be
+	    // output.cols, for an empty rectangle. The pattern now starts in
+	    // the image, or is not applied on this side.
+	    xMinPattern = std::max(xMinPattern, 0);
+	    xMaxPattern = std::min(xMaxPattern, output.cols - 1);
+	    if (xMinPattern > xMaxPattern) {
+	      continue;
+	    }
+
 	    const int xPattern = boundedRand(rng,
 					     xMinPattern,
 					     xMaxPattern); //(int) (rand()%(xMaxPattern - xMinPattern) +  xMinPattern); //random
 
+	    applied = true;
 	    transferPattern(patternMat,
 			    cv::Point(xPattern, yPattern),
 			    origin,
@@ -1113,6 +1111,29 @@ namespace dc {
       requireInRange(occurenceProbability, 0.0, 1.0, "occurenceProbability", func);
 
       cv::Mat output = img.clone();
+
+      //B: the directory was listed, and a pattern read, for each component
+      // degraded: hundreds of directory listings and image decodings for a
+      // page. The patterns are read once here.
+#if CV_MAJOR_VERSION < 4
+      const int grayFlag = CV_LOAD_IMAGE_GRAYSCALE;
+#else
+      constexpr int grayFlag = cv::IMREAD_GRAYSCALE;
+#endif
+      std::vector<cv::Mat> patterns;
+      for (const std::string &name : dc::listImageFiles(phantomPatternsPath)) {
+	const std::string filename = makePath(phantomPatternsPath, name);
+	cv::Mat pattern = cv::imread(filename, grayFlag);
+	if (pattern.empty()) {
+	  std::cerr << "Warning: unable to read phantom pattern image: "
+		    << filename << "\n";
+	  continue;
+	}
+	patterns.push_back(pattern);
+      }
+      if (patterns.empty()) {
+	return output;
+      }
 
       CCs ccs;
       cv::Mat imgBin = binarize(img);
@@ -1195,7 +1216,7 @@ namespace dc {
 			   ,
 			   degrads
 #endif //SAVE_DEGRADATIONS_IMAGE
-			   , phantomPatternsPath);
+			   , patterns);
 	}
       }
 
