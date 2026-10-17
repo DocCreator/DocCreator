@@ -602,6 +602,12 @@ namespace dc {
     }
     assert(m_mat_output.type() == m_inputType);
 
+    //B: with no component, m_mat_output is not computed again for each
+    // degradation: the same image was returned by every call, and writing
+    // into one result changed the others. The image returned is its own.
+    if (m_nb_connectedcomponants == NO_CC) {
+      return m_mat_output.clone();
+    }
     return m_mat_output;
   }
 
@@ -1595,7 +1601,10 @@ namespace dc {
 	      assert(x >= 0 && x < m_width && y >= 0 && y < m_height);
 	      {
 		int d = 0;
-		while (y < m_height && m_mat_binary.at<uchar>(y, x) == 0) {
+		//B: bounded by m_height, not by max_y as the horizontal runs
+		// are by max_x: a run went on through the ink below the box of
+		// the component, and inflated m_Mean_CC_Stroke
+		while (y <= max_y && m_mat_binary.at<uchar>(y, x) == 0) {
 		  ++d;
 		  ++y;
 		}
@@ -1694,7 +1703,7 @@ namespace dc {
 	    sp.type = 2;
 	    ++counter;
 	  }
-	  if (counter > nbDiffusion)
+	  if (counter >= nbDiffusion) //B: was >, which selected one more
 	    break;
 	}
       }
@@ -1728,7 +1737,7 @@ namespace dc {
 	    sp.type = 1;
 	    ++counter;
 	  }
-	  if (counter > nbCheval)
+	  if (counter >= nbCheval) //B: was >, which selected one more
 	    break;
 	}
 	for (Seedpoint &sp : m_listSeedPoints)
@@ -1779,7 +1788,7 @@ namespace dc {
 	    sp.type = 0;
 	    ++counter;
 	  }
-	  if (counter > nbIndependentBG)
+	  if (counter >= nbIndependentBG) //B: was >, which selected one more
 	    break;
 	}
       } else {
@@ -1796,8 +1805,9 @@ namespace dc {
     const size_t selectedBGSPs = counter;
     counter = 0;
     //B: the remaining independent spots are taken from the foreground pixels.
-    // selectedBGSPs may exceed nbIndependent (the loop above increments
-    // counter before breaking), and this subtraction used to wrap around.
+    // selectedBGSPs may exceed nbIndependent (when all the background seed
+    // points are taken, in the else above), and this subtraction used to
+    // wrap around.
     const size_t nbIndependentFG =
       (nbIndependent > selectedBGSPs) ? (nbIndependent - selectedBGSPs) : 0;
     if (nbIndependentFG > 0) {
@@ -1813,7 +1823,7 @@ namespace dc {
 	    sp.type = 0;
 	    ++counter;
 	  }
-	  if (counter > nbIndependentFG)
+	  if (counter >= nbIndependentFG) //B: was >, which selected one more
 	    break;
 	}
       } else {
@@ -1852,7 +1862,7 @@ namespace dc {
 	    sp.type = 0;
 	    ++counter;
 	  }
-	  if (counter > nbNeedMore)
+	  if (counter >= nbNeedMore) //B: was >, which selected one more
 	    break;
 	}
       }

@@ -410,3 +410,26 @@ TEST_CASE( "Testing CharactersDegradation" )
 }
 
 
+
+/*
+  With no component (a uniform image), every degradation of a prepared
+  image returned the same buffer: writing into one result changed the
+  others.
+*/
+TEST_CASE( "Testing GrayscaleCharsDegradation of an image without characters" )
+{
+  for (const int type : {CV_8UC1, CV_8UC3, CV_8UC4}) {
+    INFO( "type=" << type );
+    const cv::Mat img(60, 80, type, cv::Scalar::all(255));
+    dc::GrayscaleCharsDegradation::PreparedImage prepared(img);
+    cv::Mat a = prepared.degradation(5, .33f, .33f, 1u);
+    const cv::Mat b = prepared.degradation(5, .33f, .33f, 2u);
+    REQUIRE( a.type() == type );
+    REQUIRE( a.size() == img.size() );
+    REQUIRE( checkEqual(a, img) );
+    REQUIRE( checkEqual(b, img) );
+    REQUIRE( a.data != b.data );
+    a.setTo(cv::Scalar::all(0));
+    REQUIRE( checkEqual(b, img) );
+  }
+}
