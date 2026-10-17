@@ -1051,8 +1051,20 @@ void
 OCRDialog::on_tableAlphabet_cellClicked(int row, int column)
 {
   // Get current label
-  assert(row * NUM_COLUMNS + column < (int)m_alphabet.size());
-  const QString label = m_font[m_alphabet[row * NUM_COLUMNS + column].index].label;
+  //B: the cells of the last row after the last letter are empty, and
+  // cellClicked() is emitted for them too: a click on one read past the
+  // end of m_alphabet (only an assert guarded it), and used what was there
+  // as an index in m_font.
+  const int alphabetIndex = row * NUM_COLUMNS + column;
+  if (row < 0 || column < 0 || column >= NUM_COLUMNS ||
+      alphabetIndex >= static_cast<int>(m_alphabet.size())) {
+    return;
+  }
+  const int fontIndex = m_alphabet[alphabetIndex].index;
+  if (fontIndex < 0 || fontIndex >= static_cast<int>(m_font.size())) {
+    return;
+  }
+  const QString label = m_font[fontIndex].label;
 
   // Select the one with the highest confidence
   float best_confidence = -1;
