@@ -219,6 +219,9 @@ CharacterButtonView::onCharacterItemClicked(CharacterListWidgetItem *charItem)
   const int charKey = getKeyboardCode();
   Models::CharacterData *charData = charItem->getCharacterData();
   assert(parent());
-  static_cast<KeyboardView *>(parent())->processCharButton(charKey,
-                                                           charData->getId());
+  //B: the id of the variant was passed as the font code (the second
+  // parameter), and no id: the character of code id was inserted, or
+  // nothing, and the font editor got a null character and crashed.
+  static_cast<KeyboardView *>(parent())->processCharButton(
+    charKey, getFontCodeValue(), charData->getId());
 }

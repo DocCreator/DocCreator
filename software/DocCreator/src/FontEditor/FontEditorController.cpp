@@ -24,6 +24,12 @@ FontEditorController::addCharacter(const QString &s)
     return;
   }
 
-  _view->addCharacter(
-    Context::FontContext::instance()->getCurrentFont()->getEditableCharacter(s));
+  //B: a character that is not in the font gave nullptr, which the view
+  // dereferenced (CharEditScene::setCenterChar() for example)
+  Models::Character *character =
+    Context::FontContext::instance()->getCurrentFont()->getEditableCharacter(s);
+  if (character == nullptr) {
+    return;
+  }
+  _view->addCharacter(character);
 }
