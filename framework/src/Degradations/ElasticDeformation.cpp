@@ -367,17 +367,38 @@ namespace dc {
       cv::Mat map_x, map_y, M;
       cv::Mat res = transform2(img, alpha, sigma, alphaAffine, borderMode, interpolation, map_x, map_y, M, seed);
 
-      std::vector<std::vector<cv::Point2f> > rects_pts0;
-      getTransformedRects(map_x, map_y, rects, rects_pts0);
+      //B: the points were moved by the elastic displacement at their
+      // original position, and then by M; the image is moved by M first,
+      // and then by the elastic displacement, which is looked up where M
+      // took the point. The rectangles drifted away from the image moved,
+      // the more the stronger the affine part.
+      //As in getTransformedRects(), map_x(y, x) holds x+dx, and a point s
+      // goes to s-dx, with the displacement at the pixel nearest to s.
+      const int rows = map_x.rows;
+      const int cols = map_x.cols;
+      rects_pts.reserve(rects_pts.size() + rects.size());
+      for (const cv::Rect &r : rects) {
+	//the boundary of r, as in getTransformedRects()
+	std::vector<cv::Point2f> boundary;
+	for (int x = r.x; x <= r.x + r.width; ++x)
+	  boundary.emplace_back(static_cast<float>(x), static_cast<float>(r.y));
+	for (int y = r.y; y <= r.y + r.height; ++y)
+	  boundary.emplace_back(static_cast<float>(r.x + r.width), static_cast<float>(y));
+	for (int x = r.x + r.width; x >= r.x; --x)
+	  boundary.emplace_back(static_cast<float>(x), static_cast<float>(r.y + r.height));
+	for (int y = r.y + r.height; y >= r.y; --y)
+	  boundary.emplace_back(static_cast<float>(r.x), static_cast<float>(y));
 
-      rects_pts.reserve(rects_pts0.size());
-      for (const auto &v : rects_pts0) {
 	std::vector<cv::Point2f> out;
-	out.reserve(v.size());
-	for (const auto &p : v) {
-	  cv::Point2f pt(static_cast<float>(M.at<double>(0, 0)*static_cast<double>(p.x) + M.at<double>(0, 1)*static_cast<double>(p.y) + M.at<double>(0, 2)),
-			 static_cast<float>(M.at<double>(1, 0)*static_cast<double>(p.x) + M.at<double>(1, 1)*static_cast<double>(p.y) + M.at<double>(1, 2)));
-	  out.push_back(pt);
+	out.reserve(boundary.size());
+	for (const cv::Point2f &p : boundary) {
+	  const double sx = M.at<double>(0, 0)*p.x + M.at<double>(0, 1)*p.y + M.at<double>(0, 2);
+	  const double sy = M.at<double>(1, 0)*p.x + M.at<double>(1, 1)*p.y + M.at<double>(1, 2);
+	  const int xi = std::min(std::max(static_cast<int>(std::lround(sx)), 0), cols - 1);
+	  const int yi = std::min(std::max(static_cast<int>(std::lround(sy)), 0), rows - 1);
+	  const double dx = map_x.at<float>(yi, xi) - xi;
+	  const double dy = map_y.at<float>(yi, xi) - yi;
+	  out.emplace_back(static_cast<float>(sx - dx), static_cast<float>(sy - dy));
 	}
 	rects_pts.push_back(out);
       }

@@ -8,6 +8,13 @@
 
 #include "Degradations/ElasticDeformation.hpp"
 
+#include <opencv2/core/version.hpp>
+#if CV_VERSION_MAJOR >= 5
+#include <opencv2/geometry.hpp> //boundingRect
+#else
+#include <opencv2/imgproc.hpp>
+#endif
+
 #include "testCommon.hpp" //checkEqual
 
 static
@@ -352,3 +359,33 @@ TEST_CASE( "Testing ElasticDeformation refuses a sigma that is not positive" )
              BorderReplication::REPLICATE, Interpolation::BILINEAR, 1u).size() == img.size() );
 }
 
+/*
+  transform2_rects() moved the points by the elastic displacement at their
+  original position and then by the affine transformation, while the image
+  is moved by the affine transformation first: with a strong deformation,
+  the rectangles drifted from the image (3 pixels with these parameters,
+  against 1 now).
+*/
+TEST_CASE( "Testing ElasticDeformation::transform2_rects follows the image" )
+{
+  cv::Mat img(300, 400, CV_8UC1, cv::Scalar(255));
+  const cv::Rect rect(120, 90, 160, 110);
+  img(rect).setTo(cv::Scalar(0));
+  for (uint32_t seed = 1; seed <= 20; ++seed) {
+    INFO( "seed=" << seed );
+    std::vector<std::vector<cv::Point2f> > pts;
+    const cv::Mat out = dc::ElasticDeformation::transform2_rects(
+      img, {rect}, pts, 0.2f, 0.03f, 40.f,
+      dc::ElasticDeformation::BorderReplication::REPLICATE,
+      dc::ElasticDeformation::Interpolation::BILINEAR, seed);
+    REQUIRE( pts.size() == 1 );
+    std::vector<cv::Point> darkPts;
+    cv::findNonZero(out < 128, darkPts);
+    const cv::Rect actual = cv::boundingRect(darkPts);
+    const cv::Rect given = cv::boundingRect(pts[0]);
+    REQUIRE( std::abs(actual.x - given.x) <= 2 );
+    REQUIRE( std::abs(actual.y - given.y) <= 2 );
+    REQUIRE( std::abs(actual.br().x - given.br().x) <= 2 );
+    REQUIRE( std::abs(actual.br().y - given.br().y) <= 2 );
+  }
+}
