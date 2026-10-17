@@ -281,14 +281,15 @@ readOBJ(const std::string &filename, Mesh &mesh)
               return false;
             }
             ind -= 1;
+            //B: refused only when there were as many texcoords as
+            // vertices; otherwise the index was kept, and the re-ordering
+            // below read texCoords out of its bounds (only an assert there)
             if (ind >= numTexCoords) {
               std::cerr << "OBJ: invalid texcoords index " << ind + 1
                         << " in faces\n";
               std::cerr << "line: " << line << "\n";
-              if (numTexCoords == numVertices) {
-                mesh.clear();
-                return false;
-              }
+              mesh.clear();
+              return false;
             }
             //if (numTexCoords == numVertices) {
             //if (! (fi < numFaces && 3*fi+i < texCoordsIndices.size()))
@@ -309,14 +310,13 @@ readOBJ(const std::string &filename, Mesh &mesh)
               return false;
             }
             ind -= 1;
+            //B: as for the texcoords above
             if (ind >= numNormals) {
               std::cerr << "OBJ: invalid normals index " << ind + 1
                         << " in faces\n";
               std::cerr << "line: " << line << "\n";
-              if (numNormals == numVertices) {
-                mesh.clear();
-                return false;
-              }
+              mesh.clear();
+              return false;
             }
             //if (numNormals == numVertices) {
             assert(fi < numFaces && 3 * fi + i < normalsIndices.size());

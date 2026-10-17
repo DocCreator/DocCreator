@@ -2,6 +2,7 @@
 SET(TESTS_MESH_SRC
   testMesh.cpp
   testBRS.cpp
+  testOBJ.cpp
   )
 
 FOREACH(FILE ${TESTS_MESH_SRC})
