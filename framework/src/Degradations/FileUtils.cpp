@@ -19,6 +19,16 @@
   Errors are reported through std::error_code rather than exceptions: a
   directory that cannot be read gives an empty list and a message, as
   before.
+
+  B: the paths are UTF-8 (fs::u8path(), path::u8string()), as the callers
+  give them (Qt's toStdString(), the python binding). With std::string as
+  is, MSVC used the ANSI code page: path::string() threw std::system_error
+  for a file whose name it cannot represent (a Chinese name with the
+  Western code page 1252, for example), out of the degradation that listed
+  the directory, and a UTF-8 directory name with an accent was not found.
+  (cv::imread() still uses the ANSI code page on Windows: such a file is
+  listed, and reported unreadable by the caller.)
+  In C++20, u8path() is deprecated and u8string() gives a std::u8string.
 */
 
 namespace fs = std::filesystem;
@@ -68,7 +78,7 @@ namespace dc {
     forEachEntry(const std::string &dirname, F f)
     {
       std::error_code ec;
-      fs::directory_iterator it(dirname, ec);
+      fs::directory_iterator it(fs::u8path(dirname), ec);
       const fs::directory_iterator end;
       for ( ; ! ec && it != end; it.increment(ec)) {
 	f(*it);
@@ -87,7 +97,7 @@ namespace dc {
   {
     std::vector<std::string> entries;
     if (! forEachEntry(dirname, [&](const fs::directory_entry &entry) {
-	  entries.push_back(entry.path().filename().string());
+	  entries.push_back(entry.path().filename().u8string());
 	})) {
       entries.clear();
     }
@@ -99,7 +109,7 @@ namespace dc {
   {
     std::vector<std::string> entries;
     if (! forEachEntry(dirname, [&](const fs::directory_entry &entry) {
-	  const std::string name = entry.path().filename().string();
+	  const std::string name = entry.path().filename().u8string();
 	  if (! hasImageExtension(name)) {
 	    return;
 	  }
@@ -119,7 +129,7 @@ namespace dc {
   makePath(const std::string &dirname,
 	   const std::string &filename)
   {
-    return (fs::path(dirname) / filename).string();
+    return (fs::u8path(dirname) / fs::u8path(filename)).u8string();
   }
 
 } //namespace dc

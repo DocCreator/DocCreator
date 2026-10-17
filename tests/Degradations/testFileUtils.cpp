@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <filesystem>
 #include <fstream>
 
 #include <catch2/catch_test_macros.hpp>
@@ -156,4 +158,36 @@ TEST_CASE("listing a directory that does not exist gives nothing")
 {
   REQUIRE( dc::listDirectory("no_such_directory_of_testFileUtils").empty() );
   REQUIRE( dc::listImageFiles("no_such_directory_of_testFileUtils").empty() );
+}
+
+/*
+  The names were converted with the ANSI code page on Windows:
+  path::string() threw std::system_error for a file whose name it cannot
+  represent, and the whole degradation listing the directory with it.
+*/
+TEST_CASE("file names are UTF-8, whatever the code page")
+{
+  namespace fs = std::filesystem;
+  const std::string dir = "tmp_testFileUtils_utf8";
+  //U+4E2D, in no 8-bit code page of Western Europe, and an accent
+  const std::string name = "stain_\xe4\xb8\xad_\xc3\xa9.png";
+  std::error_code ec;
+  fs::remove_all(fs::u8path(dir), ec);
+  fs::create_directory(fs::u8path(dir), ec);
+  {
+    std::ofstream out(fs::u8path(dir) / fs::u8path(name), std::ios::binary);
+    out << "not read";
+  }
+
+  std::vector<std::string> images;
+  REQUIRE_NOTHROW( images = dc::listImageFiles(dir) );
+  REQUIRE( std::find(images.begin(), images.end(), name) != images.end() );
+  std::vector<std::string> all;
+  REQUIRE_NOTHROW( all = dc::listDirectory(dir) );
+  REQUIRE( std::find(all.begin(), all.end(), name) != all.end() );
+
+  //makePath() keeps the UTF-8 name: the file is found again
+  REQUIRE( fs::exists(fs::u8path(dc::makePath(dir, name))) );
+
+  fs::remove_all(fs::u8path(dir), ec);
 }
