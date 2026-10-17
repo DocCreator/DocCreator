@@ -719,39 +719,27 @@ namespace dc {
       */
 
       // to compute the radius
-#if 0
-      QImage tmpImg = Convertor::getQImage(
-					   magI); //To get a mat that can use cvtColor (not works if we clone directly the mat magI, [...]
-      cv::Mat calcRayon = Convertor::getCvMat(
-					      tmpImg); //  [...] the conversion function make the operation we need)
-#else
+      //B: magI was converted to RGB and back to gray, which keeps its
+      // depth, CV_32F, and then read with at<uchar>(): the bytes of the
+      // floats were read, not their values, and the radius did not depend
+      // on the blur (0 for any image). The binarized magnitude, 0 or 255,
+      // is now converted to CV_8U.
       cv::Mat calcRayon;
-      cv::cvtColor(magI, calcRayon, cv::COLOR_GRAY2RGB);
-#endif  //B:TODO: Does it work ?????
-      cv::cvtColor(calcRayon, calcRayon, cv::COLOR_BGR2GRAY);
+      magI.convertTo(calcRayon, CV_8U);
 
-      int pixelX = calcRayon.cols / 2;
-      int pixelY = calcRayon.rows / 2;
-      bool found = false;
-      //start at the center of image, and search in diagonal the end of binarization
-      while (!found && pixelX > 0 && pixelY > 0) {
-	if (calcRayon.at<uchar>(pixelY, pixelX) == 0) {
-	  found = true;
-	}
-	else {
-	  --pixelX;
-	  --pixelY;
-	}
-      }
-
-      //compute the diagonal
-      return sqrtf(static_cast<float>(
-		  (((calcRayon.rows / 2) - pixelY) * ((calcRayon.rows / 2) - pixelY)) +
-		  (((calcRayon.cols / 2) - pixelX) * ((calcRayon.cols / 2) - pixelX))));
+      //B: the radius was the distance from the center to the first pixel
+      // under the threshold on the diagonal: a few pixels, inside the peak
+      // of the low frequencies, which the blur does not change. It is now
+      // the radius of the disk of the same area as the pixels over the
+      // threshold: the blur removes the high frequencies, and this area
+      // shrinks with it.
+      return std::sqrt(static_cast<float>(cv::countNonZero(calcRayon)) /
+                       static_cast<float>(CV_PI));
     }
 
-    static constexpr int MIN_BLUR_FOURIER = 1;
-    static constexpr int MAX_BLUR_FOURIER = 21;
+    //odd kernel sizes searched by searchFitFourier(), cf BlurFilter.hpp
+    static constexpr int MIN_BLUR_FOURIER = 3;
+    static constexpr int MAX_BLUR_FOURIER = 19;
 
 
     /*
@@ -759,42 +747,46 @@ namespace dc {
 
       @a img is the image on which we want to apply blur.
       @a dstRadius is the radius (computed by the fonction getRadiusFourier) of the example selected.
+
+      B: the search stopped at the first kernel size whose radius was
+      within INTERVAL_FOURIER of @a dstRadius: with a strong blur, the radii
+      of several kernel sizes are that close, and the first one tried, 11,
+      was taken. The radius decreasing as the kernel size increases, the
+      kernel size whose radius is the closest to @a dstRadius is now
+      searched, by dichotomy.
     */
     int
     searchFitFourier(const cv::Mat &img, float dstRadius)
     {
       require8UC134(img, "img", "dc::BlurFilter::searchFitFourier");
 
-      bool found = false;
-      int kernelSize = 0;
+      //kernel size 2*i+1, i in [iMin; iMax]
+      constexpr int iMin = (MIN_BLUR_FOURIER - 1) / 2;
+      constexpr int iMax = (MAX_BLUR_FOURIER - 1) / 2;
+      std::vector<std::optional<float>> radii(iMax + 1);
+      const auto radius = [&](int i) {
+	if (!radii[i])
+	  radii[i] = getRadiusFourier(blur(img, Method::GAUSSIAN, 2 * i + 1));
+	return *radii[i];
+      };
 
-      int kernelSizeMin = MIN_BLUR_FOURIER;
-      int kernelSizeMax = MAX_BLUR_FOURIER;
-
-      while (!found && kernelSizeMax - kernelSizeMin > 2) {
-	//binary search to find kernelSize that we need
-
-	kernelSize = ((kernelSizeMax + kernelSizeMin) / 2);
-	if (kernelSize % 2 == 0) {
-	    --kernelSize; // to get an odd number
-	}
-
-	// compute the radius of result image with actual kernelSize
-	const float radius = getRadiusFourier(blur(img,
-						   Method::GAUSSIAN,
-						   kernelSize));
-	if (radius > dstRadius + INTERVAL_FOURIER) { //not enough blur
-	    kernelSizeMin = kernelSize;
-	}
-	else if (radius < dstRadius - INTERVAL_FOURIER) { // too blur
-	  kernelSizeMax = kernelSize;
-	}
-	else {
-	  found = true;
-	}
+      //first i whose radius is not larger than dstRadius
+      int lo = iMin;
+      int hi = iMax + 1;
+      while (lo < hi) {
+	const int mid = (lo + hi) / 2;
+	if (radius(mid) > dstRadius)
+	  lo = mid + 1;
+	else
+	  hi = mid;
       }
 
-      return kernelSize;
+      int best = std::min(lo, iMax);
+      if (lo > iMin &&
+	  (lo > iMax ||
+	   std::abs(radius(lo - 1) - dstRadius) < std::abs(radius(lo) - dstRadius)))
+	best = lo - 1;
+      return 2 * best + 1;
     }
 
   } //namespace BlurFilter

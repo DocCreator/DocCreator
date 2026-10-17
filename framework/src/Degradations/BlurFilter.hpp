@@ -140,8 +140,10 @@ namespace dc {
       std::invalid_argument exception is thrown otherwise.
 
       @param img  image to measure.
-      @return the radius of the Fourier transform of @a img: the more
-      blurred the image, the smaller the radius.
+      @return the radius, in pixels of the centered magnitude spectrum of
+      @a img, of the disk of the same area as the frequencies over half
+      its (logarithmic) range: the more blurred the image, the fewer high
+      frequencies, and the smaller the radius.
     */
     [[nodiscard]] extern FRAMEWORK_EXPORT float getRadiusFourier(const cv::Mat &img);
 
@@ -158,7 +160,8 @@ namespace dc {
 
       @param img  image to blur.
       @param dstRadius  Fourier radius to reach.
-      @return an odd kernel size, between 3 and 19.
+      @return the odd kernel size, between 3 and 19, whose blur gives the
+      radius the closest to @a dstRadius.
     */
     [[nodiscard]] extern FRAMEWORK_EXPORT int searchFitFourier(const cv::Mat &img, float dstRadius);
 

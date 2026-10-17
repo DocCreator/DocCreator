@@ -260,3 +260,72 @@ TEST_CASE( "Testing BlurFilter" )
   //TODO: test blur with even kernelSize (ex: 2, 4, ...)
 
 }
+
+/*
+  getRadiusFourier() read a CV_32F image with at<uchar>(): its radius was
+  0 whatever the blur, and searchFitFourier() always gave 11. The radius
+  also did not change with the blur once the floats were read.
+*/
+
+static
+cv::Mat
+makeTextImage()
+{
+  cv::Mat img(400, 600, CV_8UC3, cv::Scalar(235, 235, 235));
+  for (int y = 40; y < img.rows; y += 36)
+    cv::putText(img, "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                cv::Point(10, y), cv::FONT_HERSHEY_SIMPLEX, 0.6,
+                cv::Scalar(20, 20, 20), 1, cv::LINE_AA);
+  return img;
+}
+
+TEST_CASE( "Testing the Fourier radius of BlurFilter" )
+{
+  const cv::Mat img = makeTextImage();
+
+  SECTION("the more blurred the image, the smaller the radius")
+  {
+    float previous = dc::BlurFilter::getRadiusFourier(img);
+    REQUIRE( previous > 0 );
+    for (int k = 5; k <= 21; k += 4) {
+      const float r = dc::BlurFilter::getRadiusFourier(
+        dc::BlurFilter::blur(img, dc::BlurFilter::Method::GAUSSIAN, k));
+      INFO( "kernelSize=" << k );
+      REQUIRE( r < previous );
+      previous = r;
+    }
+  }
+
+  SECTION("the radius is the same for a gray, a color or a BGRA image")
+  {
+    cv::Mat gray, bgra;
+    cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(img, bgra, cv::COLOR_BGR2BGRA);
+    const float r = dc::BlurFilter::getRadiusFourier(img);
+    REQUIRE( dc::BlurFilter::getRadiusFourier(gray) == r );
+    REQUIRE( dc::BlurFilter::getRadiusFourier(bgra) == r );
+  }
+
+  SECTION("searchFitFourier finds the blur of an image back")
+  {
+    for (const int k : {3, 7, 11, 15, 19}) {
+      const float r = dc::BlurFilter::getRadiusFourier(
+        dc::BlurFilter::blur(img, dc::BlurFilter::Method::GAUSSIAN, k));
+      const int found = dc::BlurFilter::searchFitFourier(img, r);
+      INFO( "kernelSize=" << k << " radius=" << r << " found=" << found );
+      REQUIRE( std::abs(found - k) <= 2 );
+    }
+  }
+
+  SECTION("searchFitFourier gives an odd kernel size in [3; 19]")
+  {
+    for (const float r : {0.f, 1.f, 1e6f}) {
+      const int found = dc::BlurFilter::searchFitFourier(img, r);
+      REQUIRE( found % 2 == 1 );
+      REQUIRE( 3 <= found );
+      REQUIRE( found <= 19 );
+    }
+    REQUIRE( dc::BlurFilter::searchFitFourier(img, 0.f) == 19 );
+    REQUIRE( dc::BlurFilter::searchFitFourier(img, 1e6f) == 3 );
+  }
+}
