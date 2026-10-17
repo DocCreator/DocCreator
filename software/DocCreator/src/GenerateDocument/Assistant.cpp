@@ -2421,6 +2421,17 @@ Assistant::generateTxtImages()
     if (!fontPath.isEmpty())
       params.fontList.append(fontPath);
   }
+  if (params.fontList.isEmpty()) {
+    _PicDirectory = QString();
+    enableAccordingToInputImages();
+    QGuiApplication::restoreOverrideCursor();
+    QMessageBox::warning(
+      this,
+      tr("No font"),
+      tr("No document can be generated without a font: select at least one "
+         "font, from a directory with .bof or .of font files."));
+    return;
+  }
 
   RandomDocumentCreator random(_DocController, params);
 

@@ -376,7 +376,16 @@ RandomDocumentCreator::create()
     QStringList fontList =
       Context::FontContext::instance()->getFontNames();
     //may be different than _params.fontList
-    assert(fontList.size() > 0);
+
+    //B: none of the files of _params.fontList may be readable: fontList
+    // was then indexed while empty (only an assert guarded it).
+    if (fontList.isEmpty()) {
+      std::cerr << "RandomDocumentCreator: no font could be loaded, no document created\n";
+      restoreFonts(prevCurrFontName, prevFonts);
+      restoreViewSize(wh);
+      QGuiApplication::restoreOverrideCursor();
+      return;
+    }
     Context::FontContext::instance()->setCurrentFont(fontList.back());
 
     //B: should we have _params.nbDocs && _params.nbPages ???
@@ -493,8 +502,17 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     QStringList fontList =
       Context::FontContext::instance()
         ->getFontNames(); //may be different than _params.fontList
-    if (Context::FontContext::instance()->getCurrentFont() == nullptr
-	&& ! fontList.isEmpty())
+
+    //B: none of the files of _params.fontList may be readable: fontList
+    // was then indexed while empty (only an assert guarded it).
+    if (fontList.isEmpty()) {
+      std::cerr << "RandomDocumentCreator: no font could be loaded, no document created\n";
+      restoreFonts(prevCurrFontName, prevFonts);
+      restoreViewSize(wh);
+      QGuiApplication::restoreOverrideCursor();
+      return;
+    }
+    if (Context::FontContext::instance()->getCurrentFont() == nullptr)
       Context::FontContext::instance()->setCurrentFont(fontList.back());
 
 
@@ -515,7 +533,6 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
       }
     }
 
-    assert(!fontList.isEmpty());
     QString fontName = fontList.at(0);
 
     if (!_params.textList.empty()) {
@@ -551,9 +568,12 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     else {
       //we generate N random texts
 
-      if (_params.fontList.size() > 1) {
+      //B: among the loaded fonts, fontList, not the requested ones,
+      // _params.fontList: the index was out of fontList when a font could
+      // not be loaded
+      if (fontList.size() > 1) {
         const int fontIndex =
-          RandomElement().randomInt(0, _params.fontList.size() - 1);
+          RandomElement().randomInt(0, fontList.size() - 1);
         fontName = fontList.at(fontIndex);
       }
       int backgroundIndex = 0;
