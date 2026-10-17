@@ -2,6 +2,7 @@
 #include "ui_HoleDegradationDialog.h"
 #include "HoleDegradationQ.hpp"
 
+#include <algorithm> //clamp
 #include <cassert>
 #include <ctime> //time
 
@@ -27,6 +28,21 @@ static const int ZOOM_WIDTH = 200; //Size of the zoom image
 static const int ZOOM_HEIGHT = 200;
 
 static const int DEFAULT_WIDTH = 5; //default with of the shadow in the hole
+
+/*
+  The shadow multiplies the edge of the hole by a factor in [0; 1], the
+  closer to 0 the darker (cf dc::HoleDegradation::addHole()). The slider, in
+  [0; 100], is how dark the shadow is.
+
+  B: the raw value of the slider (-50000, in [-100000; -13000]) was used as
+  the factor, and then -value*0.1 (in [1300; 10000]) once it was moved: the
+  edge was saturated to black, or to white, and never shadowed.
+*/
+static float
+shadowFactor(int intensitySliderValue)
+{
+  return 1.f - std::clamp(intensitySliderValue, 0, 100) / 100.f;
+}
 
 static const int NB_TRY_MAX =
   20; //Define how many try we make before give up when we try to generate a random hole and when we don't find any place (to prevent of to big pattern for example)
@@ -100,7 +116,7 @@ HoleDegradationDialog::HoleDegradationDialog(QWidget *parent)
   _type = static_cast<dc::HoleDegradation::HoleType>( ui->typeComboBox->currentIndex() );
   _side = dc::HoleDegradation::HoleSide::BORDER_TOP;
   _width = 0;
-  _intensity = ui->intensitySlider->value();
+  _intensity = shadowFactor(ui->intensitySlider->value());
   _holes = QList<Hole>();
   ui->borderGroupBox->setVisible(false);
   ui->cornerGroupBox->setVisible(false);
@@ -757,7 +773,7 @@ HoleDegradationDialog::widthChanged(int width)
 void
 HoleDegradationDialog::intensityChanged(int intensity)
 {
-  _intensity = -intensity * 0.1;
+  _intensity = shadowFactor(intensity);
 
   if (!_originalImgSmall.isNull()) {
     updateResultImage();

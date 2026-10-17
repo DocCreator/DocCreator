@@ -578,14 +578,17 @@
        </item>
        <item>
         <widget class="QSlider" name="intensitySlider">
+         <property name="toolTip">
+          <string>How dark the shadow along the edge of the hole is</string>
+         </property>
          <property name="minimum">
-          <number>-100000</number>
+          <number>0</number>
          </property>
          <property name="maximum">
-          <number>-13000</number>
+          <number>100</number>
          </property>
          <property name="value">
-          <number>-50000</number>
+          <number>50</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
