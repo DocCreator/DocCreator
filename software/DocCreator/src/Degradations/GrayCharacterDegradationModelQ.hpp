@@ -11,7 +11,13 @@ namespace dc {
 
   namespace CharactersDegradation {
 
-    extern FRAMEWORK_EXPORT QImage degradation(const QImage &img, int level = 1, float percentOfIndepentSpots = 33, float percentOfOverlappingSpots = 33);
+    /*
+      @a indepentSpotsRatio and @a overlappingSpotsRatio are ratios in
+      [0; 1], of sum at most 1 (the rest is for disconnection spots), as
+      for dc::GrayscaleCharsDegradation::degradation(), which throws
+      std::invalid_argument otherwise.
+    */
+    extern FRAMEWORK_EXPORT QImage degradation(const QImage &img, int level = 1, float indepentSpotsRatio = .33f, float overlappingSpotsRatio = .33f);
 
   } //namespace CharactersDegradation
 

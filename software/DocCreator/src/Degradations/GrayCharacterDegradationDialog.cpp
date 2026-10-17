@@ -127,7 +127,8 @@ GrayCharacterDegradationDialog::degrade()
     return;
   }
 
-  const QImage dst = dc::CharactersDegradation::degradation(img, levelOfNoise, I, O);
+  //the spin boxes are percentages, degradation() takes ratios
+  const QImage dst = dc::CharactersDegradation::degradation(img, levelOfNoise, I / 100.f, O / 100.f);
 
   //B: It would be better to be able to visualize the produced image
   // and not save it on disk

@@ -172,20 +172,21 @@ ImageGenerationFromDirDialog::degrade(
       continue;
     }
 
-    float percentOfIndepentSpots = 33, percentOfOverlappingSpots = 33;
+    //B: ratios, not percentages: degradation() throws otherwise
+    float indepentSpotsRatio = .33f, overlappingSpotsRatio = .33f;
     if (level <= 4) {
-      percentOfIndepentSpots = 50;
-      percentOfOverlappingSpots = 30;
+      indepentSpotsRatio = .5f;
+      overlappingSpotsRatio = .3f;
     }
     else if (level <= 7) {
-      percentOfIndepentSpots = 30;
-      percentOfOverlappingSpots = 50;
+      indepentSpotsRatio = .3f;
+      overlappingSpotsRatio = .5f;
     }
     else {
-      percentOfIndepentSpots = 20;
-      percentOfOverlappingSpots = 30;
+      indepentSpotsRatio = .2f;
+      overlappingSpotsRatio = .3f;
     }
-    QImage out = dc::CharactersDegradation::degradation(input, level, percentOfIndepentSpots, percentOfOverlappingSpots);
+    QImage out = dc::CharactersDegradation::degradation(input, level, indepentSpotsRatio, overlappingSpotsRatio);
 
     //B: QString::replace() replaced every ".png" of the whole path: a
     // directory with ".png" in its name gave an output path pointing
