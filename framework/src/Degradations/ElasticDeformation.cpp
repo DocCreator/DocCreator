@@ -39,6 +39,12 @@ namespace dc {
 	case BorderReplication::REFLECT101:
 	  borderModeCV = cv::BORDER_REFLECT101;
 	  break;
+	//B: BLACK was missing, and gave BORDER_REPLICATE: the border was
+	// never black. With BORDER_CONSTANT, cv::remap() and cv::warpAffine()
+	// fill it with their border value, black.
+	case BorderReplication::BLACK:
+	  borderModeCV = cv::BORDER_CONSTANT;
+	  break;
 	}
 	return borderModeCV;
       }
@@ -312,9 +318,15 @@ namespace dc {
       M = cv::getAffineTransform(src, dst);
 
       const int borderModeCV = getBorderModeCV(borderMode);
+      const int interpolationCV = getInterpolationCV(interpolation);
 
+      //B: the border mode was given as the 5th parameter, which is the
+      // interpolation (flags): REPLICATE gave INTER_LINEAR, REFLECT
+      // INTER_CUBIC, etc., and the border was always BORDER_CONSTANT, black,
+      // whatever borderMode, and interpolation was ignored here.
       cv::Mat img2;
-      cv::warpAffine(img, img2, M, img.size(), borderModeCV);
+      cv::warpAffine(img, img2, M, img.size(), interpolationCV, borderModeCV,
+		     cv::Scalar(0, 0, 0));
 
       //B: the generator is seeded again for the elastic part: with a seed,
       // the result stays reproducible.

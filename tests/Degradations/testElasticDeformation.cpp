@@ -1,5 +1,6 @@
 #include <cmath> //std::abs
 #include <iostream>
+#include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -235,8 +236,53 @@ testLargeImage(int imageType)
 }
 
 
+/*
+  transform2() gave cv::warpAffine() the border mode as its interpolation:
+  the border of the affine part was always black. And BLACK itself gave
+  BORDER_REPLICATE.
+*/
+static
+void
+testBorderModes(int imageType)
+{
+  //a uniform image, no elastic displacement, and a strong affine jitter
+  //that uncovers the borders: only the border mode can change a pixel
+  const cv::Mat img(90, 120, imageType, cv::Scalar::all(200));
+  const float alpha = 0.f;
+  const float sigma = 0.08f;
+  const float alphaAffine = 15.f;
+  using dc::ElasticDeformation::BorderReplication;
+  for (const BorderReplication mode : {BorderReplication::REPLICATE,
+                                       BorderReplication::REFLECT,
+                                       BorderReplication::WRAP,
+                                       BorderReplication::REFLECT101}) {
+    const cv::Mat out = dc::ElasticDeformation::transform2(
+      img, alpha, sigma, alphaAffine, mode,
+      dc::ElasticDeformation::Interpolation::BILINEAR, 7);
+    INFO( "border mode " << static_cast<int>(mode) );
+    REQUIRE( out.type() == imageType );
+    REQUIRE( checkEqual(out, img) );
+  }
+
+  const cv::Mat black = dc::ElasticDeformation::transform2(
+    img, alpha, sigma, alphaAffine, BorderReplication::BLACK,
+    dc::ElasticDeformation::Interpolation::BILINEAR, 7);
+  std::vector<cv::Mat> chans;
+  cv::split(black, chans);
+  REQUIRE( cv::countNonZero(chans[0] == 0) > 0 );
+  //and the middle of the image is still the image
+  REQUIRE( chans[0].at<uchar>(img.rows / 2, img.cols / 2) == 200 );
+}
+
 TEST_CASE( "Testing ElasticDeformation" )
 { 
+
+  SECTION("Testing ElasticDeformation::transform2 fills the border as asked")
+  {
+    testBorderModes(CV_8UC1);
+    testBorderModes(CV_8UC3);
+    testBorderModes(CV_8UC4);
+  }
 
   SECTION("Testing ElasticDeformation::transform produces output image of same type and size")
   {
