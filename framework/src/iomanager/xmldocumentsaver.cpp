@@ -6,9 +6,29 @@
 #include <QStringConverter>
 #endif
 #include <QXmlStreamWriter>
-#include <map>
+#include <algorithm>
+#include <limits>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace IOManager {
+
+namespace {
+
+  //y-position of the first character of @a p, if it has one
+  std::optional<int>
+  firstCharacterY(const Doc::DocParagraph *p)
+  {
+    for (const Doc::DocString *s : p->getStrings()) {
+      const QList<Doc::DocCharacter *> &characters = s->getCharacters();
+      if (!characters.isEmpty())
+        return characters.first()->y();
+    }
+    return std::nullopt;
+  }
+
+} //namespace
 
 XMLDocumentSaver::XMLDocumentSaver(Doc::Document *doc)
   : DocumentSaver(doc)
@@ -450,12 +470,29 @@ XMLDocumentSaver::buildTextBlock(Doc::DocTextBlock *tb, int id)
     _writer->writeAttribute(QStringLiteral("marginRight"),
                             QString::number(tb->marginRight()));
     // re-order paragraphs by y-position
-    std::map<int, Doc::DocParagraph *> listReOrdre;
-
-    for (Doc::DocParagraph *p : tb->getParagraphs()) {
-      listReOrdre.insert(std::pair<int, Doc::DocParagraph *>(
-        p->getStrings().at(0)->getCharacters().at(0)->y(), p));
+    //B: they were put in a std::map keyed by the y-position of their first
+    // character: of the paragraphs at the same y (all of them in a document
+    // whose characters were never laid out), only one was saved, the others
+    // were silently lost. And that character was read with
+    // getStrings().at(0)->getCharacters().at(0), out of range when the first
+    // string has no character, which the loader accepts. The sort is now
+    // stable, so paragraphs at the same y keep their order, and a paragraph
+    // without any character keeps its place after the previous one.
+    const QList<Doc::DocParagraph *> &paragraphs = tb->getParagraphs();
+    std::vector<std::pair<int, Doc::DocParagraph *>> listReOrdre;
+    listReOrdre.reserve(paragraphs.size());
+    int previousY = std::numeric_limits<int>::min();
+    for (Doc::DocParagraph *p : paragraphs) {
+      const int y = firstCharacterY(p).value_or(previousY);
+      listReOrdre.emplace_back(y, p);
+      previousY = y;
     }
+    std::stable_sort(listReOrdre.begin(),
+                     listReOrdre.end(),
+                     [](const std::pair<int, Doc::DocParagraph *> &a,
+                        const std::pair<int, Doc::DocParagraph *> &b) {
+                       return a.first < b.first;
+                     });
 
     for (const auto &p : listReOrdre) {
       buildParagraph(p.second);

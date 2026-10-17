@@ -297,6 +297,132 @@ TEST_CASE( "Testing the document XML round trip" )
   }
 }
 
+/*
+  The saver ordered the paragraphs of a text block by the y-position of
+  their first character with a std::map, which kept one paragraph per y and
+  dropped the others. It read that character without checking that the
+  first string had one.
+*/
+
+namespace {
+
+  QString
+  makeTextBlockDocument(const QString &paragraphs)
+  {
+    return QStringLiteral(
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+      "<document width=\"1240\" height=\"1754\">\n"
+      "  <styles>\n"
+      "    <style name=\"first\"><font>JulesVerne</font></style>\n"
+      "  </styles>\n"
+      "  <content>\n"
+      "    <page>\n"
+      "      <textBlock x=\"10\" y=\"20\" width=\"100\" height=\"200\""
+      " marginTop=\"1\" marginBottom=\"2\" marginLeft=\"3\" marginRight=\"4\">\n"
+      "%1"
+      "      </textBlock>\n"
+      "    </page>\n"
+      "  </content>\n"
+      "</document>\n").arg(paragraphs);
+  }
+
+  QString
+  makeParagraph(const QString &display, int y)
+  {
+    return QStringLiteral(
+      "        <paragraph lineSpacing=\"0\" tabulationSize=\"0\">\n"
+      "          <string style=\"first\">\n"
+      "            <char id=\"1\" display=\"%1\" x=\"1\" y=\"%2\""
+      " width=\"8\" height=\"16\"/>\n"
+      "          </string>\n"
+      "        </paragraph>\n").arg(display).arg(y);
+  }
+
+  //the display attributes of the characters of @a xml, in their order
+  QString
+  displays(const QString &xml)
+  {
+    QString result;
+    int from = 0;
+    const QString key = QStringLiteral("display=\"");
+    for (;;) {
+      const int i = xml.indexOf(key, from);
+      if (i < 0)
+        break;
+      const int start = i + key.size();
+      const int end = xml.indexOf(QLatin1Char('"'), start);
+      result += xml.mid(start, end - start);
+      from = end;
+    }
+    return result;
+  }
+
+} //namespace
+
+TEST_CASE( "Testing the order of the saved paragraphs" )
+{
+  SECTION("paragraphs at the same y are all saved")
+  {
+    Doc::Document *doc =
+      loadXml(QStringLiteral("tmp_doc_same_y.xml"),
+              makeTextBlockDocument(makeParagraph(QStringLiteral("a"), 2) +
+                                    makeParagraph(QStringLiteral("b"), 2) +
+                                    makeParagraph(QStringLiteral("c"), 2)));
+    REQUIRE( doc != nullptr );
+    const QString saved = toXml(doc);
+    delete doc;
+    REQUIRE( saved.count(QStringLiteral("<paragraph")) == 3 );
+    REQUIRE( displays(saved) == QStringLiteral("abc") );
+  }
+
+  SECTION("paragraphs are saved in the order of their y")
+  {
+    Doc::Document *doc =
+      loadXml(QStringLiteral("tmp_doc_y_order.xml"),
+              makeTextBlockDocument(makeParagraph(QStringLiteral("c"), 40) +
+                                    makeParagraph(QStringLiteral("a"), 2) +
+                                    makeParagraph(QStringLiteral("b"), 20)));
+    REQUIRE( doc != nullptr );
+    const QString saved = toXml(doc);
+    delete doc;
+    REQUIRE( saved.count(QStringLiteral("<paragraph")) == 3 );
+    REQUIRE( displays(saved) == QStringLiteral("abc") );
+  }
+
+  SECTION("a paragraph whose first string has no character is saved")
+  {
+    const QString emptyFirstString = QStringLiteral(
+      "        <paragraph lineSpacing=\"0\" tabulationSize=\"0\">\n"
+      "          <string style=\"first\"/>\n"
+      "          <string style=\"first\">\n"
+      "            <char id=\"1\" display=\"b\" x=\"1\" y=\"20\""
+      " width=\"8\" height=\"16\"/>\n"
+      "          </string>\n"
+      "        </paragraph>\n");
+    const QString onlyEmptyString = QStringLiteral(
+      "        <paragraph lineSpacing=\"0\" tabulationSize=\"0\">\n"
+      "          <string style=\"first\"/>\n"
+      "        </paragraph>\n");
+    Doc::Document *doc =
+      loadXml(QStringLiteral("tmp_doc_empty_string.xml"),
+              makeTextBlockDocument(makeParagraph(QStringLiteral("a"), 2) +
+                                    emptyFirstString +
+                                    onlyEmptyString +
+                                    makeParagraph(QStringLiteral("c"), 40)));
+    REQUIRE( doc != nullptr );
+    const QString saved = toXml(doc);
+    delete doc;
+    REQUIRE( displays(saved) == QStringLiteral("abc") );
+
+    //and what is saved can be read again
+    Doc::Document *doc2 =
+      loadXml(QStringLiteral("tmp_doc_empty_string_1.xml"), saved);
+    REQUIRE( doc2 != nullptr );
+    REQUIRE( displays(toXml(doc2)) == QStringLiteral("abc") );
+    delete doc2;
+  }
+}
+
 
 #include "models/doc/doccharacter.h"
 #include "models/doc/docparagraph.h"
