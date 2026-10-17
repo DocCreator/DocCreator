@@ -130,8 +130,13 @@ Section Uninstall
 
   ;only what was installed: $INSTDIR may be a directory chosen by the
   ;user, with other files, which are kept (and $INSTDIR with them)
-  RMDir /r "$INSTDIR\programs"
-  RMDir /r "$INSTDIR\share"
+  ;B: programs and share were removed with RMDir /r: in a directory that
+  ; already had them, everything in them was deleted. The files installed
+  ; are now removed one by one, from the list of what the File /r above
+  ; pack, made when this script is compiled; a directory is then removed
+  ; only if it is empty.
+  !execute '"@CMAKE_COMMAND@" "-DPREFIX=@CMAKE_INSTALL_PREFIX@" "-DOUTPUT=@UNINSTALL_FILES_NSH@" -P "@CMAKE_CURRENT_SOURCE_DIR@/uninstall_list.cmake"' = 0
+  !include /CHARSET=UTF8 "@UNINSTALL_FILES_NSH@"
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   RMDir "$INSTDIR"

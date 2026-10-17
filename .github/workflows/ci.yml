@@ -242,12 +242,22 @@ jobs:
           Stop-Process -Id $app.Id -Force
           $app.WaitForExit()
 
+          # Files that were not installed, in directories that were: the
+          # uninstaller must keep them (it used to delete programs\ and
+          # share\ with everything in them).
+          New-Item -ItemType Directory -Force "$dir\share\Other" | Out-Null
+          $foreign = "$dir\programs\not-installed.txt", "$dir\share\Other\not-installed.txt"
+          foreach ($f in $foreign) { Set-Content -Path $f -Value 'not installed' }
+
           # _?= : the uninstaller runs from $dir, and is waited for. It does
           # not remove itself, nor $dir with it.
           $p = Start-Process "$dir\uninst.exe" -ArgumentList '/S', "_?=$dir" -Wait -PassThru
           if ($p.ExitCode) { throw "the uninstaller exited with $($p.ExitCode)" }
-          foreach ($f in "$dir\programs", "$dir\share", $shortcut, $key) {
+          foreach ($f in "$dir\programs\DocCreator.exe", "$dir\programs\platforms", "$dir\share\DocCreator", $shortcut, $key) {
             if (Test-Path $f) { throw "not uninstalled: $f" }
+          }
+          foreach ($f in $foreign) {
+            if (-not (Test-Path $f)) { throw "deleted although not installed: $f" }
           }
 
       - name: Upload the installer
