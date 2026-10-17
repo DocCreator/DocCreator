@@ -75,7 +75,23 @@ namespace dc {
 		  float intensity,
 		  float angle)
     {
-      require8UC134(img, "img", "dc::ShadowBinding::shadowBinding");
+      static const char *func = "dc::ShadowBinding::shadowBinding";
+      require8UC134(img, "img", func);
+      //B: distance was not checked: larger than the image, the shadow was
+      // written past the end of the rows (before them for the right and
+      // bottom borders), and out of the image: memory corruption, with only
+      // the asserts of darkenImagePart() to guard it. intensity and angle
+      // were not checked either: a negative intensity could give 0/0.
+      const int dimension = (border == Border::LEFT || border == Border::RIGHT)
+	? img.cols
+	: img.rows;
+      requireArgument(0 <= distance && distance <= dimension,
+		      "distance must be in [0; width of img] for the left and "
+		      "right borders, in [0; height of img] for the top and "
+		      "bottom borders",
+		      func);
+      requireInRange(intensity, 0.0, 1.0, "intensity", func);
+      requireInRange(angle, 0.0, 90.0, "angle", func);
 
       cv::Mat matOut = img.clone();
       
@@ -83,8 +99,6 @@ namespace dc {
 
       const float theta = angle * static_cast<float>(M_PI) / 180.f;
       const float radius = static_cast<float>(distance);
-
-      assert(fabs(intensity) <= 1.f);
 
       const float l0 = intensity * 100 + 1;
 
@@ -135,7 +149,11 @@ namespace dc {
 		   float intensity,
 		   float angle)
     {
-      require8UC134(img, "img", "dc::ShadowBinding::shadowBinding2");
+      static const char *func = "dc::ShadowBinding::shadowBinding2";
+      require8UC134(img, "img", func);
+      requireInRange(distanceRatio, 0.0, 1.0, "distanceRatio", func);
+      requireInRange(intensity, 0.0, 1.0, "intensity", func);
+      requireInRange(angle, 0.0, 90.0, "angle", func);
 
       const int distance =
 	getDistance(border, distanceRatio, img.cols, img.rows);

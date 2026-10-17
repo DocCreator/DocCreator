@@ -52,6 +52,9 @@ ShadowBindingDialog::setOriginalImage(const QImage &img)
     IMG_WIDTH, IMG_HEIGHT, Qt::KeepAspectRatio, Qt::FastTransformation);
 
   //ui->distanceSlider->setMaximum(img.width()*20/100);
+  //B: the distance was computed by the constructor, from a width of 800
+  // when there is no image yet: it could be larger than a smaller image.
+  _distance = getDistanceAux(ui->distanceSlider->value());
   setupGUIImages();
 }
 

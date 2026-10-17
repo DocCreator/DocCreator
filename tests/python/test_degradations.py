@@ -266,6 +266,24 @@ class TestOutOfRangeValues:
         with pytest.raises((ValueError, TypeError)):
             dc.characterDegradation(img, 5, ratios[0], ratios[1], SEED_A)
 
+    @pytest.mark.parametrize("border,distance", [
+        ("TOP", ROWS + 1), ("BOTTOM", ROWS + 1), ("LEFT", COLS + 1),
+        ("RIGHT", COLS + 1), ("TOP", -1), ("RIGHT", -1)])
+    def test_shadow_binding_distance(self, border, distance):
+        #a distance larger than the image wrote out of it
+        img = make_image(3)
+        with pytest.raises((ValueError, TypeError)):
+            dc.shadowBinding(img, getattr(dc.ShadowBorder, border), distance, .5, 45.)
+
+    @pytest.mark.parametrize("params", [(-.1, .5, 45.), (1.1, .5, 45.),
+                                        (.2, -.1, 45.), (.2, 1.1, 45.),
+                                        (.2, .5, -1.), (.2, .5, 91.)])
+    def test_shadow_binding2_ratio_intensity_angle(self, params):
+        img = make_image(3)
+        ratio, intensity, angle = params
+        with pytest.raises((ValueError, TypeError)):
+            dc.shadowBinding2(img, ratio, dc.ShadowBorder.TOP, intensity, angle)
+
     @pytest.mark.parametrize("amount", [-.1, 1.1])
     def test_salt_and_pepper_amount(self, amount):
         img = make_image(3)

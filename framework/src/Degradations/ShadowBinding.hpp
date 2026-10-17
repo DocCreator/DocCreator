@@ -30,7 +30,9 @@ namespace dc {
 
       @param img  image to degrade.
       @param border  border on which the shadow is added.
-      @param distance  width of the shadow, in pixels.
+      @param distance  width of the shadow, in pixels, in [0; width of
+      @a img] for the left and right borders, in [0; height of @a img] for
+      the top and bottom borders.
       @param intensity  intensity, in [0; 1]. The higher, the darker the
       shadow.
       @param angle  angle in degrees, in [0; 90]. The higher, the darker the
