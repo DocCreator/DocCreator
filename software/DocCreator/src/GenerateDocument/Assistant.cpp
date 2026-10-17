@@ -10,6 +10,7 @@
 
 #include <QColorDialog>
 #include <QDebug>
+#include <QDir>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QMessageBox>
@@ -39,6 +40,8 @@
 #include "Utils/ImageUtils.hpp"
 #include "appconstants.h"
 #include "context/fontcontext.h"
+#include "iomanager/fontfilemanager.h"
+#include "models/font.h"
 #include "core/configurationmanager.h"
 #include "ui_Assistant.h"
 
@@ -1277,11 +1280,39 @@ Assistant::updateListFont(const QString &fontPath)
   // selected fonts.
   //But for now, there is no other way than to load all fonts from fontPath in global Fontcontext
   //   to know which files are valid fonts !???
-  QString fontExt =
+  //B: both formats are listed, .bof (binary) and .of (XML), whatever the
+  // default extension of the configuration. FontContext::initialize() only
+  // read files of that extension, and the generation then looked for
+  // <name>.of whatever the file: no shipped font (.bof) could be loaded.
+  // The file of each font is kept, as the name of a font is the one in its
+  // file. A font found in several files (X.bof and X.of) is taken from the
+  // first in name order, i.e., the .bof.
+  const QString fontExt =
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigFontExtKey)
       .toString();
-  Context::FontContext::instance()->clear();
-  Context::FontContext::instance()->initialize(fontPath, fontExt); //B:TODO: currently will read either .bof or .of but not both
+  Context::FontContext *fontContext = Context::FontContext::instance();
+  fontContext->clear();
+  fontContext->setVars(fontPath, fontExt);
+  _fontPaths.clear();
+  const QDir fontDir(fontPath);
+  const QStringList fontFiles =
+    fontDir.entryList(QStringList{ QStringLiteral("*.bof"), QStringLiteral("*.of") },
+                      QDir::Files,
+                      QDir::Name);
+  for (const QString &file : fontFiles) {
+    const QString filePath = fontDir.absoluteFilePath(file);
+    Models::Font *font = IOManager::FontFileManager::readFont(filePath);
+    if (font == nullptr) {
+      qDebug() << "Assistant: unable to read font file" << filePath;
+      continue;
+    }
+    if (_fontPaths.contains(font->getName())) {
+      delete font;
+      continue;
+    }
+    _fontPaths.insert(font->getName(), filePath);
+    fontContext->addFont(font);
+  }
 
   QStringList list = Context::FontContext::instance()->getFontNames();
 
@@ -1295,6 +1326,12 @@ Assistant::updateListFont(const QString &fontPath)
   ui->listFontView->selectAll();
 
   fontSelectionChanges();
+}
+
+QString
+Assistant::fontFilePath(const QString &fontName) const
+{
+  return _fontPaths.value(fontName);
 }
 
 void
@@ -2285,9 +2322,9 @@ Assistant::generateTxtImages()
 	  RandomDocumentParameters param;
 	  commonParams.copyTo(param);
 	  const QString txtPath = makePath(_txtDirectory, file);
-	  QString fontPath = makePath(_FontDirectory, font);
-	  if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
-	    fontPath += ".of";
+	  const QString fontPath = fontFilePath(font);
+	  if (fontPath.isEmpty())
+	    continue;
 	  param.fontList.append(fontPath);
 	  param.textList.append(txtPath);
 	  param.outputFolderPath = _outputTxtImageDir;
@@ -2318,9 +2355,9 @@ Assistant::generateTxtImages()
 
 	RandomDocumentParameters param;
 	commonParams.copyTo(param);
-	QString fontPath = makePath(_FontDirectory, font);
-	if (! fontPath.endsWith(".of", Qt::CaseInsensitive))
-	  fontPath += ".of";
+	const QString fontPath = fontFilePath(font);
+	if (fontPath.isEmpty())
+	  continue;
 	param.fontList.append(fontPath);
 	param.outputFolderPath = _outputTxtImageDir;
 
@@ -2380,10 +2417,9 @@ Assistant::generateTxtImages()
   }
   const QStringList &fontListChoice = _fontListChoice;
   for (const QString &font : fontListChoice) {
-    QString fontPath = makePath(_FontDirectory, font);
-    if (!fontPath.endsWith(".of", Qt::CaseInsensitive))
-      fontPath += ".of";
-    params.fontList.append(fontPath);
+    const QString fontPath = fontFilePath(font);
+    if (!fontPath.isEmpty())
+      params.fontList.append(fontPath);
   }
 
   RandomDocumentCreator random(_DocController, params);

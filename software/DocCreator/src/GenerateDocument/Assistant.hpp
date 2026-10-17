@@ -4,6 +4,7 @@
 #include <atomic>
 
 #include <QColor>
+#include <QHash>
 #include <QStringList>
 #include <QStringListModel>
 #include <QWizard>
@@ -180,6 +181,11 @@ protected:
 
   void updateListText(const QString &textPath);
   void updateListFont(const QString &fontPath);
+  /*
+    @return the file of the font named @a fontName, loaded by
+    updateListFont(), or an empty string.
+  */
+  QString fontFilePath(const QString &fontName) const;
   void updateListBackground(const QString &pathBack);
   void updateListBackgroundForms(const QString &pathBack);
   void loadInputDegradationImageList();
@@ -749,6 +755,9 @@ private:
 
   QString _PicDirectory;
   QString _FontDirectory;
+  //name of each font of _FontDirectory -> its file, .bof or .of: the name
+  // is the one in the file, it may differ from the file name
+  QHash<QString, QString> _fontPaths;
   QString _txtDirectory;
   QString _outputDegradedImageDir;
   QString _outputTxtImageDir;
