@@ -302,6 +302,24 @@ class TestTheOtherDegradations:
     a directory or a file, and those that take a background image."""
 
     @pytest.mark.parametrize("channels", GOOD_SHAPES)
+    def test_gdd_copy_onto(self, channels):
+        #copyOnto() threw on every 4-channel image
+        img = make_image(channels)
+        if channels == 4:
+            img[..., 3] = np.arange(ROWS, dtype=np.uint8)[:, None] + 100
+        before = img.copy()
+        stain = np.full((20, 20, 3), 255, dtype=np.uint8)
+        for x in range(0, 20, 4):
+            stain[:, x:x + 2] = 0
+        out = dc.gddCopyOnto(img, stain, (COLS // 2, ROWS // 2))
+        assert out.shape == expected_shape(img) and out.dtype == img.dtype
+        assert np.array_equal(img, before)
+        assert not np.array_equal(out, img.reshape(out.shape))
+        if channels == 4:
+            #the alpha channel of img is kept
+            assert np.array_equal(out[..., 3], img[..., 3])
+
+    @pytest.mark.parametrize("channels", GOOD_SHAPES)
     def test_gdd_degradation(self, channels):
         img = make_image(channels)
         before = img.copy()

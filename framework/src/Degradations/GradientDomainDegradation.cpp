@@ -212,7 +212,10 @@ copyOntoAux(const cv::Mat &stainImg,
       }
       else if (dstImg.channels() == 4) {
 	//Keep alpha channel from @a in.
-	cv::Mat from[] = {dstImg2, dstImg2};
+	//B: from[] was {dstImg2, dstImg2}, two 3-channel images: channel 6
+	// (the alpha of dstImg) did not exist, and mixChannels() threw on
+	// every 4-channel image. Cf degradation() below.
+	cv::Mat from[] = {dstImg2, dstImg};
 	cv::Mat dstImg2B(dstImg.rows, dstImg.cols, dstImg.type());
 	const int from_to[] = {0,0, 1,1, 2,2, 6,3};
 	cv::mixChannels(from, 2, &dstImg2B, 1, from_to, 4);
