@@ -54,7 +54,9 @@ namespace dc {
        @param alpha  scaling factor, which controls the intensity of the
        deformation.
        @param sigma  elasticity coefficient: the standard deviation of the
-       Gaussian that smooths the displacements.
+       Gaussian that smooths the displacements. It must be positive, and
+       @a alpha finite: a std::invalid_argument exception is thrown
+       otherwise.
        @param borderMode  how the pixels that come from outside the image
        are filled.
        @param interpolation  resampling method.

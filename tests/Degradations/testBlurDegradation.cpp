@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -328,4 +329,24 @@ TEST_CASE( "Testing the Fourier radius of BlurFilter" )
     REQUIRE( dc::BlurFilter::searchFitFourier(img, 0.f) == 19 );
     REQUIRE( dc::BlurFilter::searchFitFourier(img, 1e6f) == 3 );
   }
+}
+
+/*
+  An even kernel size, documented as invalid for Method::GAUSSIAN and
+  Method::MEDIAN, was not checked: OpenCV threw a cv::Exception.
+*/
+TEST_CASE( "Testing BlurFilter refuses an even kernel size" )
+{
+  const cv::Mat img(40, 50, CV_8UC3, cv::Scalar::all(128));
+  for (const int k : {2, 4, 10}) {
+    INFO( "kernelSize=" << k );
+    REQUIRE_THROWS_AS( dc::BlurFilter::blur(img, dc::BlurFilter::Method::GAUSSIAN, k),
+                       std::invalid_argument );
+    REQUIRE_THROWS_AS( dc::BlurFilter::blur(img, dc::BlurFilter::Method::MEDIAN, k),
+                       std::invalid_argument );
+    //any positive size for the normal blur
+    REQUIRE( dc::BlurFilter::blur(img, dc::BlurFilter::Method::NORMAL, k).size() == img.size() );
+  }
+  REQUIRE( dc::BlurFilter::blur(img, dc::BlurFilter::Method::GAUSSIAN, 3).size() == img.size() );
+  REQUIRE( dc::BlurFilter::blur(img, dc::BlurFilter::Method::MEDIAN, 3).size() == img.size() );
 }

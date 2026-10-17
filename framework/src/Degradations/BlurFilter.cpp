@@ -572,6 +572,11 @@ namespace dc {
       static const char *func = "dc::BlurFilter::blur";
       require8UC134(img, "img", func);
       requireArgument(kernelSize > 0, "kernelSize must be positive", func);
+      //B: documented, but not checked: cv::GaussianBlur() and
+      // cv::medianBlur() then threw a cv::Exception
+      requireArgument(method == Method::NORMAL || kernelSize % 2 == 1,
+		      "kernelSize must be odd for Method::GAUSSIAN and Method::MEDIAN",
+		      func);
 
       //B: (tested with OpenCV 2.4.12)
       //If kernelSize(=kSize) == 1 : the three functions do nothing

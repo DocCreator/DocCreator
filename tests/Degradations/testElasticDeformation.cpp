@@ -1,5 +1,7 @@
 #include <cmath> //std::abs
 #include <iostream>
+#include <limits>
+#include <stdexcept>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -320,3 +322,33 @@ TEST_CASE( "Testing ElasticDeformation" )
   }
 
 }
+
+/*
+  sigma was not checked: 0 made cv::GaussianBlur() throw a cv::Exception.
+*/
+TEST_CASE( "Testing ElasticDeformation refuses a sigma that is not positive" )
+{
+  const cv::Mat img(40, 50, CV_8UC3, cv::Scalar::all(128));
+  const float nan = std::numeric_limits<float>::quiet_NaN();
+  using dc::ElasticDeformation::BorderReplication;
+  using dc::ElasticDeformation::Interpolation;
+  for (const float sigma : {0.f, -0.1f, nan}) {
+    INFO( "sigma=" << sigma );
+    REQUIRE_THROWS_AS( dc::ElasticDeformation::transform(img, 2.f, sigma,
+                         BorderReplication::REPLICATE, Interpolation::BILINEAR, 1u),
+                       std::invalid_argument );
+    REQUIRE_THROWS_AS( dc::ElasticDeformation::transform2(img, 2.f, sigma, 5.f,
+                         BorderReplication::REPLICATE, Interpolation::BILINEAR, 1u),
+                       std::invalid_argument );
+  }
+  REQUIRE_THROWS_AS( dc::ElasticDeformation::transform(img, nan, 0.08f,
+                       BorderReplication::REPLICATE, Interpolation::BILINEAR, 1u),
+                     std::invalid_argument );
+  REQUIRE_THROWS_AS( dc::ElasticDeformation::transform2(img, 2.f, 0.08f, nan,
+                       BorderReplication::REPLICATE, Interpolation::BILINEAR, 1u),
+                     std::invalid_argument );
+  //a small positive sigma is fine
+  REQUIRE( dc::ElasticDeformation::transform(img, 2.f, 0.001f,
+             BorderReplication::REPLICATE, Interpolation::BILINEAR, 1u).size() == img.size() );
+}
+

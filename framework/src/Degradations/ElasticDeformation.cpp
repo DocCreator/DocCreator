@@ -3,6 +3,7 @@
 #include <algorithm> //std::min, std::max
 
 #include <cassert>
+#include <cmath> //std::isfinite
 #include <random>
 
 #include <iostream>//DEBUG
@@ -224,7 +225,13 @@ namespace dc {
 		      cv::Mat &map_x, cv::Mat &map_y,
 		      std::optional<uint32_t> seed)
     {
-      require8UC134(img, "img", "dc::ElasticDeformation::transform");
+      static const char *func = "dc::ElasticDeformation::transform";
+      require8UC134(img, "img", func);
+      //B: sigma was not checked: 0 gave cv::GaussianBlur() neither a kernel
+      // size nor a sigma (cv::Exception), and a NaN went through
+      requireArgument(std::isfinite(alpha), "alpha must be finite", func);
+      requireArgument(std::isfinite(sigma) && sigma > 0,
+		      "sigma must be positive", func);
 
       const float scale = static_cast<float>(std::min(img.cols, img.rows));
       alpha *= scale;
@@ -295,7 +302,12 @@ namespace dc {
 		       cv::Mat &map_x, cv::Mat &map_y, cv::Mat &M,
 		       std::optional<uint32_t> seed)
     {
-      require8UC134(img, "img", "dc::ElasticDeformation::transform2");
+      static const char *func = "dc::ElasticDeformation::transform2";
+      require8UC134(img, "img", func);
+      requireArgument(std::isfinite(alpha), "alpha must be finite", func);
+      requireArgument(std::isfinite(sigma) && sigma > 0,
+		      "sigma must be positive", func);
+      requireArgument(std::isfinite(alphaAffine), "alphaAffine must be finite", func);
 
       const int width = img.cols;
       const int height = img.rows;
