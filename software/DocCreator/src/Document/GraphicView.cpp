@@ -605,11 +605,22 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
 
         for (Doc::DocString *s : p->getStrings()) {
 
-          Doc::DocStyle *style = s->getStyle();
-          assert(style);
-          Models::Font *currentFont =
-            fontContext->getFont(style->getFontName());
-          assert(currentFont);
+          //B: the font of the style was dereferenced with only an assert to
+          // check it: a document using a font that is not loaded crashed on
+          // export, print and every degradation. As on screen (cf
+          // GraphicsTextBlockItem::drawCharacter()), the current font is used
+          // instead, and the string is skipped without any font.
+          const Doc::DocStyle *style = s->getStyle();
+          Models::Font *currentFont = nullptr;
+          if (style != nullptr) {
+            currentFont = fontContext->getFont(style->getFontName());
+          }
+          if (currentFont == nullptr) {
+            currentFont = fontContext->getCurrentFont();
+          }
+          if (currentFont == nullptr) {
+            continue;
+          }
           for (Doc::DocCharacter *c : s->getCharacters()) {
             //const int box_char_x = c->x();
             //const int box_char_y = c->y();
