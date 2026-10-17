@@ -289,3 +289,32 @@ TEST_CASE( "Testing NoiseDegradation" )
   }
 
 }
+
+/*
+  The salt-and-pepper noise was drawn in [0; 254], and white was strictly
+  over its threshold: with amount 1, some pixels were left as they were.
+*/
+TEST_CASE( "Testing addSaltAndPepperNoise with the whole amount" )
+{
+  for (const int type : {CV_8UC1, CV_8UC3, CV_8UC4}) {
+    INFO( "type=" << type );
+    const cv::Mat img(120, 160, type, cv::Scalar::all(128));
+    std::vector<cv::Mat> chans;
+
+    //every pixel black or white, about half each
+    cv::split(dc::NoiseDegradation::addSaltAndPepperNoise(img, 1.f, .5f, 3u), chans);
+    const int numBlack = cv::countNonZero(chans[0] == 0);
+    const int numWhite = cv::countNonZero(chans[0] == 255);
+    REQUIRE( numBlack + numWhite == img.rows * img.cols );
+    REQUIRE( std::abs(numBlack - numWhite) < img.rows * img.cols / 10 );
+
+    //all black, all white
+    cv::split(dc::NoiseDegradation::addSaltAndPepperNoise(img, 1.f, 1.f, 3u), chans);
+    REQUIRE( cv::countNonZero(chans[0] == 0) == img.rows * img.cols );
+    cv::split(dc::NoiseDegradation::addSaltAndPepperNoise(img, 1.f, 0.f, 3u), chans);
+    REQUIRE( cv::countNonZero(chans[0] == 255) == img.rows * img.cols );
+
+    //nothing
+    REQUIRE( checkEqual(dc::NoiseDegradation::addSaltAndPepperNoise(img, 0.f, .5f, 3u), img) );
+  }
+}

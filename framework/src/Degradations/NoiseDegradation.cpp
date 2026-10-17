@@ -2,6 +2,7 @@
 
 #include <algorithm> //std::min, std::max
 #include <cassert>
+#include <cmath> //std::lround
 #include <vector>
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -194,13 +195,19 @@ namespace dc {
 
       RandomEngine rng = makeRandomEngine(seed);
       cv::Mat noise(image.rows, image.cols, CV_8UC1); //image.type());
-      rng.fill(noise, cv::RNG::UNIFORM, 0, 255);
+      //B: the noise was in [0; 254] (the upper bound is excluded), and white
+      // was noise > threshold: with amount 1 and ratio 0.5, the value 128
+      // was neither black (< 128) nor white (> 128), about 1 pixel in 255
+      // left as it was, and with ratio 0 the value 0 was never white. The
+      // noise is now in [0; 255], and amount*ratio and amount*(1-ratio) of
+      // its 256 values give the black and the white pixels.
+      rng.fill(noise, cv::RNG::UNIFORM, 0, 256);
 
-      const int blackThreshold = static_cast<int>(255*amount*ratio + 0.5f);
-      const int whiteThreshold = static_cast<int>(255 - 255*amount*(1.f-ratio) + 0.5f);
+      const long numBlack = std::lround(256 * amount * ratio);
+      const long numWhite = std::lround(256 * amount * (1.f - ratio));
 
-      cv::Mat black = noise < blackThreshold;
-      cv::Mat white = noise > whiteThreshold;
+      cv::Mat black = noise < numBlack;
+      cv::Mat white = noise >= 256 - numWhite;
 
       dst = image.clone();
       if (dst.channels() == 4) {
