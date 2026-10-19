@@ -319,8 +319,8 @@ adaptViewSizeToBackgroundSize()
   //Here, we just need the image size. We do not want to load it completely.
 
   const QString backgroundFilename =
-    Context::BackgroundContext::instance()->getPath() +
-    Context::BackgroundContext::instance()->getCurrentBackground();
+    Context::BackgroundContext::instance()->getFilePath(
+      Context::BackgroundContext::instance()->getCurrentBackground());
   const QImageReader rdr(backgroundFilename);
   const int w = rdr.size().width();
   const int h = rdr.size().height();

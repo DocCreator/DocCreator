@@ -17,7 +17,8 @@ signals:
   void backgroundChanged();
 
 public slots:
-  void changeBackGroundImage(const QImage &image);
+  //return false if the image could not be written
+  bool changeBackGroundImage(const QImage &image);
 };
 
 #endif // BACKGROUNDCHANGER_HPP

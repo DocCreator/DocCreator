@@ -518,9 +518,8 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
   //        }
   /**NEW code for DIBCO*/
 
-  const QString path =
-    Context::BackgroundContext::instance()->getPath() +
-    Context::BackgroundContext::instance()->getCurrentBackground();
+  const QString path = Context::BackgroundContext::instance()->getFilePath(
+    Context::BackgroundContext::instance()->getCurrentBackground());
 
   //QString m_cachedBgImagePath;
   //QImage m_cachedBgImage;
@@ -767,8 +766,8 @@ GraphicView::addPage(Doc::Page *p)
     Context::BackgroundContext::instance()->setCurrentBackground(
       p->getBackgroundFileName());
   }
-  const QString bgPath = Context::BackgroundContext::instance()->getPath() +
-                         p->getBackgroundFileName();
+  const QString bgPath = Context::BackgroundContext::instance()->getFilePath(
+    p->getBackgroundFileName());
   //B: the size of the configuration, not the one of the document
   int w =
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigPageSizeX)

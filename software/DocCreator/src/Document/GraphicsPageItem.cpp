@@ -162,7 +162,7 @@ GraphicsPageItem::draw(bool complete)
       QString bgFileName =
         Context::BackgroundContext::instance()->getCurrentBackground();
       QString bgpath =
-        Context::BackgroundContext::instance()->getPath() + bgFileName;
+        Context::BackgroundContext::instance()->getFilePath(bgFileName);
       int w = controller->getPageWidth();
       int h = controller->getPageHeight();
 

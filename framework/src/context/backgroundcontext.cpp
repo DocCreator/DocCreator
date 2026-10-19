@@ -48,6 +48,12 @@ BackgroundContext::getPath() const
   return _path;
 }
 
+QString
+BackgroundContext::getFilePath(const QString &background) const
+{
+  return QDir(_path).filePath(background); //background itself if absolute
+}
+
 bool
 BackgroundContext::changed() const
 {

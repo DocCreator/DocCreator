@@ -979,9 +979,8 @@ DocCreator::applyBleedThrough()
   BleedThroughParametersDialog dialog(this);
 
   //B:TODO: we need a function 'QImage getBackground()" somewhere !
-  const QString path = Context::BackgroundContext::instance()->getPath();
-  const QString filename =
-    path + Context::BackgroundContext::instance()->getCurrentBackground();
+  const QString filename = Context::BackgroundContext::instance()->getFilePath(
+    Context::BackgroundContext::instance()->getCurrentBackground());
   QImage background(filename);
 
   dialog.setRectoImage(background);

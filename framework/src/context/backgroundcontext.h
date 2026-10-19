@@ -23,6 +23,9 @@ public:
 
   QString getCurrentBackground() const;
   QString getPath() const;
+  //file of the background @a background: in getPath(), unless it is an
+  // absolute path (a background made by the application, cf BackGroundChanger)
+  QString getFilePath(const QString &background) const;
   bool changed() const;
   void setChanged(bool changed);
   void setCurrentBackground(const QString &backgroundName);
