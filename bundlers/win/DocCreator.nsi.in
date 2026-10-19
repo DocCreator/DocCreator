@@ -1,17 +1,47 @@
 ﻿Unicode true
 
 !define PRODUCT_NAME "DocCreator"
+;The version can be given to makensis (/DPRODUCT_VERSION=x.y.z), to make
+;an installer of another version from the same files: the continuous
+;integration does, to test an upgrade and an installation side by side.
+!ifndef PRODUCT_VERSION
 !define PRODUCT_VERSION "@DocCreatorVersion@"
+!endif
 !define PRODUCT_PUBLISHER "LaBRI"
 !define PRODUCT_WEB_SITE "http://doc-creator.labri.fr/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\DocCreator.exe"
-!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+;B: the folder was versioned (DocCreator-1.2) but the Uninstall and App
+; Paths keys were not: installing another version orphaned the first one,
+; whose uninstaller later removed the keys and the shortcut of the other.
+; Each version now has its own Uninstall key, shortcuts and Start menu
+; folder, and is listed under PRODUCT_INSTALLS_KEY, with its folder. The
+; installer asks whether to replace the versions already installed
+; (upgrade, the default) or to install side by side.
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}-${PRODUCT_VERSION}"
+;the key of the versions installed before each version had its own
+!define PRODUCT_LEGACY_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
+!define PRODUCT_REGKEY "Software\DocCreator"
+!define PRODUCT_INSTALLS_KEY "Software\DocCreator\Installs"
+!define PRODUCT_SHORTCUT "${PRODUCT_NAME} ${PRODUCT_VERSION}.lnk"
 
-!include "MUI.nsh"
+!include "MUI2.nsh"
+!include "nsDialogs.nsh"
+!include "LogicLib.nsh"
+!include "FileFunc.nsh"
 !include "x64.nsh"
 
 Var StartMenuFolder
+;the versions installed before: "version|folder" lines, the same for the
+;user, and their number; the folder of this version if it is installed
+Var PreviousInstalls
+Var PreviousDisplay
+Var PreviousCount
+Var SameVersionDir
+;1: replace the versions installed (upgrade), 0: side by side
+Var Upgrade
+Var UpgradeRadio
+Var SideBySideRadio
 
 !define MUI_ABORTWARNING
 !define MUI_ICON "@PROJECT_SOURCE_DIR@\software\DocCreator\adoc.ico"
@@ -25,18 +55,23 @@ Var StartMenuFolder
 ;Start Menu Folder Page Configuration
 ;HKLM, as the shortcuts are made for all users
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\DocCreator"
-!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "DocCreator-@DocCreatorVersion@"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "${PRODUCT_REGKEY}"
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "DocCreator-${PRODUCT_VERSION}"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "@PROJECT_SOURCE_DIR@\software\DocCreator\license.txt"
+Page custom PreviousInstallsPage PreviousInstallsPageLeave
 !insertmacro MUI_PAGE_DIRECTORY
 
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_RUN "$INSTDIR\programs\DocCreator.exe"
+;B: MUI_FINISHPAGE_RUN started DocCreator from the installer, as
+; administrator: it is started by the shell of the user instead
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_FUNCTION RunDocCreator
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -50,15 +85,71 @@ LangString UninstConfirm ${LANG_ENGLISH} "Are you sure you want to completely re
 LangString UninstConfirm ${LANG_FRENCH} "Êtes-vous certain de vouloir désinstaller totalement $(^Name) et tous ses composants ?"
 LangString UninstSuccess ${LANG_ENGLISH} "$(^Name) was successfully removed from your computer."
 LangString UninstSuccess ${LANG_FRENCH} "$(^Name) a été désinstallé avec succès de votre ordinateur."
+LangString PreviousTitle ${LANG_ENGLISH} "Previous versions"
+LangString PreviousTitle ${LANG_FRENCH} "Versions précédentes"
+LangString PreviousSubtitle ${LANG_ENGLISH} "DocCreator is already installed on this computer."
+LangString PreviousSubtitle ${LANG_FRENCH} "DocCreator est déjà installé sur cet ordinateur."
+LangString PreviousText ${LANG_ENGLISH} "Installed:"
+LangString PreviousText ${LANG_FRENCH} "Installé :"
+LangString UpgradeChoice ${LANG_ENGLISH} "Upgrade: replace the installed version(s) with ${PRODUCT_VERSION}"
+LangString UpgradeChoice ${LANG_FRENCH} "Mettre à jour : remplacer la ou les versions installées par la ${PRODUCT_VERSION}"
+LangString SideBySideChoice ${LANG_ENGLISH} "Install ${PRODUCT_VERSION} side by side, and keep the installed version(s)"
+LangString SideBySideChoice ${LANG_FRENCH} "Installer la ${PRODUCT_VERSION} à côté, et garder la ou les versions installées"
+LangString UninstallPreviousFailed ${LANG_ENGLISH} "The previous version in $0 could not be uninstalled."
+LangString UninstallPreviousFailed ${LANG_FRENCH} "La version précédente dans $0 n'a pas pu être désinstallée."
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "DocCreator-@DocCreatorVersion@_setup.exe"
-;DocCreator is a 64-bit program
-InstallDir "$PROGRAMFILES64\DocCreator-@DocCreatorVersion@"
-InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+OutFile "DocCreator-${PRODUCT_VERSION}_setup.exe"
+;DocCreator is a 64-bit program. The folder is set in .onInit, after the
+;64-bit view of the registry is chosen.
+;B: InstallDirRegKey read the App Paths key before .onInit, thus in the
+; 32-bit view, where it is not.
+InstallDir "$PROGRAMFILES64\DocCreator"
 RequestExecutionLevel admin
 ShowInstDetails show
 ShowUnInstDetails show
+
+
+;Add "version|folder" to $PreviousInstalls, if the folder has an uninstaller
+;$R8: version, $R9: folder
+Function AddPreviousInstall
+  ${IfNot} ${FileExists} "$R9\uninst.exe"
+    Return
+  ${EndIf}
+  ;this version again: it is installed again in its folder
+  ${If} $R8 == "${PRODUCT_VERSION}"
+    StrCpy $SameVersionDir $R9
+    Return
+  ${EndIf}
+  StrCpy $PreviousInstalls "$PreviousInstalls$R8|$R9$\n"
+  StrCpy $PreviousDisplay "$PreviousDisplay$R8 ($R9)$\r$\n"
+  IntOp $PreviousCount $PreviousCount + 1
+FunctionEnd
+
+;The versions installed: those listed under PRODUCT_INSTALLS_KEY, and the
+;one installed before the versions had their own keys
+Function FindPreviousInstalls
+  StrCpy $PreviousInstalls ""
+  StrCpy $PreviousDisplay ""
+  StrCpy $PreviousCount 0
+  StrCpy $SameVersionDir ""
+  StrCpy $0 0
+  ${Do}
+    EnumRegValue $R8 HKLM "${PRODUCT_INSTALLS_KEY}" $0
+    ${If} $R8 == ""
+      ${ExitDo}
+    ${EndIf}
+    ReadRegStr $R9 HKLM "${PRODUCT_INSTALLS_KEY}" $R8
+    Call AddPreviousInstall
+    IntOp $0 $0 + 1
+  ${Loop}
+  ReadRegStr $R9 HKLM "${PRODUCT_LEGACY_UNINST_KEY}" "UninstallString"
+  ${If} $R9 != ""
+    ${GetParent} $R9 $R9
+    ReadRegStr $R8 HKLM "${PRODUCT_LEGACY_UNINST_KEY}" "DisplayVersion"
+    Call AddPreviousInstall
+  ${EndIf}
+FunctionEnd
 
 Function .onInit
   ${IfNot} ${RunningX64}
@@ -71,14 +162,127 @@ Function .onInit
   SetRegView 64
   SetShellVarContext all
   !insertmacro MUI_LANGDLL_DISPLAY
+
+  Call FindPreviousInstalls
+  ;upgrade by default, also in silent mode; /SIDEBYSIDE keeps the versions
+  ;installed
+  StrCpy $Upgrade 1
+  ${GetParameters} $0
+  ClearErrors
+  ${GetOptions} $0 "/SIDEBYSIDE" $1
+  ${IfNot} ${Errors}
+    StrCpy $Upgrade 0
+  ${EndIf}
+  Call SetDefaultInstallDir
+FunctionEnd
+
+;$PROGRAMFILES64\DocCreator for an upgrade, a folder of this version side
+;by side, and the folder of this version if it is already installed
+Function SetDefaultInstallDir
+  ${If} $SameVersionDir != ""
+    StrCpy $INSTDIR $SameVersionDir
+  ${ElseIf} $Upgrade == 1
+    StrCpy $INSTDIR "$PROGRAMFILES64\DocCreator"
+  ${Else}
+    StrCpy $INSTDIR "$PROGRAMFILES64\DocCreator-${PRODUCT_VERSION}"
+  ${EndIf}
+FunctionEnd
+
+Function PreviousInstallsPage
+  ${If} $PreviousCount == 0
+    Abort
+  ${EndIf}
+  !insertmacro MUI_HEADER_TEXT "$(PreviousTitle)" "$(PreviousSubtitle)"
+  nsDialogs::Create 1018
+  Pop $0
+  ${If} $0 == error
+    Abort
+  ${EndIf}
+  ${NSD_CreateLabel} 0 0 100% 12u "$(PreviousText)"
+  Pop $0
+  ${NSD_CreateLabel} 10u 14u 100% 40u "$PreviousDisplay"
+  Pop $0
+  ${NSD_CreateRadioButton} 0 60u 100% 12u "$(UpgradeChoice)"
+  Pop $UpgradeRadio
+  ${NSD_CreateRadioButton} 0 76u 100% 12u "$(SideBySideChoice)"
+  Pop $SideBySideRadio
+  ${If} $Upgrade == 1
+    ${NSD_Check} $UpgradeRadio
+  ${Else}
+    ${NSD_Check} $SideBySideRadio
+  ${EndIf}
+  nsDialogs::Show
+FunctionEnd
+
+Function PreviousInstallsPageLeave
+  ${NSD_GetState} $UpgradeRadio $0
+  ${If} $0 == ${BST_CHECKED}
+    StrCpy $Upgrade 1
+  ${Else}
+    StrCpy $Upgrade 0
+  ${EndIf}
+  Call SetDefaultInstallDir
+FunctionEnd
+
+;Uninstall, silently, every version in $PreviousInstalls
+Function UninstallPreviousInstalls
+  StrCpy $1 $PreviousInstalls
+  ${Do}
+    ${If} $1 == ""
+      ${ExitDo}
+    ${EndIf}
+    ;the first line: "version|folder"
+    StrCpy $2 0
+    ${Do}
+      StrCpy $3 $1 1 $2
+      ${If} $3 == "$\n"
+      ${OrIf} $3 == ""
+        ${ExitDo}
+      ${EndIf}
+      IntOp $2 $2 + 1
+    ${Loop}
+    StrCpy $4 $1 $2
+    IntOp $2 $2 + 1
+    StrCpy $1 $1 "" $2
+    ;the folder: after the "|"
+    StrCpy $5 0
+    ${Do}
+      StrCpy $3 $4 1 $5
+      ${If} $3 == "|"
+      ${OrIf} $3 == ""
+        ${ExitDo}
+      ${EndIf}
+      IntOp $5 $5 + 1
+    ${Loop}
+    IntOp $5 $5 + 1
+    StrCpy $0 $4 "" $5
+    DetailPrint "Uninstalling the version in $0"
+    ;_?= : the uninstaller runs from its folder, and is waited for; it then
+    ;does not remove itself, nor its folder
+    ExecWait '"$0\uninst.exe" /S _?=$0' $6
+    ${If} $6 != 0
+      MessageBox MB_ICONEXCLAMATION|MB_OK "$(UninstallPreviousFailed)" /SD IDOK
+    ${Else}
+      Delete "$0\uninst.exe"
+      RMDir "$0"
+    ${EndIf}
+  ${Loop}
+FunctionEnd
+
+Function RunDocCreator
+  Exec '"$WINDIR\explorer.exe" "$INSTDIR\programs\DocCreator.exe"'
 FunctionEnd
 
 Section "SectionPrincipale" SEC01
+  ${If} $Upgrade == 1
+    Call UninstallPreviousInstalls
+  ${EndIf}
+
   SetOutPath $INSTDIR
   File /r "@CMAKE_INSTALL_PREFIX@\programs"
   File /r "@CMAKE_INSTALL_PREFIX@\share"
 
-  CreateShortCut "$DESKTOP\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
+  CreateShortCut "$DESKTOP\${PRODUCT_SHORTCUT}" "$INSTDIR\programs\DocCreator.exe"
 SectionEnd
 
 Section -AdditionalIcons
@@ -87,7 +291,7 @@ Section -AdditionalIcons
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\DocCreator.lnk" "$INSTDIR\programs\DocCreator.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${PRODUCT_SHORTCUT}" "$INSTDIR\programs\DocCreator.exe"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
     CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninst.exe"
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -96,13 +300,24 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR"
+  WriteRegStr HKLM "${PRODUCT_INSTALLS_KEY}" "${PRODUCT_VERSION}" "$INSTDIR"
+  ;B: App Paths had the folder, not the program. There is one for all the
+  ; versions: the last one installed.
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\programs\DocCreator.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" "$INSTDIR\programs"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" '"$INSTDIR\uninst.exe"'
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\uninst.exe" /S'
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\programs\DocCreator.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "NoModify" 1
+  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "NoRepair" 1
+  ;in KB
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" $0
 SectionEnd
 
 
@@ -120,12 +335,12 @@ Function un.onInit
 FunctionEnd
 
 Section Uninstall
-  Delete "$DESKTOP\DocCreator.lnk"
+  Delete "$DESKTOP\${PRODUCT_SHORTCUT}"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\Website.lnk"
-  Delete "$SMPROGRAMS\$StartMenuFolder\DocCreator.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\${PRODUCT_SHORTCUT}"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
   ;only what was installed: $INSTDIR may be a directory chosen by the
@@ -142,8 +357,23 @@ Section Uninstall
   RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  DeleteRegValue HKLM "Software\DocCreator" "DocCreator-@DocCreatorVersion@"
-  DeleteRegKey /ifempty HKLM "Software\DocCreator"
+  DeleteRegValue HKLM "${PRODUCT_INSTALLS_KEY}" "${PRODUCT_VERSION}"
+  DeleteRegValue HKLM "${PRODUCT_REGKEY}" "DocCreator-${PRODUCT_VERSION}"
+
+  ;App Paths: removed if it is this version's, and given to a version that
+  ;remains, if any
+  ReadRegStr $0 HKLM "${PRODUCT_DIR_REGKEY}" ""
+  ${If} $0 == "$INSTDIR\programs\DocCreator.exe"
+    DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+    EnumRegValue $1 HKLM "${PRODUCT_INSTALLS_KEY}" 0
+    ${If} $1 != ""
+      ReadRegStr $2 HKLM "${PRODUCT_INSTALLS_KEY}" $1
+      WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$2\programs\DocCreator.exe"
+      WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" "$2\programs"
+    ${EndIf}
+  ${EndIf}
+
+  DeleteRegKey /ifempty HKLM "${PRODUCT_INSTALLS_KEY}"
+  DeleteRegKey /ifempty HKLM "${PRODUCT_REGKEY}"
   SetAutoClose true
 SectionEnd
