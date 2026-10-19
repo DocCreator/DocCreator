@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 
 # Set version variables to empty if not specified in project() call.
 IF(POLICY CMP0048)
@@ -485,9 +485,10 @@ SET( PROGNAME DocCreator )
 
 IF( APPLE )
   SET( MACOSX_BUNDLE_ICON_FILE adoc.icns )
-  SET( MACOSX_BUNDLE_SHORT_VERSION_STRING 0.2 )
-  SET( MACOSX_BUNDLE_VERSION 0.7-beta2 )
-  SET( MACOSX_BUNDLE_LONG_VERSION_STRING Version 0.2 )
+  #B: were 0.2 and 0.7-beta2: the version of the project
+  SET( MACOSX_BUNDLE_SHORT_VERSION_STRING ${DocCreator_VERSION} )
+  SET( MACOSX_BUNDLE_VERSION ${DocCreator_VERSION} )
+  SET( MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${DocCreator_VERSION}" )
   #SET( CMAKE_OSX_ARCHITECTURES i686 ) #Comment out if not universal binary
 ENDIF( APPLE )
 

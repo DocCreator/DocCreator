@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.16)
+#B: was 3.16, while the python wrapper needs 3.18 (Development.Module of
+# FindPython). Qt 6 checks the version it needs itself (3.25 for 6.12).
+cmake_minimum_required(VERSION 3.18)
 
 # CMP0048 (project() manages the VERSION variables), CMP0054 (if() only
 # interprets unquoted arguments as variables) and CMP0063 (the visibility
@@ -39,9 +41,12 @@ SET(CMAKE_MACOSX_RPATH 1)
 
 
 
-SET(DocCreatorMajorVersion 1)
-SET(DocCreatorMinorVersion 2)
-SET(DocCreatorVersion "${DocCreatorMajorVersion}.${DocCreatorMinorVersion}")
+#B: the version was written a second time here (1.2, while the project
+# is 1.2.0), and in other places: 1.2.1 would have made the installer of
+# 1.2. Everything takes the version of the project.
+SET(DocCreatorMajorVersion ${PROJECT_VERSION_MAJOR})
+SET(DocCreatorMinorVersion ${PROJECT_VERSION_MINOR})
+SET(DocCreatorVersion "${PROJECT_VERSION}")
 
 
 ####################################################################
@@ -102,11 +107,13 @@ ENDIF(APPLE)
 SET(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 
-IF(CMAKE_BUILD_TOOL MATCHES "(msdev|devenv|nmake)")
-  # Force to always compile with W3
-  SET(WARNING_FLAGS "/W3")
-ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" 
-    OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" 
+#B: MSVC was recognized by the build tool (msdev, devenv or nmake), which
+# is neither Ninja nor MSBuild: with CMP0092, CMake no longer adds /W3
+# either, and MSVC compiled at /W1. AppleClang was not recognized at all.
+IF(MSVC)
+  SET(WARNING_FLAGS /W4)
+ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
+    OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
     OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   SET(WARNING_FLAGS -Wall -Wextra)
 ENDIF()
@@ -205,7 +212,21 @@ IF(NOT BUILD_ONLY_DEGRADATIONS)
   set(CMAKE_AUTOMOC ON)
   set(CMAKE_AUTORCC ON)
   set(CMAKE_AUTOUIC ON)
-  FIND_PACKAGE(Qt6 COMPONENTS Widgets Xml PrintSupport OpenGL OpenGLWidgets Network Concurrent) #XmlPatterns
+  #B: Qt 6 was looked for with all the components, but not REQUIRED: when
+  # one of them was missing, Qt 5 was silently used instead. Qt 6 is used
+  # when it is there, and must then be complete. DOCCREATOR_QT_VERSION=5
+  # chooses Qt 5 even when Qt 6 is installed.
+  SET(DOCCREATOR_QT_VERSION "" CACHE STRING "Major version of Qt to use: 6, 5, or empty for Qt 6 if found, else Qt 5")
+  IF(NOT DOCCREATOR_QT_VERSION STREQUAL "5")
+    IF(DOCCREATOR_QT_VERSION STREQUAL "6")
+      FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core)
+    ELSE()
+      FIND_PACKAGE(Qt6 QUIET COMPONENTS Core)
+    ENDIF()
+  ENDIF()
+  IF(Qt6_FOUND)
+    FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Widgets Xml PrintSupport OpenGL OpenGLWidgets Network Concurrent) #XmlPatterns
+  ENDIF()
   if (NOT Qt6_FOUND)
     FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Xml XmlPatterns PrintSupport OpenGL Network Concurrent)
     SET(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Xml Qt5::XmlPatterns Qt5::PrintSupport Qt5::OpenGL Qt5::Network Qt5::Concurrent)
