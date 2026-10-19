@@ -349,16 +349,31 @@ GraphicsTextBlockItem::drawCharacter(Doc::DocCharacter *c,
   if (font == nullptr) {
     font = Context::FontContext::instance()->getCurrentFont();
   }
-  assert(font != nullptr);
-
-  const Models::Character *character = font->getCharacter(cDisplay);
-  if (character == nullptr) { //B: does it happen ?
+  /*
+    B: a character the font does not hold (after a change of font, or with
+    no font at all) returned with no item, while the caller advances the
+    offset all the same: the next item was inserted past the end of
+    _charItems (out of range). An empty item keeps the place instead. A
+    version (id) the character does not hold is replaced by its first one,
+    as when the document is rendered to an image.
+  */
+  const Models::Character *character =
+    (font != nullptr) ? font->getCharacter(cDisplay) : nullptr;
+  if (character == nullptr || !character->hasCharacterData()) {
+    auto placeholder = new Models::Character();
+    placeholder->setCharacterValue(cDisplay);
+    QImage empty(1, 1, QImage::Format_ARGB32);
+    empty.fill(Qt::transparent);
+    placeholder->add(new Models::CharacterData(empty, 0));
+    const bool mustDeleteCharacter = true;
+    auto item =
+      new GraphicsCharacterItem(placeholder, 0, offset, mustDeleteCharacter);
+    item->setPos(_cursorRightLine, _cursorBaseLine);
+    addCharacterItem(item);
     return;
   }
-  const Models::CharacterData *data = character->getCharacterData(c->getId());
-  if (data == nullptr) {
-    return;
-  }
+  const Models::CharacterData *data =
+    &character->getCharacterDataOrFirst(c->getId());
   const QImage characterImage = data->getImage();
 
   //assert(character != nullptr);

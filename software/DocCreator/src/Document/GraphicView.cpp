@@ -1,5 +1,6 @@
 #include "GraphicView.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 
@@ -537,7 +538,13 @@ GraphicView::getDocumentImage(DocRenderFlags flags)
 
     QImage bg(
       path); //B:TODO:OPTIM:ugly: how many times do we save/load the background image(s) from file ????!!!!!
-    assert(!bg.isNull());
+    //B: a background that cannot be read (deleted, moved) was guarded by an
+    // assert only: the image of the document was null. A white page is
+    // taken instead.
+    if (bg.isNull()) {
+      bg = QImage(std::max(w, 1), std::max(h, 1), QImage::Format_ARGB32);
+      bg.fill(Qt::white);
+    }
 
 #ifdef TIMING
     auto t1 = std::chrono::steady_clock::now();

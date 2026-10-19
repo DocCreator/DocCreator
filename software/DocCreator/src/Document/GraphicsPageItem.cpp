@@ -1,5 +1,6 @@
 #include "GraphicsPageItem.hpp"
 
+#include <algorithm>
 #include <cassert>
 
 #include <QGraphicsScene>
@@ -64,6 +65,13 @@ void
 GraphicsPageItem::setBackground(const QString &filepath, int w, int h)
 {
   QPixmap fond(filepath);
+  //B: a background that cannot be read (deleted, moved) gave a null pixmap:
+  // the page had no size, and the image of the document was null. A white
+  // page is taken instead.
+  if (fond.isNull()) {
+    fond = QPixmap(std::max(w, 1), std::max(h, 1));
+    fond.fill(Qt::white);
+  }
   fond = fond.scaled(QSize(w, h));
   setPixmap(fond);
 }
