@@ -385,3 +385,17 @@ TEST_CASE( "Document: destroying a string keeps the current style" )
   REQUIRE( document.getStyle() == style );
 }
 
+/*
+  A text block added as a Block* went to the other blocks, and was not
+  among the text blocks of the page.
+*/
+TEST_CASE( "Page: a block given as a Block* goes to the list of its type" )
+{
+  Doc::Document document;
+  Doc::Block *text = new Doc::DocTextBlock(&document);
+  document.add(text);
+  Doc::Page *page = document.currentPage();
+  REQUIRE( page != nullptr );
+  REQUIRE( page->getTextBlocks().size() == 1 );
+  REQUIRE( page->getTextBlocks().first() == text );
+}

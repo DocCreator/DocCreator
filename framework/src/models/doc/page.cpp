@@ -87,6 +87,26 @@ DocStyle* Page::getStyle()
 
 void Page::add(Block* e)
 {
+  //B: a text or image block given as a Block* (cf Document::add(Block*))
+  // was kept with the other blocks: it was not in getTextBlocks() or
+  // getImageBlocks(), and was neither drawn nor saved. It goes to its list.
+  if (auto *text = dynamic_cast<DocTextBlock*>(e)) {
+    add(text);
+    return;
+  }
+  if (auto *image = dynamic_cast<DocImageBlock*>(e)) {
+    add(image);
+    return;
+  }
+  if (auto *test = dynamic_cast<DocTestBlock*>(e)) {
+    add(test);
+    return;
+  }
+  if (auto *component = dynamic_cast<DocComponentBlock*>(e)) {
+    add(component);
+    return;
+  }
+
   if (_otherBlocks.contains(e)) {
         return;
   }
