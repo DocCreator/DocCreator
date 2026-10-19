@@ -95,6 +95,10 @@ BlurFilterDialog::BlurFilterDialog(QWidget *parent)
   , _blurredLabel(nullptr)
 {
   ui->setupUi(this);
+  //B: the labels were set in setupGUIImages() only: choosing a function, an
+  // area or the area mode before an image was given dereferenced them
+  _originalLabel = ui->originalLabel;
+  _blurredLabel = ui->blurredLabel;
   _kernelSize = ui->kernelSizeSlider->value();
   _coeff = ui->coeffSlider->value();
   _vertical = ui->verticalSlider->value();
@@ -382,6 +386,12 @@ BlurFilterDialog::changePatterns()
 void
 BlurFilterDialog::updatePatterns()
 {
+  //B: choosing a function before an image was given made a pattern of an
+  // empty image: OpenCV threw, and the application ended
+  if (_originalImg.isNull()) {
+    return;
+  }
+
   _patternImg = dc::BlurFilter::makePattern(_originalImg,
 					    _function, _area,
 					    _coeff, _vertical, _horizontal, _radius);
@@ -472,8 +482,18 @@ BlurFilterDialog::setupGUIImages()
 void
 BlurFilterDialog::updateBlurredImage()
 {
+  if (_originalImg.isNull()) {
+    return;
+  }
+
   if (_mode == dc::BlurFilter::Mode::COMPLETE) {
     _blurredImg = dc::BlurFilter::blur(_originalImg, _method, _kernelSize);
+  }
+  else if (_patternImg.isNull()) {
+    //B: the first pattern is read from the blur images folder: without it,
+    // the area mode blurred with an empty pattern, OpenCV threw, and the
+    // application ended. The image is left as is.
+    _blurredImg = _originalImg;
   }
   else {
     _blurredImg = dc::BlurFilter::applyPattern(_originalImg, _patternImg, _method, _kernelSize);
@@ -828,14 +848,22 @@ BlurFilterDialog::updateSliders()
     ui->radiusSlider->setVisible(false);
   }
 
-  ui->coeffSlider->setValue(_coeff);
-  ui->coeffSlider->setSliderPosition(_coeff);
+  //B: the coefficient was given as is to the integer slider: the 0.001 of
+  // the parabola became 0, and coeffChanged() then set _coeff to 0. The
+  // slider holds thousandths for the parabola, cf coeffChanged().
+  const int coeffValue = (_function == dc::BlurFilter::Function::PARABOLA)
+                           ? qRound(_coeff * 1000.f)
+                           : qRound(_coeff);
+  ui->coeffSlider->setValue(coeffValue);
+  ui->coeffSlider->setSliderPosition(coeffValue);
   ui->verticalSlider->setValue(_vertical);
   ui->verticalSlider->setSliderPosition(_vertical);
   ui->horizontalSlider->setValue(_horizontal);
   ui->horizontalSlider->setSliderPosition(_horizontal);
 
-  updateBlurredImage();
+  if (!_originalImgSmall.isNull()) { //B: no blur without an image
+    updateBlurredImage();
+  }
   this->adjustSize();
 }
 
