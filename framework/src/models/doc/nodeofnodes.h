@@ -106,11 +106,19 @@ namespace Doc
             return;
         }
 
+        //B: next was only checked by an assert: it is null when the index
+        // is out of [0; count], which the tests above do not catch. The
+        // element handed over is then deleted, as for any refusal (cf
+        // Node::insertElement()).
+        if (next == nullptr) {
+            delete element;
+            return;
+        }
+
         //else, we have to split the current element;
         this->_isSplitting = true;
 
         const int currentOffset = this->offset();
-	assert(next);
         const int offsetOfNext = next->offset();
 
         QList<T*> list = next->splitAtPosition(next->offset());
