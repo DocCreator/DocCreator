@@ -18,11 +18,13 @@ DocumentPropertiesView::DocumentPropertiesView(DocumentController *controller,
   assert(_controller);
 
   _intValidator = new QIntValidator(this);
+  //B: a page of at least one pixel
+  auto pageSizeValidator = new QIntValidator(1, 1000000, this);
 
   QLabel *pageWidthL = new QLabel(tr("&Page width:"), this);
   _pageWidth =
     new QLineEdit(QString::number(_controller->getPageWidth()), this);
-  _pageWidth->setValidator(_intValidator);
+  _pageWidth->setValidator(pageSizeValidator);
   pageWidthL->setBuddy(_pageWidth);
   connect(_pageWidth, SIGNAL(returnPressed()), this, SLOT(changePageWidth()));
   connect(_pageWidth, SIGNAL(editingFinished()), this, SLOT(changePageWidth()));
@@ -30,7 +32,7 @@ DocumentPropertiesView::DocumentPropertiesView(DocumentController *controller,
   QLabel *pageHeightL = new QLabel(tr("&Page height:"), this);
   _pageHeight =
     new QLineEdit(QString::number(_controller->getPageHeight()), this);
-  _pageHeight->setValidator(_intValidator);
+  _pageHeight->setValidator(pageSizeValidator);
   pageHeightL->setBuddy(_pageHeight);
   connect(_pageHeight, SIGNAL(returnPressed()), this, SLOT(changePageHeight()));
   connect(
@@ -173,15 +175,22 @@ DocumentPropertiesView::getController()
 void
 DocumentPropertiesView::changePageWidth()
 {
-  QString pageWidthStr = _pageWidth->text();
-  _controller->setPageWidth(pageWidthStr.toInt());
+  //B: the fields were filled before a document existed, with -1, and a
+  // focus out (editingFinished() with Qt 5) set the width to -1. Only a
+  // positive size that changes is set.
+  const int pageWidth = _pageWidth->text().toInt();
+  if (pageWidth > 0 && pageWidth != _controller->getPageWidth()) {
+    _controller->setPageWidth(pageWidth);
+  }
 }
 
 void
 DocumentPropertiesView::changePageHeight()
 {
-  QString pageHeightStr = _pageHeight->text();
-  _controller->setPageHeight(pageHeightStr.toInt());
+  const int pageHeight = _pageHeight->text().toInt(); //B: cf changePageWidth()
+  if (pageHeight > 0 && pageHeight != _controller->getPageHeight()) {
+    _controller->setPageHeight(pageHeight);
+  }
 }
 
 void
@@ -236,6 +245,9 @@ DocumentPropertiesView::getVisibilityString() const
 void
 DocumentPropertiesView::update()
 {
+  //B: the page size was not updated: the -1 of the construction stayed
+  _pageWidth->setText(QString::number(_controller->getPageWidth()));
+  _pageHeight->setText(QString::number(_controller->getPageHeight()));
   _lineSpacingLineEdit->setText(
     QString::number(_controller->getParagraphLineSpacing()));
   _marginTopLineEdit->setText(
