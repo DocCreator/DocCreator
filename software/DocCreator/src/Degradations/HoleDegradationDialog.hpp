@@ -105,9 +105,15 @@ private:
     
   public :
     
-    Hole(int posX, int posY, int size, const QColor &color, const QImage &pattern) :
+    //B: the type, the side, the page below and the shadow were not kept:
+    // a hole could not be made again, cf removeHole()
+    Hole(int posX, int posY, int size, const QColor &color, const QImage &pattern,
+         dc::HoleDegradation::HoleType type, dc::HoleDegradation::HoleSide side,
+         const QImage &pageBelow, int shadowWidth, float shadowIntensity) :
       _posX(posX), _posY(posY), _width(pattern.width()+ size), _height(pattern.height()+size),
-      _size(size), _color(color), _pattern(pattern)
+      _size(size), _color(color), _pattern(pattern),
+      _type(type), _side(side), _pageBelow(pageBelow),
+      _shadowWidth(shadowWidth), _shadowIntensity(shadowIntensity)
     { }
     
     int getX() const
@@ -145,6 +151,12 @@ private:
       return _pattern;
     }
   
+    dc::HoleDegradation::HoleType getType() const { return _type; }
+    dc::HoleDegradation::HoleSide getSide() const { return _side; }
+    const QImage &getPageBelow() const { return _pageBelow; }
+    int getShadowWidth() const { return _shadowWidth; }
+    float getShadowIntensity() const { return _shadowIntensity; }
+
   private :
     int _posX;
     int _posY;
@@ -153,6 +165,11 @@ private:
     int _size;
     QColor _color;
     QImage _pattern;
+    dc::HoleDegradation::HoleType _type;
+    dc::HoleDegradation::HoleSide _side;
+    QImage _pageBelow;
+    int _shadowWidth;
+    float _shadowIntensity;
   };
 
 private:

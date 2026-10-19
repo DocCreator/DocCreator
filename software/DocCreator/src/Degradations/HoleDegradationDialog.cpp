@@ -99,6 +99,11 @@ HoleDegradationDialog::HoleDegradationDialog(QWidget *parent)
   , _resultLabel(nullptr)
 {
   ui->setupUi(this);
+  //B: the labels were set in setupGUIImages() only, after updateSliders()
+  // in setOriginalImage(): on a page smaller than the pattern, a slider
+  // value was clamped, and its slot drew into the null _resultLabel
+  _originalLabel = ui->originalLabel;
+  _resultLabel = ui->resultLabel;
   _color = QColor(0, 0, 0, 255); //Default color : Black and no transparent
   ui->colorLabel->setStyleSheet(
     QStringLiteral("QLabel { background-color: rgba(0, 0, 0, "
@@ -270,7 +275,8 @@ HoleDegradationDialog::setHole()
     ui->horizontalSlider->setMaximum(_originalImg.width());
     ui->verticalSlider->setMaximum(_originalImg.height());
 
-    _holes.append(Hole(_horizontal, _vertical, _size, _color, _patternImg));
+    _holes.append(Hole(_horizontal, _vertical, _size, _color, _patternImg,
+                       _type, _side, _pageBelow, _width, _intensity));
     // _originalLabel->setPixmap(QPixmap::fromImage(_originalImgSmall));
   }
 }
@@ -421,11 +427,16 @@ HoleDegradationDialog::chooseColor()
 void
 HoleDegradationDialog::choosePageBelow()
 {
+  //B: the dialog started in /DocCreator/Image, the root of the drive on
+  // Windows, and a cancelled dialog still made the hole transparent
   QString path =
     QFileDialog::getOpenFileName(this,
                                  tr("Open File"),
-                                 QStringLiteral("/DocCreator/Image"),
+                                 QString(),
                                  getReadImageFilter());
+  if (path.isEmpty()) {
+    return;
+  }
   ui->belowLineEdit->setText(path); //no tr because no traduction for path
 
   setTransparent();
@@ -562,7 +573,9 @@ HoleDegradationDialog::findBound(dc::HoleDegradation::HoleType type,
           minH = _originalImg.width() - patternImg.height();
           maxH = _originalImg.width() - MARGIN;
           minV = -patternImg.width() + MARGIN;
-          maxV = _originalImg.width() - MARGIN;
+          //B: the width, as for the top and bottom borders: on a portrait
+          // page, the lower part was out of reach
+          maxV = _originalImg.height() - MARGIN;
           break;
       case dc::HoleDegradation::HoleSide::BORDER_BOTTOM:
           minH = -patternImg.width() + MARGIN;
@@ -574,7 +587,7 @@ HoleDegradationDialog::findBound(dc::HoleDegradation::HoleType type,
           minH = -patternImg.height() + MARGIN;
           maxH = 0;
           minV = -patternImg.width() + MARGIN;
-          maxV = _originalImg.width() - MARGIN;
+          maxV = _originalImg.height() - MARGIN; //B: as for BORDER_RIGHT
           break;
       }
       break;
@@ -820,21 +833,27 @@ void
 HoleDegradationDialog::removeHole()
 {
   if (!_holes.isEmpty()) {
-    Hole hole = _holes.last();
     _holes.removeLast();
 
-    cv::Mat tmpMat = Convertor::getCvMat(_originalImg);
-    cv::Mat resultMat = Convertor::getCvMat(_resultImg);
-
-    for (int y = hole.getY(); y < hole.getY() + hole.getHeight(); y++) {
-      for (int x = hole.getX(); x < hole.getX() + hole.getWidth(); x++) {
-        if (y > 0 && y < resultMat.rows && x > 0 && x < resultMat.cols) {
-          resultMat.at<cv::Vec3b>(y, x) = tmpMat.at<cv::Vec3b>(y, x);
-	}
-      }
+    //B: the original pixels were copied into the box of the last hole, in
+    // _resultImg, which holds the hole being previewed too: that one was
+    // made permanent; the other holes overlapping the box were erased, the
+    // alpha channel lost (getCvMat() gives CV_8UC3), and row and column 0
+    // skipped. The holes that remain are now made again, from the original.
+    QImage degraded = _originalImg;
+    for (const Hole &hole : _holes) {
+      degraded = dc::HoleDegradation::addHole(degraded,
+					      hole.getPattern(),
+					      QPoint(hole.getX(), hole.getY()),
+					      hole.getSize(),
+					      hole.getType(),
+					      hole.getSide(),
+					      hole.getColor(),
+					      hole.getPageBelow(),
+					      hole.getShadowWidth(),
+					      hole.getShadowIntensity());
     }
-
-    _degradedImg = Convertor::getQImage(resultMat);
+    _degradedImg = degraded;
 
     updateResultImage();
   }
@@ -940,9 +959,25 @@ HoleDegradationDialog::generateHoles()
     100; //bound between which we will choose the size : the variation of size that the pattern will undergo
 
   QImage pattern;
-  bool contain;
+  bool contain = true;
+
+  //B: rand() % (max - min) divided by zero when a range was empty (a
+  // pattern of exactly the margin, a center pattern of the size of the
+  // page), and the loop below had no end once no place was left for a
+  // hole: the GUI hung. The ranges are now inclusive and may be empty,
+  // and the number of tries is bounded.
+  const auto randomIn = [](int minV, int maxV) {
+    return (maxV <= minV) ? minV : minV + rand() % (maxV - minV + 1);
+  };
+  int nbTries = 0;
 
   do {
+    if (++nbTries > NB_TRY_MAX * NB_TRY_MAX) {
+      QMessageBox::information(this, tr("Random hole"),
+                               tr("No place was found for a new hole."));
+      return;
+    }
+
     const int tmpType = rand() % 3; //random type
 
     if (tmpType == 0) { //Can't cast directly ? (error -fpermissive)
@@ -964,6 +999,9 @@ HoleDegradationDialog::generateHoles()
     hole = rand() % numberOfHole; //Select random hole among these that we count
 
     pattern = QImage(getPath(type, hole));
+    if (pattern.isNull()) {
+      continue;
+    }
 
     if (type == dc::HoleDegradation::HoleType::BORDER
 	|| type == dc::HoleDegradation::HoleType::CORNER) {
@@ -1000,11 +1038,17 @@ HoleDegradationDialog::generateHoles()
 
     findBound(type, minH, maxH,
 	      minV, maxV, side, pattern); //set the right bound
+    //B: a size change of -100 left a pattern smaller than 100 pixels (most
+    // center and corner ones) with no width or height: such a hole was
+    // invisible and overlapped no other one, so the page never got full.
+    // At least half of the pattern is kept.
+    const int minSizeP =
+      std::max(minSize, -std::min(pattern.width(), pattern.height()) / 2);
     int nbRound = 0;
     do {
-      horizontal = rand() % (maxH - minH) + minH;
-      vertical = rand() % (maxV - minV) + minV;
-      size = rand() % (maxSize - minSize) + minSize;
+      horizontal = randomIn(minH, maxH);
+      vertical = randomIn(minV, maxV);
+      size = randomIn(minSizeP, maxSize);
       ++nbRound;
       contain = containsHole(_holes, pattern, horizontal, vertical, size);
     }
@@ -1018,18 +1062,25 @@ HoleDegradationDialog::generateHoles()
   _type = type;
   ui->typeComboBox->setCurrentIndex(static_cast<int>(type));
 
-  _horizontal = horizontal;
-  ui->horizontalSlider->setValue(horizontal);
-  _vertical = vertical;
-  ui->verticalSlider->setValue(vertical);
-  _size = size;
-  ui->sizeSlider->setValue(size);
-
   _pattern = hole;
   updatePatterns();
 
   sideChanged(side);
   //Allow to set new side, update radio button, update result image in same time ans also set constraints
+
+  //B: the position was set before the type, the pattern and the side:
+  // the sliders clamped it to the ranges of the previous hole, and
+  // sideChanged() then moved border and corner holes to the default
+  // position of their side. The holes applied were not where
+  // containsHole() had checked, and overlapped. The ranges are now those
+  // of findBound() above.
+  _size = size;
+  ui->sizeSlider->setValue(size);
+  _horizontal = horizontal;
+  ui->horizontalSlider->setValue(horizontal);
+  _vertical = vertical;
+  ui->verticalSlider->setValue(vertical);
+  updateResultImage();
 
   //update dialog (GUI)
   if (type == dc::HoleDegradation::HoleType::BORDER) {

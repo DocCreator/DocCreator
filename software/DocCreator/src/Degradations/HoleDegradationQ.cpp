@@ -19,6 +19,13 @@ namespace dc {
 	    int width,
 	    float intensity)
     {
+      //B: a pattern that could not be loaded gave an empty matrix, on which
+      // cv::cvtColor() below threw: opening the hole dialog without its
+      // pattern files crashed the application. No hole is made.
+      if (pattern.isNull()) {
+	return imgOriginal;
+      }
+
       const cv::Mat matOriginal = Convertor::getCvMat(imgOriginal);
       cv::Mat matBelow;
       if (!pageBelow.isNull()) {
