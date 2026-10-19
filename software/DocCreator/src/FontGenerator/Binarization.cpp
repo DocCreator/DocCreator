@@ -125,7 +125,7 @@ Binarization::swellFilter(const cv::Mat &src, cv::Mat &dst, int win)
           }
 	}
         if (curr_k > ksh) {
-          dst.at<uchar>(i, j) = 255;
+          dst.at<uchar>(i, j) = 0; //B: was 255, the value it had: a no-op
 	}
       }
     }

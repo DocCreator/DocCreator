@@ -84,14 +84,15 @@ TextInpainting::getDistanceMap(const cv::Mat &img,
       }
 
       // Vertical
+      //B: the loops started at col, not row (cf StructureDetection)
       // left
-      for (int i = col; i >= 0; --i) {
+      for (int i = row; i >= 0; --i) {
         if (img_bin.at<uchar>(i, col) == 0)
           break;
         ++sum_v;
       }
       // right
-      for (int i = col; i < img.rows; ++i) {
+      for (int i = row; i < img.rows; ++i) {
         if (img_bin.at<uchar>(i, col) == 0)
           break;
         ++sum_v;

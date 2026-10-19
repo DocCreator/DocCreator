@@ -59,15 +59,20 @@ StructureDetection::getWordBlocks(const cv::Mat &img_bin)
   tess.SetImage(
     (uchar *)img_bin.data, img_bin.cols, img_bin.rows, 1, img_bin.cols);
 
+  //B: the iterator was never deleted, and a null one (no layout) only
+  // guarded by an assert
   tesseract::PageIterator *iter = tess.AnalyseLayout();
-  assert(iter);
   std::vector<cv::Rect> blocks;
+  if (iter == nullptr) {
+    return blocks;
+  }
   while (iter->Next(tesseract::RIL_WORD)) {
     int left, top, right, bottom;
 
     iter->BoundingBox(tesseract::RIL_WORD, &left, &top, &right, &bottom);
     blocks.emplace_back(cv::Rect(left, top, right - left, bottom - top));
   }
+  delete iter;
 
   return blocks;
 }
