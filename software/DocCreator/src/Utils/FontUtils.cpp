@@ -4,7 +4,9 @@
 #include "models/characterdata.h"
 #include "models/font.h"
 #include <QImage>
+#include <algorithm> //nth_element, sort
 #include <cassert>
+#include <functional> //greater
 #include <vector>
 
 template<typename Func>
