@@ -17,7 +17,9 @@ struct Tmp {
     Tmp(const char * name ) : name(name) {}
 };
 
-Tmp info("return value");
+//B: "return value", while toMat() converts the arguments: a wrong image
+// was reported as "return value is not a numpy array"
+Tmp info("argument");
 
 bool NDArrayConverter::init_numpy() {
     // this has to be in this file, since PyArray_API is defined as static
@@ -29,8 +31,6 @@ bool NDArrayConverter::init_numpy() {
  * The following conversion functions are taken/adapted from OpenCV's cv2.cpp file
  * inside modules/python/src2 folder (OpenCV 3.1.0)
  */
-
-static PyObject* opencv_error = 0;
 
 static int failmsg(const char *fmt, ...)
 {
@@ -77,7 +77,9 @@ try \
 } \
 catch (const cv::Exception &e) \
 { \
-    PyErr_SetString(opencv_error, e.what()); \
+    /* B: this was opencv_error, a null pointer: no exception was set, */ \
+    /* and Python reported a SystemError instead */ \
+    PyErr_SetString(PyExc_RuntimeError, e.what()); \
     return 0; \
 }
 

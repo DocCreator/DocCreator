@@ -8,6 +8,7 @@ version = "@DOCCREATOR_PYTHON_VERSION@"
 description = "DocCreator python package"
 readme = "README.md"
 requires-python = ">=3.8"
+dependencies = ["@DOCCREATOR_NUMPY_REQUIREMENT@"]
 authors = [
   { name = "Boris Mansencal", email = "boris.mansencal@labri.fr" },
 ]

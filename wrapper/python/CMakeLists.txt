@@ -67,6 +67,17 @@ IF(BUILD_WITH_OSMESA)
   set(LIBOSMESA ", '${DST_OSMESA_NAME}'") #will be used in setup.py.in
 ENDIF()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in ${CMAKE_CURRENT_BINARY_DIR}/setup.py.in)
+#B: the package did not depend on NumPy, which its module imports: it was
+# installed without it, and failed on import. A module built with NumPy 1
+# does not import with NumPy 2; one built with NumPy 2 imports with NumPy
+# 1.19 and later (the API that NumPy 2 targets by default).
+if(Python_NumPy_VERSION VERSION_LESS 2)
+  string(REGEX MATCH "^[0-9]+\\.[0-9]+" _numpy_major_minor "${Python_NumPy_VERSION}")
+  set(DOCCREATOR_NUMPY_REQUIREMENT "numpy>=${_numpy_major_minor},<2")
+else()
+  set(DOCCREATOR_NUMPY_REQUIREMENT "numpy>=1.19")
+endif()
+message(STATUS "NumPy ${Python_NumPy_VERSION}: the package requires ${DOCCREATOR_NUMPY_REQUIREMENT}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml.in)
 file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/setup.py INPUT ${CMAKE_CURRENT_BINARY_DIR}/setup.py.in)
 file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/pyproject.toml INPUT ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml.in)

@@ -21,7 +21,11 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(DocCreatorPy, m) {
 
-  NDArrayConverter::init_numpy();
+  //B: the result was ignored: without NumPy, the module was imported, and
+  // the first conversion failed with an unrelated error
+  if (!NDArrayConverter::init_numpy()) {
+    throw py::error_already_set();
+  }
 
   m.doc() = R"pbdoc(
 	Document image degradations.
