@@ -53,6 +53,8 @@ public:
 
   //Return absolute filename of font file
   QString currentFontPath() const;
+  //file of the font named @a fontName
+  QString fontPath(const QString &fontName) const;
 
   //will delete all fonts
   void clear(); //B

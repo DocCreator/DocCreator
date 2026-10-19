@@ -263,8 +263,13 @@ QString
 FontContext::currentFontPath() const
 {
   assert(_currentFont);
-  return QDir(_fontDir).absoluteFilePath(_currentFont->getName() +
-                                         _fileExtension);
+  return fontPath(_currentFont->getName());
+}
+
+QString
+FontContext::fontPath(const QString &fontName) const
+{
+  return QDir(_fontDir).absoluteFilePath(fontName + _fileExtension);
 }
 
 } //namespace Context

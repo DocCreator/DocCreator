@@ -27,7 +27,7 @@ FontEditorView::FontEditorView(FontEditorController *controller,
 
   _ui.setupUi(this);
 
-  _scene = new CharEditScene();
+  _scene = new CharEditScene(nullptr, this); //B: had no parent, and was never deleted
   _view = new CharEditView(_scene, this);
 
   _ui.mainLayout->addWidget(_view);
@@ -182,8 +182,10 @@ FontEditorView::saveCharacter()
     _ch->setAllBaseLines(up, base, left, right);
     //FontFileManager::
 
+    //B: the file of the current font, which may no longer be the font of
+    // the character edited (the font of the document can change)
     const QString fontPath =
-      Context::FontContext::instance()->currentFontPath();
+      Context::FontContext::instance()->fontPath(_chCenterFontName);
     const int result = IOManager::FontFileManager::saveBaseLineInformation(
       fontPath, base, right, _ch->getCharacterValue());
     if (result != 0) {
