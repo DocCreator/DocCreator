@@ -48,6 +48,28 @@ KeyboardView::setFontEditorController(
   _fontEditorController = fontEditorController;
 }
 
+/*
+  B: a layout may have no button for a control key (a keyboard file not
+  found, us_alternative.kb): the button was dereferenced all the same.
+*/
+static void
+pressControlButton(const QMap<int, ControlButtonView *> &buttons, int key)
+{
+  ControlButtonView *b = buttons.value(key, nullptr);
+  if (b != nullptr) {
+    b->pressKey();
+  }
+}
+
+static void
+releaseControlButton(const QMap<int, ControlButtonView *> &buttons, int key)
+{
+  ControlButtonView *b = buttons.value(key, nullptr);
+  if (b != nullptr) {
+    b->releaseKey();
+  }
+}
+
 /* Events */
 void
 KeyboardView::keyPressEvent(QKeyEvent *e)
@@ -59,18 +81,33 @@ KeyboardView::keyPressEvent(QKeyEvent *e)
   } else if (e->matches(QKeySequence::Paste)) {
     _documentController->paste();
   } else {
-    const int charKeyboardCode =
+    /*
+      B: the code was the key, cast to a QChar: a key code above 0xFFFF was
+      truncated, and the case was guessed from Shift only (not Caps Lock,
+      not the layout of the system). The text of the event is taken when it
+      is one printable character.
+    */
+    int charKeyboardCode =
       _shiftPressed ? static_cast<QChar>(e->key()).unicode()
                     : static_cast<QChar>(e->key()).toLower().unicode();
+    const QString text = e->text();
+    if (text.size() == 1 && text.at(0).isPrint()) {
+      charKeyboardCode = text.at(0).unicode();
+    }
     const int controlKey = e->key();
 
-    auto it1 = _controlButtons.find(controlKey);
-    if (it1 != _controlButtons.end()) {
-      it1.value()->animateClick();
+    /*
+      B: the buttons were clicked with animateClick(): its 100 ms timer is
+      restarted by a new click, so a letter typed twice quickly was typed
+      once; and a click toggles a control button, so the auto-repeat of a
+      held Shift released it. The handlers are now called directly.
+    */
+    if (_controlButtons.contains(controlKey)) {
+      processControlButton(controlKey);
     } else {
       auto it2 = _characterButtonViews.find(charKeyboardCode);
-      if (it2 != _characterButtonViews.end()) {
-        it2.value()->animateClick();
+      if (it2 != _characterButtonViews.end() && it2.value()->isEnabled()) {
+        it2.value()->buttonClicked();
       }
     }
   }
@@ -79,6 +116,9 @@ KeyboardView::keyPressEvent(QKeyEvent *e)
 void
 KeyboardView::keyReleaseEvent(QKeyEvent *e)
 {
+  if (e->isAutoRepeat()) { //B: the key is still held
+    return;
+  }
   processControlButtonRelease(e->key());
 }
 
@@ -177,12 +217,12 @@ KeyboardView::processControlButton(int key)
 
   if (controlKey == Qt::Key_Control) {
     _ctrlPressed = true;
-    _controlButtons.value(Qt::Key_Control)->pressKey();
+    pressControlButton(_controlButtons, Qt::Key_Control);
     redrawKeyboard();
   }
   else if (controlKey == Qt::Key_Alt) {
     _altPressed = true;
-    _controlButtons.value(Qt::Key_Alt)->pressKey();
+    pressControlButton(_controlButtons, Qt::Key_Alt);
     redrawKeyboard();
   }
   else if (controlKey == Qt::Key_Shift) {
@@ -220,12 +260,12 @@ KeyboardView::processControlButton(int key)
       break;
     case Qt::Key_AltGr:
       _currentMode = Alternate;
-      _controlButtons.value(Qt::Key_AltGr)->pressKey();
+      pressControlButton(_controlButtons, Qt::Key_AltGr);
       redrawKeyboard();
       break;
     case Qt::Key_Shift:
       _currentMode = UpperCase;
-      _controlButtons.value(Qt::Key_Shift)->pressKey();
+      pressControlButton(_controlButtons, Qt::Key_Shift);
       redrawKeyboard();
       break;
     default:;
@@ -244,8 +284,8 @@ KeyboardView::processControlButtonRelease(int key)
         _currentMode = LowerCase;
       }
       _altGrPressed = false;
-      _controlButtons.value(Qt::Key_Control)->releaseKey();
-      _controlButtons.value(Qt::Key_AltGr)->releaseKey();
+      releaseControlButton(_controlButtons, Qt::Key_Control);
+      releaseControlButton(_controlButtons, Qt::Key_AltGr);
       redrawKeyboard();
       break;
     case Qt::Key_Alt:
@@ -256,8 +296,8 @@ KeyboardView::processControlButtonRelease(int key)
         _currentMode = LowerCase;
       }
       _altGrPressed = false;
-      _controlButtons.value(Qt::Key_Alt)->releaseKey();
-      _controlButtons.value(Qt::Key_AltGr)->releaseKey();
+      releaseControlButton(_controlButtons, Qt::Key_Alt);
+      releaseControlButton(_controlButtons, Qt::Key_AltGr);
       redrawKeyboard();
       break;
     case Qt::Key_AltGr:
@@ -268,7 +308,7 @@ KeyboardView::processControlButtonRelease(int key)
       else {
         _currentMode = LowerCase;
       }
-      _controlButtons.value(Qt::Key_AltGr)->releaseKey();
+      releaseControlButton(_controlButtons, Qt::Key_AltGr);
       redrawKeyboard();
       break;
     case Qt::Key_Shift:
@@ -279,7 +319,7 @@ KeyboardView::processControlButtonRelease(int key)
       else {
         _currentMode = LowerCase;
       }
-      _controlButtons.value(Qt::Key_Shift)->releaseKey();
+      releaseControlButton(_controlButtons, Qt::Key_Shift);
       redrawKeyboard();
       break;
     default:;

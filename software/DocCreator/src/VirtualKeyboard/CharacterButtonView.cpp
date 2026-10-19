@@ -145,8 +145,13 @@ CharacterButtonView::openCharacterChoice()
   assert(fontCode !=
          -1); //Button shoud be disabled if not associated to a font code
   const QString charValue = QString(QChar(fontCode));
-  const Models::Character *c =
-    Context::FontContext::instance()->getCurrentFont()->getCharacter(charValue);
+  //B: the current font was not checked: none is current once the last font
+  // is removed
+  const Models::Font *font = Context::FontContext::instance()->getCurrentFont();
+  if (font == nullptr) {
+    return;
+  }
+  const Models::Character *c = font->getCharacter(charValue);
   //B: was assert(c) only: a button whose character is not, or no longer,
   // in the current font has no versions to choose from
   if (c == nullptr) {
@@ -156,6 +161,9 @@ CharacterButtonView::openCharacterChoice()
 
   auto characterList =
     new CharacterListView(c, pos(), static_cast<QWidget *>(parent()));
+  //B: closed after a choice, but never deleted: one list per right click
+  // stayed in the keyboard until it was destroyed
+  characterList->setAttribute(Qt::WA_DeleteOnClose);
 
   connect(characterList,
           SIGNAL(characterItemClicked(CharacterListWidgetItem*)),
