@@ -361,20 +361,9 @@ void
 GraphicsPageItem::addTextBlock(Doc::DocTextBlock *docTextBlock)
 {
   //qDebug() << "New text Block";
-  DocumentController *controller =
-    static_cast<DocumentController *>(getController()); //B:dynamic_cast?
-  if (controller != nullptr) {
-    const int x = docTextBlock->x();
-    const int y = docTextBlock->y();
-    const int width = docTextBlock->width();
-    const int height = docTextBlock->height();
-    /* if (width == 0)
-         width = 400;
-     if (height == 0)
-         height = 600;*/
-
-    controller->setBlockGeometry(x, y, width, height);
-  }
+  //B: the geometry of the block was given back to the controller, which
+  // sets it to the current block of the current page: for another page,
+  // another block took it. Without that, it was a no-op.
 
   auto textBlockItem = new GraphicsTextBlockItem(getController());
   textBlockItem->setParentItem(this);

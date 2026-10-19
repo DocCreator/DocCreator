@@ -20,7 +20,11 @@ public:
     : QObject(parent)
     , _height(doc->pageHeight())
     , _width(doc->pageWidth())
-    , _page(QPoint(0, 0), QPoint(_width, _height))
+    //B: the margins given were stored but not applied, and the rectangle
+    // made of two corners (inclusive) was one pixel too wide and too high
+    , _page(leftMargin, topMargin,
+            _width - leftMargin - rightMargin,
+            _height - topMargin - bottomMargin)
     , _leftMargin(leftMargin)
     , _rightMargin(rightMargin)
     , _topMargin(topMargin)
