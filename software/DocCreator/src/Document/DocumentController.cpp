@@ -1,15 +1,13 @@
 #include "DocumentController.hpp"
 
 #include <cassert>
+#include <memory>
 #include <iostream>
 
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QXmlSchema>
-#include <QXmlSchemaValidator>
-#endif
+#include <QXmlStreamReader>
 
 #include <core/configurationmanager.h>
 #include <iomanager/documentloaderdirector.h>
@@ -406,7 +404,10 @@ DocumentController::addCharacter(const QString &s, int id)
     _document->addStyle(style);
   }
   assert(style);
-  fontName = style->getName();
+  //B: the name of the style was taken as the name of its font, which the
+  // rendering takes from getFontName(): with a style named otherwise (a
+  // loaded document), nothing could be typed
+  fontName = style->getFontName();
 
   Models::Font *font = Context::FontContext::instance()->getFont(fontName);
   if (_view == nullptr || font == nullptr) {
@@ -448,7 +449,12 @@ DocumentController::addCharacters(const QList<QString> &charList)
   //std::cerr<<"DC::addCharacters currentTextBlock x="<<currentTextBlock->x()<<" y="<<currentTextBlock->y()<<" w="<<currentTextBlock->width()<<" h="<<currentTextBlock->height()<<"\n";
 
   QString fontName;
-  Doc::DocStyle *style = _document->getStyle();
+  //B: the last style of the document was taken, not the one of the block
+  // the characters go to, as addCharacter() does
+  Doc::DocStyle *style = currentTextBlock->getStyle();
+  if (style == nullptr) {
+    style = _document->getStyle();
+  }
   if (style == nullptr) {
     Models::Font *f = Context::FontContext::instance()->getCurrentFont();
     if (f == nullptr) {
@@ -463,7 +469,7 @@ DocumentController::addCharacters(const QList<QString> &charList)
   }
 
   assert(style);
-  fontName = style->getName();
+  fontName = style->getFontName(); //B: was getName(), cf addCharacter()
   Models::Font *font = Context::FontContext::instance()->getFont(fontName);
   if (_view == nullptr || font == nullptr) {
     return;
@@ -581,6 +587,17 @@ DocumentController::addString(const QString &s)
   const int len = s.length();
   characters.reserve(len);
   for (int i = 0; i < len; ++i) {
+    //B: a character out of the BMP (two QChars, a surrogate pair) was cut
+    // in two characters, neither in any font; and the \r of the line ends
+    // of Windows was taken for a character
+    if (s[i] == QLatin1Char('\r')) {
+      continue;
+    }
+    if (s[i].isHighSurrogate() && i < len - 1 && s[i + 1].isLowSurrogate()) {
+      characters.append(s.mid(i, 2));
+      ++i;
+      continue;
+    }
     if (s[i] != tabStr) {
       if (i < len - 1 && s[i + 1].isMark()) {
         //there is another character after
@@ -880,14 +897,17 @@ DocumentController::copy()
     return;
   }
 
-  auto selectionDoc = new Doc::Document();
+  //B: the document of the selection was never deleted. It held the styles
+  // of _document, which it would have deleted with it: it holds copies.
+  // (The strings of the selection refer to their style by its name.)
+  const std::unique_ptr<Doc::Document> selectionDoc(new Doc::Document());
   for (Doc::DocStyle *s : _document->getStyles())
-    selectionDoc->addStyle(s);
-  auto page = new Doc::Page(selectionDoc);
+    selectionDoc->addStyle(new Doc::DocStyle(s->getName(), s->getFontName()));
+  auto page = new Doc::Page(selectionDoc.get());
   selectionDoc->add(page);
   page->add(selectionBlock);
 
-  IOManager::XMLDocumentSaver docSaver(selectionDoc);
+  IOManager::XMLDocumentSaver docSaver(selectionDoc.get());
   IOManager::DocumentSaverDirector docSaverDirector(&docSaver);
   docSaverDirector.constructDocumentOutput();
 
@@ -903,58 +923,43 @@ DocumentController::cut()
   removeSelection();
 }
 
+/*
+  Return true if @a text is a document in XML, as copy() puts in the
+  clipboard: its first element is <document>.
+*/
+static bool
+isDocumentXml(const QString &text)
+{
+  QXmlStreamReader reader(text);
+  while (!reader.atEnd()) {
+    reader.readNext();
+    if (reader.isStartElement()) {
+      return reader.name() == QLatin1String("document");
+    }
+  }
+  return false;
+}
+
 void
 DocumentController::paste()
 {
-  //B:TODO: With Qt 6.x, QXmlSchema is not available anymore.
-
-  //TODO: tester le clipboard pour coller un texte ou coller un xml
   const QString toPaste = QApplication::clipboard()->text();
-  bool isValidXml = false;
+  /*
+    B: the XML was recognized by QXmlSchema, which Qt 6 does not have: the
+    XML was never recognized, and Copy then Paste pasted its markup. The
+    first element is checked instead (with Qt 5 too).
 
-  #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-
-  QString XsdPath = Core::ConfigurationManager::get(
-                      AppConfigMainGroup, AppConfigXmlCheckerFolderKey)
-                      .toString() +
-                    Core::ConfigurationManager::get(
-                      AppConfigMainGroup, AppConfigDocumentXSDCheckerKey)
-                      .toString();
-  QUrl schemaUrl(XsdPath);
-  QXmlSchema schema;
-  schema.load(schemaUrl);
-  if (schema.isValid()) {
-    QXmlSchemaValidator validator(schema);
-    isValidXml = validator.validate(toPaste.toUtf8());
-  }
-
-  #endif
+    The plain text added a paragraph at each line end, then the line before
+    it: each line went into the paragraph after it. It also cut surrogate
+    pairs, and did not join accents. addString() does all that, and makes
+    the paragraphs at the line ends.
+  */
+  const bool isValidXml = isDocumentXml(toPaste);
 
   if (!isValidXml) {
     //Plain text
-    QList<QString> charList;
-
-    for (QString::const_iterator its = toPaste.begin(); its != toPaste.end();
-         ++its) {
-      QString s = QString((*its).unicode());
-
-      QChar qc = QChar(s.unicode()->unicode());
-      qDebug() << qc << " " << s.unicode() << " " << s.unicode()->unicode();
-
-      if (s.unicode()->unicode() == 10) { // Enter 10
-        //                if(charList.size()==1 && (charList.at(0)==" " ||
-        //                charList.at(0)=="")) charList.clear();
-        //                else{
-        addParagraph();
-        addCharacters(charList);
-        charList.clear();
-        //                }
-      }
-      else {
-        charList << QString((*its).unicode());
-      }
-    }
-    addCharacters(charList);
+    addString(toPaste);
+    return;
   }
   else {
     //Xml
@@ -977,6 +982,9 @@ DocumentController::paste()
     docLoaderDirector.constructDocument();
 
     const std::unique_ptr<Doc::Document> docToPaste = docLoaderDirector.getDocument();
+    if (docToPaste == nullptr) { //B: XML that could not be loaded
+      return;
+    }
 
     QList<Doc::DocString *> stringsToPaste;
     stringsToPaste.reserve(20); //arbitrary
