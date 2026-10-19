@@ -113,6 +113,14 @@ DocCreator::DocCreator(QWidget *parent)
 
 DocCreator::~DocCreator()
 {
+  //B: the controllers and this window were left registered with the
+  // contexts, which live as long as the program: a notification after they
+  // are deleted below would go through dangling pointers.
+  Context::FontContext::instance()->removeObserver(_keyboardController);
+  Context::FontContext::instance()->removeObserver(_docController);
+  Context::FontContext::instance()->removeObserver(this);
+  Context::BackgroundContext::instance()->removeObserver(_docController);
+
   //B
   assert(_docController);
   Doc::Document *doc = _docController->getDocument();
