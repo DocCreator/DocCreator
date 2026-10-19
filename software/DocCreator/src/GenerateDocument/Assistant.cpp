@@ -4072,15 +4072,17 @@ Assistant::Blur_CheckedPattern1()
     ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(Deg));
     ui->BlurPreviewLabel->setMinimumSize(Deg.size());
   } else {
+    //B: the else was the one of the last if only: with another pattern
+    // checked, its preview was drawn, then replaced by the image
     if (ui->CheckPattern2->isChecked())
       Blur_CheckedPattern2();
-    if (ui->CheckPattern3->isChecked())
+    else if (ui->CheckPattern3->isChecked())
       Blur_CheckedPattern3();
-    if (ui->CheckPattern4->isChecked())
+    else if (ui->CheckPattern4->isChecked())
       Blur_CheckedPattern4();
-    if (ui->CheckPattern5->isChecked())
+    else if (ui->CheckPattern5->isChecked())
       Blur_CheckedPattern5();
-    if (ui->CheckPattern6->isChecked())
+    else if (ui->CheckPattern6->isChecked())
       Blur_CheckedPattern6();
     else {
       ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(_Blur_rectoImgBlur));
@@ -4107,13 +4109,13 @@ Assistant::Blur_CheckedPattern2()
   } else {
     if (ui->CheckPattern1->isChecked())
       Blur_CheckedPattern1();
-    if (ui->CheckPattern3->isChecked())
+    else if (ui->CheckPattern3->isChecked())
       Blur_CheckedPattern3();
-    if (ui->CheckPattern4->isChecked())
+    else if (ui->CheckPattern4->isChecked())
       Blur_CheckedPattern4();
-    if (ui->CheckPattern5->isChecked())
+    else if (ui->CheckPattern5->isChecked())
       Blur_CheckedPattern5();
-    if (ui->CheckPattern6->isChecked())
+    else if (ui->CheckPattern6->isChecked())
       Blur_CheckedPattern6();
     else {
       ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(_Blur_rectoImgBlur));
@@ -4141,13 +4143,13 @@ Assistant::Blur_CheckedPattern3()
   } else {
     if (ui->CheckPattern2->isChecked())
       Blur_CheckedPattern2();
-    if (ui->CheckPattern1->isChecked())
+    else if (ui->CheckPattern1->isChecked())
       Blur_CheckedPattern1();
-    if (ui->CheckPattern4->isChecked())
+    else if (ui->CheckPattern4->isChecked())
       Blur_CheckedPattern4();
-    if (ui->CheckPattern5->isChecked())
+    else if (ui->CheckPattern5->isChecked())
       Blur_CheckedPattern5();
-    if (ui->CheckPattern6->isChecked())
+    else if (ui->CheckPattern6->isChecked())
       Blur_CheckedPattern6();
     else {
       ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(_Blur_rectoImgBlur));
@@ -4176,13 +4178,13 @@ Assistant::Blur_CheckedPattern4()
   } else {
     if (ui->CheckPattern2->isChecked())
       Blur_CheckedPattern2();
-    if (ui->CheckPattern3->isChecked())
+    else if (ui->CheckPattern3->isChecked())
       Blur_CheckedPattern3();
-    if (ui->CheckPattern1->isChecked())
+    else if (ui->CheckPattern1->isChecked())
       Blur_CheckedPattern1();
-    if (ui->CheckPattern5->isChecked())
+    else if (ui->CheckPattern5->isChecked())
       Blur_CheckedPattern5();
-    if (ui->CheckPattern6->isChecked())
+    else if (ui->CheckPattern6->isChecked())
       Blur_CheckedPattern6();
     else {
       ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(_Blur_rectoImgBlur));
@@ -4210,13 +4212,13 @@ Assistant::Blur_CheckedPattern5()
   } else {
     if (ui->CheckPattern2->isChecked())
       Blur_CheckedPattern2();
-    if (ui->CheckPattern3->isChecked())
+    else if (ui->CheckPattern3->isChecked())
       Blur_CheckedPattern3();
-    if (ui->CheckPattern4->isChecked())
+    else if (ui->CheckPattern4->isChecked())
       Blur_CheckedPattern4();
-    if (ui->CheckPattern1->isChecked())
+    else if (ui->CheckPattern1->isChecked())
       Blur_CheckedPattern1();
-    if (ui->CheckPattern6->isChecked())
+    else if (ui->CheckPattern6->isChecked())
       Blur_CheckedPattern6();
     else {
       ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(_Blur_rectoImgBlur));
@@ -4244,13 +4246,13 @@ Assistant::Blur_CheckedPattern6()
   } else {
     if (ui->CheckPattern2->isChecked())
       Blur_CheckedPattern2();
-    if (ui->CheckPattern3->isChecked())
+    else if (ui->CheckPattern3->isChecked())
       Blur_CheckedPattern3();
-    if (ui->CheckPattern4->isChecked())
+    else if (ui->CheckPattern4->isChecked())
       Blur_CheckedPattern4();
-    if (ui->CheckPattern5->isChecked())
+    else if (ui->CheckPattern5->isChecked())
       Blur_CheckedPattern5();
-    if (ui->CheckPattern1->isChecked())
+    else if (ui->CheckPattern1->isChecked())
       Blur_CheckedPattern1();
     else {
       ui->BlurPreviewLabel->setPixmap(QPixmap::fromImage(_Blur_rectoImgBlur));
