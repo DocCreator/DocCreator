@@ -174,7 +174,8 @@ INSTALL(FILES ${headers_models} DESTINATION include/DocCreatorFramework/models)
 INSTALL(FILES ${headers_models_doc} DESTINATION include/DocCreatorFramework/models/doc)
 INSTALL(FILES ${headers_mvc} DESTINATION include/DocCreatorFramework/mvc)
 INSTALL(FILES ${headers_patterns} DESTINATION include/DocCreatorFramework/patterns)
-INSTALL(FILES ${Utils_headers} DESTINATION include/DocCreatorFramework/Utils)
+#B: was ${Utils_headers}, an undefined variable: no header of Utils was installed
+INSTALL(FILES ${headers_utils} DESTINATION include/DocCreatorFramework/Utils)
 
 INSTALL(TARGETS DocCreatorFramework
         #FRAMEWORK DESTINATION /Library/Frameworks

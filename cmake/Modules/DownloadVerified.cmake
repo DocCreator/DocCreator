@@ -45,3 +45,48 @@ FUNCTION(DOWNLOAD_VERIFIED url destination sha256 description)
   ENDIF()
 
 ENDFUNCTION()
+
+
+# FETCH_ARCHIVE_VERIFIED(<url> <sha256> <description> <dirname> <out_var>)
+#
+# Download the archive <url> (cf DOWNLOAD_VERIFIED()), whose top directory is
+# <dirname>, extract it in the build tree, and set <out_var> to the
+# directory extracted.
+#
+# B: the archives were extracted in the source tree, which fails when it is
+# read-only, and the result was not checked: an extraction that failed, or
+# was interrupted, left a partial directory, which the next configuration
+# took as complete because it existed. The directory is now complete only
+# once a stamp, with the hash of its archive, is written next to it.
+FUNCTION(FETCH_ARCHIVE_VERIFIED url sha256 description dirname out_var)
+  SET(root "${CMAKE_BINARY_DIR}/thirdparty")
+  SET(dir "${root}/${dirname}")
+  SET(stamp "${root}/${dirname}.extracted")
+  SET(${out_var} "${dir}" PARENT_SCOPE)
+
+  IF(EXISTS "${stamp}" AND IS_DIRECTORY "${dir}")
+    FILE(READ "${stamp}" stamped_sha256)
+    IF(stamped_sha256 STREQUAL sha256)
+      RETURN()
+    ENDIF()
+  ENDIF()
+
+  FILE(REMOVE "${stamp}")
+  FILE(REMOVE_RECURSE "${dir}" "${dir}.tmp")
+  GET_FILENAME_COMPONENT(archive_name "${url}" NAME)
+  SET(archive "${root}/${dirname}-${archive_name}")
+  DOWNLOAD_VERIFIED("${url}" "${archive}" "${sha256}" "${description}")
+
+  FILE(MAKE_DIRECTORY "${dir}.tmp")
+  EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf "${archive}"
+    WORKING_DIRECTORY "${dir}.tmp"
+    RESULT_VARIABLE result)
+  IF(NOT result EQUAL 0 OR NOT IS_DIRECTORY "${dir}.tmp/${dirname}")
+    FILE(REMOVE_RECURSE "${dir}.tmp")
+    MESSAGE(FATAL_ERROR "error: extracting ${archive} failed (${result}), or it has no ${dirname}/ directory")
+  ENDIF()
+  FILE(RENAME "${dir}.tmp/${dirname}" "${dir}")
+  FILE(REMOVE_RECURSE "${dir}.tmp")
+  FILE(WRITE "${stamp}" "${sha256}")
+  MESSAGE(STATUS "  ${description} extracted in ${dir}")
+ENDFUNCTION()

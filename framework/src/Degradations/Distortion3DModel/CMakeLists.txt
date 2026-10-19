@@ -5,19 +5,11 @@ INCLUDE(DownloadVerified)
 SET(EIGEN_VERSION "5.0.0")
 #SHA256 of eigen-${EIGEN_VERSION}.tar.gz: change it when the version changes
 SET(EIGEN_SHA256 "315c881e19e17542a7d428c5aa37d113c89b9500d350c433797b730cd449c056")
-SET(EIGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen-${EIGEN_VERSION}")
-IF (NOT EXISTS ${EIGEN_SRC_DIR})
-
-   SET(EIGEN_ARCHIVE "eigen-${EIGEN_VERSION}.tar.gz")
-   SET(EIGEN_URL "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/${EIGEN_ARCHIVE}")
-   DOWNLOAD_VERIFIED(${EIGEN_URL}
-                     ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${EIGEN_ARCHIVE}
-                     ${EIGEN_SHA256}
-                     "eigen ${EIGEN_VERSION}")
-
-   EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${EIGEN_ARCHIVE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty )
-
-ENDIF()
+FETCH_ARCHIVE_VERIFIED("https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz"
+                       ${EIGEN_SHA256}
+                       "eigen ${EIGEN_VERSION}"
+                       "eigen-${EIGEN_VERSION}"
+                       EIGEN_SRC_DIR)
 
 SET(EIGEN_INCLUDE_DIR ${EIGEN_SRC_DIR})
 
@@ -94,20 +86,11 @@ IF(BUILD_WITH_OSMESA)
   SET(GLFW_VERSION "3.3.8")
   #SHA256 of ${GLFW_VERSION}.tar.gz: change it when the version changes
   SET(GLFW_SHA256 "f30f42e05f11e5fc62483e513b0488d5bceeab7d9c5da0ffe2252ad81816c713")
-  SET(GLFW_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glfw-${GLFW_VERSION}")
-  IF (NOT EXISTS ${GLFW_SRC_DIR})
-
-     SET(GLFW_ARCHIVE "${GLFW_VERSION}.tar.gz")
-     #SET(GLFW_URL "https://github.com/glfw/glfw/archive/${GLFW_ARCHIVE}")
-     SET(GLFW_URL "https://github.com/glfw/glfw/archive/refs/tags/${GLFW_ARCHIVE}")
-     DOWNLOAD_VERIFIED(${GLFW_URL}
-                       ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE}
-                       ${GLFW_SHA256}
-                       "GLFW ${GLFW_VERSION}")
-
-     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/${GLFW_ARCHIVE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty )
-
-  ENDIF()
+  FETCH_ARCHIVE_VERIFIED("https://github.com/glfw/glfw/archive/refs/tags/${GLFW_VERSION}.tar.gz"
+                         ${GLFW_SHA256}
+                         "GLFW ${GLFW_VERSION}"
+                         "glfw-${GLFW_VERSION}"
+                         GLFW_SRC_DIR)
 
   ADD_DEFINITIONS(-DUSE_NATIVE_OSMESA=1)
 
@@ -119,7 +102,7 @@ IF(BUILD_WITH_OSMESA)
   SET(GLFW_DIR ${GLFW_SRC_DIR})
 
   #EXCLUDE_FROM_ALL: built for the renderer, not installed (cf. lzham above)
-  ADD_SUBDIRECTORY(${GLFW_DIR} EXCLUDE_FROM_ALL)
+  ADD_SUBDIRECTORY(${GLFW_DIR} ${CMAKE_CURRENT_BINARY_DIR}/glfw EXCLUDE_FROM_ALL)
 
   SET(GLAD_GL_SRCS "${GLFW_DIR}/deps/glad/gl.h"
             "${GLFW_DIR}/deps/glad_gl.c")

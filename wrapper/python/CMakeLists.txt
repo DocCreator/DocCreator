@@ -5,19 +5,11 @@ INCLUDE(DownloadVerified)
 SET(PYBIND11_ARCHIVE_VERSION 3.0.3)
 #SHA256 of v${PYBIND11_ARCHIVE_VERSION}.tar.gz: change it when the version changes
 SET(PYBIND11_SHA256 "787459e1e186ee82001759508fefa408373eae8a076ffe0078b126c6f8f0ec5e")
-SET(PYBIND11_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/pybind11-${PYBIND11_ARCHIVE_VERSION}")
-IF (NOT EXISTS ${PYBIND11_SRC_DIR})
-  SET(PYBIND11_URL "https://github.com/pybind/pybind11/archive/v${PYBIND11_ARCHIVE_VERSION}.tar.gz")
-  SET(PYBIND11_ARCHIVE "v${PYBIND11_ARCHIVE_VERSION}.tar.gz")
-  DOWNLOAD_VERIFIED(${PYBIND11_URL}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/${PYBIND11_ARCHIVE}
-                    ${PYBIND11_SHA256}
-                    "pybind11 v${PYBIND11_ARCHIVE_VERSION}")
-
-  EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/${PYBIND11_ARCHIVE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-  MESSAGE(STATUS "  decompression done.")
-  
-ENDIF()
+FETCH_ARCHIVE_VERIFIED("https://github.com/pybind/pybind11/archive/v${PYBIND11_ARCHIVE_VERSION}.tar.gz"
+                       ${PYBIND11_SHA256}
+                       "pybind11 v${PYBIND11_ARCHIVE_VERSION}"
+                       "pybind11-${PYBIND11_ARCHIVE_VERSION}"
+                       PYBIND11_SRC_DIR)
 
 
 # Python is looked for here, and not left to pybind11: it is added with
@@ -32,7 +24,7 @@ FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development.Module NumPy)
 MESSAGE(STATUS "Using Python ${Python_VERSION}: ${Python_EXECUTABLE}")
 MESSAGE(STATUS "NumPy include directory: ${Python_NumPy_INCLUDE_DIRS}")
 
-add_subdirectory(pybind11-${PYBIND11_ARCHIVE_VERSION})
+add_subdirectory(${PYBIND11_SRC_DIR} ${CMAKE_CURRENT_BINARY_DIR}/pybind11)
 pybind11_add_module(DocCreatorPy Degradations.cpp ndarray_converter.cpp)
 set_target_properties(DocCreatorPy PROPERTIES
   CXX_STANDARD 17
@@ -89,39 +81,36 @@ file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/pyproject.toml I
 # creating an isolated venv and redownloading them.
 set(_python_build_cmd ${Python_EXECUTABLE} -m build --wheel --no-isolation --outdir dist .)
 
+#B: python_package was a target of ALL with no output: the wheel was made
+# again at every build, even with nothing changed. It is now made when the
+# module or the files of the package change, and leaves a stamp.
+set(_copy_osmesa "")
 IF(BUILD_WITH_OSMESA)
-
-add_custom_target(python_package ALL
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${DOCCREATOR_PYTHON_NAME}
-  #COMMAND ${CMAKE_COMMAND} -E copy README.md ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${CMAKE_COMMAND} -E copy __init__.py ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:DocCreatorPy> ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${CMAKE_COMMAND} -E copy ${OSMesa_LIBRARIES} ${DOCCREATOR_PYTHON_NAME}/${DST_OSMESA_NAME} #Force this name
-  COMMAND ${CMAKE_COMMAND} -E rm -rf build dist ${DOCCREATOR_PYTHON_NAME}.egg-info
-  COMMAND ${_python_build_cmd}
-  BYPRODUCTS
-  ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}
-  ${PACKAGE_DIR}/build
-  ${PACKAGE_DIR}/dist
-  ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}.egg-info
-  WORKING_DIRECTORY ${PACKAGE_DIR}
-  )
-
-ELSE()
-
-add_custom_target(python_package ALL
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${DOCCREATOR_PYTHON_NAME}
-  #COMMAND ${CMAKE_COMMAND} -E copy README.md ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${CMAKE_COMMAND} -E copy __init__.py ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:DocCreatorPy> ${DOCCREATOR_PYTHON_NAME}/
-  COMMAND ${CMAKE_COMMAND} -E rm -rf build dist ${DOCCREATOR_PYTHON_NAME}.egg-info
-  COMMAND ${_python_build_cmd}
-  BYPRODUCTS
-  ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}
-  ${PACKAGE_DIR}/build
-  ${PACKAGE_DIR}/dist
-  ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}.egg-info
-  WORKING_DIRECTORY ${PACKAGE_DIR}
-  )
-
+  set(_copy_osmesa COMMAND ${CMAKE_COMMAND} -E copy ${OSMesa_LIBRARIES} ${DOCCREATOR_PYTHON_NAME}/${DST_OSMESA_NAME}) #Force this name
 ENDIF()
+
+set(_wheel_stamp ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/wheel.stamp)
+add_custom_command(
+  OUTPUT ${_wheel_stamp}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${DOCCREATOR_PYTHON_NAME}
+  COMMAND ${CMAKE_COMMAND} -E copy __init__.py ${DOCCREATOR_PYTHON_NAME}/
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:DocCreatorPy> ${DOCCREATOR_PYTHON_NAME}/
+  ${_copy_osmesa}
+  COMMAND ${CMAKE_COMMAND} -E rm -rf build dist ${DOCCREATOR_PYTHON_NAME}.egg-info
+  COMMAND ${_python_build_cmd}
+  COMMAND ${CMAKE_COMMAND} -E touch ${_wheel_stamp}
+  DEPENDS DocCreatorPy
+    ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/__init__.py
+    ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/README.md
+    ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/setup.py
+    ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_DIR}/pyproject.toml
+  BYPRODUCTS
+    ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}
+    ${PACKAGE_DIR}/build
+    ${PACKAGE_DIR}/dist
+    ${PACKAGE_DIR}/${DOCCREATOR_PYTHON_NAME}.egg-info
+  WORKING_DIRECTORY ${PACKAGE_DIR}
+  COMMENT "Making the wheel of the python module"
+  VERBATIM
+  )
+add_custom_target(python_package ALL DEPENDS ${_wheel_stamp})
