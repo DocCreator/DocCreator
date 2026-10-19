@@ -8,7 +8,7 @@ class Baseline
   // Considers that the input image is binarized
 public:
   // Get median height of character in the binary image
-  static std::pair<int, float> getCharacterHeight(cv::Mat img);
+  static std::pair<int, float> getCharacterHeight(const cv::Mat &img);
 
   // Compute baselines on the binary image
   static void computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines);

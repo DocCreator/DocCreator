@@ -2,6 +2,7 @@
 #include "ui_LineDetectionDialog.h"
 
 #include <Utils/convertor.h>
+#include <algorithm>
 #include <cassert>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/version.hpp>
@@ -55,11 +56,12 @@ LineDetectionDialog::getCharacterHeight(const cv::Mat &img)
   /* Returns the median height of a character in a given binary image */
 
   // Smooth the image to remove unwanted noise from extracted CCs
-  cv::medianBlur(img, img, 9);
+  cv::Mat smoothed; //B: was in place, in the const image
+  cv::medianBlur(img, smoothed, 9);
 
   // CCs extraction
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(img, contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_TC89_KCOS);
+  cv::findContours(smoothed, contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_TC89_KCOS);
 
   // We sort the array with respect to their height
   sort(contours.begin(),
@@ -67,6 +69,12 @@ LineDetectionDialog::getCharacterHeight(const cv::Mat &img)
        [](const std::vector<cv::Point> &c1, const std::vector<cv::Point> &c2) {
          return cv::boundingRect(c1).height < cv::boundingRect(c2).height;
        });
+
+  //B: no contour (an all black image): the median was read from an empty
+  // vector
+  if (contours.empty()) {
+    return 0;
+  }
 
   // Merely return the median's height
   const int median = (int)contours.size() / 2;
@@ -133,6 +141,7 @@ LineDetectionDialog::drawBaseLines(const cv::Mat &img,
 
     double min_dist = std::numeric_limits<double>::max();
     cv::Vec4i closest_line;
+    bool found = false;
 
     // We look for the closest line
     for (cv::Vec4i l :
@@ -143,21 +152,26 @@ LineDetectionDialog::drawBaseLines(const cv::Mat &img,
       const double angle = atan2(l[1] - l[3], l[0] - l[2]);
       // We discard lines with not almost horizontal angle
 
-      if (d < min_dist && fabs(angle) > MIN_LINE_ANGLE) {
+      if (d < min_dist && fabs(angle) > MIN_LINE_ANGLE && l[0] != l[2]) {
         min_dist = d;
         closest_line = l;
+        found = true;
       }
     }
 
-    // Global line slope
-    assert(closest_line[0] != closest_line[2]);
-    const double slope = (double)(closest_line[1] - closest_line[3]) /
-                         (closest_line[0] - closest_line[2]);
-    int y = (int)(slope * (p.x - closest_line[0]) + closest_line[1]);
+    //B: with no almost horizontal line, the slope was 0/0: (int)NaN, then
+    // abs(INT_MIN), undefined. p.y is taken, as for a far line.
+    int y = p.y;
+    if (found) {
+      // Global line slope
+      const double slope = (double)(closest_line[1] - closest_line[3]) /
+                           (closest_line[0] - closest_line[2]);
+      y = (int)(slope * (p.x - closest_line[0]) + closest_line[1]);
 
-    // Discarded if the angle is to high
-    if (abs(y - p.y) > 1.2 * r.height)
-      y = p.y;
+      // Discarded if the angle is to high
+      if (abs(y - p.y) > 1.2 * r.height)
+        y = p.y;
+    }
 
     cv::Point baseline(p.x - r.width / 2, y);
     cv::Point baseline2(p.x + r.width / 2, y);
@@ -176,7 +190,9 @@ LineDetectionDialog::process()
     cvtColor(src, src, cv::COLOR_BGR2GRAY);
 
   src.copyTo(src2);
-  _character_height = getCharacterHeight(src.clone());
+  //B: at least 2: with 0 (no character) or 1, the kernel of cv::blur()
+  // below was empty, and OpenCV threw
+  _character_height = std::max(2, getCharacterHeight(src));
 
   cv::Mat dst, cdst;
 

@@ -41,9 +41,16 @@ Baseline::computeBaselines(cv::Mat &img, std::vector<cv::Vec4i> &lines)
   if (img.channels() > 1)
     cvtColor(dst, dst, cv::COLOR_BGR2GRAY);
 
-  const std::pair<int, float> pair = getCharacterHeight(dst.clone());
+  const std::pair<int, float> pair = getCharacterHeight(dst);
   const int characterHeight = pair.first;
   const float characterDensity = pair.second;
+
+  //B: no character (an image all black or all white after binarization)
+  // gave a height of 0, and cv::blur() threw on its empty kernel below
+  if (characterHeight < 2) {
+    lines.clear();
+    return;
+  }
 
   //B: What are these constants ????
   const int densityThreshold =
@@ -94,6 +101,7 @@ Baseline::getBaseline(cv::Rect r, const std::vector<cv::Vec4i> &lines)
 
   double min_dist = std::numeric_limits<double>::max();
   cv::Vec4i closest_line;
+  bool found = false;
 
   // We look for the closest line
   for (const auto &l : lines) {
@@ -102,10 +110,18 @@ Baseline::getBaseline(cv::Rect r, const std::vector<cv::Vec4i> &lines)
     const double angle = atan2(l[1] - l[3], l[0] - l[2]);
     // We discard lines with not almost horizontal angle
 
-    if (d < min_dist && fabs(angle) > MIN_LINE_ANGLE) {
+    if (d < min_dist && fabs(angle) > MIN_LINE_ANGLE && l[0] != l[2]) {
       min_dist = d;
       closest_line = l;
+      found = true;
     }
+  }
+
+  //B: when no line was almost horizontal (or there was no line), the slope
+  // below was 0/0 with the null closest_line: (int)NaN, then abs(INT_MIN),
+  // undefined. The bottom is taken as reference, as for a far baseline.
+  if (!found) {
+    return r.br().y;
   }
 
   // We compute the projection of p (character center point) on the baseline
@@ -124,12 +140,15 @@ Baseline::getBaseline(cv::Rect r, const std::vector<cv::Vec4i> &lines)
 }
 
 std::pair<int, float>
-Baseline::getCharacterHeight(cv::Mat img)
+Baseline::getCharacterHeight(const cv::Mat &binImg)
 {
   /* Returns the median height of a character in a given binary image */
 
   // Smooth the image to remove unwanted noise from extracted CCs
-  cv::medianBlur(img, img, 9);
+  //B: in place, in a cv::Mat given by value, which shares its pixels: the
+  // image of the caller was filtered (cf StructureDetection)
+  cv::Mat img;
+  cv::medianBlur(binImg, img, 9);
 
   cv::Mat symbol = img(cv::Rect((int)img.cols / 3,
                                 (int)img.rows / 3,
@@ -154,6 +173,12 @@ Baseline::getCharacterHeight(cv::Mat img)
        [](const std::vector<cv::Point> &c1, const std::vector<cv::Point> &c2) {
          return cv::boundingRect(c1).height < cv::boundingRect(c2).height;
        });
+
+  //B: an image with no component (all black) had no contour, and the
+  // median below was read from an empty vector
+  if (contours.empty()) {
+    return std::pair<int, float>(0, density);
+  }
 
   // Merely return the median's height
   const int median = (int)contours.size() / 2;
