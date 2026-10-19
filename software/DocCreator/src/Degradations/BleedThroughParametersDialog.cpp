@@ -2,6 +2,7 @@
 #include "ui_BleedThroughParametersDialog.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QLabel>
 #include <cassert>
 
@@ -135,11 +136,25 @@ BleedThroughParametersDialog::setupGUIImages()
 void
 BleedThroughParametersDialog::versoChosen()
 {
+  //B: the dialog started in /DocCreator/Image, the root of the drive on
+  // Windows. A cancelled dialog, or a file that was not an image, gave an
+  // empty verso: its path was kept, and the preview was computed from an
+  // empty image.
+  const QString previous = ui->versoImagePathLine->text();
   QString path =
     QFileDialog::getOpenFileName(this,
                                  tr("Open File"),
-                                 QStringLiteral("/DocCreator/Image"),
+                                 previous.isEmpty() ? QString() : QFileInfo(previous).absolutePath(),
                                  getReadImageFilter());
+  if (path.isEmpty()) {
+    return;
+  }
+  const QImage versoImg(path);
+  if (versoImg.isNull()) {
+    QMessageBox::warning(this, tr("Open File"), tr("Unable to read %1").arg(path));
+    return;
+  }
+
   ui->versoImagePathLine->setText(path);
 
   _params.setPathToVersoImage(path);
@@ -148,7 +163,6 @@ BleedThroughParametersDialog::versoChosen()
     QFileInfo(path).absoluteDir().absolutePath()); //B
 
   if (!_rectoImgSmall.isNull()) {
-    QImage versoImg(path);
     setVersoImage(versoImg);
   }
 }
