@@ -141,6 +141,17 @@ def test_accepts_every_documented_shape(name, channels):
 
 
 @pytest.mark.parametrize("name", ONE_IMAGE_DEGRADATIONS)
+@pytest.mark.parametrize("channels", GOOD_SHAPES)
+def test_changes_the_image(name, channels):
+    #B: only the type and the shape were checked, which a degradation that
+    # gives back a copy of its image passes (as the shadow binding with
+    # its distance unchecked, and the blur estimate, went unnoticed)
+    img = make_image(channels)
+    out = call_with(img, name)
+    assert not np.array_equal(out, img.reshape(out.shape))
+
+
+@pytest.mark.parametrize("name", ONE_IMAGE_DEGRADATIONS)
 @pytest.mark.parametrize("description,img", bad_images(),
                          ids=[d for d, _ in bad_images()])
 def test_refuses_what_is_not_an_image(name, description, img):

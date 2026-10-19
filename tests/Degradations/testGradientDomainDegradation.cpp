@@ -41,11 +41,16 @@ testSimple0(int imageType)
     
     const dc::GradientDomainDegradation::InsertType insertType = (dc::GradientDomainDegradation::InsertType)(i);
 
-    const cv::Mat out = dc::GradientDomainDegradation::degradation(img2, STAIN_IMAGES_PATH, numStainsToInsert, insertType, doRotations);
+    const cv::Mat out = dc::GradientDomainDegradation::degradation(img2, STAIN_IMAGES_PATH, numStainsToInsert, insertType, doRotations, 42);
 
     REQUIRE( out.type() == imageType );
     REQUIRE( checkEqual(img, imgClone) );
     REQUIRE( out.size() == img.size() );
+    //B: only the type and the size were checked, which a copy of the image
+    // passes: the stains must be there, the same for the same seed
+    REQUIRE_FALSE( checkEqual(out, img) );
+    const cv::Mat again = dc::GradientDomainDegradation::degradation(img2, STAIN_IMAGES_PATH, numStainsToInsert, insertType, doRotations, 42);
+    REQUIRE( checkEqual(out, again) );
   }
 }
 
