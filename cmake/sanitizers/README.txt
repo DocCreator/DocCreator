@@ -49,6 +49,18 @@ later is reported until somebody looks at it.
 Without TSAN_OPTIONS the suppressions are not read and ctest fails on
 reports that are all hand-offs. With it, the suite is quiet.
 
+The suppressions name functions, so they only match frames that
+ThreadSanitizer can name. It needs llvm-symbolizer for that, which it
+looks for as "llvm-symbolizer" on the PATH: Ubuntu installs it as
+llvm-symbolizer-18, and without it every frame is "<null>", nothing is
+suppressed, and eight tests fail. Name it in TSAN_OPTIONS:
+
+  export TSAN_OPTIONS=external_symbolizer_path=/usr/lib/llvm-18/bin/llvm-symbolizer:$TSAN_OPTIONS
+
+mutex:__nptl_deallocate_tsd also needs the debug symbols of glibc
+(libc6-dbg on Debian and Ubuntu): it is an internal function of libc,
+which a stripped libc does not name.
+
 The test written for this job is tests/Degradations/testConcurrency.cpp,
 which calls every exported degradation from eight threads at once.
 

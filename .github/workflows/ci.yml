@@ -44,8 +44,11 @@ jobs:
 
           # tests/Degradations/testConcurrency.cpp calls every degradation
           # from eight threads at once: it was written for this job.
+          # tsan.supp names functions: llvm-18 gives the symbolizer that
+          # TSAN_OPTIONS names, and libc6-dbg the names of the glibc
+          # internals, as __nptl_deallocate_tsd.
           - name: degradations, clang, ThreadSanitizer
-            packages: clang
+            packages: clang llvm-18 libc6-dbg
             cmake: >-
               -DCMAKE_BUILD_TYPE=RelWithDebInfo
               -DCMAKE_C_COMPILER=clang
@@ -96,7 +99,7 @@ jobs:
       ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1
       LSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/lsan.supp
       UBSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
-      TSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/tsan.supp:second_deadlock_stack=1:halt_on_error=1
+      TSAN_OPTIONS: external_symbolizer_path=/usr/lib/llvm-18/bin/llvm-symbolizer:suppressions=${{ github.workspace }}/cmake/sanitizers/tsan.supp:second_deadlock_stack=1:halt_on_error=1
 
     steps:
       - uses: actions/checkout@v7
