@@ -1,32 +1,19 @@
-#In DocCreator root directory:
+#In the DocCreator root directory, with docker:
 
+#To build the wheels, for every CPython 3.9 or later of the container:
+docker run --rm -v "$(pwd)":/io quay.io/pypa/manylinux_2_28_x86_64 /io/wrapper/python/build_wheels_manylinux.sh
 
-#To do only once :
-docker pull quay.io/pypa/manylinux2010_x86_64
+ => the wheels (*.whl) are in the WHEELS/ directory. Each one is repaired
+    with auditwheel, installed, and passes tests/python before it is copied
+    there.
 
+#For some versions only, give their tags in /opt/python of the container:
+docker run --rm -e PYTHON_VERSIONS="cp312-cp312 cp313-cp313" -v "$(pwd)":/io quay.io/pypa/manylinux_2_28_x86_64 /io/wrapper/python/build_wheels_manylinux.sh
 
-#To do to build wheels :
+#To build with OSMesa (the 3D distortion), with the OSMesa of the container:
+docker run --rm -v "$(pwd)":/io quay.io/pypa/manylinux_2_28_x86_64 /io/wrapper/python/build_wheels_with_osmesa_manylinux.sh
 
-docker run --rm -it -v $(pwd):/io quay.io/pypa/manylinux2010_x86_64 /bin/bash
-
-cd /io
-
-#To build without OSMesa
-cp -f wrapper/python/build_wheels_manylinux.sh .
-chmod u+x build_wheels_manylinux.sh
-./build_wheels_manylinux.sh
-
- => produced wheels (fichiers *.whl) will be in the WHEELS/ directory.
-
-
-#To build with OSMesa
-cp -f wrapper/python/build_wheels_with_osmesa_manylinux.sh .
-chmod u+x build_wheels_with_osmesa_manylinux.sh
-rm -rf  /etc/yum.repos.d/*
-cp -f wrapper/python/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo
-./build_wheels_with_osmesa_manylinux.sh
-
- => produced wheels (fichiers *.whl) will be in the WHEELS_OSMESA/ directory.
+ => the wheels are in the WHEELS_OSMESA/ directory.
 
 
 # Install
@@ -36,8 +23,8 @@ Get and install the wheel corresponding to your python version.
 You may have to upgrade pip first:
 python3 -m pip install --upgrade pip
 
-For example for python 3.7:
-python3 -m pip install --upgrade ./DocCreatorPy-0.0-cp37-cp37m-manylinux2010_x86_64.whl
+For example for python 3.12:
+python3 -m pip install --upgrade ./DocCreatorPy-1.2.0-cp312-cp312-manylinux_2_28_x86_64.whl
 
 
 To use it you may have to install pillow & numpy:
