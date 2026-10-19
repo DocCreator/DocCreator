@@ -162,8 +162,17 @@ FontContext::setCurrentFont(const QString &fontName)
   if (_currentFont != nullptr && fontName == _currentFont->getName()) {
     _currentFontModified = true;
   } else {
-    Q_ASSERT(!_fontMap.isEmpty());
-    _currentFont = _fontMap[fontName];
+    //B: _fontMap[fontName] inserted a null font for a name that is not in
+    // the map (a default font of the configuration that is not installed,
+    // for example): getFontNames() then listed it, and the callers that
+    // took a name from that list dereferenced it. An unknown name leaves
+    // the current font as it is.
+    const FontMap::iterator it = _fontMap.find(fontName);
+    if (it == _fontMap.end()) {
+      qWarning() << "FontContext: no font named" << fontName;
+      return;
+    }
+    _currentFont = it.value();
   }
   _fontChanged = true;
   notifyAll();

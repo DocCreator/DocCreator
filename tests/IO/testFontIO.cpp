@@ -12,6 +12,7 @@
 #include "models/character.h"
 #include "models/characterdata.h"
 #include "iomanager/fontfilemanager.h"
+#include "context/fontcontext.h"
 #include "Degradations/FileUtils.hpp"
 
 #include "paths.hpp"
@@ -384,4 +385,28 @@ TEST_CASE( "Testing a corrupt XML font file" )
 	       writeOF(QStringLiteral("tmp_corrupt_format255.of"), 4, 4,
 		       255, 16)) == nullptr );
   }
+}
+
+/*
+  setCurrentFont() with a name that is not a font inserted a null font in
+  the context, which getFontNames() then listed.
+*/
+TEST_CASE( "Testing FontContext::setCurrentFont with an unknown name" )
+{
+  Context::FontContext *context = Context::FontContext::instance();
+  context->clear();
+  Models::Font *font = IOManager::FontFileManager::readFont(
+    QString::fromStdString(dc::makePath(FONT_DATA_SRC_PATH, "JulesVerne.bof")));
+  REQUIRE( font != nullptr );
+  const QString name = font->getName();
+  context->addFont(font);
+  context->setCurrentFont(name);
+  REQUIRE( context->getCurrentFont() == font );
+
+  context->setCurrentFont(QStringLiteral("NoSuchFont"));
+  REQUIRE( context->getFontNames() == QStringList{ name } );
+  REQUIRE( context->getFont(QStringLiteral("NoSuchFont")) == nullptr );
+  REQUIRE( context->getCurrentFont() == font );
+
+  context->clear();
 }
