@@ -206,11 +206,11 @@ RandomDocumentCreator::create_aux(
 
       if (!textLoaded) {
         if (_params.textList.empty()) {
-          //use random text generator
-          Lipsum4Qt lipsumGenerator(
-            Lipsum4Qt::
-              SYNC); //B: we have to recreate this objet each time to get a new text !
-          text = lipsumGenerator.Lipsum;
+          //B: a Lipsum4Qt was made here in SYNC mode, which waits, with no
+          // timeout, for a reply of http://lipsum.com, for every document,
+          // and then its static text was taken, never the reply: behind a
+          // firewall that drops the packets, the GUI froze for each one.
+          text = Lipsum4Qt::Lipsum;
         }
 	else {
           if (useRandomTextFile) {

@@ -138,8 +138,9 @@ StructureDialog::loremIpsum()
     _ctrl->resetCurrentTextBlockCursor();
 
     if (ui->lorem->isChecked()) {
-      Lipsum4Qt lipsumGenerator(Lipsum4Qt::SYNC);
-      QString text = lipsumGenerator.Lipsum;
+      //B: as in RandomDocumentCreator: the static text, without the
+      // blocking request to http://lipsum.com it was never taken from
+      const QString text = Lipsum4Qt::Lipsum;
       _ctrl->addString(text);
     } else {
       //B: what do we do if not checked ???
