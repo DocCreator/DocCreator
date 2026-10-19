@@ -2106,15 +2106,15 @@ Assistant::chooseInputImageDir()
                                       tr("Choose input image directory"),
                                       QStringLiteral("./"),
                                       QFileDialog::ShowDirsOnly);
+  //B: a cancel cleared the directory and the count, but kept the list of
+  // images: every one of them then failed to load, silently, as their
+  // path is made from the directory. A cancel now changes nothing.
+  if (path.isEmpty()) {
+    return;
+  }
   ui->inputImagePath->setText(path);
   _PicDirectory = path;
-  if (!path.isEmpty()) {
-    loadInputDegradationImageList();
-  } else {
-    const QString szStr = QString::number(0);
-    //ui->NbPicFolder->setText(szStr);
-    ui->NbInputPics->setText(szStr);
-  }
+  loadInputDegradationImageList();
 }
 
 void
@@ -2179,6 +2179,9 @@ Assistant::chooseGTDirectory()
                                       tr("Choose ground trough directory"),
                                       "./",
                                       QFileDialog::ShowDirsOnly);
+  if (path.isEmpty()) { //B: a cancel cleared the directory
+    return;
+  }
   ui->gtFilePath->setText(path);
 }
 
@@ -2199,6 +2202,9 @@ Assistant::chooseOutputDegradedImageDir()
                                       tr("Choose save directory"),
                                       QStringLiteral("./"),
                                       QFileDialog::ShowDirsOnly);
+  if (path.isEmpty()) { //B: a cancel cleared the directory
+    return;
+  }
   ui->outputDegrImagePath->setText(path);
   _outputDegradedImageDir = path;
 }
@@ -4473,6 +4479,9 @@ Assistant::Hole_chooseColor()
                                         this,
                                         "Choose the color of background",
                                         QColorDialog::ShowAlphaChannel);
+  if (!color.isValid()) { //B: a cancel stored an invalid color
+    return;
+  }
 
   Hole_setBackgroundColor(color);
 
@@ -5515,19 +5524,16 @@ Assistant::Dist3D_chooseMeshesDirectory()
                                       tr("Choose meshes directory"),
                                       ui->Dist3D_meshesPath->text(),
                                       QFileDialog::ShowDirsOnly);
+  //B: a cancel cleared the folder and the counts, but kept the list of
+  // meshes, which the generation still used
+  if (path.isEmpty()) {
+    return;
+  }
 
   ui->Dist3D_meshesPath->setText(path);
   _Dist3D_meshDirectory = path;
 
-  if (!path.isEmpty()) {
-    Dist3D_loadListMeshes();
-  } else {
-    const QString szStr = QString::number(0);
-    ui->Dist3D_nbMeshes->setText(szStr);
-    //ui->TotalDist3D_numMeshes->setText(szStr);
-    ui->NbDegDist3D->setText(szStr);
-    ui->TotalDist3D->setText(szStr);
-  }
+  Dist3D_loadListMeshes();
 }
 
 void
@@ -5577,13 +5583,18 @@ Assistant::Dist3D_changeUseBackground()
 
   if (enabled) {
     if (ui->Dist3D_backgroundsPath->text().isEmpty()) {
+      //B: the path was the meshes folder + "backgrounds", with no separator
+      // (".../Meshbackgrounds"), while the folder shipped is
+      // Mesh/Background; and it was stored as the meshes folder, which
+      // Dist3D_loadMeshBackgrounds() read: the default backgrounds were
+      // never found, and the meshes folder became the backgrounds one.
       const QString meshBackgroundsPath =
-        Core::ConfigurationManager::get(AppConfigMainGroup,
-                                        AppConfigMeshFolderKey)
-          .toString() +
-        "backgrounds"; //TODO:UGLY !
+        QDir(Core::ConfigurationManager::get(AppConfigMainGroup,
+                                             AppConfigMeshFolderKey)
+               .toString())
+          .filePath(QStringLiteral("Background")); //TODO:UGLY !
       ui->Dist3D_backgroundsPath->setText(meshBackgroundsPath);
-      _Dist3D_meshDirectory = meshBackgroundsPath;
+      _Dist3D_meshBackgroundsDirectory = meshBackgroundsPath;
       Dist3D_loadMeshBackgrounds();
     }
   }
@@ -5597,19 +5608,20 @@ Assistant::Dist3D_chooseBackgroundsDirectory()
                                       tr("Choose meshes directory"),
                                       ui->Dist3D_backgroundsPath->text(),
                                       QFileDialog::ShowDirsOnly);
+  if (path.isEmpty()) { //B: a cancel cleared the folder, not the list
+    return;
+  }
 
   ui->Dist3D_backgroundsPath->setText(path);
   _Dist3D_meshBackgroundsDirectory = path;
 
-  if (!path.isEmpty()) {
-    Dist3D_loadMeshBackgrounds();
-  }
+  Dist3D_loadMeshBackgrounds();
 }
 
 void
 Assistant::Dist3D_loadMeshBackgrounds()
 {
-  QDir directory(_Dist3D_meshDirectory);
+  QDir directory(_Dist3D_meshBackgroundsDirectory); //B: was the meshes folder
 
   _Dist3D_meshBackgroundsList.clear();
 
@@ -5738,17 +5750,13 @@ Assistant::GDD_chooseStainImagesDirectory()
                                       tr("Choose stain images directory"),
                                       ui->GDD_stainImagesPath->text(),
                                       QFileDialog::ShowDirsOnly);
+  if (path.isEmpty()) { //B: a cancel cleared the directory
+    return;
+  }
+  //TODO: also check that there are images !?
 
   ui->GDD_stainImagesPath->setText(path);
   _GDD_stainImagesDirectory = path;
-
-  if (path.isEmpty()) {
-    //TODO: also check that there are images !?
-
-    const QString szStr = QString::number(0);
-    ui->NbDegGDD->setText(szStr);
-    ui->TotalGDD->setText(szStr);
-  }
 }
 
 void
