@@ -32,12 +32,15 @@ jobs:
               -DBUILD_OTHER_PROGS=ON
               -DBUILD_PYTHON_WRAPPER=ON
 
+          # BUILD_OTHER_PROGS: the 3D step of DocCreatorDegradator is only
+          # built with OSMesa.
           - name: degradations with OSMesa, gcc, Release
             packages: libosmesa6-dev
             cmake: >-
               -DCMAKE_BUILD_TYPE=Release
               -DBUILD_ONLY_DEGRADATIONS=ON
               -DBUILD_WITH_OSMESA=ON
+              -DBUILD_OTHER_PROGS=ON
 
           # Everything, with Qt 6. Leptonica and tesseract are built from
           # sources, as they are not found.

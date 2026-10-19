@@ -151,9 +151,9 @@ main(int argc, char *argv[])
     hole_patterns_dirs[0] = dc::makePath(HOLES_PATTERNS_PATH, "centerHoles");
     hole_patterns_dirs[1] = dc::makePath(HOLES_PATTERNS_PATH, "borderHoles");
     hole_patterns_dirs[2] = dc::makePath(HOLES_PATTERNS_PATH, "cornerHoles");
-    hole_patterns[0] = dc::listDirectory(hole_patterns_dirs[0]);
-    hole_patterns[1] = dc::listDirectory(hole_patterns_dirs[1]);
-    hole_patterns[2] = dc::listDirectory(hole_patterns_dirs[2]);
+    hole_patterns[0] = dc::listImageFiles(hole_patterns_dirs[0]);
+    hole_patterns[1] = dc::listImageFiles(hole_patterns_dirs[1]);
+    hole_patterns[2] = dc::listImageFiles(hole_patterns_dirs[2]);
   }
 
   std::vector<std::string> meshList;
@@ -310,7 +310,12 @@ main(int argc, char *argv[])
       for (int j=0; j<numHoles; ++j) {
 	const dc::HoleDegradation::HoleType holeType = (dc::HoleDegradation::HoleType)random_in_range(0, 2);
 	const std::vector<std::string> &patterns = hole_patterns[(int)holeType];
-	const int holeIndex = random_in_range(0, patterns.size()-1);
+	//B: with no pattern, random_in_range(0, -1) was undefined, and then
+	// patterns[] read out of its bounds
+	if (patterns.empty()) {
+	  continue;
+	}
+	const int holeIndex = random_in_range(0, static_cast<int>(patterns.size())-1);
 	const std::string holePatternFilename = dc::makePath(hole_patterns_dirs[(int)holeType], patterns[holeIndex]);
 	cv::Mat holePattern = cv::imread(holePatternFilename);
 	if (holePattern.empty()) {
@@ -380,10 +385,12 @@ main(int argc, char *argv[])
 
     }
     
-    if (do_3D) {
+    //B: with no mesh, random_in_range(0, -1) was undefined, and the mesh
+    // was given without its directory, so it was not found
+    if (do_3D && ! meshList.empty()) {
 
-      const int meshIndex = random_in_range(0, meshList.size()-1);
-      const std::string &meshFilename = meshList[meshIndex];
+      const int meshIndex = random_in_range(0, static_cast<int>(meshList.size())-1);
+      const std::string meshFilename = dc::makePath(MESHES_PATH, meshList[meshIndex]);
       const bool random = true;
 
       const cv::Mat img3D = dc::Distortion3D::degrade3D(currImg, meshFilename, random);

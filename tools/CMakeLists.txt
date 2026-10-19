@@ -14,12 +14,19 @@ IF(BUILD_OTHER_PROGS)
       CXX_EXTENSIONS NO
       )
     TARGET_LINK_LIBRARIES(DocCreatorDegradator DocCreatorDegradations)
+    #B: the 3D distortion step tests this macro, which was never defined:
+    # it was off even when DocCreator is built with OSMesa
+    IF(BUILD_WITH_OSMESA)
+      TARGET_COMPILE_DEFINITIONS(DocCreatorDegradator PRIVATE BUILD_WITH_OSMESA=1)
+    ENDIF()
 
+    #B: ${PROGNAME}, which is only set later, in software/DocCreator: the
+    # rule read install(TARGETS RUNTIME ...), and installed nothing
     IF(UNIX)
-      install(TARGETS ${PROGNAME} RUNTIME DESTINATION bin)
+      install(TARGETS DocCreatorDegradator RUNTIME DESTINATION bin)
     ENDIF(UNIX)
     IF(WIN32)
-      INSTALL(TARGETS ${PROGNAME} RUNTIME DESTINATION programs COMPONENT applications)
+      INSTALL(TARGETS DocCreatorDegradator RUNTIME DESTINATION programs COMPONENT applications)
     ENDIF(WIN32)
 
 
