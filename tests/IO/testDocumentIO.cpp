@@ -524,3 +524,78 @@ TEST_CASE( "Testing the font of the saved styles" )
   REQUIRE( second == QStringLiteral("Arabic") );
   delete doc2;
 }
+
+/*
+  The styles were read up to </styles>: without a <styles> element, or
+  with it after <content>, the whole document was read with them, and the
+  document was loaded empty. And the file was decoded as UTF-8 whatever its
+  XML declaration said.
+*/
+namespace {
+
+  const char *CONTENT =
+    "  <content>\n"
+    "    <page>\n"
+    "      <textBlock x=\"10\" y=\"20\" width=\"100\" height=\"200\""
+    " marginTop=\"0\" marginBottom=\"0\" marginLeft=\"0\" marginRight=\"0\">\n"
+    "        <paragraph lineSpacing=\"0\" tabulationSize=\"0\">\n"
+    "          <string style=\"first\">\n"
+    "            <char id=\"1\" display=\"a\" x=\"1\" y=\"2\" width=\"8\" height=\"16\"/>\n"
+    "            <char id=\"2\" display=\"b\" x=\"9\" y=\"2\" width=\"8\" height=\"16\"/>\n"
+    "          </string>\n"
+    "        </paragraph>\n"
+    "      </textBlock>\n"
+    "    </page>\n"
+    "  </content>\n";
+
+  const char *STYLES =
+    "  <styles>\n"
+    "    <style name=\"first\"><font>JulesVerne</font></style>\n"
+    "  </styles>\n";
+
+} //namespace
+
+TEST_CASE( "Testing document XML loading, in any order" )
+{
+  SECTION("the styles after the content")
+  {
+    Doc::Document *doc = loadXml(QStringLiteral("tmp_doc_styles_last.xml"),
+      QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<document width=\"100\" height=\"100\">\n")
+      + QLatin1String(CONTENT) + QLatin1String(STYLES) + QStringLiteral("</document>\n"));
+    REQUIRE( doc != nullptr );
+    REQUIRE( doc->getPages().size() == 1 );
+    REQUIRE( displays(toXml(doc)) == QStringLiteral("ab") );
+    REQUIRE( toXml(doc).contains(QStringLiteral("<font>JulesVerne</font>")) );
+    delete doc;
+  }
+
+  SECTION("no styles at all")
+  {
+    Doc::Document *doc = loadXml(QStringLiteral("tmp_doc_no_styles.xml"),
+      QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<document width=\"100\" height=\"100\">\n")
+      + QLatin1String(CONTENT) + QStringLiteral("</document>\n"));
+    REQUIRE( doc != nullptr );
+    REQUIRE( doc->getPages().size() == 1 );
+    REQUIRE( displays(toXml(doc)) == QStringLiteral("ab") );
+    delete doc;
+  }
+
+  SECTION("an ISO-8859-1 document")
+  {
+    QByteArray bytes =
+      "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<document width=\"100\" height=\"100\">\n";
+    bytes += STYLES;
+    bytes += QByteArray(CONTENT).replace("display=\"a\"", "display=\"\xe9\"");
+    bytes += "</document>\n";
+    const QString filename = QStringLiteral("tmp_doc_latin1.xml");
+    QFile file(filename);
+    REQUIRE( file.open(QFile::WriteOnly | QFile::Truncate) );
+    file.write(bytes);
+    file.close();
+    Doc::Document *doc = IOManager::DocumentFileManager::documentFromXml(filename);
+    REQUIRE( doc != nullptr );
+    //U+00E9, written as one byte in the file
+    REQUIRE( displays(toXml(doc)) == QString(QChar(0xE9)) + QStringLiteral("b") );
+    delete doc;
+  }
+}

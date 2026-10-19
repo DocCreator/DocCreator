@@ -91,18 +91,25 @@ XMLDocumentLoader::createNewDocument()
 void
 XMLDocumentLoader::buildStyles()
 {
-  //Reading styles from xml
-  while (!(_reader->tokenType() == QXmlStreamReader::EndElement &&
-           _reader->name() == QLatin1String("styles")) &&
-         !_reader->atEnd()) {
+  /*
+    B: the styles were read with _reader up to </styles>: without a
+    <styles> element, or with it after <content>, the whole document was
+    read here, buildContent() then found nothing, and the document was
+    loaded empty with no error. The styles are now read by a reader of
+    their own, wherever they are in the document, and _reader stays where
+    buildContent() starts.
+  */
+  std::unique_ptr<QXmlStreamReader> contentReader = std::move(_reader);
+  _reader = std::make_unique<QXmlStreamReader>(_input);
+  while (!_reader->atEnd()) {
     if (_reader->name() == QLatin1String("style") &&
         _reader->tokenType() == QXmlStreamReader::StartElement) {
       _output->addStyle(buildStyle().release());
     }
     _reader->readNext();
   }
-
-  reportError();
+  //a parse error is reported by buildContent(), with the content reader
+  _reader = std::move(contentReader);
 }
 
 void
