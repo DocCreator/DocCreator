@@ -41,6 +41,17 @@ struct HoleData;
   Every one of those reads was loop invariant, so moving them out of the
   loops changes nothing else.
 */
+//numbers of holes of each type, ranges [min; max]
+struct HoleCounts
+{
+  int cornerMin = 0;
+  int cornerMax = 0;
+  int borderMin = 0;
+  int borderMax = 0;
+  int centerMin = 0;
+  int centerMax = 0;
+};
+
 struct GenerationParameters
 {
   QString outputDir;
@@ -81,6 +92,7 @@ struct GenerationParameters
   bool holeEnable = false;
   int holeNumDraws = 0;
   QColor holeColor;
+  HoleCounts holeCounts;
 
   bool dist3DEnable = false;
   int dist3DNumDraws = 0;
@@ -509,7 +521,9 @@ protected:
                                      float scaleH,
                                      const QColor &color,
                                      bool randPosX,
-                                     bool randPosY) const;
+                                     bool randPosY,
+                                     const HoleCounts &counts) const;
+  HoleCounts Hole_counts() const;
 
   int ElasticDeformation_nbDegradations() const;
   void ElasticDeformation_updateTirageAndTotal();

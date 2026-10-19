@@ -4740,9 +4740,11 @@ Hole_degradateImageRandom(QImage &degImg,
 
   if (!holePattern.isNull()) {
 
-    if (scaleW != 1.f && scaleH != 1.f) {
-      const int holeWidth = static_cast<int>(holePattern.width() * scaleW);
-      const int holeHeight = static_cast<int>(holePattern.height() * scaleH);
+    //B: && where || was meant: a scale on one axis only was ignored; and a
+    // small pattern could be scaled to 0 pixels, a null image
+    if (scaleW != 1.f || scaleH != 1.f) {
+      const int holeWidth = std::max(1, static_cast<int>(holePattern.width() * scaleW));
+      const int holeHeight = std::max(1, static_cast<int>(holePattern.height() * scaleH));
       holePattern = holePattern.scaled(
         holeWidth, holeHeight, Qt::KeepAspectRatio, Qt::FastTransformation);
     }
@@ -4930,6 +4932,27 @@ getNumberOfHolesBySize(int nbHoles,
   return res;
 }
 
+/*
+  Get the range [@a minIndex; @a maxIndex[ of the patterns of size class
+  @a sizeClass (0: small, 1: medium, 2: big) among @a nbPatterns patterns
+  sorted by size. @a nbPatterns must be positive.
+
+  B: with fewer than 3 patterns, a class was empty, and
+  getNRandomUniqIfPossible() divided by its size, 0. The pattern of the
+  class just below is taken then.
+*/
+static void
+getHolePatternRange(int sizeClass, int nbPatterns, int &minIndex, int &maxIndex)
+{
+  assert(nbPatterns > 0);
+  minIndex = sizeClass * nbPatterns / 3;
+  maxIndex = (sizeClass + 1) * nbPatterns / 3;
+  if (minIndex >= maxIndex) {
+    minIndex = std::min(minIndex, nbPatterns - 1);
+    maxIndex = minIndex + 1;
+  }
+}
+
 static
 dc::HoleDegradation::HoleSide
 getholeSide(dc::HoleDegradation::HoleType holeType, int sideI)
@@ -4972,23 +4995,32 @@ Assistant::Hole_doHoles(QImage &recto,
                         float scaleH,
                         const QColor &color,
                         bool randPosX,
-                        bool randPosY) const
+                        bool randPosY,
+                        const HoleCounts &counts) const
 {
   std::vector<HoleData> holes;
   holes.reserve(20); //arbitrary
 
+  /*
+    B: the numbers of holes were read from the spinboxes, and this runs on
+    the worker thread during a generation: they are now given, read on the
+    GUI thread (cf Hole_counts()). The maximum was never drawn either, as
+    P_bounded_rand() does not return its upper bound: +1, as for the other
+    pairs of spinboxes. A type without patterns is skipped.
+  */
+
   //do corner holes
-  if (this->nbHoleCornerSelected() > 0) {
+  if (this->nbHoleCornerSelected() > 0 && !_Hole_CornerHoles.isEmpty()) {
 
     const QStringList &patterns = _Hole_CornerHoles;
     const dc::HoleDegradation::HoleType type =
       dc::HoleDegradation::HoleType::CORNER;
 
     const int nbPatterns = patterns.size();
-    const int minNb = ui->HoleCornerMinNb->value();
-    const int maxNb = std::max(ui->HoleCornerMaxNb->value(), minNb + 1);
+    const int minNb = std::min(counts.cornerMin, 4);
+    const int maxNb = std::min(std::max(counts.cornerMax, minNb), 4);
 
-    const int nbHoles = P_bounded_rand(minNb, maxNb);
+    const int nbHoles = P_bounded_rand(minNb, maxNb + 1);
     std::vector<int> sides =
       getNRandomUniq(nbHoles, 0, 4); //At most we can draw 4 corners.
     assert(sides.size() == (size_t)nbHoles);
@@ -5004,21 +5036,7 @@ Assistant::Hole_doHoles(QImage &recto,
       if (nbHolesBySize[i] > 0) {
         int minIndex = 0;
         int maxIndex = nbPatterns;
-        switch (i) {
-          case 0: //small
-            minIndex = 0;
-            maxIndex = nbPatterns / 3;
-            break;
-          case 1: //medium
-            minIndex = nbPatterns / 3;
-            maxIndex = 2 * nbPatterns / 3;
-            break;
-          case 2: //big
-          default:
-            minIndex = 2 * nbPatterns / 3;
-            maxIndex = nbPatterns;
-            break;
-        }
+        getHolePatternRange(i, nbPatterns, minIndex, maxIndex);
 
         std::vector<int> indices =
           getNRandomUniqIfPossible(nbHolesBySize[i], minIndex, maxIndex);
@@ -5050,17 +5068,17 @@ Assistant::Hole_doHoles(QImage &recto,
   }
 
   //do border holes
-  if (this->nbHoleBorderSelected() > 0) {
+  if (this->nbHoleBorderSelected() > 0 && !_Hole_BorderHoles.isEmpty()) {
 
     const QStringList &patterns = _Hole_BorderHoles;
     const dc::HoleDegradation::HoleType type =
       dc::HoleDegradation::HoleType::BORDER;
 
     const int nbPatterns = patterns.size();
-    const int minNb = ui->HoleBorderMinNb->value();
-    const int maxNb = std::max(ui->HoleBorderMaxNb->value(), minNb + 1);
+    const int minNb = counts.borderMin;
+    const int maxNb = std::max(counts.borderMax, minNb);
 
-    const int nbHoles = P_bounded_rand(minNb, maxNb);
+    const int nbHoles = P_bounded_rand(minNb, maxNb + 1);
     std::vector<int> sides = getNRandom(
       nbHoles,
       0,
@@ -5079,22 +5097,7 @@ Assistant::Hole_doHoles(QImage &recto,
 
         int minIndex = 0;
         int maxIndex = nbPatterns;
-
-        switch (i) {
-          case 0: //small
-            minIndex = 0;
-            maxIndex = nbPatterns / 3;
-            break;
-          case 1: //medium
-            minIndex = nbPatterns / 3;
-            maxIndex = 2 * nbPatterns / 3;
-            break;
-          case 2: //big
-          default:
-            minIndex = 2 * nbPatterns / 3;
-            maxIndex = nbPatterns;
-            break;
-        }
+        getHolePatternRange(i, nbPatterns, minIndex, maxIndex);
 
         std::vector<int> indices =
           getNRandomUniqIfPossible(nbHolesBySize[i], minIndex, maxIndex);
@@ -5124,17 +5127,17 @@ Assistant::Hole_doHoles(QImage &recto,
   }
 
   //do center holes
-  if (this->nbHoleCenterSelected() > 0) {
+  if (this->nbHoleCenterSelected() > 0 && !_Hole_CenterHoles.isEmpty()) {
 
     const QStringList &patterns = _Hole_CenterHoles;
     const dc::HoleDegradation::HoleType type =
       dc::HoleDegradation::HoleType::CENTER;
 
     const int nbPatterns = patterns.size();
-    const int minNb = this->holeMin();
-    const int maxNb = std::max(this->holeMax(), minNb + 1);
+    const int minNb = counts.centerMin;
+    const int maxNb = std::max(counts.centerMax, minNb);
 
-    const int nbHoles = P_bounded_rand(minNb, maxNb);
+    const int nbHoles = P_bounded_rand(minNb, maxNb + 1);
 
     std::vector<int> nbHolesBySize = getNumberOfHolesBySize(
       nbHoles, smallHoleCenter(), mediumHoleCenter(), bigHoleCenter());
@@ -5145,22 +5148,7 @@ Assistant::Hole_doHoles(QImage &recto,
 
         int minIndex = 0;
         int maxIndex = nbPatterns;
-
-        switch (i) {
-          case 0: //small
-            minIndex = 0;
-            maxIndex = nbPatterns / 3;
-            break;
-          case 1: //medium
-            minIndex = nbPatterns / 3;
-            maxIndex = 2 * nbPatterns / 3;
-            break;
-          case 2: //big
-          default:
-            minIndex = 2 * nbPatterns / 3;
-            maxIndex = nbPatterns;
-            break;
-        }
+        getHolePatternRange(i, nbPatterns, minIndex, maxIndex);
 
         std::vector<int> indices =
           getNRandomUniqIfPossible(nbHolesBySize[i], minIndex, maxIndex);
@@ -5203,7 +5191,7 @@ Assistant::Hole_updatePreview()
   const bool randPosX = true;
   const bool randPosY = true;
 
-  Hole_doHoles(imgDeg, scaleW, scaleH, color, randPosX, randPosY);
+  Hole_doHoles(imgDeg, scaleW, scaleH, color, randPosX, randPosY, Hole_counts());
 
   ui->HolePreviewLabel->setPixmap(QPixmap::fromImage(imgDeg));
   ui->HolePreviewLabel->setMinimumSize(imgDeg.size());
@@ -6051,6 +6039,19 @@ int
 Assistant::holeMin() const
 {
   return ui->HoleCenterMinNb->value();
+}
+
+HoleCounts
+Assistant::Hole_counts() const
+{
+  HoleCounts c;
+  c.cornerMin = ui->HoleCornerMinNb->value();
+  c.cornerMax = ui->HoleCornerMaxNb->value();
+  c.borderMin = ui->HoleBorderMinNb->value();
+  c.borderMax = ui->HoleBorderMaxNb->value();
+  c.centerMin = holeMin();
+  c.centerMax = holeMax();
+  return c;
 }
 
 bool
@@ -7487,7 +7488,7 @@ Assistant::do_hole(const GenerationParameters &p,
     holes.clear();
     holes.reserve(20); //arbitrary
 
-    holes = Hole_doHoles(rectoC, scaleW, scaleH, color, randPosX, randPosY);
+    holes = Hole_doHoles(rectoC, scaleW, scaleH, color, randPosX, randPosY, p.holeCounts);
 
     const QString lPrefix = prefix + QString::number(i);
     noteWrite(Hole_saveImage(rectoC, path, lPrefix, imgExt, holes));
@@ -7806,6 +7807,7 @@ Assistant::readGenerationParameters() const
   p.holeEnable = this->holeEnable();
   p.holeNumDraws = ui->TirageHole->value();
   p.holeColor = _Hole_colorBehind;
+  p.holeCounts = Hole_counts();
 
   p.dist3DEnable = this->dist3DEnable();
   p.dist3DNumDraws = ui->TirageDist3D->value();
