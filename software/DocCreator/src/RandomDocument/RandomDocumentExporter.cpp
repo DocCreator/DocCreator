@@ -104,7 +104,12 @@ RandomDocumentExporter::writeImage(const QImage &image)
   if (!image.isNull()) {
     const QString filename = getDocImageFilePath();
     QImageWriter writer(filename, "png");
-    writer.write(image);
+    //B: a failure was ignored, and the image reported as saved
+    if (!writer.write(image)) {
+      qWarning() << metaObject()->className() << ": unable to write" << filename
+                 << ":" << writer.errorString();
+      return;
+    }
     emit imageSaved(filename);
   }
 }
@@ -116,8 +121,10 @@ RandomDocumentExporter::saveProperties(const QMap<QString, QString> &properties)
     getFilePath(QStringLiteral("properties"), QStringLiteral(".xml"));
 
   QFile file(filename);
-  if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    qWarning() << metaObject()->className() << ": unable to write" << filename;
     return;
+  }
 
   QTextStream out(&file);
 
@@ -132,7 +139,8 @@ RandomDocumentExporter::saveProperties(const QMap<QString, QString> &properties)
     QStringLiteral("This file describe an ancient document image")));
   doc.appendChild(doc.createTextNode(QStringLiteral("\n")));
 
-  QDomElement root = doc.createElement(QStringLiteral("<properties>"));
+  //B: the tag name was "<properties>": the file written was not well-formed
+  QDomElement root = doc.createElement(QStringLiteral("properties"));
   root.setAttribute(QStringLiteral("doc_image"), getDocImageFilePath());
   doc.appendChild(root);
 

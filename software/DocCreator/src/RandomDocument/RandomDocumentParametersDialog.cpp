@@ -40,11 +40,11 @@ RandomDocumentParametersDialog::RandomDocumentParametersDialog(QWidget *parent)
   connect(_ui->lineSpacingMinSpinBox,
           SIGNAL(valueChanged(int)),
           this,
-          SLOT(udateLineSpacingMin()));
+          SLOT(updateLineSpacingMin())); //B: was udateLineSpacingMin, no such slot
   connect(_ui->lineSpacingMaxSpinBox,
           SIGNAL(valueChanged(int)),
           this,
-          SLOT(udateLineSpacingMax()));
+          SLOT(updateLineSpacingMax()));
 
   connect(_ui->bottomMarginSpinBox,
           SIGNAL(valueChanged(int)),
@@ -74,11 +74,11 @@ RandomDocumentParametersDialog::RandomDocumentParametersDialog(QWidget *parent)
   connect(_ui->nbBlocksPerRowSpinBoxMin,
           SIGNAL(valueChanged(int)),
           this,
-          SLOT(updateNbBlocksPerRowsMin()));
+          SLOT(updateNbBlocksPerRowMin())); //B: was ...PerRowsMin, no such slot
   connect(_ui->nbBlocksPerRowSpinBoxMax,
           SIGNAL(valueChanged(int)),
           this,
-          SLOT(updateNbBlocksPerRowsMax()));
+          SLOT(updateNbBlocksPerRowMax()));
 
   //connect(_ui->nbDocsSpinBox, SIGNAL(valueChanged(int)), &_params, SLOT(setNbDocs(int)));
   connect(_ui->nbPagesSpinBox,

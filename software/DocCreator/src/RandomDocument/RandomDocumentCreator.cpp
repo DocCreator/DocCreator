@@ -438,8 +438,10 @@ RandomDocumentCreator::create()
     Context::DocumentContext::instance()->setCurrentDocument(nullptr);
     _ctrl->setDocument(nullptr);
 
+    //B: removeFont() gives the font back, it does not delete it: every
+    // generation leaked all the fonts it loaded
     for (const QString &fontName : fontList) {
-      Context::FontContext::instance()->removeFont(fontName);
+      delete Context::FontContext::instance()->removeFont(fontName);
     }
 
     restoreFonts(prevCurrFontName, prevFonts);
@@ -600,8 +602,8 @@ RandomDocumentCreator::createAllTextsOneFontBackground()
     Context::DocumentContext::instance()->setCurrentDocument(nullptr);
     _ctrl->setDocument(nullptr);
 
-    for (const QString &font : fontList) {
-      Context::FontContext::instance()->removeFont(font);
+    for (const QString &font : fontList) { //B: deleted, cf create()
+      delete Context::FontContext::instance()->removeFont(font);
     }
 
     restoreFonts(prevCurrFontName, prevFonts);
@@ -752,8 +754,10 @@ RandomDocumentCreator::createAllTexts()
     Context::DocumentContext::instance()->setCurrentDocument(nullptr);
     _ctrl->setDocument(nullptr);
 
+    //B: removeFont() gives the font back, it does not delete it: every
+    // generation leaked all the fonts it loaded
     for (const QString &fontName : fontList) {
-      Context::FontContext::instance()->removeFont(fontName);
+      delete Context::FontContext::instance()->removeFont(fontName);
     }
 
     restoreFonts(prevCurrFontName, prevFonts);
