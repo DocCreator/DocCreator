@@ -81,7 +81,11 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
 {
   // Add an event to detect the click on the image to update the preview area
   QLabel *label = qobject_cast<QLabel *>(watched);
-  if (label != nullptr && event->type() == QEvent::MouseButtonPress) {
+  //B: with no letter (tesseract not initialized), the label had no pixmap:
+  // the position was divided by a width of 0, and the infinity converted
+  // to int (undefined)
+  if (label != nullptr && event->type() == QEvent::MouseButtonPress &&
+      !m_font.empty()) {
     const QMouseEvent *k = (QMouseEvent *)event;
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
@@ -93,6 +97,9 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
     const int pixmapWidth = p.width();
     const int pixmapHeight = p.height();
 #endif
+    if (pixmapWidth <= 0 || pixmapHeight <= 0) {
+      return QDialog::eventFilter(watched, event);
+    }
     
     const double xmouse =
       static_cast<int>((static_cast<double>(k->pos().x()) / pixmapWidth) *
@@ -119,13 +126,14 @@ OCRDialog::eventFilter(QObject *watched, QEvent *event)
   return QDialog::eventFilter(watched, event);
 }
 
-void
+bool
 OCRDialog::init(const QImage &ori, const QImage &bin)
 {
   setOriginalImage(ori);
   setBinarizedImage(bin);
-  process();
+  const bool ok = process();
   updateAlphabet();
+  return ok;
 }
 
 void
@@ -289,7 +297,7 @@ namespace {
 
 } //namespace
 
-void
+bool
 OCRDialog::process()
 {
   m_font.clear();
@@ -351,7 +359,9 @@ OCRDialog::process()
   tessdataDir += "tessdata";
 #endif
 
-  const QByteArray tessdataParentDirBA = tessdataDir.toLatin1();
+  //B: toLatin1(): a path with characters out of Latin-1 (a user name on
+  // Windows) was mangled, and tesseract did not find its data
+  const QByteArray tessdataParentDirBA = tessdataDir.toLocal8Bit();
   const char *tessdataParentDir = tessdataParentDirBA.constData();
   //B:Warning: tessdataParentDir must end with "/"
   const QByteArray languageBA = m_language.toLatin1();
@@ -471,9 +481,13 @@ OCRDialog::process()
   }
   else {
 
+    //B: the failure went to stderr only, and the empty dialog was shown;
+    // it is now reported to the caller, cf init()
     std::cerr<<"ERROR: tesseract initialization failed\n";
     std::cerr <<" TESSERACT_VERSION="<<tesseract::TessBaseAPI::Version()<<"\n";
+    return false;
   }
+  return true;
 }
 
 void
@@ -731,7 +745,7 @@ OCRDialog::updateView()
                      cv::BORDER_CONSTANT,
                      cv::Scalar(237, 237, 237));
 
-  if (m_currentLetter.baseline > image.rows)
+  if (m_currentLetter.baseline > ori_img.rows) //B: was image.rows, already extended
     cv::copyMakeBorder(ori_img,
                        ori_img,
                        0,

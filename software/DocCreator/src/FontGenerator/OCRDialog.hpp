@@ -27,7 +27,8 @@ public:
 
   void setParameters(const QString &tessdataParentDir, const QString &language);
 
-  void init(const QImage &ori, const QImage &bin);
+  //return false when tesseract could not be initialized
+  bool init(const QImage &ori, const QImage &bin);
   void setOriginalImage(const QImage &img);
   void setBinarizedImage(const QImage &img);
   const QImage getResultImage() const { return m_originalImg; }
@@ -39,7 +40,7 @@ public:
   Models::Font *getFont() const;
 
 private slots:
-  void process();
+  bool process();
 
   void on_tableLetters_clicked(const QModelIndex &index);
   void on_baselineSpinBox_valueChanged(int arg1);

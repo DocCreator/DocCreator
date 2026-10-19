@@ -1686,11 +1686,17 @@ DocCreator::synthetiseImage()
 
         QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
-        ocrDialog.init(imgDocument, binaryImage);
+        const bool ocrReady = ocrDialog.init(imgDocument, binaryImage);
 
         QGuiApplication::restoreOverrideCursor();
 
-        if (ocrDialog.exec()) { // Font extraction
+        //B: a failed tesseract initialization showed an empty dialog
+        if (!ocrReady) {
+          QMessageBox::critical(this, tr("OCR"),
+                                tr("Tesseract could not be initialized for the language %1 with the data of %2.")
+                                  .arg(lang, tessdataParentDir));
+        }
+        else if (ocrDialog.exec()) { // Font extraction
 
           const QString fontName = ocrDialog.saveFont();
 	  if (! fontName.isEmpty()) {
@@ -1795,11 +1801,16 @@ DocCreator::fontExtraction()
 
       QGuiApplication::setOverrideCursor(Qt::BusyCursor);
 
-      ocrDialog.init(imgDocument, dialog.getResultImage());
+      const bool ocrReady = ocrDialog.init(imgDocument, dialog.getResultImage());
 
       QGuiApplication::restoreOverrideCursor();
 
-      if (ocrDialog.exec()) {
+      if (!ocrReady) { //B: cf above
+        QMessageBox::critical(this, tr("OCR"),
+                              tr("Tesseract could not be initialized for the language %1 with the data of %2.")
+                                .arg(lang, tessdataParentDir));
+      }
+      else if (ocrDialog.exec()) {
         const QString fontName = ocrDialog.saveFont();
 	if (! fontName.isEmpty()) {
 	  Models::Font *font = IOManager::FontFileManager::readFont(fontName);
