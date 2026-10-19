@@ -1,19 +1,26 @@
-### To build a bundle 
+### To build a bundle
 
-#You should first install flatpak:
+#B: the manifest used the KDE runtime 5.9 (Qt 5, long out of support),
+# OpenCV 3.3, and an archive of 2017 served over http. It now uses the KDE
+# runtime 6.8 (Qt 6), OpenCV 5.0, leptonica and tesseract from their
+# release archives, and the DocCreator of this source tree; every download
+# is checked by its SHA256, as flatpak-builder builds without network.
+
+#You should first install flatpak and flatpak-builder:
 #On Fedora
 dnf install flatpak flatpak-builder
+#On Debian or Ubuntu
+apt install flatpak flatpak-builder
+
+#You should then install the runtime & sdk for KDE, from Flathub
+#(with --user, the root password is not needed)
+flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak --user install flathub org.kde.Platform//6.8 org.kde.Sdk//6.8
 
 
-#You should then install the runtime & sdk for KDE
-#(if you add --user, root passwd is not needed)
-flatpak remote-add kderuntime --from http://distribute.kde.org/kderuntime.flatpakrepo
-flatpak install kderuntime org.kde.Platform//5.9
-flatpak install kderuntime org.kde.Sdk//5.9
-
-
-#You should then build the application via flatpak-builder:
-flatpak-builder --repo=repo doccreator_flatpak fr.labri.doccreator.doccreator.json
+#You should then build the application via flatpak-builder, in this
+#directory:
+flatpak-builder --user --repo=repo doccreator_flatpak fr.labri.doccreator.doccreator.json
 
 #You can then create a bundle (as a single file):
 flatpak build-bundle repo doccreator.flatpak fr.labri.doccreator.doccreator
@@ -22,20 +29,18 @@ flatpak build-bundle repo doccreator.flatpak fr.labri.doccreator.doccreator
 
 ##----------------------------------------
 
-### To install this bundle on a different machine 
+### To install this bundle on a different machine
 
-#You should first install flatpak:
-#On Fedora
-dnf install flatpak
-
-#You should then install the runtime for KDE
-#Warning: it may download around 300MB of data
-flatpak --user remote-add kderuntime --from http://distribute.kde.org/kderuntime.flatpakrepo
-flatpak --user install kderuntime org.kde.Platform//5.9
+#You should first install flatpak, and the runtime for KDE
+#Warning: it may download several hundreds of MB of data
+flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak --user install flathub org.kde.Platform//6.8
 
 #Then you can install the bundle
 flatpak --user install doccreator.flatpak
 
-#You can now run it with the follwing command:
+#You can now run it with the following command:
 flatpak run fr.labri.doccreator.doccreator
 
+#and check the installation with:
+flatpak run fr.labri.doccreator.doccreator --self-test

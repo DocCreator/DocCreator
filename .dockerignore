@@ -1,0 +1,9 @@
+# Not sent to the build of bundlers/Dockerfile, which builds from the
+# sources: the build trees, the wheels and the history.
+.git
+build*/
+BUILD_PYTHON*/
+WHEELS*/
+bundlers/linux/flatpak/.flatpak-builder
+bundlers/linux/flatpak/doccreator_flatpak
+bundlers/linux/flatpak/repo

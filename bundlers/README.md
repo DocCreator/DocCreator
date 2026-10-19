@@ -1,11 +1,13 @@
 
 ## docker
 
-First generate the container with:  
+First generate the container, from the root of the repository, with:  
 ```
-cd bundlers
-docker build -t doccreator .
+docker build -f bundlers/Dockerfile -t doccreator .
 ```
+It builds DocCreator from the sources of the repository, with Qt 6 and the
+tesseract of Ubuntu 24.04, installs it in /usr/local, and checks the
+installation with `DocCreator --self-test`.
 
 Then run the docker image (on Ubuntu) with:  
 `xhost +local:docker`
@@ -17,7 +19,7 @@ or
 `sudo docker run -ti --rm  -e "DISPLAY=unix:0.0" -v="/tmp/.X11-unix:/tmp/.X11-unix:rw" --privileged doccreator /bin/bash`
 
 From the docker bash, you can then run the software with:  
-`DocCreator-pybind11/build/software/DocCreator/DocCreator`
+`DocCreator`
 
 Warning: the 3D distortion effect will not work properly this way. It is currently only supported in Docker when an Nvidia GPU and nvidia-docker2 is used, see below.
 
@@ -47,8 +49,7 @@ sudo docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
 
 Generate the container the same way:  
 ```
-cd bundlers
-docker build -t doccreator .
+docker build -f bundlers/Dockerfile -t doccreator .
 ```
 
 Then run the docker image (on Ubuntu) with:  
@@ -57,5 +58,5 @@ Then run the docker image (on Ubuntu) with:
 `sudo docker run -ti --rm --gpus all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix/:/tmp/.X11-unix -e QT_X11_NO_MITSHM=1 doccreator /bin/bash`
 
 Then launch doccreator the same way:  
-`DocCreator-pybind11/build/software/DocCreator/DocCreator`
+`DocCreator`
 
