@@ -18,8 +18,14 @@ toGray(const QImage &img)
 
   const int depth = img.depth();
 
-  //const QImage::Format format = img.format();
-  if (depth == 32) {
+  //B: every 32-bit image was read as QRgb, 0xAARRGGBB: the formats laid
+  // out otherwise (RGBA8888 and RGBX8888, bytes R, G, B, A; the 10-bit
+  // RGB30 and BGR30 ones) came out with red and blue swapped, or garbage.
+  // They go through QImage::pixel() below.
+  const QImage::Format format = img.format();
+  if (depth == 32 && (format == QImage::Format_RGB32 ||
+                      format == QImage::Format_ARGB32 ||
+                      format == QImage::Format_ARGB32_Premultiplied)) {
 
     if (img.bytesPerLine() == w * 4 && outImg.bytesPerLine() == w * 4) {
       //data is continuous

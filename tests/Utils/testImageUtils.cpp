@@ -129,3 +129,24 @@ TEST_CASE( "image filters" )
   for (const QString &f : readList)
     REQUIRE( f.startsWith(QStringLiteral("*.")) );
 }
+
+/*
+  Every 32-bit image was read as QRgb: an RGBA8888 one, of bytes R, G, B,
+  A, came out with red and blue swapped.
+*/
+TEST_CASE( "toGray() of the 32-bit formats" )
+{
+  const QColor red(255, 0, 0);
+  const int expected = qGray(red.rgb());
+  for (const QImage::Format format : {QImage::Format_RGB32, QImage::Format_ARGB32,
+                                      QImage::Format_RGBA8888, QImage::Format_RGBX8888,
+                                      QImage::Format_RGB30}) {
+    INFO( "format=" << static_cast<int>(format) );
+    QImage img(5, 3, format);
+    img.fill(red);
+    const QImage gray = toGray(img);
+    REQUIRE( gray.size() == img.size() );
+    REQUIRE( qRed(gray.pixel(2, 1)) == expected );
+    REQUIRE( qBlue(gray.pixel(2, 1)) == expected );
+  }
+}
