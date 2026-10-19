@@ -10,6 +10,11 @@
 # prepared its input. These are not races, and they hide the ones that
 # are.
 called_from_lib:libopencv_core
+# The mutexes of the thread pool of OpenCV are locked in libopencv_core,
+# which is not instrumented, and unlocked through libc: ThreadSanitizer
+# reports "unlock of an unlocked mutex" on a mutex allocated in
+# libopencv_core (OpenCV 4.6 of Ubuntu 24.04).
+mutex:libopencv_core
 called_from_lib:libopencv_imgproc
 called_from_lib:libopencv_photo
 race:^cv::parallel_for_

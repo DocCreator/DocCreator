@@ -232,9 +232,10 @@ jobs:
 
           # A multi-config generator, in Debug: the tesseract built from
           # sources was linked with the names of its Release libraries,
-          # which only showed with Visual Studio in Debug.
+          # which only showed with Visual Studio in Debug. The runner has
+          # Visual Studio 2026 only.
           - name: Windows, full, Visual Studio, Debug
-            generator: Visual Studio 17 2022
+            generator: Visual Studio 18 2026
             config: Debug
             qt: true
             cmake: ""
@@ -334,7 +335,8 @@ jobs:
           $makensis = "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
           & $makensis -V2 -WX build\bundlers\win\DocCreator.nsi
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          & $makensis -V2 -WX -DPRODUCT_VERSION=9.9.9 build\bundlers\win\DocCreator.nsi
+          # quoted: PowerShell reads 9.9.9 as the number 9 and ".9.9"
+          & $makensis -V2 -WX '-DPRODUCT_VERSION=9.9.9' build\bundlers\win\DocCreator.nsi
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
       # The runner is thrown away afterwards: install, run and uninstall for
