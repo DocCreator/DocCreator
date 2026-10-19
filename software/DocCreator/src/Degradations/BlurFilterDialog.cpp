@@ -82,13 +82,10 @@ BlurFilterDialog::getBlurExamplesPath()
 QStringList
 BlurFilterDialog::getDirectoryList(const QString &dirName)
 {
-  QStringList list = QDir(dirName).entryList();
-  if (!list.empty()) {
-    assert(list.size() >= 2);
-    list.removeFirst();
-    list.removeFirst();
-  }
-  return list;
+  //B: the first two entries were dropped, taken to be "." and "..": a file
+  // whose name sorts before "." (#1.png, -a.png) was dropped instead, and
+  // ".." kept, and later loaded as an image
+  return QDir(dirName).entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 }
 
 BlurFilterDialog::BlurFilterDialog(QWidget *parent)
