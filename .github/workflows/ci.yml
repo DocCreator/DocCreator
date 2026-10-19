@@ -42,15 +42,37 @@ jobs:
               -DBUILD_WITH_OSMESA=ON
               -DBUILD_OTHER_PROGS=ON
 
+          # tests/Degradations/testConcurrency.cpp calls every degradation
+          # from eight threads at once: it was written for this job.
+          - name: degradations, clang, ThreadSanitizer
+            packages: clang
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              -DCMAKE_C_COMPILER=clang
+              -DCMAKE_CXX_COMPILER=clang++
+              -DBUILD_ONLY_DEGRADATIONS=ON
+              -DSANITIZER=thread
+
           # Everything, with Qt 6. Leptonica and tesseract are built from
-          # sources, as they are not found.
+          # sources, as they are not found. The installation is checked by
+          # DocCreator --self-test.
           - name: full, clang, Release
             packages: clang qt6-base-dev
+            selftest: true
             cmake: >-
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_C_COMPILER=clang
               -DCMAKE_CXX_COMPILER=clang++
               -DBUILD_OTHER_PROGS=ON
+
+          # Qt 5 is still supported (cf. the root CMakeLists.txt), with the
+          # tesseract of the distribution, whose models FindTesseract finds.
+          - name: full, gcc, Qt 5, system tesseract, Release
+            packages: qtbase5-dev libqt5opengl5-dev libqt5xmlpatterns5-dev libtesseract-dev libleptonica-dev tesseract-ocr-eng tesseract-ocr-fra
+            selftest: true
+            cmake: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DDOCCREATOR_QT_VERSION=5
 
           - name: full, gcc, AddressSanitizer + UndefinedBehaviorSanitizer
             packages: qt6-base-dev
@@ -74,9 +96,16 @@ jobs:
       ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1
       LSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/lsan.supp
       UBSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/ubsan.supp:print_stacktrace=1:halt_on_error=1
+      TSAN_OPTIONS: suppressions=${{ github.workspace }}/cmake/sanitizers/tsan.supp:second_deadlock_stack=1:halt_on_error=1
 
     steps:
       - uses: actions/checkout@v7
+
+      # The kernel of the runner randomizes the mappings over more bits
+      # than ThreadSanitizer supports ("unexpected memory mapping").
+      - name: Reduce the address space randomization for ThreadSanitizer
+        if: ${{ contains(matrix.cmake, 'SANITIZER=thread') }}
+        run: sudo sysctl vm.mmap_rnd_bits=28
 
       # git: leptonica and tesseract are cloned when they are built from
       # sources.
@@ -105,6 +134,15 @@ jobs:
         if: ${{ !matrix.coverage }}
         run: ctest --test-dir build --output-on-failure --parallel 4
 
+      # The installed program, out of the build tree: its data, fonts,
+      # image formats and tesseract models, and a document rendered.
+      - name: Install, and check the installation
+        if: ${{ matrix.selftest }}
+        run: |
+          cmake --install build --prefix "$PWD/install"
+          QT_QPA_PLATFORM=offscreen install/bin/DocCreator --version
+          QT_QPA_PLATFORM=offscreen install/bin/DocCreator --self-test
+
       # ctest writes the list of the failed tests only when some fail,
       # and does not remove an older one: cf. the check below.
       - name: Test, and write the coverage report
@@ -119,6 +157,7 @@ jobs:
         with:
           name: coverage
           path: build/coverage/
+          if-no-files-found: error
           retention-days: 14
 
       # The coverage target writes its report even when tests fail, and
@@ -133,26 +172,72 @@ jobs:
             exit 1
           fi
 
+  # The image of bundlers/Dockerfile, which builds and checks DocCreator
+  # (--self-test) from this tree.
+  docker:
+    name: Docker image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image
+        run: docker build -f bundlers/Dockerfile -t doccreator .
+
+  # The wheel of the python module, made by
+  # wrapper/python/build_wheels_manylinux.sh in its manylinux container,
+  # repaired by auditwheel, installed and tested out of the build tree.
+  wheel:
+    name: manylinux wheel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build, repair and test the wheel
+        run: >-
+          docker run --rm -e PYTHON_VERSIONS=cp312-cp312 -v "$PWD":/io
+          quay.io/pypa/manylinux_2_28_x86_64
+          /io/wrapper/python/build_wheels_manylinux.sh
+      - name: Upload the wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: DocCreatorPy-manylinux-wheel
+          path: WHEELS/*.whl
+          if-no-files-found: error
+          retention-days: 14
+
   windows:
     name: ${{ matrix.name }}
     runs-on: windows-2025
-    timeout-minutes: 120
+    timeout-minutes: 150
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Windows, degradations, MSVC, Release
+            generator: Ninja
+            config: Release
             cmake: >-
               -DBUILD_ONLY_DEGRADATIONS=ON
               -DBUILD_OTHER_PROGS=ON
 
           # Leptonica and tesseract are built from sources, as on Linux.
-          - name: Windows, full, MSVC, Release
+          - name: Windows, full, MSVC, Release, installer
+            generator: Ninja
+            config: Release
             qt: true
             installer: true
             cmake: >-
               -DBUILD_OTHER_PROGS=ON
+
+          # A multi-config generator, in Debug: the tesseract built from
+          # sources was linked with the names of its Release libraries,
+          # which only showed with Visual Studio in Debug.
+          - name: Windows, full, Visual Studio, Debug
+            generator: Visual Studio 17 2022
+            config: Debug
+            qt: true
+            cmake: ""
 
     steps:
       # The test data must be compared as they are in the repository, not
@@ -162,9 +247,12 @@ jobs:
 
       - uses: actions/checkout@v7
 
+      # Pinned: the version of the prebuilt OpenCV of Chocolatey changes
+      # the names of its DLLs (opencv_world<version>.dll).
       - name: Install OpenCV and ninja
         run: |
-          choco install opencv ninja -y --no-progress
+          choco install opencv --version=4.13.0 -y --no-progress
+          choco install ninja -y --no-progress
           $bin = (Get-ChildItem C:\tools\opencv\build\x64\vc*\bin | Select-Object -Last 1).FullName
           "$bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
@@ -173,7 +261,7 @@ jobs:
         if: ${{ matrix.qt }}
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8.*'
+          version: '6.8.3'
           arch: win64_msvc2022_64
           cache: true
 
@@ -189,12 +277,11 @@ jobs:
           path: thirdparty/tessdata
           key: tessdata-${{ hashFiles('software/DocCreator/CMakeLists.txt') }}
 
-      # Release only: the tesseract built from sources is not found in Debug
-      # (cf. README.md).
-      - name: Configure
+      - name: Configure with Ninja
+        if: ${{ matrix.generator == 'Ninja' }}
         run: >-
           cmake -S . -B build -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=${{ matrix.config }}
           -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
           -DOpenCV_DIR=C:/tools/opencv/build
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
@@ -202,66 +289,146 @@ jobs:
           -DBUILD_TESTING=ON
           ${{ matrix.cmake }}
 
+      - name: Configure with Visual Studio
+        if: ${{ matrix.generator != 'Ninja' }}
+        run: >-
+          cmake -S . -B build -G "${{ matrix.generator }}" -A x64
+          -DOpenCV_DIR=C:/tools/opencv/build
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+          -DCMAKE_INSTALL_PREFIX="$PWD/install"
+          -DBUILD_TESTING=ON
+          ${{ matrix.cmake }}
+
       - name: Build
-        run: cmake --build build --parallel
+        run: cmake --build build --config ${{ matrix.config }} --parallel
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure --parallel 4
+        run: ctest --test-dir build -C ${{ matrix.config }} --output-on-failure --parallel 4
+
+      # The DLLs of Qt (windeployqt) and OpenCV are installed by cmake
+      # --install, in the prefix it is given. --self-test checks the
+      # installation, with only the DLLs installed with it and the system
+      # ones: a missing DLL or missing data used to show a dialog, which
+      # kept the process alive and passed the old check.
+      - name: Install, and check the installation
+        if: ${{ matrix.qt }}
+        run: |
+          cmake --install build --config ${{ matrix.config }} --prefix "$PWD/install-check"
+          $env:PATH = "$env:SystemRoot\system32;$env:SystemRoot"
+          $exe = "$PWD\install-check\programs\DocCreator.exe"
+          $p = Start-Process $exe -ArgumentList '--self-test' -NoNewWindow -PassThru `
+                 -RedirectStandardOutput selftest.txt -RedirectStandardError selftest-err.txt
+          if (-not $p.WaitForExit(180000)) { $p.Kill(); throw "DocCreator --self-test did not exit" }
+          Get-Content selftest.txt, selftest-err.txt
+          if ($p.ExitCode) { throw "DocCreator --self-test exited with $($p.ExitCode)" }
 
       # The installer packages the programs/ and share/ directories of the
-      # install prefix: the build (copy_qt_dlls) has already put the Qt and
-      # OpenCV DLLs in programs/. -WX: a warning of makensis fails the job.
-      - name: Make the installer
+      # install prefix. A second installer, of a fake version 9.9.9, is
+      # made from the same files, to test an upgrade and an installation
+      # side by side. -WX: a warning of makensis fails the job.
+      - name: Make the installers
         if: ${{ matrix.installer }}
         run: |
           cmake --install build
           choco install nsis -y --no-progress
-          & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" -V2 -WX build\bundlers\win\DocCreator.nsi
+          $makensis = "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+          & $makensis -V2 -WX build\bundlers\win\DocCreator.nsi
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & $makensis -V2 -WX -DPRODUCT_VERSION=9.9.9 build\bundlers\win\DocCreator.nsi
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
       # The runner is thrown away afterwards: install, run and uninstall for
       # real, silently (/S).
-      - name: Install, run and uninstall
+      - name: Install, upgrade, install side by side, and uninstall
         if: ${{ matrix.installer }}
         run: |
-          $setup = Get-Item build\bundlers\win\DocCreator-*_setup.exe
+          $ErrorActionPreference = 'Stop'
+          $setup = Get-ChildItem build\bundlers\win\DocCreator-*_setup.exe | Where-Object Name -ne 'DocCreator-9.9.9_setup.exe'
           $version = $setup.Name -replace '^DocCreator-(.*)_setup\.exe$', '$1'
-          $dir = "$env:ProgramFiles\DocCreator-$version"
-          $key = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DocCreator'
-          $shortcut = "$env:PUBLIC\Desktop\DocCreator.lnk"
+          $setup9 = Get-Item build\bundlers\win\DocCreator-9.9.9_setup.exe
+          $dir = "$env:ProgramFiles\DocCreator"
+          $dir9 = "$env:ProgramFiles\DocCreator-9.9.9"
+          $uninst = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
+          $appPaths = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\DocCreator.exe'
+          $installs = 'HKLM:\SOFTWARE\DocCreator\Installs'
+          $desktop = "$env:PUBLIC\Desktop"
 
-          $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
-          if ($p.ExitCode) { throw "the installer exited with $($p.ExitCode)" }
-          foreach ($f in "$dir\programs\DocCreator.exe", "$dir\share\DocCreator\data", "$dir\uninst.exe", $shortcut) {
-            if (-not (Test-Path $f)) { throw "not installed: $f" }
+          function Run($exe, $arguments) {
+            $p = Start-Process $exe -ArgumentList $arguments -Wait -PassThru
+            if ($p.ExitCode) { throw "$exe $arguments exited with $($p.ExitCode)" }
           }
-          if (-not (Test-Path $key)) { throw "no uninstall key in the 64-bit registry" }
+          # _?= : the uninstaller runs from its folder, and is waited for. It
+          # does not remove itself, nor its folder with it.
+          function Uninstall($d) {
+            Run "$d\uninst.exe" @('/S', "_?=$d")
+            Remove-Item "$d\uninst.exe"
+          }
+          function Expect($cond, $what) { if (-not $cond) { throw "expected: $what" } }
+          function SelfTest($d) {
+            $saved = $env:PATH
+            $env:PATH = "$env:SystemRoot\system32;$env:SystemRoot"
+            $p = Start-Process "$d\programs\DocCreator.exe" -ArgumentList '--self-test' -NoNewWindow -PassThru `
+                   -RedirectStandardOutput selftest.txt -RedirectStandardError selftest-err.txt
+            if (-not $p.WaitForExit(180000)) { $p.Kill(); throw "DocCreator --self-test did not exit" }
+            $env:PATH = $saved
+            Get-Content selftest.txt
+            if ($p.ExitCode) { throw "DocCreator --self-test in $d exited with $($p.ExitCode)" }
+          }
+          function AppPath() { (Get-ItemProperty $appPaths).'(default)' }
 
-          # With only the DLLs installed with it, and the system ones.
-          $env:PATH = "$env:SystemRoot\system32;$env:SystemRoot"
-          $app = Start-Process "$dir\programs\DocCreator.exe" -PassThru
-          Start-Sleep -Seconds 15
-          if ($app.HasExited) { throw "DocCreator exited with $($app.ExitCode)" }
-          Stop-Process -Id $app.Id -Force
-          $app.WaitForExit()
+          # 1. a first installation
+          Run $setup.FullName @('/S')
+          foreach ($f in "$dir\programs\DocCreator.exe", "$dir\share\DocCreator\data", "$dir\uninst.exe", "$desktop\DocCreator $version.lnk") {
+            Expect (Test-Path $f) "installed: $f"
+          }
+          Expect (Test-Path "$uninst\DocCreator-$version") "the uninstall key of $version, in the 64-bit registry"
+          Expect ((Get-ItemProperty "$uninst\DocCreator-$version").QuietUninstallString) "a quiet uninstall string"
+          Expect ((AppPath) -eq "$dir\programs\DocCreator.exe") "App Paths names the program of $version"
+          SelfTest $dir
 
-          # Files that were not installed, in directories that were: the
+          # 2. 9.9.9 side by side: both are installed
+          Run $setup9.FullName @('/S', '/SIDEBYSIDE')
+          foreach ($f in "$dir\programs\DocCreator.exe", "$dir9\programs\DocCreator.exe", "$desktop\DocCreator $version.lnk", "$desktop\DocCreator 9.9.9.lnk", "$uninst\DocCreator-$version", "$uninst\DocCreator-9.9.9") {
+            Expect (Test-Path $f) "side by side: $f"
+          }
+          Expect ((AppPath) -eq "$dir9\programs\DocCreator.exe") "App Paths names the program of 9.9.9"
+          SelfTest $dir9
+
+          # 3. 9.9.9 uninstalled: $version is still there, and App Paths is
+          # given back to it
+          Uninstall $dir9
+          foreach ($f in "$dir9\programs\DocCreator.exe", "$desktop\DocCreator 9.9.9.lnk", "$uninst\DocCreator-9.9.9") {
+            Expect (-not (Test-Path $f)) "uninstalled: $f"
+          }
+          foreach ($f in "$dir\programs\DocCreator.exe", "$desktop\DocCreator $version.lnk", "$uninst\DocCreator-$version") {
+            Expect (Test-Path $f) "kept: $f"
+          }
+          Expect ((AppPath) -eq "$dir\programs\DocCreator.exe") "App Paths given back to $version"
+
+          # 4. 9.9.9 as an upgrade (the default): it replaces $version
+          Run $setup9.FullName @('/S')
+          Expect (Test-Path "$dir\programs\DocCreator.exe") "upgraded: the program"
+          Expect (Test-Path "$uninst\DocCreator-9.9.9") "upgraded: the uninstall key of 9.9.9"
+          foreach ($f in "$uninst\DocCreator-$version", "$desktop\DocCreator $version.lnk") {
+            Expect (-not (Test-Path $f)) "replaced: $f"
+          }
+          Expect ((@((Get-Item $installs).GetValueNames()) -join ',') -eq '9.9.9') "only 9.9.9 is listed as installed"
+          SelfTest $dir
+
+          # 5. files that were not installed, in directories that were: the
           # uninstaller must keep them (it used to delete programs\ and
-          # share\ with everything in them).
+          # share\ with everything in them)
           New-Item -ItemType Directory -Force "$dir\share\Other" | Out-Null
           $foreign = "$dir\programs\not-installed.txt", "$dir\share\Other\not-installed.txt"
           foreach ($f in $foreign) { Set-Content -Path $f -Value 'not installed' }
-
-          # _?= : the uninstaller runs from $dir, and is waited for. It does
-          # not remove itself, nor $dir with it.
-          $p = Start-Process "$dir\uninst.exe" -ArgumentList '/S', "_?=$dir" -Wait -PassThru
-          if ($p.ExitCode) { throw "the uninstaller exited with $($p.ExitCode)" }
-          foreach ($f in "$dir\programs\DocCreator.exe", "$dir\programs\platforms", "$dir\share\DocCreator", $shortcut, $key) {
-            if (Test-Path $f) { throw "not uninstalled: $f" }
+          Uninstall $dir
+          foreach ($f in "$dir\programs\DocCreator.exe", "$dir\programs\platforms", "$dir\share\DocCreator", "$desktop\DocCreator 9.9.9.lnk", "$uninst\DocCreator-9.9.9", $appPaths, 'HKLM:\SOFTWARE\DocCreator') {
+            Expect (-not (Test-Path $f)) "uninstalled: $f"
           }
           foreach ($f in $foreign) {
-            if (-not (Test-Path $f)) { throw "deleted although not installed: $f" }
+            Expect (Test-Path $f) "kept although not installed: $f"
           }
+          Remove-Item $setup9.FullName
 
       - name: Upload the installer
         if: ${{ matrix.installer }}
@@ -269,6 +436,7 @@ jobs:
         with:
           name: DocCreator-Windows-installer
           path: build/bundlers/win/DocCreator-*_setup.exe
+          if-no-files-found: error
           # already compressed by makensis
           compression-level: 0
           retention-days: 14
@@ -331,7 +499,7 @@ jobs:
         if: ${{ matrix.qt }}
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8.*'
+          version: '6.8.3'
           host: mac
           target: desktop
           arch: clang_64
@@ -417,10 +585,27 @@ jobs:
           cd bundle
           sh ../build/bundlers/mac/mac_bundle.sh "$PWD"
 
+      # The application of the dmg, as a user gets it: --self-test checks
+      # that it finds its data and models in its bundle, and renders a
+      # document.
+      - name: Launch the application of the dmg
+        if: ${{ matrix.bundle }}
+        run: |
+          dmg=$(ls bundle/*.dmg)
+          mnt=$(mktemp -d)
+          hdiutil attach -nobrowse -readonly -mountpoint "$mnt" "$dmg"
+          app=$(ls -d "$mnt"/*.app)
+          status=0
+          "$app/Contents/MacOS/DocCreator" --version || status=$?
+          "$app/Contents/MacOS/DocCreator" --self-test || status=$?
+          hdiutil detach "$mnt"
+          exit $status
+
       - name: Upload the dmg
         if: ${{ matrix.bundle }}
         uses: actions/upload-artifact@v7
         with:
           name: DocCreator-macOS-dmg
           path: bundle/*.dmg
+          if-no-files-found: error
           retention-days: 14
