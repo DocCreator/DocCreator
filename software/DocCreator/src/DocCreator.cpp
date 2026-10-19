@@ -10,6 +10,7 @@
 #include <QDirIterator>
 #include <QDockWidget>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QImageReader> //supportedImageFormats
 #include <QLabel>
 #include <QMenu>
@@ -330,6 +331,14 @@ initializeFolders()
     AppConfigMainGroup,
     AppConfigStainImagesFolderKey,
     dir.absoluteFilePath(QStringLiteral("Image/stainImages/images")));
+  //B: the folder of the XML schemas was left at the path of the build
+  // machine (application.ini): it is installed next to data/
+  QDir xmlchecker(dir);
+  if (xmlchecker.cdUp() && xmlchecker.cd(QStringLiteral("xmlchecker"))) {
+    Core::ConfigurationManager::set(AppConfigMainGroup,
+                                    AppConfigXmlCheckerFolderKey,
+                                    xmlchecker.absolutePath() + QLatin1Char('/'));
+  }
 }
 
 void
@@ -1786,6 +1795,56 @@ DocCreator::getTessdataParentDir() const
   return d;
 }
 
+
+bool
+DocCreator::selfTest(std::ostream &out) const
+{
+  bool ok = true;
+  auto check = [&](bool cond, const QString &what) {
+    out << (cond ? "ok    " : "FAIL  ") << what.toStdString() << "\n";
+    ok = ok && cond;
+  };
+
+  const QString fontDir =
+    Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigFontFolderKey)
+      .toString();
+  check(QDir(fontDir).exists(), QStringLiteral("font folder: ") + fontDir);
+
+  Context::FontContext *fonts = Context::FontContext::instance();
+  check(fonts->getCurrentFont() != nullptr,
+        QStringLiteral("current font: ") + fonts->getCurrentFontName() +
+          QStringLiteral(" (%1 font(s) loaded)").arg(fonts->getFontNames().size()));
+
+  Context::BackgroundContext *backgrounds =
+    Context::BackgroundContext::instance();
+  const QString background =
+    backgrounds->getFilePath(backgrounds->getCurrentBackground());
+  check(!QImage(background).isNull(), QStringLiteral("background: ") + background);
+
+  check(QFileInfo::exists(_keyboard), QStringLiteral("keyboard: ") + _keyboard);
+
+  const QList<QByteArray> formats = QImageReader::supportedImageFormats();
+  for (const char *format : { "png", "jpg", "bmp" }) {
+    check(formats.contains(QByteArray(format)),
+          QStringLiteral("image format: ") + QLatin1String(format));
+  }
+
+  const QString tessdata = getTessdataParentDir();
+  check(QFileInfo::exists(tessdata + QStringLiteral("/tessdata/eng.traineddata")) ||
+          QFileInfo::exists(tessdata + QStringLiteral("/eng.traineddata")),
+        QStringLiteral("tesseract models: ") + tessdata);
+
+  const QImage page =
+    (_docController != nullptr && _docController->getDocument() != nullptr)
+      ? _docController->toQImage(WithTextBlocks | WithImageBlocks)
+      : QImage();
+  check(!page.isNull(),
+        QStringLiteral("document rendered: %1x%2").arg(page.width()).arg(page.height()));
+
+  out << (ok ? "self-test passed\n" : "self-test FAILED\n");
+  out.flush();
+  return ok;
+}
 
 void
 DocCreator::fontExtraction()

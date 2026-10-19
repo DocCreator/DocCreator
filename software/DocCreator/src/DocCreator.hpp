@@ -3,6 +3,7 @@
 
 #include "patterns/observer.h"
 #include <QMainWindow>
+#include <ostream>
 
 class DocumentController;
 class DocumentPropertiesView;
@@ -38,6 +39,14 @@ public:
 
   void initialize();
   void update() override;
+
+  /*
+    Check that the installation is complete: the data, a font, the
+    background, the keyboard, the image formats, the tesseract models, and
+    that a document can be rendered. Writes a report to @a out.
+    @return true if everything is there.
+  */
+  bool selfTest(std::ostream &out) const;
   //void generateImageFromFolder(const QString &strFolderIn, const QString &strFolderOut, const QString &file);
 
 private slots:
