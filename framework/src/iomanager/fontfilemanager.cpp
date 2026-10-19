@@ -90,7 +90,11 @@ FontFileManager::fontFromXml(const QString &filepath)
                       << "\n";
             delete ch;
           } else {
-            const bool addOk = font->addCharacter(ch);
+            //B: addCharacter() replaces a letter already in the font, and
+            // returned true: this warning never came, and the last copy of
+            // a duplicated letter won. The first one is kept now.
+            const bool addOk = (font->getCharacter(s) == nullptr) &&
+                               font->addCharacter(ch);
             if (!addOk) {
               std::cerr << "Warning: letter \"" << s.toStdString()
                         << "\" is present several times in font file: "
@@ -708,7 +712,9 @@ FontFileManager::fontFromBinary(const QString &filepath)
       delete ch;
     }
     else {
-      const bool addOk = font->addCharacter(ch);
+      //B: as in fontFromXml(): the first copy of a duplicated letter is kept
+      const bool addOk = (font->getCharacter(s) == nullptr) &&
+			 font->addCharacter(ch);
       if (!addOk) {
 	std::cerr << "Warning: letter \"" << s.toStdString()
 		  << "\" is present several times in font file: "

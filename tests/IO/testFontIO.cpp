@@ -229,6 +229,7 @@ testCorrupt()
   SECTION("the same letter twice")
   {
     //both letters are read, the second one is rejected and deleted
+    //(it used to replace the first one, without the warning)
     const QString filename =
       writeBOF(QStringLiteral("tmp_corrupt_duplicate.bof"),
 	       [](QDataStream &out) {
@@ -241,12 +242,14 @@ testCorrupt()
 		   out << qreal(10) << qreal(20) << qreal(0) << qreal(10);
 		   out << uint32_t(1);          //one version
 		   out << int(0);               //its id
-		   out << QImage(4, 4, QImage::Format_ARGB32);
+		   //4 pixels wide for the first copy, 6 for the second
+		   out << QImage(4 + 2 * i, 4, QImage::Format_ARGB32);
 		 }
 	       });
     Models::Font *font = IOManager::FontFileManager::fontFromBinary(filename);
     REQUIRE( font != nullptr );
     REQUIRE( font->getCharacters().size() == 1 );
+    REQUIRE( font->getCharacter(QStringLiteral("a"))->getRandomCharacterData().getImage().width() == 4 );
     delete font;
   }
 }
