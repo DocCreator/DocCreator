@@ -8,6 +8,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 //#include <QDesktopWidget>
+#include <QDir>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -722,14 +723,24 @@ MeshWindow::saveRandomImages()
     QString extension = "." + dialog.getDstExtension();
     size_t numScreenshots = dialog.getNumScreenshots();
 
-    QString prefix = dir + "/" + filePrefix; //TODO: NON PORTABLE !!!
+    //B: an empty directory gave "/" + prefix, the root of the drive, and a
+    // failed save was not reported
+    if (dir.isEmpty()) {
+      QMessageBox::warning(this, tr("Error"), tr("No destination directory"));
+      return;
+    }
+    QString prefix = QDir(dir).filePath(filePrefix);
 
     float minPhy = dialog.getMinPhy();
     float maxPhy = dialog.getMaxPhy();
     float minTheta = dialog.getMinTheta();
     float maxTheta = dialog.getMaxTheta();
 
-    m_glWidget->takeRandomScreenshots(
+    const bool saveOk = m_glWidget->takeRandomScreenshots(
       prefix, extension, numScreenshots, minPhy, maxPhy, minTheta, maxTheta);
+    if (!saveOk) {
+      QMessageBox::warning(this, tr("Error"),
+                           tr("Unable to save the screenshots in %1").arg(dir));
+    }
   }
 }

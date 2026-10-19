@@ -156,11 +156,42 @@ GLWidget::GLWidget(QWidget *parent)
 
 GLWidget::~GLWidget()
 {
+  //B: the GL objects were deleted with whatever context was current, the
+  // background mesh and object never, nor the textures, the samplers and
+  // the shader programs: they leaked each time the 3D window was opened.
+  if (m_glReady) {
+    makeCurrent();
+  }
+
   delete m_object;
   delete m_meshGL;
 
   delete m_sphereObject;
   delete m_sphereMeshGL;
+
+  delete m_backgroundObject;
+  delete m_backgroundMeshGL;
+
+  if (m_glReady) {
+    const GLuint textures[] = {m_textureId, m_backgroundTextureId};
+    for (const GLuint id : textures) {
+      if (id != 0) {
+        glDeleteTextures(1, &id);
+      }
+    }
+    const GLuint samplers[] = {m_samplerId, m_backgroundSamplerId};
+    for (const GLuint id : samplers) {
+      if (id != 0) {
+        glDeleteSamplers(1, &id);
+      }
+    }
+    for (const Shader *shader : {&m_program, &m_sphereProgram, &m_backgroundProgram}) {
+      if (shader->isValid()) {
+        glDeleteProgram(shader->id());
+      }
+    }
+    doneCurrent();
+  }
 }
 
 /*
@@ -341,6 +372,10 @@ GLWidget::loadMesh(const QString &meshFilename)
     std::cerr << "GLWidget: OpenGL is not available\n";
     return false;
   }
+
+  //B: the selected vertices were those of the previous mesh: paintGL()
+  // read them out of the vertices of a smaller one
+  m_selectedVertices.clear();
 
   bool result = false;
 
@@ -534,6 +569,17 @@ GLWidget::setTexture(const QImage &image)
 
   GL_CHECK_ERROR_ALWAYS();
 
+  //B: the previous texture and sampler were never deleted: each texture
+  // loaded leaked one in video memory
+  if (m_textureId != 0) {
+    glDeleteTextures(1, &m_textureId);
+    m_textureId = 0;
+  }
+  if (m_samplerId != 0) {
+    glDeleteSamplers(1, &m_samplerId);
+    m_samplerId = 0;
+  }
+
   glGenTextures(1, &m_textureId);
   glBindTexture(GL_TEXTURE_2D, m_textureId);
 
@@ -670,7 +716,9 @@ GLWidget::paintGL()
     if (useTextureLoc >= 0)
       glUniform1i(useTextureLoc, static_cast<GLint>(m_useBackgroundTexture));
 
-    if (m_useTexture) {
+    //B: m_useTexture, the flag of the mesh texture: the transformation of
+    // the background was ignored unless the mesh was textured
+    if (m_useBackgroundTexture) {
       int texMatLoc = m_backgroundProgram.getUniformLocation("tex_matrix");
       if (texMatLoc >= 0)
         glUniformMatrix3fv(texMatLoc, 1, GL_FALSE, m_backgroundTexMat.data());
@@ -858,10 +906,8 @@ GLWidget::paintGL()
 QImage
 GLWidget::takeScreenshot()
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
-  assert(context() == QOpenGLContext::currentContext());
-#endif
-
+  //B: an assert that the context was current, which it is not outside
+  // paintGL(): it aborted debug builds. grabFramebuffer() makes it current.
   QImage img =
 #if (QT_VERSION < QT_VERSION_CHECK(5, 4, 0))
     grabFrameBuffer();
@@ -889,10 +935,19 @@ GLWidget::setHiResSize(int &prevW, int &prevH)
     h = screenGeometry.height();
   }
 
-  GLint dims[2] = {0};
-  glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
-  w = std::min(w, dims[0]);
-  h = std::min(h, dims[1]); //TODO: keep aspect ratio !!!
+  //B: GL was called with no current context (and, on Windows, with no GL
+  // functions when they could not be loaded): dims could be 0, which
+  // made the widget 0x0, and the screenshot empty
+  GLint dims[2] = {0, 0};
+  if (m_glReady) {
+    makeCurrent();
+    glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
+    doneCurrent();
+  }
+  if (dims[0] > 0 && dims[1] > 0) {
+    w = std::min(w, dims[0]);
+    h = std::min(h, dims[1]); //TODO: keep aspect ratio !!!
+  }
 
   this->setMaximumSize(w, h);
   this->setMinimumSize(w, h);
@@ -905,6 +960,9 @@ GLWidget::setHiResSize(int &prevW, int &prevH)
 void
 GLWidget::resetLowResSize(int prevW, int prevH)
 {
+  //B: the maximum size set by setHiResSize() was kept: the view could not
+  // grow any more with the window
+  this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
   this->setMinimumSize(prevW, prevH);
   this->resize(prevW, prevH);
 }
@@ -925,7 +983,9 @@ GLWidget::takeScreenshotHiRes()
 static float
 P_bounded_rand(float min, float max)
 {
-  return (min + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min + 1)));
+  //B: (max - min + 1), as for integers: up to max+1 radians, theta went
+  // past the pole and phi beyond the range asked for
+  return (min + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min)));
 }
 
 static QString
@@ -974,7 +1034,10 @@ GLWidget::takeRandomScreenshots(const QString &prefix,
 
   size_t w = P_getWidth(numScreenshots);
 
-  for (size_t i = 0; i < numScreenshots; ++i) {
+  //B: a failed save returned at once: the busy cursor stayed for the rest
+  // of the session, and the camera (and size) at the last random pose
+  bool allSaved = true;
+  for (size_t i = 0; i < numScreenshots && allSaved; ++i) {
 
     const float phy = P_bounded_rand(minPhy, maxPhy);
     const float theta = P_bounded_rand(minTheta, maxTheta);
@@ -991,10 +1054,7 @@ GLWidget::takeRandomScreenshots(const QString &prefix,
 
     QString filename = makeFilename(prefix, i, w, ext);
 
-    bool saveOk = img.save(filename);
-
-    if (!saveOk)
-      return false;
+    allSaved = img.save(filename);
   }
 
 #ifdef __APPLE__
@@ -1009,7 +1069,7 @@ GLWidget::takeRandomScreenshots(const QString &prefix,
 
   QGuiApplication::restoreOverrideCursor();
 
-  return true;
+  return allSaved;
 }
 
 void
@@ -1048,11 +1108,17 @@ GLWidget::getRayInWorld(QPointF pos,
                         Eigen::Vector3f &rayOrigin,
                         Eigen::Vector3f &rayDirection)
 {
-  GLint viewport[4];
-  glGetIntegerv(GL_VIEWPORT, viewport); //return x, y, w, h
-
-  const int width = viewport[2];
-  const int height = viewport[3];
+  //B: the size was read with glGetIntegerv(GL_VIEWPORT), outside
+  // paintGL(), with no current context (and, on Windows, with no GL
+  // functions when they could not be loaded): a garbage size, or a crash.
+  // The viewport is the widget, in the coordinates of @a pos.
+  const int width = this->width();
+  const int height = this->height();
+  if (width <= 0 || height <= 0) {
+    rayOrigin = Eigen::Vector3f::Zero();
+    rayDirection = Eigen::Vector3f(0.f, 0.f, -1.f);
+    return;
+  }
 
   //2D viewport coords in [0;Width]x[Height;0]
   float x = pos.x();
@@ -1289,23 +1355,25 @@ writeMesh(const Mesh &mesh, const std::string &outputMeshFilename)
 void
 GLWidget::updateMeshGL()
 {
-  if (!m_glReady)
+  //B: m_object was dereferenced with only an assert: null with no mesh
+  // loaded, from the buttons of MeshWindow, which are always enabled
+  if (!m_glReady || m_object == nullptr)
     return;
 
   //for now, we delete & rebuild
   //TODO:OPTIM: do not re-allocate VBO if same size...
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
-  assert(context() == QOpenGLContext::currentContext());
-#endif
+  //B: the context was asserted current, which it is not outside
+  // paintGL(): the mesh was built in another context
+  makeCurrent();
 
   delete m_meshGL;
   m_meshGL = new GLMesh;
   GL_CHECK_ERROR_ALWAYS();
   m_meshGL->init(m_mesh);
   GL_CHECK_ERROR_ALWAYS();
-  assert(m_object);
   m_object->attachMesh(m_meshGL);
+  doneCurrent();
 }
 
 void
@@ -1314,11 +1382,17 @@ GLWidget::computeTextureCoords()
   //computeTexCoords0(m_mesh);
   //writeOBJ(outputMeshFilename.toStdString(), m_mesh);
 
+  if (!m_mesh.isValid()) {
+    return;
+  }
+
   m_mesh.freeTexCoords();
 
   m_mesh.removeDegenerateTrianglesIndices();
   m_mesh.removeNonReferencedVertices();
   //m_mesh.removeDuplicatedVertices(); //TODO:OPTIM:QUADRATIC !!!
+  //B: the vertices are numbered again: the selected ones are not those
+  m_selectedVertices.clear();
 
   auto start = std::chrono::steady_clock::now();
 
@@ -1497,9 +1571,9 @@ GLWidget::setBackgroundTexture(const QImage &image)
     return;
   }
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
-  assert(context() == QOpenGLContext::currentContext());
-#endif
+  //B: the context was asserted current, which it is not outside
+  // paintGL(): the texture was made in another context
+  makeCurrent();
 
   QImage img = image;
 
@@ -1512,6 +1586,16 @@ GLWidget::setBackgroundTexture(const QImage &image)
   }
 
   GL_CHECK_ERROR_ALWAYS();
+
+  //B: as in setTexture(): the previous texture and sampler leaked
+  if (m_backgroundTextureId != 0) {
+    glDeleteTextures(1, &m_backgroundTextureId);
+    m_backgroundTextureId = 0;
+  }
+  if (m_backgroundSamplerId != 0) {
+    glDeleteSamplers(1, &m_backgroundSamplerId);
+    m_backgroundSamplerId = 0;
+  }
 
   glGenTextures(1, &m_backgroundTextureId);
   glBindTexture(GL_TEXTURE_2D, m_backgroundTextureId);
@@ -1546,6 +1630,8 @@ GLWidget::setBackgroundTexture(const QImage &image)
   glGenerateMipmap(GL_TEXTURE_2D);
 
   GL_CHECK_ERROR_ALWAYS();
+
+  doneCurrent();
 
   update();
 }
