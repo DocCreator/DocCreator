@@ -147,7 +147,13 @@ namespace Doc
 
       _styleManager->removeReference(olfStyleKey);
       
-      _currentStyle = newStyle;
+      //B: ~DocString() calls changeStyle(its style, nullptr) to drop its
+      // reference: every string destroyed (a split, a deletion) reset the
+      // current style of the document to nullptr, and the paragraphs made
+      // after it had no style. Only a new style changes it.
+      if (newStyle != nullptr) {
+        _currentStyle = newStyle;
+      }
       return _styleManager->addReference(newStyle);
     }
 

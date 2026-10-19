@@ -364,3 +364,24 @@ TEST_CASE( "DocString: a copy into another document outlives its source" )
     REQUIRE( style->getFontName() == QStringLiteral("otherFont") );
   }
 }
+
+/*
+  ~DocString() dropped its style with changeStyle(style, nullptr), which
+  also reset the current style of the document to nullptr: any string
+  destroyed made the document lose its style.
+*/
+TEST_CASE( "Document: destroying a string keeps the current style" )
+{
+  Doc::Document document;
+  auto *style = new Doc::DocStyle(QStringLiteral("default"), QStringLiteral("defaultFont"));
+  document.addStyle(style);
+  document.changeStyle(QString(), style);
+  REQUIRE( document.getStyle() == style );
+
+  auto *s = new Doc::DocString(style, &document);
+  s->add(new Doc::DocCharacter(QStringLiteral("a"), 0, &document));
+  delete s;
+
+  REQUIRE( document.getStyle() == style );
+}
+
