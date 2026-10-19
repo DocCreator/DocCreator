@@ -625,96 +625,61 @@ IF(WIN32)
   
 
   # install qt libraries & folders
-  if(QT_VERSION_MAJOR)
+  #B: a target of ALL, copy_qt_dlls, ran windeployqt and copied the OpenCV
+  # DLLs into CMAKE_INSTALL_PREFIX at build time: with the default prefix,
+  # into Program Files, which fails without elevation; "cmake --install
+  # --prefix X" got no DLL; they were not in the install manifest; and the
+  # DLLs of an older build stayed in the prefix, then in the installer.
+  # They are now installed by "cmake --install", in the prefix it is given:
+  # windeployqt deploys into an empty directory of the build tree, which is
+  # then installed (and recorded in the manifest).
+  set(_opencv_dlls "")
+  foreach(LIB ${OpenCV_LIBS})
+    if(TARGET ${LIB})
+      get_target_property(_type ${LIB} TYPE)
+      if(_type STREQUAL "SHARED_LIBRARY")
+        list(APPEND _opencv_dlls "$<TARGET_FILE:${LIB}>")
+      endif()
+    endif()
+  endforeach()
+  if(_opencv_dlls)
+    install(FILES ${_opencv_dlls} DESTINATION programs COMPONENT applications)
+  endif()
+
+  if(TARGET Qt${QT_VERSION_MAJOR}::windeployqt)
+    get_target_property(QT_WINDEPLOYQT_EXECUTABLE Qt${QT_VERSION_MAJOR}::windeployqt IMPORTED_LOCATION)
+  else()
+    #B: the hint was the path of qmake, a file, not its directory
     get_target_property(_qmake_location Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_path "${_qmake_location}" DIRECTORY)
     find_program(QT_WINDEPLOYQT_EXECUTABLE windeployqt
-      HINTS "${_qmake_location}"
-      DOC "Path to the windeployqt utility."
-      )
-    if (NOT "${QT_WINDEPLOYQT_EXECUTABLE}" STREQUAL "QT_WINDEPLOYQT_EXECUTABLE-NOTFOUND")
-      set(QT_BIN_PATH "${_qt_bin_path}" CACHE INTERNAL
-	"Path to qmake, windeployqt, and other Qt utilities."
-	)
-      add_custom_target(copy_qt_dlls ALL)
-      set_target_properties(copy_qt_dlls PROPERTIES FOLDER "Copy Tasks")
-      add_custom_command(TARGET copy_qt_dlls
-	POST_BUILD
-	COMMAND set "PATH=${QT_BIN_PATH};%PATH%"
-	COMMAND "${QT_WINDEPLOYQT_EXECUTABLE}"
-	$<$<CONFIG:Debug>:--debug>
-	$<$<NOT:$<CONFIG:Debug>>:--release>
-	--opengl
-	--no-compiler-runtime
-	--verbose 10
-	--dir "${CMAKE_INSTALL_PREFIX}/programs" #install Qt files in INSTALL_PREFIX directory and not build directory.
-	"$<TARGET_FILE:${PROGNAME}>" 			
-	)
-
-      #B: the OpenCV DLLs are copied with a single command, each once. With
-      # one copy and one echo per library, the commands of the target were
-      # joined in one cmd.exe line, longer than its 8191 characters with
-      # the libraries of OpenCV (all opencv_world*.dll with a prebuilt
-      # OpenCV): "The input line is too long".
-      set(_opencv_dlls "")
-      foreach(LIB ${OpenCV_LIBS})
-	list(APPEND _opencv_dlls "$<TARGET_FILE:${LIB}>")
-      endforeach()
-      ADD_CUSTOM_COMMAND (
-	TARGET copy_qt_dlls
-	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<REMOVE_DUPLICATES:${_opencv_dlls}>" "${CMAKE_INSTALL_PREFIX}/programs"
-	COMMAND_EXPAND_LISTS
-	)
-
-      add_dependencies(copy_qt_dlls ${PROGNAME})
-
-      #We always install ?
-      #We would like to add a dependency on "install" target. Is it possible ???
-
-    endif()
+      HINTS "${_qt_bin_path}"
+      DOC "Path to the windeployqt utility.")
+  endif()
+  if(QT_WINDEPLOYQT_EXECUTABLE)
+    set(_qt_deploy_dir "${CMAKE_CURRENT_BINARY_DIR}/qt_deploy")
+    install(CODE "
+      file(REMOVE_RECURSE \"${_qt_deploy_dir}\")
+      file(MAKE_DIRECTORY \"${_qt_deploy_dir}\")
+      execute_process(
+        COMMAND \"${QT_WINDEPLOYQT_EXECUTABLE}\"
+          $<IF:$<CONFIG:Debug>,--debug,--release>
+          --opengl --no-compiler-runtime --verbose 1
+          --dir \"${_qt_deploy_dir}\"
+          \"$<TARGET_FILE:${PROGNAME}>\"
+        RESULT_VARIABLE _result)
+      if(_result)
+        message(FATAL_ERROR \"windeployqt failed: \${_result}\")
+      endif()
+      file(INSTALL \"${_qt_deploy_dir}/\"
+        DESTINATION \"\${CMAKE_INSTALL_PREFIX}/programs\"
+        USE_SOURCE_PERMISSIONS)
+      " COMPONENT applications)
+  else()
+    message(WARNING "windeployqt not found: the Qt DLLs will not be installed")
   endif()
 
 ENDIF(WIN32)
 
-
-
-set(CPACK_PACKAGE_NAME ${PROGNAME})
-set(CPACK_PACKAGE_VENDOR "LaBRI")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Document Creator")
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
-set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "CPackExample")
-
-set(CPACK_COMPONENTS_ALL applications)
-set(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "${PROGNAME}")
-#example:
-# set(CPACK_COMPONENTS_ALL applications CTData instructionData)
-# set(CPACK_COMPONENT_CTDATA_GROUP "data")
-# set(CPACK_COMPONENT_GROUP_DATA_DESCRIPTION "data (CT and instructions)")
-
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/license.txt")
-
-set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}\\documentImageCreator\\src\\gui\\DocCreator\\adoc_package.bmp")
-
-IF(WIN32 AND NOT UNIX)
-
-  set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}\\documentImageCreator\\src\\gui\\DocCreator\\adoc_install.ico")
-  set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}\\documentImageCreator\\src\\gui\\DocCreator\\adoc_uninstall.ico")
-  
-  set(CPACK_NSIS_MENU_LINKS "${PROGNAME}" "Document Creator")
-  
-  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\bitbucket.org/BorisMansencal/doccreator")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\bitbucket.org/BorisMansencal/doccreator")
-  SET(CPACK_NSIS_CONTACT "boris.mansencal@labri.fr")
-  SET(CPACK_NSIS_MODIFY_PATH ON)
-  
-endif()
-
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_SOURCE_DIR}/CPack_install")
-
-
-include(CPack)
+#B: a block of CPack settings was left here, with paths that do not exist
+#and version 1.0.0: the installer is made by bundlers/win and bundlers/mac.
