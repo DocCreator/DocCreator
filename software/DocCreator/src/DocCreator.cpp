@@ -230,12 +230,18 @@ findRelativeDataDir()
     }
 
     { //../../../*/data
+      /*
+        B: the whole tree under ../../.. was searched (Subdirectories): for
+        an installation in C:\Program Files\DocCreator\programs, that is
+        the whole of C:\, and the start hung. Only the directories just
+        under it are searched, as the comment says.
+      */
       QDir dir1(dir);
       const bool okup2 = dir1.cdUp();
       if (okup2) {
         const bool okup3 = dir1.cdUp();
         if (okup3) {
-          QDirIterator it(dir1.absolutePath(), QDirIterator::Subdirectories);
+          QDirIterator it(dir1.absolutePath(), QDir::Dirs | QDir::NoDotAndDotDot);
           while (it.hasNext()) {
             it.next();
             QDir dir2(it.filePath());
@@ -276,12 +282,17 @@ initializeFolders()
 {
   QString dataDirStr = findRelativeDataDir();
   //std::cerr<<"dataDir="<<dataDirStr.toStdString()<<"\n";
+  //B: with no data directory found, every folder of the configuration was
+  // set relative to the current directory: the configured ones are kept
+  if (dataDirStr.isEmpty()) {
+    return;
+  }
   QDir dir(dataDirStr);
   /*
     const QString AppConfigKbFolderKey = "formatsfolder" ;
     const QString AppConfigXmlCheckerFolderKey="xmlcheckerfolder";
     const QString AppConfigDocumentXSDCheckerKey="documentxsdchecker";
-    
+    
     const QString AppConfigTessdataParentFolderKey="tessdataparentfolder";
    */
 
@@ -421,7 +432,7 @@ DocCreator::initialize()
   //but no titlebar on linux
   showMaximized();
 
-  setWindowIcon(QIcon("./images/appicon.png"));
+  setWindowIcon(QIcon(QStringLiteral(":/images/appicon.png"))); //B: was relative to the current directory
 
   std::cout << " \t........Update state" << std::endl;
   update();
@@ -653,6 +664,8 @@ DocCreator::openDocument()
       Doc::Document *document =
         IOManager::DocumentFileManager::documentFromXml(filepath);
       if (document == nullptr) {
+        //B: the busy cursor stayed for the rest of the session
+        QGuiApplication::restoreOverrideCursor();
         QMessageBox::warning(this,
                              tr("Error : unable to open document"),
                              tr("Unable to read %1.").arg(filepath));
@@ -680,9 +693,27 @@ DocCreator::openDocument()
       //BORIS:TODO: we should load the image instead of checking only the extension...
       if (isImage) {
 
+        /*
+          B: the document was replaced before the image was read: an image
+          that could not be read left an empty document, with no message.
+          And the size of the image was written in the configuration, as
+          the size of every new page from then on: the document has it.
+        */
+        const QImage input(filepath);
+        if (input.isNull()) {
+          QGuiApplication::restoreOverrideCursor();
+          QMessageBox::warning(this,
+                               tr("Error : unable to open document"),
+                               tr("Unable to read %1.").arg(filepath));
+          return;
+        }
+
         /* Open and load the document */
 
         auto document = new Doc::Document();
+        document->setPageHeight(input.height());
+        document->setPageWidth(input.width());
+        document->add(new Doc::Page(document));
 
         Context::DocumentContext::instance()->setCurrentDocument(document);
         assert(_docController != nullptr);
@@ -690,31 +721,9 @@ DocCreator::openDocument()
         _docController->setDocument(document);
         delete prevDoc;
 
-        if (!filepath.isEmpty() && !filepath.isNull()) {
-          //qDebug() << filepath;
-
-          QImage input(filepath);
-          if (!input.isNull()) {
-
-            //B: Should we scale if necessary ???
-            Core::ConfigurationManager::set(
-              AppConfigMainGroup, AppConfigPageSizeX, input.width());
-            Core::ConfigurationManager::set(
-              AppConfigMainGroup, AppConfigPageSizeY, input.height());
-            //B:TODO: recenter view !!!
-
-            //B:TODO:UGLY !!! We don't want to write the image on disk !!!
-            //input.save("image_original.jpg"); //B:useless ???
-
-            document->add(new Doc::Page(document));
-            document->setPageHeight(input.height());
-            document->setPageWidth(input.width());
-
-            BackGroundChanger bgChanger;
-            bgChanger.changeBackGroundImage(input);
-            //_docController->addComponentBlock("Bmt_res2812_002.tif");
-          }
-        }
+        //B:TODO:UGLY !!! We don't want to write the image on disk !!!
+        BackGroundChanger bgChanger;
+        bgChanger.changeBackGroundImage(input);
       }
     }
 
@@ -725,11 +734,12 @@ DocCreator::openDocument()
 void
 DocCreator::print()
 {
-  auto printer = new QPrinter();
-  auto dialog = new QPrintDialog(printer, this);
-  dialog->setWindowTitle(tr("Print Document"));
-  if (dialog->exec() == QDialog::Accepted)
-    _docController->printDocument(printer);
+  //B: the printer and the dialog were allocated for each print, never freed
+  QPrinter printer;
+  QPrintDialog dialog(&printer, this);
+  dialog.setWindowTitle(tr("Print Document"));
+  if (dialog.exec() == QDialog::Accepted)
+    _docController->printDocument(&printer);
 }
 
 bool

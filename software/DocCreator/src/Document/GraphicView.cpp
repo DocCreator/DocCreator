@@ -769,12 +769,20 @@ GraphicView::addPage(Doc::Page *p)
   }
   const QString bgPath = Context::BackgroundContext::instance()->getPath() +
                          p->getBackgroundFileName();
-  const int w =
+  //B: the size of the configuration, not the one of the document
+  int w =
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigPageSizeX)
       .toInt();
-  const int h =
+  int h =
     Core::ConfigurationManager::get(AppConfigMainGroup, AppConfigPageSizeY)
       .toInt();
+  const DocumentController *controller =
+    static_cast<DocumentController *>(getController());
+  if (controller != nullptr && controller->getPageWidth() > 0 &&
+      controller->getPageHeight() > 0) {
+    w = controller->getPageWidth();
+    h = controller->getPageHeight();
+  }
 
   graphicPage->setBackground(bgPath, w, h);
   Context::BackgroundContext::instance()->setChanged(false);
