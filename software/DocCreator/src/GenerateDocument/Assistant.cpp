@@ -780,23 +780,21 @@ Assistant::~Assistant()
   restoreBackgrounds(_originalCurrentBackgroundName, _originalBackgrounds);
 }
 
-/**
- * gives a random value in [minV; maxV[
- *
- * @warning call srandom once before this function.
- */
-static int
-P_bounded_rand(int minV, int maxV)
+/*
+  B: the random values came from rand(), and from one std::mt19937 shared
+  by all threads. The generation runs on a QtConcurrent worker: the
+  engine was used from two threads at once (a data race), and with MSVC
+  the state of rand() is per thread, never seeded on the worker, so the
+  "random" choices of a generation were the same at every run. Also,
+  r/(float)RAND_MAX could round to 1 with a RAND_MAX of 2^31-1, and maxV
+  be returned. Each thread now has its own engine, seeded once.
+*/
+static std::mt19937 &
+randomEngine()
 {
-  assert(minV < maxV);
-  int r = rand();
-  r = (r != RAND_MAX ? r : 0);
-  return static_cast<int>(minV +
-                          (static_cast<float>(r) / static_cast<float>(RAND_MAX) * (maxV - minV)));
+  thread_local std::mt19937 engine{std::random_device{}()};
+  return engine;
 }
-
-std::random_device rd;
-std::mt19937 mt(rd());
 
 //return a random value in [rMin; rMax]
 static
@@ -804,7 +802,7 @@ int
 random_in_range(int rMin, int rMax)
 {
   std::uniform_int_distribution<int> dist(rMin, rMax);
-  return dist(mt);
+  return dist(randomEngine());
 }
 
 static
@@ -812,7 +810,17 @@ float
 random_in_range(float rMin, float rMax)
 {
   std::uniform_real_distribution<float> dist(rMin,rMax);
-  return dist(mt);
+  return dist(randomEngine());
+}
+
+/**
+ * gives a random value in [minV; maxV[
+ */
+static int
+P_bounded_rand(int minV, int maxV)
+{
+  assert(minV < maxV);
+  return random_in_range(minV, maxV - 1);
 }
 
 static
