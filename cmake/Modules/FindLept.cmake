@@ -20,15 +20,19 @@ find_path(Lept_INCLUDE_DIR
   PATHS ${Lept_PKGCONF_INCLUDE_DIRS}
   /usr/include/
   /usr/local/include
+  /opt/homebrew/include
   )
 
 # Library
+#B: since 1.83, the library is named leptonica, not lept (Homebrew, and the
+# distributions that ship a recent leptonica): it was not found
 find_library(Lept_LIBRARY
-  NAMES lept
+  NAMES leptonica lept
   PATHS ${Lept_PKGCONF_LIBRARY_DIRS}
   /usr/lib64
   /usr/lib
   /usr/local/lib
+  /opt/homebrew/lib
   )
 
 INCLUDE(FindPackageHandleStandardArgs)

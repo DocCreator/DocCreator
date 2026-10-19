@@ -17,11 +17,13 @@ IF (NOT WIN32)
 ENDIF (NOT WIN32)
 
 # Include dir
+#B: Homebrew (/opt/homebrew on Apple silicon) was not searched
 find_path(Tesseract_INCLUDE_DIR
   NAMES tesseract/baseapi.h
   PATHS ${Tesseract_PKGCONF_INCLUDE_DIRS}
   /usr/include/
   /usr/local/include
+  /opt/homebrew/include
   )
 
 # Library
@@ -31,15 +33,28 @@ find_library(Tesseract_LIBRARY
   /usr/lib64
   /usr/lib
   /usr/local/lib
+  /opt/homebrew/lib
   )
 
 #tessdata
+#B: the models of tesseract 5 (Ubuntu 24.04: tesseract-ocr/5/tessdata), and
+# of Homebrew (share/tessdata), were not found: tesseract was then built
+# from sources at each configuration. The share directory of the prefix
+# pkg-config gives is searched too.
+SET(_tessdata_prefixes "")
+FOREACH(_prefix ${Tesseract_PKGCONF_PREFIX} /usr /usr/local /opt/homebrew)
+  LIST(APPEND _tessdata_prefixes
+    ${_prefix}/share
+    ${_prefix}/share/tesseract
+    ${_prefix}/share/tesseract-ocr
+    ${_prefix}/share/tesseract-ocr/5
+    ${_prefix}/share/tesseract-ocr/4.00)
+ENDFOREACH()
 find_path(Tesseract_TESSDATA_PARENT_DIR
   NAMES tessdata/eng.traineddata
   PATHS ${Tesseract_PKGCONF_DATAROOTDIR}
-  /usr/share/tesseract
-  /usr/share/tesseract-ocr
-  /usr/share/tesseract-ocr/4.00
+  ${_tessdata_prefixes}
+  NO_DEFAULT_PATH
   )
 
 INCLUDE(FindPackageHandleStandardArgs)
