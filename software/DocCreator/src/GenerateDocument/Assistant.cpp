@@ -6110,7 +6110,7 @@ Shadow_getXML(const QString &filename,
               float angle)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
   xml += QLatin1String("\t<DegradationName>Shadow</DegradationName>\n");
   xml += QLatin1String("\t<Parameters>\n");
   xml += "\t\t<DistanceRatio>" + QString::number(distanceRatio) +
@@ -6230,11 +6230,11 @@ Hole_getXML(const QString &filename,
             int posX, int posY, int size, HoleType type, int side, QColor color)
 {
   QString xml = "<Degradation>\n";
-  xml += "\t<PictureName>" + filename +  "</PictureName>\n";
+  xml += "\t<PictureName>" + filename.toHtmlEscaped() +  "</PictureName>\n";
   xml += "\t<DegradationName>Hole</DegradationName>\n";
   xml += "\t\t<Number>"+ QString::number(1) +"</Number>\n";
   xml += "\t<Parameters>\n";
-  xml += "\t\t<Hole>" + patternFilename + "</Hole>\n";
+  xml += "\t\t<Hole>" + patternFilename.toHtmlEscaped() + "</Hole>\n";
   xml += "\t\t<HoleType>" + QString::number(static_cast<int>(type)) + "</HoleType>\n";
   xml += "\t\t<Side>" + QString::number(side) + "</Position>\n";
   xml += "\t\t<X>" + QString::number(posX) + "</X>\n";
@@ -6250,7 +6250,7 @@ static QString
 Hole_getXML(const QString &filename, std::vector<HoleData> &holes)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
   xml += QLatin1String("\t<DegradationName>Hole</DegradationName>\n");
   const unsigned int nbHole = holes.size();
   xml += "\t\t<Number>" + QString::number(nbHole) + "</Number>\n";
@@ -6262,7 +6262,7 @@ Hole_getXML(const QString &filename, std::vector<HoleData> &holes)
       QString::number(static_cast<int>(holes[i].type));
     const QString holeSideStr = QString::number(static_cast<int>(holes[i].side));
 
-    xml += "\t\t<Hole>" + patternFilename + "</Hole>\n";
+    xml += "\t\t<Hole>" + patternFilename.toHtmlEscaped() + "</Hole>\n";
     xml += "\t\t<Size>" + QString::number(holes[i].size) + "</Size>\n";
     xml += "\t\t<HoleType>" + holeTypeStr + "</HoleType>\n";
     xml += "\t\t<Side>" + holeSideStr + "</Side>\n";
@@ -6465,11 +6465,11 @@ Assistant::do_bleed(const GenerationParameters &p,
     writeImage(imageBleed, outputImageDir + filename);
 
     QString xml = QStringLiteral("<Degradation>\n");
-    xml += "\t<PictureName>" + filename + "</PictureName>\n";
+    xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
     xml +=
       QLatin1String("\t<DegradationName>Bleed-Through</DegradationName>\n");
     xml += QLatin1String("\t<Parameters>\n");
-    xml += "\t\t<Verso>" + versoPath + "</Verso>\n";
+    xml += "\t\t<Verso>" + versoPath.toHtmlEscaped() + "</Verso>\n";
     xml +=
       "\t\t<BleedIntensity>" + QString::number(nbOcc) + "</BleedIntensity>\n";
     xml += QLatin1String("\t</Parameters>\n");
@@ -6506,7 +6506,7 @@ Assistant::do_charDeg(const GenerationParameters &p,
     writeImage(imgCharTmp, outputImageDir + filename);
 
     QString xml = QStringLiteral("<Degradation>\n");
-    xml += "\t<PictureName>" + filename + "</PictureName>\n";
+    xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
     xml += "\t<DegradationName>Characters Degradation</DegradationName>\n";
     xml += QLatin1String("\t<Parameters>\n");
     xml += "\t\t<DegradationIntensity>" + QString::number(level) +
@@ -6556,12 +6556,12 @@ Assistant::do_GDD(const GenerationParameters &p,
     writeImage(imgOut, outputImageDir + filename);
 
     QString xml = QStringLiteral("<Degradation>\n");
-    xml += "\t<PictureName>" + filename + "</PictureName>\n";
+    xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
     xml +=
       "\t<DegradationName>Gradient Domain Degradation</DegradationName>\n";
     xml += QLatin1String("\t<Parameters>\n");
     xml +=
-      "\t\t<StainImagesPath>" + stainImagesPath + "</StainImagePath>\n";
+      "\t\t<StainImagesPath>" + stainImagesPath.toHtmlEscaped() + "</StainImagesPath>\n"; //B: was </StainImagePath>
     xml +=
       "\t\t<NumStains>" + QString::number(numStains) + "</NumStains>\n";
     xml += "\t\t<InsertType>" +
@@ -6586,7 +6586,7 @@ Rotation_makePrefixXml(const QString &imageFilename,
 		       float angle)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<PictureName>" + imageFilename.toHtmlEscaped() + "</PictureName>\n";
   xml += "\t<DegradationName>Rotation</DegradationName>\n";
   xml += QLatin1String("\t<Parameters>\n");
   xml += "\t\t<Angle>" + QString::number(angle) + "</Angle>\n";
@@ -6638,7 +6638,7 @@ Rotation_saveFillImageXml(const QString &outputXmlFilename,
 			  const QString &backgroundImgPath)
 {
   QString xml = Rotation_makePrefixXml(imageFilename, "Image", angle);  
-  xml += "\t\t<Background>" + backgroundImgPath + "</Background>\n";
+  xml += "\t\t<Background>" + backgroundImgPath.toHtmlEscaped() + "</Background>\n";
   xml += Rotation_makeSuffixeXml();
   return saveXml(xml, outputXmlFilename);
 }
@@ -6844,7 +6844,7 @@ Noise_makePrefixXml(const QString &imageFilename,
 		    const QString &noiseMethod)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<PictureName>" + imageFilename.toHtmlEscaped() + "</PictureName>\n";
   xml += "\t<DegradationName>Noise</DegradationName>\n";
   xml += QLatin1String("\t<Parameters>\n");
   xml += "\t\t<Type>" + noiseMethod + "</Type>\n";
@@ -7070,7 +7070,7 @@ Phantom_applyAndSave(const QImage &recto,
     return false;
 
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
   xml += "\t<DegradationName>Phantom Characters</DegradationName>\n";
   xml += QLatin1String("\t<Parameters>\n");
   xml += "\t\t<OccurenceProbability>" + occurenceProbabilityStr + "</OccurenceProbability>\n";
@@ -7181,7 +7181,7 @@ Blur_getXML_area(const QString &filename,
                  int kernelSize)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
   xml += QLatin1String("\t<DegradationName>BlurZone</DegradationName>\n");
   xml += QLatin1String("\t<Parameters>\n");
   xml += "\t\t<Function>" + Blur_getFunctionStr(function) + "</Function>\n";
@@ -7203,7 +7203,7 @@ Blur_getXML_page(const QString &filename,
                  int kernelSize)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + filename + "</PictureName>\n";
+  xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
   xml +=
     QLatin1String("\t<DegradationName>BlurComplete</DegradationName>\n");
   xml += QLatin1String("\t<Parameters>\n");
@@ -7513,7 +7513,7 @@ ElasticDeformation_makePrefixXml(const QString &imageFilename,
 				 const QString &method)
 {
   QString xml = QStringLiteral("<Degradation>\n");
-  xml += "\t<PictureName>" + imageFilename + "</PictureName>\n";
+  xml += "\t<PictureName>" + imageFilename.toHtmlEscaped() + "</PictureName>\n";
   xml += "\t<DegradationName>ElasticDeformation</DegradationName>\n";
   xml += QLatin1String("\t<Parameters>\n");
   xml += "\t\t<Type>" + method + "</Type>\n";
@@ -7677,13 +7677,13 @@ Assistant::do_3D(const GenerationParameters &p,
       writeImage(img, outputImageDir + filename);
 
       QString xml = QStringLiteral("<Degradation>\n");
-      xml += "\t<PictureName>" + filename + "</PictureName>\n";
+      xml += "\t<PictureName>" + filename.toHtmlEscaped() + "</PictureName>\n";
       xml +=
 	QLatin1String("\t<DegradationName>Distortion 3D</DegradationName>\n");
       xml += QLatin1String("\t<Parameters>\n");
-      xml += "\t\t<Mesh>" + fiMesh.fileName() + "</Mesh>\n";
+      xml += "\t\t<Mesh>" + fiMesh.fileName().toHtmlEscaped() + "</Mesh>\n";
       if (useBackground) {
-	xml += "\t\t<Background>" + QFileInfo(backgroundFilename).fileName() +
+	xml += "\t\t<Background>" + QFileInfo(backgroundFilename).fileName().toHtmlEscaped() +
 	  "</Background>\n";
       }
       //TODO: save other parameters ???
