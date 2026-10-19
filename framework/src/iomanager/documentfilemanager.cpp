@@ -133,7 +133,7 @@ DocumentFileManager::documentToTxt(Doc::Document *document,
     return false;
   DocumentSaverDirector director(&saver);
   director.constructDocumentOutput();
-  return true;
+  return saver.finish();
 }
 
 } //namespace IOManager

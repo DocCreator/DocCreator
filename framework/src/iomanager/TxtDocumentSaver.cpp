@@ -4,6 +4,11 @@
 #include <QFile>
 #include <QList>
 #include <QTextStream>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QTextCodec>
+#else
+#include <QStringConverter>
+#endif
 
 namespace IOManager {
 
@@ -23,6 +28,29 @@ TxtDocumentSaver::TxtDocumentSaver(Doc::Document *doc,
     qWarning() << "TxtDocumentSaver: unable to write" << filename << ':'
 	       << _file.errorString();
   }
+  //B: no encoding was set: with Qt 5, that of the locale, an ANSI code page
+  // on Windows, and the characters it does not have were written as '?'
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  _writer.setCodec(QTextCodec::codecForName("utf8"));
+#else
+  _writer.setEncoding(QStringConverter::Utf8);
+#endif
+}
+
+bool
+TxtDocumentSaver::finish()
+{
+  //B: nothing checked that the text was written: documentToTxt() said yes
+  // as soon as the file was opened (a full disk, a quota)
+  _writer.flush();
+  const bool writeOk = (_writer.status() == QTextStream::Ok);
+  _file.close();
+  if (! writeOk || _file.error() != QFile::NoError) {
+    qWarning() << "TxtDocumentSaver: writing" << _file.fileName() << "failed:"
+	       << _file.errorString();
+    return false;
+  }
+  return true;
 }
 
 void
@@ -88,6 +116,14 @@ void
 TxtDocumentSaver::buildParagraph(Doc::DocParagraph *p, int id)
 //    void TxtDocumentSaver::buildParagraph(DocParagraph *p)
 {
+  //B: the end of each paragraph was not written, and nothing else was:
+  // the paragraphs of the document were glued together. They are now
+  // separated by a line break.
+  if (_paragraphWritten) {
+    _writer << '\n';
+  }
+  _paragraphWritten = true;
+
   QList<Doc::DocString *> strings = p->getStrings();
   strings
     .pop_back(); //On ne sauvegarde pas le caractre de retour de ligne ("\n")

@@ -31,6 +31,12 @@ namespace IOManager
     */
     bool isOpen() const { return _file.isOpen(); }
 
+    /*
+      Write what is left and close the file.
+      @return whether everything was written.
+    */
+    bool finish();
+
     void createNewDocumentOutput() override;
 
     void buildStartDocument() override;
@@ -51,6 +57,8 @@ namespace IOManager
   protected:
     QFile _file;
     QTextStream _writer;
+    //whether a paragraph was written, to separate the next one
+    bool _paragraphWritten = false;
 
   };
 }

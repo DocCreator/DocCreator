@@ -474,9 +474,8 @@ TEST_CASE( "Testing the text export of a document" )
 
   SECTION("every paragraph and every block")
   {
-    //the end of a paragraph is not written, cf TxtDocumentSaver::
-    //buildParagraph(): whether paragraphs are separated is not checked
-    //here, only that nothing is lost or reordered
+    //the paragraphs were glued together: they are on lines of their own,
+    //across the blocks too
     document.add(paragraphOf(document, style, QStringLiteral("first")));
     document.add(paragraphOf(document, style, QStringLiteral("second")));
     auto *block = new Doc::DocTextBlock(&document);
@@ -484,9 +483,7 @@ TEST_CASE( "Testing the text export of a document" )
     document.currentPage()->add(block);
 
     REQUIRE( manager.documentToTxt(&document, filename) );
-    QString text = readText(filename);
-    text.remove(QLatin1Char('\n'));
-    REQUIRE( text == QStringLiteral("firstsecondthird") );
+    REQUIRE( readText(filename) == QStringLiteral("first\nsecond\nthird") );
   }
 
   QFile::remove(filename);
