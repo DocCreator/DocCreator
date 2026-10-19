@@ -1031,20 +1031,29 @@ OCRDialog::on_deleteButton_clicked()
     return;
 
   // Remove the symbol from the font
+  //B: the row m_currentIndex of tableLetters was removed, but its rows are
+  // the similar symbols, not the font (updateTableLetters() rebuilds it
+  // anyway); and updateView() ran before updateAlphabet(), with the font
+  // indices of m_alphabet stale after the erase: one past the end of
+  // m_font was read, and the wrong letter selected in the alphabet. The
+  // alphabet is now made again first, also when the font gets empty.
   assert(m_currentIndex >= 0 && m_currentIndex < (int)m_font.size());
-  ui->tableLetters->removeRow(m_currentIndex);
   m_font.erase(m_font.begin() + m_currentIndex);
 
   const int fontSize = static_cast<int>(m_font.size());
   if (m_currentIndex >= fontSize)
     m_currentIndex = 0;
-  if (fontSize == 0)
+  if (fontSize == 0) {
+    m_similarList.clear();
+    ui->tableLetters->setRowCount(0);
+    updateAlphabet();
     return;
+  }
 
   m_currentLetter = m_font[m_currentIndex];
 
-  updateView();
   updateAlphabet();
+  updateView();
 }
 
 void
