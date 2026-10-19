@@ -9,6 +9,8 @@
 #
 # The result will be a file called <volname>-<vers>.dmg
 
+set -eu
+
 NAME=$1
 VERSION=$2
 SRC_DIR=$3
@@ -33,9 +35,8 @@ echo '
            set theViewOptions to the icon view options of container window
            set arrangement of theViewOptions to not arranged
            set icon size of theViewOptions to 72
-           set background picture of theViewOptions to file ".background:background.png"
            make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
-           set position of item "'${DMG}'" of container window to {100, 100}
+           set position of item "'${DMG}'.app" of container window to {100, 100}
            set position of item "Applications" of container window to {375, 100}
            update without registering applications
            delay 5

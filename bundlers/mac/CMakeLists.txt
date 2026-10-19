@@ -15,13 +15,14 @@ IF(APPLE)
 	)
   endif()	
 
-  #CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/bundlers/mac/mac_bundle.sh.in" "${CMAKE_SOURCE_DIR}/bundlers/mac/mac_bundle.sh" @ONLY) 
-
-  #In order to set the executable bit on produced file,		    
-  #we first write a temporary file then change its rights when we copy it to the final destination
-  CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/bundlers/mac/mac_bundle.sh.in" "${CMAKE_BINARY_DIR}/bundlers/mac/mac_bundle.sh" @ONLY) 
-  FILE(COPY "${CMAKE_BINARY_DIR}/bundlers/mac/mac_bundle.sh" DESTINATION "${CMAKE_SOURCE_DIR}/bundlers/mac" 
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ) 
+  #B: the script was also copied into the source tree, which fails when it
+  # is read-only: it is made in the build tree only, executable.
+  CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/mac_bundle.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/mac_bundle.sh.tmp" @ONLY)
+  FILE(COPY "${CMAKE_CURRENT_BINARY_DIR}/mac_bundle.sh.tmp" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/exec"
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+  FILE(RENAME "${CMAKE_CURRENT_BINARY_DIR}/exec/mac_bundle.sh.tmp" "${CMAKE_CURRENT_BINARY_DIR}/mac_bundle.sh")
+  #B: the versions of Info.plist were 0.01 and 0.1: those of the project
+  CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in" "${CMAKE_CURRENT_BINARY_DIR}/Info.plist" @ONLY)
 ENDIF(APPLE)
 
 

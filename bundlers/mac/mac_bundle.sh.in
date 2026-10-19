@@ -1,15 +1,18 @@
-
+#!/bin/sh
+#B: without -e, a failed step went unnoticed, and the continuous integration
+# could pass without a dmg; -u catches a variable misspelt (DEST_DIR).
+set -eu
 
 APP_NAME=DocCreator
 APP_VERSION=@DocCreatorVersion@
 APP_ICON=@CMAKE_SOURCE_DIR@/software/DocCreator/adoc.icns
 APP_LICENSE=@CMAKE_SOURCE_DIR@/software/DocCreator/license.txt
-APP_INFO=@CMAKE_SOURCE_DIR@/bundlers/mac/Info.plist
+APP_INFO=@CMAKE_BINARY_DIR@/bundlers/mac/Info.plist
 MAKE_DMG_SCRIPT=@CMAKE_SOURCE_DIR@/bundlers/mac/make_dmg.sh
 
 INSTALL_PREFIX_DIR=@CMAKE_INSTALL_PREFIX@
 
-DST_DIR=$1
+DST_DIR=${1:-}
 if [ "${DST_DIR}" = "" ] ; then
     DST_DIR=@CMAKE_INSTALL_PREFIX@/Bundle
 fi
@@ -27,7 +30,7 @@ fi
 
 mkdir -p ${DST_DIR}
 if [ ! -d ${DST_DIR} ] ; then
-    echo "ERROR: the destination directory does not exist: ${DEST_DIR}"
+    echo "ERROR: the destination directory does not exist: ${DST_DIR}"
     exit 1
 fi
 rm -rf "${DST_DIR}/application" 2>/dev/null
@@ -38,12 +41,18 @@ mkdir -p "${DST_DIR}/application/DocCreator.app/Contents/Resources"
 mkdir -p "${DST_DIR}/application/DocCreator.app/Contents/Frameworks" 
 cp ${APP_ICON} "${DST_DIR}/application/DocCreator.app/Contents/Resources/DocCreator.icns" 
 
-cp ${INSTALL_PREFIX_DIR}/lib/*.dylib "${DST_DIR}/application/DocCreator.app/Contents/Frameworks/"
-cp -r ${INSTALL_PREFIX_DIR}/lib/*.framework "${DST_DIR}/application/DocCreator.app/Contents/Frameworks/"
+#the libraries installed with DocCreator, if any (macdeployqt adds the others)
+for lib in "${INSTALL_PREFIX_DIR}"/lib/*.dylib "${INSTALL_PREFIX_DIR}"/lib/*.framework ; do
+    [ -e "${lib}" ] || continue
+    cp -R "${lib}" "${DST_DIR}/application/DocCreator.app/Contents/Frameworks/"
+done
 
 cp ${APP_LICENSE} "${DST_DIR}/application/"
 
-cp -r ${INSTALL_PREFIX_DIR}/share/DocCreator/tessdata "${DST_DIR}/application/DocCreator.app/Contents/Resources/"
+#tessdata is installed when tesseract is built from sources
+if [ -d "${INSTALL_PREFIX_DIR}/share/DocCreator/tessdata" ] ; then
+    cp -r "${INSTALL_PREFIX_DIR}/share/DocCreator/tessdata" "${DST_DIR}/application/DocCreator.app/Contents/Resources/"
+fi
 cp -r ${INSTALL_PREFIX_DIR}/share/DocCreator/data "${DST_DIR}/application/DocCreator.app/Contents/Resources/"
 
 cp ${INSTALL_PREFIX_DIR}/bin/DocCreator "${DST_DIR}/application/DocCreator.app/Contents/MacOS/"
