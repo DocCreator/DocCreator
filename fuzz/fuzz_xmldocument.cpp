@@ -4,19 +4,24 @@
   XMLDocumentLoader takes the whole document as a QString and builds a
   Doc::Document from it: every size, coordinate and count in the model
   comes from those bytes, and the sizes end up in the allocations of the
-  generation path.
+  generation path. A document that loads is saved back to XML: the saver
+  walks what the loader built, and assumed things the loader does not
+  check (a string with characters, for example).
 
   Cf fuzz/README.txt for how to build and run this.
 */
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 #include <QCoreApplication>
 #include <QString>
 
 #include "iomanager/documentloaderdirector.h"
+#include "iomanager/documentsaverdirector.h"
 #include "iomanager/xmldocumentloader.h"
+#include "iomanager/xmldocumentsaver.h"
 #include "models/doc/document.h"
 
 namespace {
@@ -50,7 +55,15 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   IOManager::DocumentLoaderDirector director(&loader);
   director.constructDocument();
 
-  delete director.getDocument();
+  //B: getDocument() gives a std::unique_ptr: this was delete of it, which
+  // does not compile
+  const std::unique_ptr<Doc::Document> document = director.getDocument();
+  if (document != nullptr) {
+    IOManager::XMLDocumentSaver saver(document.get());
+    IOManager::DocumentSaverDirector saverDirector(&saver);
+    saverDirector.constructDocumentOutput();
+    (void)saverDirector.getDocumentOutput();
+  }
 
   return 0;
 }
