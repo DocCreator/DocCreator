@@ -48,7 +48,10 @@ namespace {
       return codec->toUnicode(bytes);
     }
 #else
-    QStringDecoder decoder(encoding);
+    //the name as a const char *: QStringDecoder has no constructor taking
+    // a QString before Qt 6.5 (Ubuntu 24.04 has Qt 6.4)
+    const QByteArray encodingName = encoding.toLatin1();
+    QStringDecoder decoder(encodingName.constData());
     if (decoder.isValid()) {
       return decoder.decode(bytes);
     }
