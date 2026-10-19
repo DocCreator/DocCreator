@@ -21,11 +21,11 @@ The program has the following dependencies :
 * **Tesseract** [optional] If Tesseract is not found on the system, it will be compiled from (provided) sources. 
 However, you will need to have network access during the configuration step to download tessdata, tesseract languages data.
 * **OSMesa** [optional] for OpenGL offscreen rendering for the 3D distortion model.
-* **CMake** is used for compilation configuration.
+* **CMake** (3.18 or later) is used for compilation configuration. Qt 6 asks for a more recent one (3.25 for Qt 6.12), and says so.
 * **Ninja** [optional]. On Windows in particular, it may be convenient to install ninja to build all from the command line. 
 * **git** (1.6.5 or later) [for tesseract download from CMake]
-* ***C++ compiler*** This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 (with Visual Studio 2017).
-It has been tested on Fedora (19->32), Ubuntu (14.04->20.04), Mac OS (10.9->10.15, and 27 on Apple silicon), Windows 10.
+* ***C++ compiler*** with C++17. This program should compile on linux (with gcc & clang), Mac OS (with clang) and Microsoft Windows 10 or 11 (with Visual Studio 2019, 2022 or 2026: Qt 6 needs 2019 or later).
+It has been tested on Fedora (19->32), Ubuntu (14.04->24.04), Mac OS (10.9->10.15, and 27 on Apple silicon), Windows 10 and 11.
 
 
 ### Linux
@@ -38,6 +38,8 @@ You may also have to set Qt5 as default with:
 `sudo apt-get install qt5-default`  
 On Ubuntu (22.04 and above), you can install the required binary packages with the following command:  
 `sudo apt-get install libopencv-dev qt6-base-dev qt6-declarative-dev cmake g++ git`  
+and, to use the tesseract of the distribution instead of building it:  
+`sudo apt-get install libtesseract-dev libleptonica-dev tesseract-ocr-eng tesseract-ocr-fra`    
 
 
 On Fedora (21 or 22), you can install the required binary packages with the following command as root:  
@@ -48,16 +50,8 @@ or for Qt6:
 `sudo dnf install opencv-devel qt6-qtbase-devel cmake gcc-c++`  
 
 
-To compile with clang on linux:
-- you need to have libc++  
-  On Ubuntu, you can install libc++ with the following command:  
-  `sudo apt-get install libc++-dev libc++abi-dev`  
-  Warning: on Ubuntu 16.04, you may have to edit /usr/include/c++/v1/string
-  cf https://stackoverflow.com/questions/37096062/get-a-basic-c-program-to-compile-using-clang-on-ubuntu-16/38385967#38385967
-  On Fedora, you can use the following command:  
-  `dnf install libcxx`  
-- you need to have OpenCV 3.1 or above.
-  See below how to build OpenCV from sources.
+To compile with clang on linux, pass `-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++` to cmake.
+Clang uses the standard library of gcc (libstdc++) by default, as the libraries of the distribution do: libc++ is not needed (and tesseract, when it is built from sources, is built with the same standard library as DocCreator).
 
 ### CMake
 
@@ -127,7 +121,7 @@ On linux, it is recommanded to use packages provided by the distribution. See ab
 On Mac and Windows, the open source version of Qt may be installed with the Qt Download Installer, downloaded from
 https://www.qt.io/download  
 On Windows, you will have to choose the version to install according to the compiler that you use and the target architecture. 
-For example, "MSVC 2017 64-bit" if you use Microsoft Visual Studio 2017 on a 64-bit processor.
+For example, "MSVC 2022 64-bit" if you use Microsoft Visual Studio 2022 (or 2026) on a 64-bit processor.
 
 
 ### OpenCV from sources
@@ -150,26 +144,26 @@ However, you can also build it with Visual Studio IDE or from the command line w
 
 CMake can generate a .sln solution file to open with Visual Studio.
 
-First, open a "Developer Command Prompt" ("Developer Command Prompt for VS 2017" for VS17 for example).  
+First, open a "Developer Command Prompt" ("Developer Command Prompt for VS 2022" for example).  
 `cd <OpenCV_SOURCES_DIRECTORY>`  
 `mkdir build`  
 `cd build`  
 
-For Visual Studio 2017 x64, you can use the following command to generate a .sln file:
+For Visual Studio 2022 x64, you can use the following command to generate a .sln file:
 ```
-cmake <PATH_TO_CMakeLists.txt> -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX=<INSTALL_PREFIX> -DBUILD_opencv_highgui=ON -DENABLE_FAST_MATH=ON -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CUDA=OFF -DWITH_CUFFT=OFF -DWITH_FFMPEG=OFF -DWITH_GIGEAPI=OFF -DWITH_JASPER=OFF -DWITH_LIBV4L=OFF  -DWITH_MATLAB=OFF -DWITH_OPENCL=OFF -DWITH_OPENCLAMDBLAS=OFF -DWITH_OPENCLAMDFFT=OFF -DWITH_OPENEXR=OFF -DWITH_PVAPI=OFF -DWITH_V4L=OFF -DWITH_VTK=OFF -DWITH_WEBP=OFF -DWITH_1394=OFF -DBUILD_opencv_apps=OFF -DBUILD_opencv_calib3d=OFF -DBUILD_opencv_dnn=OFF -DBUILD_opencv_features2d=OFF -DBUILD_opencv_flann=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_shape=OFF -DBUILD_opencv_stitching=OFF -DBUILD_opencv_superres=OFF -DBUILD_opencv_ts=OFF -DBUILD_opencv_video=OFF -DBUILD_opencv_videoio=ON -DBUILD_opencv_videostab=OFF -DBUILD_opencv_world=OFF -DBUILD_opencv_highgui=ON -DPYTHON2_EXECUTABLE="" -DPYTHON3_EXECUTABLE="" -DBUILD_opencv_python2=OFF -DBUILD_opencv_python3=OFF -DWITH_QUICKTIME=OFF -DHAVE_QTKIT=FALSE
+cmake <PATH_TO_CMakeLists.txt> -G "Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=<INSTALL_PREFIX> -DBUILD_opencv_highgui=ON -DENABLE_FAST_MATH=ON -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CUDA=OFF -DWITH_CUFFT=OFF -DWITH_FFMPEG=OFF -DWITH_GIGEAPI=OFF -DWITH_JASPER=OFF -DWITH_LIBV4L=OFF  -DWITH_MATLAB=OFF -DWITH_OPENCL=OFF -DWITH_OPENCLAMDBLAS=OFF -DWITH_OPENCLAMDFFT=OFF -DWITH_OPENEXR=OFF -DWITH_PVAPI=OFF -DWITH_V4L=OFF -DWITH_VTK=OFF -DWITH_WEBP=OFF -DWITH_1394=OFF -DBUILD_opencv_apps=OFF -DBUILD_opencv_calib3d=OFF -DBUILD_opencv_dnn=OFF -DBUILD_opencv_features2d=OFF -DBUILD_opencv_flann=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_shape=OFF -DBUILD_opencv_stitching=OFF -DBUILD_opencv_superres=OFF -DBUILD_opencv_ts=OFF -DBUILD_opencv_video=OFF -DBUILD_opencv_videoio=ON -DBUILD_opencv_videostab=OFF -DBUILD_opencv_world=OFF -DBUILD_opencv_highgui=ON -DPYTHON2_EXECUTABLE="" -DPYTHON3_EXECUTABLE="" -DBUILD_opencv_python2=OFF -DBUILD_opencv_python3=OFF -DWITH_QUICKTIME=OFF -DHAVE_QTKIT=FALSE
 ```
 Then open the .sln file with Visual Studio,
 check that you have "Release" and "x64" for the "Solution configurations" and "Solution platforms" (comboboxes in the toolbar),
 then go to the menu "Build" and do "Build solution".  
 To install OpenCV in the target directory (<INSTALL_PREFIX>), in the "Solution explorer" (on the right), right click on "INSTALL" in CMakeTargets and choose "Build".
-It will install OpenCV in <INSTALL_PREFIX>, and in particular .lib files and OpenCVConfig.cmake should be in <INSTALL_PREFIX>/x64/vc15/lib and .dll files should be in <INSTALL_PREFIX>/x64/vc15/bin.
+It will install OpenCV in <INSTALL_PREFIX>, and in particular .lib files and OpenCVConfig.cmake should be in <INSTALL_PREFIX>/x64/vc17/lib and .dll files should be in <INSTALL_PREFIX>/x64/vc17/bin.
 
   ##### With ninja
 
 CMake can generate a ninja build. The whole compilation is done from the command line.
 
-First, open a "Native Tools Command Prompt" ("x64 Native Tools Command Prompt for VS 2017" for VS17 on x86-64 for example).  
+First, open a "Native Tools Command Prompt" ("x64 Native Tools Command Prompt for VS 2022" on x86-64 for example).  
 `cd <OpenCV_SOURCES_DIRECTORY>`  
 `mkdir build`  
 `cd build`  
@@ -219,7 +213,7 @@ The script asks Finder to lay out the window of the dmg: macOS may ask you to al
 ### Windows 
 
 On Windows, with Visual Studio:  
-First, open a "Developer Command Prompt" ("Developer Command Prompt for VS 2017" for VS17 for example).
+First, open a "Developer Command Prompt" ("Developer Command Prompt for VS 2022" for example).
 (you can check that OPENCV_DIR is correctly set by doing: `echo %OPENCV_DIR%`)
 go to the source directory,  
 `cd <DocCreatorDirectory>`  
@@ -230,11 +224,7 @@ go to the source directory,
 
 CMake can generate a .sln solution file to open with Visual Studio.
  
-For Visual Studio 2017: 
-```
-cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
-```
-or for Visual Studio 2019 (with CMake 3.14.6 or above, in "Developer Command Prompt for VS 2019"):
+For Visual Studio 2019 (in "Developer Command Prompt for VS 2019"):
 ```
 cmake .. -G "Visual Studio 16 2019" -A "x64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
 ```
@@ -242,7 +232,12 @@ or for Visual Studio 2022 (with CMake 3.21 or above, in "Developer Command Promp
 ```
 cmake .. -G "Visual Studio 17 2022" -A "x64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
 ```
-<QT_PATH> is the path to installed Qt configuration for this compiler. <QT_PATH> is for example `C:/Qt/5.12.4/msvc2017_64`.
+or for Visual Studio 2026 (with CMake 4.2 or above):
+```
+cmake .. -G "Visual Studio 18 2026" -A "x64" -DCMAKE_PREFIX_PATH=<QT_PATH> -DCMAKE_INSTALL_PREFIX=<MyInstallationPrefix>
+```
+<QT_PATH> is the path to installed Qt configuration for this compiler. <QT_PATH> is for example `C:/Qt/6.8.3/msvc2022_64`.
+The Debug configuration builds and links the Debug libraries of tesseract when it is built from sources.
 You can also pass other options to cmake. See below.  
 
 Then you can open the generated .sln file with Visual Studio.
@@ -263,8 +258,19 @@ then build with:
 then install with:  
 `ninja install`  
 
+The installation also copies the DLLs of Qt (with windeployqt) and of OpenCV next to the program, in the installation prefix it is given (`cmake --install build --prefix <prefix>` works too).
+
 You can then launch the executable:  
 `<MyInstallationPrefix>/programs/DocCreator.exe`  
+and check that the installation is complete (data, fonts, image formats, tesseract models) with:  
+`<MyInstallationPrefix>/programs/DocCreator.exe --self-test > selftest.txt`  
+which writes a report and exits with 0 when everything is there (the output has to be redirected on Windows, where the program has no console).
+
+### Windows installer
+
+With [NSIS](https://nsis.sourceforge.io) and after `ninja install`, the installer is made with:  
+`makensis build\bundlers\win\DocCreator.nsi`  
+It writes `DocCreator-<version>_setup.exe` in `build\bundlers\win`. When DocCreator is already installed, the installer asks whether to replace the installed version(s) (upgrade, the default) or to install side by side; each version then has its own folder, shortcuts and entry in "Apps & features". Silently (`/S`), it upgrades, unless `/SIDEBYSIDE` is given.  
 
 ### CMake options 
 
@@ -330,6 +336,26 @@ When configuring DocCreator with cmake, you can pass the option -DBUILD_OTHER_PR
 #### -DBUILD_TESTING=ON
 
 When configuring DocCreator with cmake, you can pass the option -DBUILD_TESTING=ON to cmake. It will be build degradations unit tests.
+
+#### -DBUILD_PYTHON_WRAPPER=ON
+
+Builds the python module of the degradation library, and its wheel (cf wrapper/python/README.md, and wrapper/python/BUILD.txt for the manylinux wheels). It needs python 3 with numpy, build, setuptools and wheel; pass `-DPython_EXECUTABLE=<python>` to choose the interpreter.
+
+#### -DDOCCREATOR_QT_VERSION=5 or 6
+
+By default, Qt 6 is used when it is found (and then all of its modules must be there), and Qt 5 otherwise. 5 or 6 chooses the version.
+
+#### -DBUILD_TESSERACT=ON
+
+Builds leptonica and tesseract from their sources (cloned at the configuration), even when they are installed. They are built from sources anyway when they are not found, with the tesseract models downloaded in thirdparty/tessdata.
+
+#### -DSANITIZER=address, undefined, address+undefined, thread or leak
+
+With gcc or clang, builds everything with this sanitiser (cf cmake/sanitizers/README.txt).
+
+#### -DBUILD_FUZZERS=ON
+
+With clang, builds the libFuzzer targets of fuzz/.
 
 #### -DENABLE_COVERAGE=ON
 
@@ -403,27 +429,8 @@ The package is not made with `-DBUILD_WITH_OSMESA=ON`: the 3D distortion then ne
  the problem seems to be that the CURL library shipped with CMake is not build with SSL support.
  You may have to compile CMake from sources enabling using a CURL library with SSL support.
 
-* If you encounter a problem during the make process, it may be related to the C++11 detection
-  edit CMakeLists.txt and add (or remove) the following line before the first "AD_SUBDIRECTORY" line  
-  `SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")`  
-  then restart the construction process:  
-  `rm -rf CMakeCache.txt CMakeFiles`  
-  `cmake ..`  
-  `make`  
+* The project is compiled as C++17 (Qt 6 requires it): the compiler must support it (gcc 8, clang 7, Visual Studio 2019 or later).
 
-* On Windows, with Visual Studio, if you encounter a link problem with tesseract, it may be that you compiled in Debug mode instead of Release mode.
-  Indeed, DocCreator tries to link with tesseract305.lib, but tesseract305d.lib is generated in Debug mode. 
-
-* On Windows, if you encounter a problem when the program is launched, it may be that the various required libraries (dll) are not correctly found.  
-You then may have to copy some files to <MyInstallationPrefix>/programs directory [if they are not present]:
-- from OpenCV <INSTALL_PREFIX>/x64/vc15/bin :  
-  opencv_coreXXX.dll, opencv_highguiXXX.dll, opencv_imgcodecsXXX.dll, opencv_imgprocXXX.dll, opencv_photoXXX.dll, opencv_videoioXXX.dll (XXX has to be replaced by 330 for OpenCV 3.3)
-- from Qt:  
-  - from <QT_PATH>/bin :  
-     Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5OpenGL.dll, qt5PrintSupport.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll,
-	 libEGL.dll, libGLESv2.dll, d3dcompiler_47.dll
-  - from <QT_PATH>/plugins :  
-     *imageformats* directory
-     *platforms* directory
+* On Windows, if the program does not start from the installation directory, run `DocCreator.exe --self-test > selftest.txt` from there: the report says what is missing. The DLLs of Qt and OpenCV are copied by `cmake --install` (windeployqt must be found next to Qt, and OpenCV must be a shared library); a DLL missing from the system itself (the Visual C++ runtime) is installed with the "Microsoft Visual C++ Redistributable".
 
 
